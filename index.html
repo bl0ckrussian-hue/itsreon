@@ -8,18 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Translate Script (자동 다국어 번역 보조 지원) -->
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'ko',
-                includedLanguages: 'en,ja,zh-CN,es,vi',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body {
@@ -56,35 +44,9 @@
         .hero-slide {
             transition: opacity 0.6s ease-in-out;
         }
-        /* 구글 번역 셀렉트박스 커스텀 스타일 */
-        .goog-te-gadget-simple {
-            background-color: #1E293B !important;
-            border: 1px solid #334155 !important;
-            padding: 4px 8px !important;
-            border-radius: 8px !important;
-            font-size: 11px !important;
-            color: #E2E8F0 !important;
-        }
-        .goog-te-gadget-simple span {
-            color: #E2E8F0 !important;
-        }
-        .goog-te-menu-value span {
-            border-left: none !important;
-        }
-        .goog-te-banner-frame {
-            display: none !important;
-        }
-        body {
-            top: 0px !important;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-
-    <!-- Chosen Palette: Slate Dark Navy (#0F172A) header/hero, Soft Light Gray (#F8F9FA) canvas, Deep Blue (#2563EB) accents, and Emerald/Amber indicator badges. -->
-    <!-- Application Structure Plan: Integrated an i18n translation system (Korean/English toggle) in header along with Google Translate element for multi-language support. View switching architecture retained (Page 1: Overview & Intro; Page 2: Core Workspace & DB Conversion Analytics). Clicking language toggle switches all titles, buttons, card texts, and chart labels dynamically between Korean and English without page reload. -->
-    <!-- Visualization & Content Choices: View-switched architecture allows focused exploration. i18n JavaScript dictionary updates chart datasets dynamically upon language change. NO SVG graphics and NO Mermaid JS used. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <!-- 1. 상단 헤더 네비게이션 -->
     <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800">
@@ -94,34 +56,25 @@
                 <div class="flex items-center space-x-3">
                     <button onclick="switchView('intro')" class="font-black text-2xl tracking-tight text-white flex items-center gap-2 focus:outline-none">
                         <span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded font-extrabold tracking-widest">ITS</span>
-                        <span id="logoText">잇츠리온</span>
+                        <span>잇츠리온</span>
                     </button>
                 </div>
 
                 <!-- 네비게이션 메뉴 (페이지 전환 지원) -->
                 <nav class="hidden md:flex space-x-6 text-sm font-semibold text-slate-300">
-                    <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold" data-i18n="nav_intro">1페이지 (잇츠리온 소개)</button>
-                    <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition" data-i18n="nav_workspace">2페이지 (업무 대시보드)</button>
-                    <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white transition text-slate-400" data-i18n="nav_analytics">실적 & DB분석</button>
-                    <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400" data-i18n="nav_whyus">왜 잇츠리온인가?</button>
-                    <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400" data-i18n="nav_contact">문의하기</button>
+                    <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold">1페이지 (잇츠리온 소개)</button>
+                    <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">2페이지 (업무 대시보드)</button>
+                    <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white transition text-slate-400">실적 & DB분석</button>
+                    <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400">왜 잇츠리온인가?</button>
+                    <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
 
-                <!-- 우측 언어 스위처 & 구글번역 & 사용자 프로필 -->
+                <!-- 우측 사용자 프로필 -->
                 <div class="flex items-center space-x-3">
-                    <!-- KO / EN 실시간 번역 토글 버튼 -->
-                    <button onclick="toggleLanguage()" id="langToggleBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-3 py-1.5 rounded-lg border border-blue-400 transition shadow flex items-center gap-1">
-                        <span>🌐</span>
-                        <span id="langLabel">English</span>
-                    </button>
-
-                    <!-- 구글 자동 번역 툴바 (옵션) -->
-                    <div id="google_translate_element" class="hidden sm:block"></div>
-
                     <!-- 프로필 정보 -->
-                    <div class="hidden lg:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
+                    <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="font-bold text-slate-200" data-i18n="user_name">김설계 팀장</span>
+                        <span class="font-bold text-slate-200">김설계 팀장</span>
                         <span class="text-blue-400 font-semibold">(WIZ-2026)</span>
                     </div>
                     <button onclick="openModal('quickUpdateModal')" title="프로필 및 계정 설정" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center border border-slate-700 transition text-slate-300">
@@ -147,20 +100,20 @@
                     
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                         <div class="max-w-2xl">
-                            <span class="inline-block bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4" data-i18n="hero_badge1">
+                            <span class="inline-block bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">
                                 보험 설계사 전용 스마트 영업지원 시스템
                             </span>
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight" data-i18n="hero_title1">
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
                                 차원이 다른 영업 생산성,<br/>잇츠리온 포털 안내
                             </h1>
-                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed" data-i18n="hero_desc1">
-                                DB 관리부터 스케줄 연동, 보장/약관 분석, 알릴의무 자동판정, 개인 실적분석까지 원스톱으로 지원합니다.
+                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">
+                                DB 관리부터 스케줄 연동, 보장/약관 분석, 알릴의무 자동판정, 실비계산기, 개인 실적분석까지 원스톱으로 지원합니다.
                             </p>
                             <div class="mt-8 flex flex-wrap gap-3">
                                 <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                                    <span data-i18n="btn_workspace">🚀 업무화면 바로가기</span>
+                                    <span>🚀 업무화면 바로가기</span>
                                 </button>
-                                <a href="#whyUs" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm transition" data-i18n="btn_whyus">
+                                <a href="#whyUs" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm transition">
                                     왜 잇츠리온인가요?
                                 </a>
                             </div>
@@ -175,17 +128,17 @@
 
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                         <div class="max-w-2xl">
-                            <span class="inline-block bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4" data-i18n="hero_badge2">
+                            <span class="inline-block bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">
                                 올인원 영업 비즈니스 플랫폼
                             </span>
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight" data-i18n="hero_title2">
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
                                 영업 성과를 최상으로 높이는<br/>스마트 워크스페이스
                             </h1>
-                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed" data-i18n="hero_desc2">
+                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">
                                 체계적인 개인 DB 소진율 및 계약 체결 효율성 분석으로 성공적인 영업 활동을 이어가세요.
                             </p>
                             <div class="mt-8 flex flex-wrap gap-3">
-                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5" data-i18n="btn_open_workspace">
+                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5">
                                     업무 대시보드 열기 →
                                 </button>
                             </div>
@@ -199,7 +152,6 @@
                     <button id="dot2" onclick="switchSlide(2)" class="w-3 h-3 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 2"></button>
                 </div>
             </section>
-
 
             <!-- 1-2. 브랜드 상징 Emblem & 업무화면 바로가기 버튼 영역 -->
             <section class="bg-white py-14 border-b border-slate-200">
@@ -215,13 +167,12 @@
 
                     <!-- 업무화면 바로가기 메인 CTA -->
                     <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-10 py-4 rounded-xl shadow-lg hover:shadow-2xl border border-blue-500 text-base transition transform hover:-translate-y-1 tracking-wide flex items-center gap-3">
-                        <span data-i18n="cta_button">⚡ 업무화면 바로가기</span>
-                        <span class="text-xs bg-blue-800 text-blue-200 px-2 py-0.5 rounded-full font-normal" data-i18n="cta_sub">2페이지로 이동</span>
+                        <span>⚡ 업무화면 바로가기</span>
+                        <span class="text-xs bg-blue-800 text-blue-200 px-2 py-0.5 rounded-full font-normal">2페이지로 이동</span>
                     </button>
-                    <p class="text-xs text-slate-500 mt-3" data-i18n="cta_desc">클릭하시면 주요 업무기능 카드 및 개인 실적/DB 체결 효율 분석 화면으로 이동합니다.</p>
+                    <p class="text-xs text-slate-500 mt-3">클릭하시면 주요 업무기능 카드 및 개인 실적/DB 체결 효율 분석 화면으로 이동합니다.</p>
                 </div>
             </section>
-
 
             <!-- 1-3. 하단 왜 잇츠리온인가요? 섹션 -->
             <section id="whyUs" class="bg-slate-50 py-16 border-t border-slate-200">
@@ -229,8 +180,8 @@
                     
                     <div class="text-center max-w-2xl mx-auto mb-12">
                         <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">SYSTEM ADVANTAGE</span>
-                        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3" data-i18n="why_title">왜 잇츠리온인가요?</h2>
-                        <p class="text-slate-500 text-sm mt-2" data-i18n="why_subtitle">보험 설계사 영업 현장에 최적화된 올인원 비즈니스 워크스페이스</p>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">왜 잇츠리온인가요?</h2>
+                        <p class="text-slate-500 text-sm mt-2">보험 설계사 영업 현장에 최적화된 올인원 비즈니스 워크스페이스</p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -242,22 +193,22 @@
                         <!-- Right Text Cards -->
                         <div class="space-y-8">
                             <div>
-                                <h3 class="text-xl font-bold text-slate-900 mb-2" data-i18n="why_f1_title">하나의 플랫폼, 모든 영업 도구</h3>
-                                <p class="text-sm text-slate-600 leading-relaxed" data-i18n="why_f1_desc">
-                                    DB배정부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 계약현황 대시보드까지 — 흩어져 있던 업무 도구를 잇츠리온 하나로 통합하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용할 수 있습니다.
+                                <h3 class="text-xl font-bold text-slate-900 mb-2">하나의 플랫폼, 모든 영업 도구</h3>
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    DB배정부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 계약현황 대시보드까지 — 흩어져 있던 업무 도구를 잇츠리온 하나로 통합하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용할 수 있습니다.
                                 </p>
                             </div>
 
                             <div>
-                                <h3 class="text-xl font-bold text-slate-900 mb-2" data-i18n="why_f2_title">스케줄 연동으로 놓침 없는 고객 관리</h3>
-                                <p class="text-sm text-slate-600 leading-relaxed" data-i18n="why_f2_desc">
+                                <h3 class="text-xl font-bold text-slate-900 mb-2">스케줄 연동으로 놓침 없는 고객 관리</h3>
+                                <p class="text-sm text-slate-600 leading-relaxed">
                                     DB배정 시 네이버 캘린더 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다. 놓치는 고객 없이 체계적으로 케어하세요.
                                 </p>
                             </div>
 
                             <div class="pt-2">
                                 <button onclick="switchView('workspace')" class="bg-slate-900 hover:bg-blue-900 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition shadow flex items-center gap-2">
-                                    <span data-i18n="why_btn">주요 업무도구 및 실적분석 보기</span>
+                                    <span>주요 업무도구 및 실적분석 보기</span>
                                     <span>→</span>
                                 </button>
                             </div>
@@ -268,7 +219,6 @@
             </section>
         </div>
 
-
         <!-- ==================== [페이지 2: 주요 업무 기능 & 실적 분석 (업무 화면)] ==================== -->
         <div id="viewWorkspace" class="hidden transition-all duration-300">
             
@@ -277,91 +227,124 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded" data-i18n="p2_badge">2페이지</span>
-                            <span class="text-xs text-slate-400 font-medium" data-i18n="p2_subtitle">설계사 전용 업무 대시보드</span>
+                            <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded">2페이지</span>
+                            <span class="text-xs text-slate-400 font-medium">설계사 전용 업무 대시보드</span>
                         </div>
-                        <h1 class="text-2xl font-black text-white mt-1" data-i18n="p2_title">김설계 팀장님의 주요 업무 기능 & 실적 분석</h1>
+                        <h1 class="text-2xl font-black text-white mt-1">김설계 팀장님의 주요 업무 기능 & 실적 분석</h1>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition" data-i18n="btn_back_intro">
+                        <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition">
                             ← 1페이지 (잇츠리온 소개)로 돌아가기
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- 2-1. 주요 업무 기능 6대 카드 섹션 -->
+            <!-- 2-1. 주요 업무 기능 9대 카드 섹션 (3행 3열 그리드) -->
             <section id="features" class="bg-slate-900 py-12 text-white border-b border-slate-800">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
                     <div class="mb-8">
                         <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                            <span>🛠️</span> <span data-i18n="tools_title">주요 업무 기능</span>
+                            <span>🛠️</span> <span>주요 업무 기능</span>
                         </h2>
-                        <p class="text-slate-400 text-xs mt-1" data-i18n="tools_desc">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
+                        <p class="text-slate-400 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
 
-                    <!-- 2행 3열 그리드 카드 -->
+                    <!-- 3행 3열 (총 9개) 그리드 카드 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
                         <!-- 카드 1: DB배정 -->
-                        <div onclick="openModal('scheduleModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition transform">📋</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition" data-i18n="card1_title">DB배정 & 스케줄</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed" data-i18n="card1_desc">
+                        <div onclick="openModal('scheduleModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📋</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition">DB배정 & 스케줄</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리
                             </p>
                         </div>
 
                         <!-- 카드 2: 보장분석 -->
-                        <div onclick="openModal('coverageModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-red-500 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition transform">🛡️</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition" data-i18n="card2_title">보장분석</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed" data-i18n="card2_desc">
+                        <div onclick="openModal('coverageModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition">보장분석</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 고객 보장 현황 및<br/>보장 갭 자동 진단
                             </p>
                         </div>
 
                         <!-- 카드 3: 약관분석 -->
-                        <div onclick="openModal('termsCloudModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition transform">📖</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition" data-i18n="card3_title">약관분석 (구글 클라우드)</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed" data-i18n="card3_desc">
+                        <div onclick="openModal('termsCloudModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">약관분석 (구글 클라우드)</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 전 금융사 개정 약관 및<br/>표준약관 즉시 검색
                             </p>
                         </div>
 
                         <!-- 카드 4: 알릴의무분석 -->
-                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-500 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition transform">⚠️</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition" data-i18n="card4_title">알릴의무분석</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed" data-i18n="card4_desc">
+                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">⚠️</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무분석</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 검진표/병력 기반<br/>고지의무 사항 자동 체크
                             </p>
                         </div>
 
                         <!-- 카드 5: 보험청구 -->
-                        <div onclick="openModal('claimModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition transform">💰</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition" data-i18n="card5_title">보험청구 지원</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed" data-i18n="card5_desc">
+                        <div onclick="openModal('claimModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">보험청구 지원</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 원수사별 팩스번호 및<br/>청구 양식 서류 다운로드
                             </p>
                         </div>
 
                         <!-- 카드 6: 계약현황 -->
-                        <div onclick="openModal('contractDashboardModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-teal-500 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition transform">📊</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-teal-400 transition" data-i18n="card6_title">계약현황 대시보드</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed" data-i18n="card6_desc">
+                        <div onclick="openModal('contractDashboardModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-teal-400 transition">계약현황 대시보드</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 금월 체결 실적 및<br/>목표 달성률 실시간 조회
+                            </p>
+                        </div>
+
+                        <!-- 카드 7: 실비계산기 (새로 추가) -->
+                        <div onclick="openModal('indemnityCalcModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[10px] font-bold px-2 py-0.5 rounded-full">NEW</div>
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition">실비계산기</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                급여/비급여 자기부담금 및<br/>실손 예상 환급액 산출
+                            </p>
+                        </div>
+
+                        <!-- 카드 8: 서비스 출시 예정 -->
+                        <div onclick="openModal('comingSoonModal')" class="bg-slate-800/40 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-75 hover:opacity-100">
+                            <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
+                            <div class="flex items-center gap-1 mb-1">
+                                <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-300">서비스 출시 예정</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.
+                            </p>
+                        </div>
+
+                        <!-- 카드 9: 서비스 출시 예정 -->
+                        <div onclick="openModal('comingSoonModal')" class="bg-slate-800/40 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-75 hover:opacity-100">
+                            <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">🔒</div>
+                            <div class="flex items-center gap-1 mb-1">
+                                <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-300">서비스 출시 예정</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.
                             </p>
                         </div>
 
                     </div>
                 </div>
             </section>
-
 
             <!-- 2-2. 개인별 DB 체결효율 & 소진분석 섹션 -->
             <section id="myAnalytics" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -371,11 +354,11 @@
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
                         <div>
                             <div class="flex items-center space-x-2 mb-1.5">
-                                <span class="bg-blue-600 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full" data-i18n="report_badge">개인 실적 데이터 리포트</span>
+                                <span class="bg-blue-600 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">개인 실적 데이터 리포트</span>
                                 <span class="text-xs font-bold text-slate-500">사번: WIZ-2026-8801</span>
                             </div>
-                            <h2 class="text-2xl font-bold text-slate-900" data-i18n="report_title">📊 체결 효율 & DB 소진 분석</h2>
-                            <p class="text-xs text-slate-500 mt-1" data-i18n="report_desc">
+                            <h2 class="text-2xl font-bold text-slate-900">📊 체결 효율 & DB 소진 분석</h2>
+                            <p class="text-xs text-slate-500 mt-1">
                                 [김설계 팀장님]에게 배정된 DB 실시간 사용 소진율 및 계약 체결 효율성 통계입니다.
                             </p>
                         </div>
@@ -383,13 +366,13 @@
                         <!-- 실적 상태 요약 칩 -->
                         <div class="flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                             <div class="text-right">
-                                <div class="text-[11px] font-bold text-slate-500" data-i18n="kpi_conversion_rate">당월 종합 DB 체결률</div>
+                                <div class="text-[11px] font-bold text-slate-500">당월 종합 DB 체결률</div>
                                 <div class="text-lg font-black text-blue-600">41.6 % <span class="text-xs font-normal text-emerald-600">▲ 5.2%</span></div>
                             </div>
                             <div class="w-px h-8 bg-slate-200"></div>
                             <div>
-                                <div class="text-[11px] font-bold text-slate-500" data-i18n="kpi_used_db">당월 소진 DB</div>
-                                <div class="text-lg font-black text-slate-800">24 <span data-i18n="unit_count">건</span></div>
+                                <div class="text-[11px] font-bold text-slate-500">당월 소진 DB</div>
+                                <div class="text-lg font-black text-slate-800">24 <span>건</span></div>
                             </div>
                         </div>
                     </div>
@@ -397,24 +380,24 @@
                     <!-- 개인 실적 KPI 요약 카드 4종 -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
-                            <span class="text-[11px] font-semibold text-slate-500 block" data-i18n="kpi1_title">당월 배정 DB 수량</span>
-                            <span class="text-xl font-black text-slate-900 mt-1 block">24 <span data-i18n="unit_count">건</span></span>
-                            <span class="text-[10px] text-blue-600 font-bold" data-i18n="kpi1_sub">100% 소진 진행중</span>
+                            <span class="text-[11px] font-semibold text-slate-500 block">당월 배정 DB 수량</span>
+                            <span class="text-xl font-black text-slate-900 mt-1 block">24 <span>건</span></span>
+                            <span class="text-[10px] text-blue-600 font-bold">100% 소진 진행중</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
-                            <span class="text-[11px] font-semibold text-slate-500 block" data-i18n="kpi2_title">최종 계약 체결 건수</span>
-                            <span class="text-xl font-black text-emerald-600 mt-1 block">10 <span data-i18n="unit_count">건</span></span>
-                            <span class="text-[10px] text-emerald-600 font-bold" data-i18n="kpi2_sub">목표(12건)의 83%</span>
+                            <span class="text-[11px] font-semibold text-slate-500 block">최종 계약 체결 건수</span>
+                            <span class="text-xl font-black text-emerald-600 mt-1 block">10 <span>건</span></span>
+                            <span class="text-[10px] text-emerald-600 font-bold">목표(12건)의 83%</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
-                            <span class="text-[11px] font-semibold text-slate-500 block" data-i18n="kpi3_title">평균 상담 소요 기간</span>
-                            <span class="text-xl font-black text-indigo-600 mt-1 block">3.2 <span data-i18n="unit_days">일</span></span>
-                            <span class="text-[10px] text-slate-400" data-i18n="kpi3_sub">배정 후 1차 계약까지</span>
+                            <span class="text-[11px] font-semibold text-slate-500 block">평균 상담 소요 기간</span>
+                            <span class="text-xl font-black text-indigo-600 mt-1 block">3.2 <span>일</span></span>
+                            <span class="text-[10px] text-slate-400">배정 후 1차 계약까지</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
-                            <span class="text-[11px] font-semibold text-slate-500 block" data-i18n="kpi4_title">당월 누적 체결 수수료</span>
-                            <span class="text-xl font-black text-blue-700 mt-1 block">385 <span data-i18n="unit_currency">만원</span></span>
-                            <span class="text-[10px] text-slate-400" data-i18n="kpi4_sub">전월 대비 +12%</span>
+                            <span class="text-[11px] font-semibold text-slate-500 block">당월 누적 체결 수수료</span>
+                            <span class="text-xl font-black text-blue-700 mt-1 block">385 <span>만원</span></span>
+                            <span class="text-[10px] text-slate-400">전월 대비 +12%</span>
                         </div>
                     </div>
 
@@ -424,13 +407,13 @@
                             <!-- 차트 1: 개인 DB 유형별 체결률 -->
                             <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
                                 <div class="flex items-center justify-between mb-3">
-                                    <h3 class="text-xs font-bold text-slate-800" data-i18n="chart1_header">[김설계] DB 유형별 계약 체결률 (%)</h3>
-                                    <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded" data-i18n="chart1_tag">최근 3개월 누적</span>
+                                    <h3 class="text-xs font-bold text-slate-800">[김설계] DB 유형별 계약 체결률 (%)</h3>
+                                    <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">최근 3개월 누적</span>
                                 </div>
                                 <div class="chart-container">
                                     <canvas id="conversionChart"></canvas>
                                 </div>
-                                <p class="text-[11px] text-slate-500 mt-3 text-center" data-i18n="chart1_footer">
+                                <p class="text-[11px] text-slate-500 mt-3 text-center">
                                     💡 <span class="font-bold text-slate-700">보장분석 DB</span>에서 가장 높은 체결율(42.5%)을 기록하고 있습니다.
                                 </p>
                             </div>
@@ -438,13 +421,13 @@
                             <!-- 차트 2: 월별 DB 배정 및 소진/체결 추이 -->
                             <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
                                 <div class="flex items-center justify-between mb-3">
-                                    <h3 class="text-xs font-bold text-slate-800" data-i18n="chart2_header">[김설계] 월별 DB 소진 수량 vs 체결 건수</h3>
-                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded" data-i18n="chart2_tag">실시간 추이</span>
+                                    <h3 class="text-xs font-bold text-slate-800">[김설계] 월별 DB 소진 수량 vs 체결 건수</h3>
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">실시간 추이</span>
                                 </div>
                                 <div class="chart-container">
                                     <canvas id="monthlyTrendChart"></canvas>
                                 </div>
-                                <p class="text-[11px] text-slate-500 mt-3 text-center" data-i18n="chart2_footer">
+                                <p class="text-[11px] text-slate-500 mt-3 text-center">
                                     📈 DB 소진 수량 증가에 따라 월별 체결 건수도 꾸준히 우상향하고 있습니다.
                                 </p>
                             </div>
@@ -461,20 +444,20 @@
     <footer class="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
             <div>
-                <p class="font-bold text-slate-200 text-sm" data-i18n="footer_brand">잇츠리온</p>
-                <p class="mt-1 text-slate-400" data-i18n="footer_desc">보험설계사를 위한 올인원 비즈니스 플랫폼</p>
+                <p class="font-bold text-slate-200 text-sm">잇츠리온</p>
+                <p class="mt-1 text-slate-400">보험설계사를 위한 올인원 비즈니스 플랫폼</p>
                 <p class="mt-1 text-slate-500">대표전화 02-1234-xxxx | 이메일 support@itsrion.co.kr</p>
                 <p class="mt-0.5 text-slate-500">© 2026 ItsRion. All rights reserved.</p>
             </div>
 
             <div class="flex justify-center space-x-4 text-slate-400 text-[11px] pt-2 border-t border-slate-800/80">
-                <button onclick="switchView('intro')" class="hover:text-white" data-i18n="nav_intro">1페이지 (잇츠리온 소개)</button>
+                <button onclick="switchView('intro')" class="hover:text-white">1페이지 (잇츠리온 소개)</button>
                 <span>|</span>
-                <button onclick="switchView('workspace')" class="hover:text-white" data-i18n="nav_workspace">2페이지 (업무 대시보드)</button>
+                <button onclick="switchView('workspace')" class="hover:text-white">2페이지 (업무 대시보드)</button>
                 <span>|</span>
-                <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white" data-i18n="nav_analytics">실적 & DB분석</button>
+                <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white">실적 & DB분석</button>
                 <span>|</span>
-                <button onclick="openModal('contactModal')" class="hover:text-white" data-i18n="nav_contact">문의하기</button>
+                <button onclick="openModal('contactModal')" class="hover:text-white">문의하기</button>
             </div>
         </div>
     </footer>
@@ -620,7 +603,85 @@
         </div>
     </div>
 
-    <!-- 7. 문의하기 모달 -->
+    <!-- 7. 실비계산기 모달 (신규 구현) -->
+    <div id="indemnityCalcModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeModal('indemnityCalcModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            
+            <div class="flex items-center space-x-2 text-cyan-600 mb-1">
+                <span>🧮</span>
+                <span class="text-xs font-bold bg-cyan-50 px-2 py-0.5 rounded">스마트 계산 도구</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">실손 의료비(실비) 예상 환급액 계산기</h3>
+            <p class="text-xs text-slate-500 mt-1">급여/비급여 발생 영수증 금액 기준 본인부담금 및 환급액을 산출합니다.</p>
+
+            <div class="mt-5 space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">병원 구분</label>
+                    <select id="calcHospitalType" class="w-full px-3 py-2 border rounded-lg text-slate-800 bg-slate-50 font-medium">
+                        <option value="10000">의원급 (공제 1만원)</option>
+                        <option value="15000">일반병원 (공제 1.5만원)</option>
+                        <option value="20000">상급종합병원 (공제 2만원)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">급여 총액 (원)</label>
+                        <input id="calcNationalFee" type="number" placeholder="예: 50000" class="w-full px-3 py-2 border rounded-lg text-slate-800">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">비급여 총액 (원)</label>
+                        <input id="calcNonNationalFee" type="number" placeholder="예: 120000" class="w-full px-3 py-2 border rounded-lg text-slate-800">
+                    </div>
+                </div>
+
+                <button onclick="calculateIndemnity()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg text-xs shadow transition">
+                    ⚡ 실비 예상 환급금 산출하기
+                </button>
+
+                <!-- 계산 결과 창 -->
+                <div id="calcResultBox" class="hidden p-4 bg-slate-900 text-white rounded-xl space-y-2">
+                    <div class="text-xs text-cyan-400 font-bold border-b border-slate-700 pb-1">💡 실손 보험금 계산 결과</div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300">총 청구 영수 금액:</span>
+                        <span id="resTotal" class="font-bold">0 원</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300">차감 자기부담 총액:</span>
+                        <span id="resDeduct" class="font-bold text-rose-400">0 원</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm pt-2 border-t border-slate-800">
+                        <span class="font-bold text-slate-200">예상 보험 환급액:</span>
+                        <span id="resRefund" class="text-lg font-black text-cyan-400">0 원</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('indemnityCalcModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 & 9. 서비스 출시 예정 안내 모달 -->
+    <div id="comingSoonModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">
+                ⏳
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.
+            </p>
+            <div class="mt-6">
+                <button onclick="closeModal('comingSoonModal')" class="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-xs">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. 문의하기 모달 -->
     <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -639,7 +700,7 @@
         </div>
     </div>
 
-    <!-- 8. 프로필 설정 모달 -->
+    <!-- 11. 프로필 설정 모달 -->
     <div id="quickUpdateModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('quickUpdateModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -655,230 +716,11 @@
     </div>
 
 
-    <!-- 스크립트 로직 및 다국어 i18n 번역 시스템 -->
+    <!-- 스크립트 로직 -->
     <script>
-        let currentLang = 'ko'; // 기본 언어: 한국어 ('ko' / 'en')
         let activeSlide = 1;
         let chart1Instance = null;
         let chart2Instance = null;
-
-        // 다국어 사전 (i18n Dictionary)
-        const i18nDict = {
-            ko: {
-                logo: "잇츠리온",
-                nav_intro: "1페이지 (잇츠리온 소개)",
-                nav_workspace: "2페이지 (업무 대시보드)",
-                nav_analytics: "실적 & DB분석",
-                nav_whyus: "왜 잇츠리온인가?",
-                nav_contact: "문의하기",
-                user_name: "김설계 팀장",
-                
-                hero_badge1: "보험 설계사 전용 스마트 영업지원 시스템",
-                hero_title1: "차원이 다른 영업 생산성,<br/>잇츠리온 포털 안내",
-                hero_desc1: "DB 관리부터 스케줄 연동, 보장/약관 분석, 알릴의무 자동판정, 개인 실적분석까지 원스톱으로 지원합니다.",
-                btn_workspace: "🚀 업무화면 바로가기",
-                btn_whyus: "왜 잇츠리온인가요?",
-                
-                hero_badge2: "올인원 영업 비즈니스 플랫폼",
-                hero_title2: "영업 성과를 최상으로 높이는<br/>스마트 워크스페이스",
-                hero_desc2: "체계적인 개인 DB 소진율 및 계약 체결 효율성 분석으로 성공적인 영업 활동을 이어가세요.",
-                btn_open_workspace: "업무 대시보드 열기 →",
-                
-                cta_button: "⚡ 업무화면 바로가기",
-                cta_sub: "2페이지로 이동",
-                cta_desc: "클릭하시면 주요 업무기능 카드 및 개인 실적/DB 체결 효율 분석 화면으로 이동합니다.",
-                
-                why_title: "왜 잇츠리온인가요?",
-                why_subtitle: "보험 설계사 영업 현장에 최적화된 올인원 비즈니스 워크스페이스",
-                why_f1_title: "하나의 플랫폼, 모든 영업 도구",
-                why_f1_desc: "DB배정부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 계약현황 대시보드까지 — 흩어져 있던 업무 도구를 잇츠리온 하나로 통합하세요.",
-                why_f2_title: "스케줄 연동으로 놓침 없는 고객 관리",
-                why_f2_desc: "DB배정 시 네이버 캘린더 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다.",
-                why_btn: "주요 업무도구 및 실적분석 보기",
-                
-                p2_badge: "2페이지",
-                p2_subtitle: "설계사 전용 업무 대시보드",
-                p2_title: "김설계 팀장님의 주요 업무 기능 & 실적 분석",
-                btn_back_intro: "← 1페이지 (잇츠리온 소개)로 돌아가기",
-                
-                tools_title: "주요 업무 기능",
-                tools_desc: "원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.",
-                
-                card1_title: "DB배정 & 스케줄",
-                card1_desc: "네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리",
-                card2_title: "보장분석",
-                card2_desc: "고객 보장 현황 및<br/>보장 갭 자동 진단",
-                card3_title: "약관분석 (구글 클라우드)",
-                card3_desc: "전 금융사 개정 약관 및<br/>표준약관 즉시 검색",
-                card4_title: "알릴의무분석",
-                card4_desc: "검진표/병력 기반<br/>고지의무 사항 자동 체크",
-                card5_title: "보험청구 지원",
-                card5_desc: "원수사별 팩스번호 및<br/>청구 양식 서류 다운로드",
-                card6_title: "계약현황 대시보드",
-                card6_desc: "금월 체결 실적 및<br/>목표 달성률 실시간 조회",
-                
-                report_badge: "개인 실적 데이터 리포트",
-                report_title: "📊 체결 효율 & DB 소진 분석",
-                report_desc: "[김설계 팀장님]에게 배정된 DB 실시간 사용 소진율 및 계약 체결 효율성 통계입니다.",
-                kpi_conversion_rate: "당월 종합 DB 체결률",
-                kpi_used_db: "당월 소진 DB",
-                
-                kpi1_title: "당월 배정 DB 수량",
-                kpi1_sub: "100% 소진 진행중",
-                kpi2_title: "최종 계약 체결 건수",
-                kpi2_sub: "목표(12건)의 83%",
-                kpi3_title: "평균 상담 소요 기간",
-                kpi3_sub: "배정 후 1차 계약까지",
-                kpi4_title: "당월 누적 체결 수수료",
-                kpi4_sub: "전월 대비 +12%",
-                
-                unit_count: "건",
-                unit_days: "일",
-                unit_currency: "만원",
-                
-                chart1_header: "[김설계] DB 유형별 계약 체결률 (%)",
-                chart1_tag: "최근 3개월 누적",
-                chart1_footer: "💡 보장분석 DB에서 가장 높은 체결율(42.5%)을 기록하고 있습니다.",
-                
-                chart2_header: "[김설계] 월별 DB 소진 수량 vs 체결 건수",
-                chart2_tag: "실시간 추이",
-                chart2_footer: "📈 DB 소진 수량 증가에 따라 월별 체결 건수도 꾸준히 우상향하고 있습니다.",
-                
-                footer_brand: "잇츠리온",
-                footer_desc: "보험설계사를 위한 올인원 비즈니스 플랫폼",
-                
-                // 차트 라벨 번역
-                c1_labels: ['보장분석 DB', '운전자/상해', '간편/유병자', '태아/어린이'],
-                c1_series: '개인 체결률 (%)',
-                c2_labels: ['5월', '6월', '7월', '8월(금월)'],
-                c2_series1: '배정 DB 소진',
-                c2_series2: '계약 체결 건수'
-            },
-            en: {
-                logo: "ItsRion",
-                nav_intro: "Page 1 (About ItsRion)",
-                nav_workspace: "Page 2 (Workspace)",
-                nav_analytics: "Performance & DB",
-                nav_whyus: "Why ItsRion?",
-                nav_contact: "Contact Us",
-                user_name: "Manager Kim",
-                
-                hero_badge1: "Smart Sales Support System for Insurance Advisors",
-                hero_title1: "Next-Level Productivity,<br/>ItsRion Portal Guide",
-                hero_desc1: "One-stop support from DB assignment and schedule sync to coverage analysis, duty check, and performance analytics.",
-                btn_workspace: "🚀 Open Workspace",
-                btn_whyus: "Why Choose ItsRion?",
-                
-                hero_badge2: "All-in-One Sales Business Platform",
-                hero_title2: "Maximize Your Sales Result<br/>Smart Workspace",
-                hero_desc2: "Achieve successful sales with systematic personal DB consumption rate and contract conversion efficiency analytics.",
-                btn_open_workspace: "Open Dashboard →",
-                
-                cta_button: "⚡ Open Workspace Directly",
-                cta_sub: "Move to Page 2",
-                cta_desc: "Click to navigate directly to core business feature cards and individual performance/DB conversion analytics.",
-                
-                why_title: "Why ItsRion?",
-                why_subtitle: "All-in-One Business Workspace Optimized for Insurance Sales",
-                why_f1_title: "One Platform, All Sales Tools",
-                why_f1_desc: "From DB assignment to coverage & terms analysis, duty checks, claims, and contract dashboards — integrate all scattered tools into ItsRion.",
-                why_f2_title: "Seamless Customer Care via Calendar Sync",
-                why_f2_desc: "Automated synchronization with Naver Calendar makes consultation schedule management effortless without missing clients.",
-                why_btn: "Explore Workspace & Analytics",
-                
-                p2_badge: "Page 2",
-                p2_subtitle: "Advisor Dedicated Business Workspace",
-                p2_title: "Manager Kim's Core Business Tools & Performance Analytics",
-                btn_back_intro: "← Back to Page 1 (ItsRion Intro)",
-                
-                tools_title: "Core Business Tools",
-                tools_desc: "Click any tool icon card below to launch immediately.",
-                
-                card1_title: "DB & Calendar Sync",
-                card1_desc: "Automatic schedule management<br/>synced with Naver Calendar",
-                card2_title: "Coverage Analysis",
-                card2_desc: "Automated diagnostic of<br/>client coverage gap",
-                card3_title: "Terms (Google Cloud)",
-                card3_desc: "Instant search for revised<br/>insurance policy terms",
-                card4_title: "Duty Analysis",
-                card4_desc: "Automatic check for medical<br/>history disclosure duty",
-                card5_title: "Claim Support",
-                card5_desc: "Download claim forms &<br/>insurer fax directory",
-                card6_title: "Contract Dashboard",
-                card6_desc: "Real-time query for monthly<br/>closing performance & goal",
-                
-                report_badge: "Personal Performance Data Report",
-                report_title: "📊 Conversion Efficiency & DB Analytics",
-                report_desc: "Real-time usage consumption and contract closing efficiency statistics for [Manager Kim].",
-                kpi_conversion_rate: "Monthly Overall DB Conversion",
-                kpi_used_db: "Monthly Used DB",
-                
-                kpi1_title: "Monthly Allocated DB",
-                kpi1_sub: "100% In Progress",
-                kpi2_title: "Closed Contracts",
-                kpi2_sub: "83% of Goal (12)",
-                kpi3_title: "Avg Consultation Days",
-                kpi3_sub: "From DB to 1st Contract",
-                kpi4_title: "Monthly Commission",
-                kpi4_sub: "+12% vs Last Month",
-                
-                unit_count: "cases",
-                unit_days: "days",
-                unit_currency: "k KRW",
-                
-                chart1_header: "[Manager Kim] Conversion Rate by DB Type (%)",
-                chart1_tag: "Last 3 Months Cumulated",
-                chart1_footer: "💡 Coverage Analysis DB achieved the highest conversion rate (42.5%).",
-                
-                chart2_header: "[Manager Kim] Monthly DB Usage vs Closed Contracts",
-                chart2_tag: "Real-time Trend",
-                chart2_footer: "📈 Monthly contract closings show a steady upward trend alongside DB usage.",
-                
-                footer_brand: "ItsRion",
-                footer_desc: "All-in-One Business Platform for Insurance Advisors",
-                
-                c1_labels: ['Coverage Analysis DB', 'Driver/Accident', 'Simplified/Substandard', 'Prenatal/Child'],
-                c1_series: 'Personal Conversion Rate (%)',
-                c2_labels: ['May', 'Jun', 'Jul', 'Aug(Current)'],
-                c2_series1: 'DB Consumed',
-                c2_series2: 'Contracts Closed'
-            }
-        };
-
-        // 실시간 언어 번역 스위처 함수
-        function toggleLanguage() {
-            currentLang = currentLang === 'ko' ? 'en' : 'ko';
-            document.getElementById('langLabel').innerText = currentLang === 'ko' ? 'English' : '한국어';
-            
-            // 모든 data-i18n 속성 엘리먼트 번역 교체
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18nDict[currentLang] && i18nDict[currentLang][key]) {
-                    el.innerHTML = i18nDict[currentLang][key];
-                }
-            });
-
-            // 로고 텍스트 변경
-            document.getElementById('logoText').innerText = i18nDict[currentLang].logo;
-
-            // Chart.js 그래프 라벨 및 데이터셋 영문/국문 실시간 업데이트
-            updateChartsLanguage();
-        }
-
-        function updateChartsLanguage() {
-            const dict = i18nDict[currentLang];
-            if (chart1Instance) {
-                chart1Instance.data.labels = dict.c1_labels;
-                chart1Instance.data.datasets[0].label = dict.c1_series;
-                chart1Instance.update();
-            }
-            if (chart2Instance) {
-                chart2Instance.data.labels = dict.c2_labels;
-                chart2Instance.data.datasets[0].label = dict.c2_series1;
-                chart2Instance.data.datasets[1].label = dict.c2_series2;
-                chart2Instance.update();
-            }
-        }
 
         // 1페이지 vs 2페이지 화면 전환 (SPA View Switcher)
         function switchView(viewName, targetSectionId = null) {
@@ -965,17 +807,45 @@
             document.getElementById('dutyResult').classList.remove('hidden');
         }
 
+        // 실비 예상 환급액 계산 로직
+        function calculateIndemnity() {
+            const hospitalBase = parseInt(document.getElementById('calcHospitalType').value) || 10000;
+            const nationalFee = parseInt(document.getElementById('calcNationalFee').value) || 0;
+            const nonNationalFee = parseInt(document.getElementById('calcNonNationalFee').value) || 0;
+
+            if (nationalFee === 0 && nonNationalFee === 0) {
+                alert('급여 또는 비급여 금액을 입력해 주세요.');
+                return;
+            }
+
+            // 급여 공제 (병원 기준 공제액과 20% 중 큰 금액)
+            const nationalDeduct = Math.max(hospitalBase, Math.round(nationalFee * 0.2));
+            const nationalRefund = Math.max(0, nationalFee - nationalDeduct);
+
+            // 비급여 공제 (비급여의 30%)
+            const nonNationalDeduct = Math.round(nonNationalFee * 0.3);
+            const nonNationalRefund = Math.max(0, nonNationalFee - nonNationalDeduct);
+
+            const totalFee = nationalFee + nonNationalFee;
+            const totalDeduct = (nationalFee > 0 ? nationalDeduct : 0) + nonNationalDeduct;
+            const totalRefund = nationalRefund + nonNationalRefund;
+
+            document.getElementById('resTotal').innerText = totalFee.toLocaleString() + ' 원';
+            document.getElementById('resDeduct').innerText = totalDeduct.toLocaleString() + ' 원';
+            document.getElementById('resRefund').innerText = totalRefund.toLocaleString() + ' 원';
+
+            document.getElementById('calcResultBox').classList.remove('hidden');
+        }
+
         // Chart.js 초기화
         window.addEventListener('DOMContentLoaded', () => {
-            const dict = i18nDict.ko;
-
             const ctx1 = document.getElementById('conversionChart').getContext('2d');
             chart1Instance = new Chart(ctx1, {
                 type: 'bar',
                 data: {
-                    labels: dict.c1_labels,
+                    labels: ['보장분석 DB', '운전자/상해', '간편/유병자', '태아/어린이'],
                     datasets: [{
-                        label: dict.c1_series,
+                        label: '개인 체결률 (%)',
                         data: [42.5, 33.3, 38.0, 28.0],
                         backgroundColor: ['#2563EB', '#4F46E5', '#D97706', '#059669'],
                         borderRadius: 6
@@ -1002,10 +872,10 @@
             chart2Instance = new Chart(ctx2, {
                 type: 'line',
                 data: {
-                    labels: dict.c2_labels,
+                    labels: ['5월', '6월', '7월', '8월(금월)'],
                     datasets: [
                         {
-                            label: dict.c2_series1,
+                            label: '배정 DB 소진',
                             data: [15, 18, 20, 24],
                             borderColor: '#2563EB',
                             backgroundColor: 'rgba(37, 99, 235, 0.1)',
@@ -1013,7 +883,7 @@
                             tension: 0.3
                         },
                         {
-                            label: dict.c2_series2,
+                            label: '계약 체결 건수',
                             data: [5, 7, 8, 10],
                             borderColor: '#10B981',
                             tension: 0.3
@@ -1028,6 +898,9 @@
                 }
             });
         });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
