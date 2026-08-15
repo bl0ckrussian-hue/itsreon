@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>잇츠리온 (ItsRion) - 영업지원 포털 & 실적 분석</title>
+    <title>잇츠리온 (ItsRion) - 영업지원 포털</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -62,9 +62,9 @@
 
                 <!-- 네비게이션 메뉴 (페이지 전환 지원) -->
                 <nav class="hidden md:flex space-x-6 text-sm font-semibold text-slate-300">
-                    <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold">1페이지 (잇츠리온 소개)</button>
-                    <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">2페이지 (업무 대시보드)</button>
-                    <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white transition text-slate-400">실적 & DB분석</button>
+                    <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold">잇츠리온 소개</button>
+                    <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">업무지원 </button>
+                    <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white transition text-slate-400">DB효율</button>
                     <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400">왜 잇츠리온인가?</button>
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
@@ -104,17 +104,17 @@
                                 보험 설계사 전용 스마트 영업지원 시스템
                             </span>
                             <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
-                                차원이 다른 영업 생산성,<br/>잇츠리온 포털 안내
+                                차원이 다른 영업 생산성,<br/>잇츠리온 플랫폼 안내
                             </h1>
                             <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">
-                                DB 관리부터 스케줄 연동, 보장/약관 분석, 알릴의무 자동판정, 실비계산기, 개인 실적분석까지 원스톱으로 지원합니다.
+                                고객관리부터 스케줄 연동까지, 보장/약관 분석, 알릴의무 자동분석, 실비계산기, 업무효율분석까지 원스톱으로 지원합니다.
                             </p>
                             <div class="mt-8 flex flex-wrap gap-3">
                                 <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                                    <span>🚀 업무화면 바로가기</span>
+                                    <span>업무지원 바로가기→</span>
                                 </button>
                                 <a href="#whyUs" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm transition">
-                                    왜 잇츠리온인가요?
+                                    왜 잇츠리온인가?→
                                 </a>
                             </div>
                         </div>
@@ -135,11 +135,11 @@
                                 영업 성과를 최상으로 높이는<br/>스마트 워크스페이스
                             </h1>
                             <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">
-                                체계적인 개인 DB 소진율 및 계약 체결 효율성 분석으로 성공적인 영업 활동을 이어가세요.
+                                체계적인 고객관리 및 계약 업무 효율성 분석으로 성공적인 영업 활동을 이어가세요.
                             </p>
                             <div class="mt-8 flex flex-wrap gap-3">
                                 <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5">
-                                    업무 대시보드 열기 →
+                                    업무지원 바로가기→
                                 </button>
                             </div>
                         </div>
@@ -167,10 +167,9 @@
 
                     <!-- 업무화면 바로가기 메인 CTA -->
                     <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-10 py-4 rounded-xl shadow-lg hover:shadow-2xl border border-blue-500 text-base transition transform hover:-translate-y-1 tracking-wide flex items-center gap-3">
-                        <span>⚡ 업무화면 바로가기</span>
-                        <span class="text-xs bg-blue-800 text-blue-200 px-2 py-0.5 rounded-full font-normal">2페이지로 이동</span>
+                        <span> 업무지원 바로가기→</span>
                     </button>
-                    <p class="text-xs text-slate-500 mt-3">클릭하시면 주요 업무기능 카드 및 개인 실적/DB 체결 효율 분석 화면으로 이동합니다.</p>
+                    <p class="text-xs text-slate-500 mt-3">주요 업무지원 및 업무 효율 분석 화면으로 이동합니다.</p>
                 </div>
             </section>
 
@@ -195,14 +194,14 @@
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">하나의 플랫폼, 모든 영업 도구</h3>
                                 <p class="text-sm text-slate-600 leading-relaxed">
-                                    DB배정부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 계약현황 대시보드까지 — 흩어져 있던 업무 도구를 잇츠리온 하나로 통합하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용할 수 있습니다.
+                                    고객관리부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 업후현황까지 영업 활동에 필수적인 모든 것을 잇츠리온에서 지원하는 플랫폼 하나로 해결하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용 할 수 있습니다.
                                 </p>
                             </div>
 
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">스케줄 연동으로 놓침 없는 고객 관리</h3>
                                 <p class="text-sm text-slate-600 leading-relaxed">
-                                    DB배정 시 네이버 캘린더 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다. 놓치는 고객 없이 체계적으로 케어하세요.
+                                    영업인에게 고객관리는 생명과 같습니다. 이제 한 번에 해결하세요. 고객 관리부터 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다. 놓치는 고객 없이 체계적으로 케어하세요.
                                 </p>
                             </div>
 
@@ -228,13 +227,13 @@
                     <div>
                         <div class="flex items-center space-x-2">
                             <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded">2페이지</span>
-                            <span class="text-xs text-slate-400 font-medium">설계사 전용 업무 대시보드</span>
+                            <span class="text-xs text-slate-400 font-medium">설계사 업무지원</span>
                         </div>
-                        <h1 class="text-2xl font-black text-white mt-1">김설계 팀장님의 주요 업무 기능 & 실적 분석</h1>
+                        <h1 class="text-2xl font-black text-white mt-1">팀장님의 주요 업무 기능 & 실적 분석</h1>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition">
-                            ← 1페이지 (잇츠리온 소개)로 돌아가기
+                            ←잇츠리온 소개로 돌아가기
                         </button>
                     </div>
                 </div>
@@ -268,7 +267,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition">보장분석</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                고객 보장 현황 및<br/>보장 갭 자동 진단
+                                고객 보장 현황 자동 분석 및<br/>보장분석표 자동 완성
                             </p>
                         </div>
 
@@ -277,7 +276,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">약관분석 (구글 클라우드)</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                전 금융사 개정 약관 및<br/>표준약관 즉시 검색
+                                전 보험사 약관 검토 및<br/>비교,분석 결과 제공
                             </p>
                         </div>
 
@@ -286,7 +285,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">⚠️</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무분석</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                검진표/병력 기반<br/>고지의무 사항 자동 체크
+                                진료이력 기반 분석<br/>고지의무 사항 자동 체크
                             </p>
                         </div>
 
@@ -295,7 +294,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">보험청구 지원</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                원수사별 팩스번호 및<br/>청구 양식 서류 다운로드
+                                 원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 
                             </p>
                         </div>
 
@@ -304,7 +303,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-teal-400 transition">계약현황 대시보드</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                금월 체결 실적 및<br/>목표 달성률 실시간 조회
+                                계약 현황 및<br/>목표 달성률 실시간 조회
                             </p>
                         </div>
 
