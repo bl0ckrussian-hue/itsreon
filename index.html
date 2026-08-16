@@ -586,7 +586,7 @@
         </div>
     </div>
 
-    <!-- 4. 알릴의무 & 고지유무 정밀 분석기 (Streamlit UI App Layout Exact Match) -->
+    <!-- 4. 알릴의무 & 고지유무 정밀 분석기 (Streamlit UI App Layout Match + User API Key Field) -->
     <div id="dutyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
         <div class="bg-slate-900 rounded-2xl max-w-7xl w-full text-slate-100 shadow-2xl relative max-h-[95vh] flex flex-col overflow-hidden border border-slate-700">
             
@@ -617,10 +617,17 @@
                                 <span>⚙️</span> <span>설정</span>
                             </h4>
 
-                            <!-- API Key Status -->
+                            <!-- Gemini API Key Input (User Replaceable) -->
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-400 mb-1">API Key Status</label>
-                                <input type="text" value="✅ Applied" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-bold">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[11px] font-bold text-slate-300">Gemini API Key</label>
+                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-amber-400 hover:underline">키 발급받기↗</a>
+                                </div>
+                                <div class="relative">
+                                    <input id="geminiApiKeyInput" type="password" placeholder="AI Studio에서 발급받은 API Key 입력" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-300 font-mono placeholder-slate-600 focus:outline-none focus:border-amber-500 pr-8">
+                                    <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">👁️</button>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mt-1">Google AI Studio에서 무료로 발급받은 키를 입력하시면 만료 걱정 없이 사용 가능합니다.</p>
                             </div>
 
                             <!-- PDF 비밀번호 -->
@@ -1095,6 +1102,11 @@
             ]
         };
 
+        function toggleApiKeyVisibility() {
+            const keyInput = document.getElementById('geminiApiKeyInput');
+            keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+        }
+
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById('pdfPasswordInput');
             pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
@@ -1194,7 +1206,7 @@
                     combinedText += fileText;
                 } catch (err) {
                     if (err.name === 'PasswordException') {
-                        throw new Error(`PDF 암호 오류: ${file.name} (암호를 정확히 입력해주세요)`);
+                        throw new Error(`PDF 암호 오류: ${file.name} (비밀번호를 정확히 입력해주세요)`);
                     } else {
                         combinedText += `\n[${file.name} 파싱 실패: ${err.message}]\n`;
                     }
@@ -1282,40 +1294,63 @@
             return { detectedInfo, visitCounter, admissionCounter, admissionDetails };
         }
 
-        // Gemini API Helper (Gemini 2.5 Flash 단일 모델 전용)
-        async function callGeminiApi(promptText, key) {
-            const cleanKey = key.trim();
-            const modelName = "gemini-2.5-flash"; // gemini-2.5-flash 전용 고정
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
-
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptText }] }],
-                        generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
-                    })
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) return text;
-                }
-                
-                const errJson = await res.json().catch(() => ({}));
-                throw new Error(errJson.error?.message || `HTTP ${res.status}`);
-            } catch (e) {
-                throw new Error(`Gemini 2.5 Flash 호출 오류: ${e.message}`);
+        // Gemini REST API Helper with Fallback
+        async function callGeminiApi(promptText, userKey) {
+            const cleanKey = userKey ? userKey.trim() : "";
+            if (!cleanKey) {
+                throw new Error("Gemini API Key가 설정되지 않았습니다. 좌측 사이드바의 'Gemini API Key' 입력창에 발급받으신 API Key를 입력해주세요.");
             }
+
+            // Models to try in order
+            const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+            let lastErrMessage = "";
+
+            for (const modelName of candidateModels) {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptText }] }],
+                            generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (text) return text;
+                    }
+                    
+                    const errJson = await res.json().catch(() => ({}));
+                    const msg = errJson.error?.message || `HTTP ${res.status}`;
+                    lastErrMessage = msg;
+
+                    // If key is flagged as leaked or invalid, raise error immediately so user can enter a new key
+                    if (msg.includes("leaked") || msg.includes("API key not valid") || msg.includes("API_KEY_INVALID")) {
+                        throw new Error(`[API Key 오류] ${msg}\n\n👉 Google AI Studio (https://aistudio.google.com)에서 새 무료 API Key를 발급받아 좌측 'Gemini API Key' 입력창에 붙여넣어 주세요.`);
+                    }
+                } catch (e) {
+                    if (e.message.includes("API Key 오류") || e.message.includes("leaked")) throw e;
+                    lastErrMessage = e.message;
+                }
+            }
+
+            throw new Error(`Gemini API 호출 실패: ${lastErrMessage}`);
         }
 
         // Execute Duty Analysis Main Handler
         async function executeDutyAnalysis() {
-            const apiKey = "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
+            const apiKey = document.getElementById('geminiApiKeyInput').value.trim();
             const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
             const pdfFiles = document.getElementById('pdfFileInput').files;
+
+            if (!apiKey) {
+                alert('좌측 사이드바의 [Gemini API Key] 입력창에 Google AI Studio에서 발급받은 API Key를 입력해주세요.');
+                document.getElementById('geminiApiKeyInput').focus();
+                return;
+            }
 
             if (!pdfFiles || pdfFiles.length === 0) {
                 alert('진료기록 PDF 파일을 선택해주세요.');
@@ -1475,35 +1510,39 @@ ${fullText.substring(0, 50000)}
 
         // Export AI Duty Report to Excel (.xlsx)
         function exportDutyToExcel() {
-            const activeMarkdown = activeResultTab === 'tab1' ? currentTab1Markdown : currentTab2Markdown;
-            if (!activeMarkdown) {
-                alert('다운로드할 분석 결과가 없습니다.');
+            const markdownToUse = activeResultTab === 'tab1' ? currentTab1Markdown : currentTab2Markdown;
+            if (!markdownToUse) {
+                alert('다운로드할 분석 결과 데이터가 없습니다.');
                 return;
             }
 
-            const activeReportBox = activeResultTab === 'tab1' ? document.getElementById('dutyAiReportBox1') : document.getElementById('dutyAiReportBox2');
-            const tables = activeReportBox.querySelectorAll('table');
+            try {
+                const wb = XLSX.utils.book_new();
+                const lines = markdownToUse.split('\n');
+                const tableData = [];
 
-            const wb = XLSX.utils.book_new();
-
-            if (tables.length > 0) {
-                tables.forEach((table, idx) => {
-                    const ws = XLSX.utils.table_to_sheet(table);
-                    XLSX.utils.book_append_sheet(wb, ws, `심사표_${idx + 1}`);
+                lines.forEach(line => {
+                    if (line.includes('|')) {
+                        if (line.includes('---')) return;
+                        const row = line.split('|').map(cell => cell.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+                        if (row.length > 0) tableData.push(row);
+                    }
                 });
-            } else {
-                const ws = XLSX.utils.aoa_to_sheet([
-                    ['알릴의무 심사 보고서'],
-                    [activeMarkdown]
-                ]);
-                XLSX.utils.book_append_sheet(wb, ws, '심사보고서');
-            }
 
-            const fileName = `잇츠리온_알릴의무심사보고서_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
+                if (tableData.length === 0) {
+                    alert('엑셀로 변환할 표 데이터를 찾을 수 없습니다.');
+                    return;
+                }
+
+                const ws = XLSX.utils.aoa_to_sheet(tableData);
+                XLSX.utils.book_append_sheet(wb, ws, "알릴의무_심사보고서");
+                XLSX.writeFile(wb, `ItsRion_Medical_Duty_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+            } catch (err) {
+                alert('엑셀 파일 생성 중 오류가 발생했습니다: ' + err.message);
+            }
         }
 
-        // Chart.js 초기화
+        // Chart.js Initializations
         window.addEventListener('DOMContentLoaded', () => {
             const ctx1 = document.getElementById('conversionChart').getContext('2d');
             chart1Instance = new Chart(ctx1, {
