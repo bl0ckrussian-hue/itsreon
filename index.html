@@ -853,7 +853,7 @@
         <div class="bg-white rounded-2xl max-w-2xl w-full text-slate-800 shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
             
             <!-- [앱 헤더 바] 골드 헤더 박스 -->
-            <div class="bg-[#D4AF37] px-5 py-3.5 flex justify-between items-center flex-shrink-0 shadow-md">
+            <div class="bg-slate-900 px-5 py-3.5 flex justify-between items-center flex-shrink-0 shadow-md">
                 <div class="flex items-center space-x-2.5">
                     <span class="text-2xl text-white">🛡️</span>
                     <h3 class="text-lg font-bold text-white tracking-tight">BMS 실비마스터</h3>
@@ -863,7 +863,7 @@
 
             <!-- [앱 탭 버튼 컨테이너] 3대 탭 메뉴 -->
             <div class="bg-white border-b border-slate-200 flex flex-shrink-0">
-                <button id="smTabBtn0" onclick="switchSilbiTab(0)" class="flex-1 py-3 text-center font-bold text-sm text-[#D4AF37] border-b-[3px] border-[#D4AF37] transition">
+                <button id="smTabBtn0" onclick="switchSilbiTab(0)" class="flex-1 py-3 text-center font-bold text-sm text-blue-600 border-b-[3px] border-blue-600 transition">
                     실비계산기
                 </button>
                 <button id="smTabBtn1" onclick="switchSilbiTab(1)" class="flex-1 py-3 text-center font-bold text-sm text-slate-400 hover:text-slate-600 border-b-[3px] border-transparent transition">
@@ -909,12 +909,14 @@
                     <!-- ✅ 실비 세대 선택 -->
                     <div>
                         <label class="block text-sm font-bold text-slate-800 mb-2">✅ 실비 세대 선택</label>
-                        <div class="grid grid-cols-4 gap-1.5">
-                            <button id="smGenBtn_gen1" onclick="setSilbiGen('gen1')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition">1세대</button>
-                            <button id="smGenBtn_gen2" onclick="setSilbiGen('gen2')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition">2세대</button>
-                            <button id="smGenBtn_gen3" onclick="setSilbiGen('gen3')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition">3세대</button>
-                            <button id="smGenBtn_gen4" onclick="setSilbiGen('gen4')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition">4세대</button>
-                        </div>
+                        <<div class="grid grid-cols-5 gap-1.5">
+                            <button id="smGenBtn_gen1" onclick="setSilbiGen('gen1')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition">1세대</button>
+                            <button id="smGenBtn_gen2" onclick="setSilbiGen('gen2')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-blue-600 text-white shadow-sm transition">2세대</button>
+                            <button id="smGenBtn_gen3" onclick="setSilbiGen('gen3')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition">3세대</button>
+                            <button id="smGenBtn_gen4" onclick="setSilbiGen('gen4')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition">4세대</button>
+                            <!-- 5세대 버튼 추가됨 -->
+                            <button id="smGenBtn_gen5" onclick="setSilbiGen('gen5')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition text-blue-600 border border-blue-200">5세대</button>
+                         </div>
                     </div>
 
                     <!-- 1세대 전용 서브 옵션 박스 -->
@@ -938,7 +940,15 @@
                         </div>
                         <p id="smGen1LifeNote" class="hidden text-xs text-[#e74c3c] text-center">* 생명보험은 [외래 20만 / 약제 10만] 고정</p>
                     </div>
-
+                    <!-- ⭐️ 5세대 전용 중증도 옵션 박스 -->
+                           <div id="smGen5SubOptions" class="hidden bg-blue-50 p-3.5 rounded-xl border border-blue-200 space-y-3 shadow-inner mt-2">
+                              <label class="block text-xs font-bold text-blue-800">질환 중증도 선택 (5세대 핵심)</label>
+                              <div class="grid grid-cols-2 gap-2">
+                                  <button id="smGen5Sev_nonSevere" onclick="setSilbiGen5Severity('nonSevere')" class="py-2 rounded-lg font-bold text-xs bg-blue-600 text-white shadow-sm transition">비중증 (일반 질환)</button>
+                                  <button id="smGen5Sev_severe" onclick="setSilbiGen5Severity('severe')" class="py-2 rounded-lg font-bold text-xs bg-white text-slate-600 border border-slate-300 shadow-sm transition">중증 (암/뇌/심장 등)</button>
+                       </div>
+                       <p class="text-[11px] text-blue-600 text-center font-bold">* 중증 질환은 보장이 강화되고, 비중증은 본인부담금(공제액)이 크게 인상됩니다.</p>
+                </div>
                     <!-- 🏥 병원 종류 -->
                     <div>
                         <label class="block text-sm font-bold text-slate-800 mb-2">🏥 병원 종류</label>
@@ -1024,7 +1034,7 @@
                     </div>
 
                     <!-- 💰 계산하기 버튼 -->
-                    <button onclick="calculateSilbiPayout()" class="w-full bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition">
+                    <button onclick="calculateSilbiPayout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition">
                         💰 계산하기
                     </button>
 
@@ -1129,7 +1139,7 @@
                         </div>
                     </div>
 
-                    <!-- 4세대 (현재) -->
+                    <!-- 4세대 -->
                     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-2">
                         <div onclick="toggleInfoAccordion(4)" class="cursor-pointer">
                             <div class="flex justify-between items-start">
@@ -1152,6 +1162,27 @@
                             </div>
                         </div>
                     </div>
+                    <!-- 5세대 (최신) -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-2">
+                       <div onclick="toggleInfoAccordion(5)" class="cursor-pointer">
+                          <div class="flex justify-between items-start">
+                            <div>
+                                <h5 class="text-lg font-bold text-slate-800">5세대 (최신)</h5>
+                                <span class="text-xs text-slate-400">2025년 이후 출시 예정</span>
+                           </div>
+                           <span class="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">중증 보장강화</span>
+                       </div>
+                       <p class="text-sm text-slate-600 mt-2 font-medium">비중증 본인부담률 인상 및 중증 질환 집중 보장</p>
+                       <div class="text-center mt-2"><span id="infoArrow5" class="text-slate-400 text-lg font-bold">▼</span></div>
+                   </div>
+                   <div id="infoBody5" class="hidden border-t border-slate-100 pt-3 text-xs space-y-2.5 text-slate-700">
+                        <div><strong class="text-slate-500">• 🏥 본인부담율:</strong> <span class="text-slate-800 font-medium"><br>[중증] 급여 80% / 비급여 80%<br>[비중증] 급여 70% / 비급여 60%</span></div>
+                        <div><strong class="text-slate-500">• 💸 공제금액:</strong> <span class="text-slate-800 font-medium"><br>[비중증] 급여 최소 2~3만 / 비급여 최소 5만</span></div>
+                        <div class="border-t border-slate-100 pt-2 space-y-1.5">
+                            <div><strong class="text-slate-500">• ⭐ 특징:</strong> 경증 과잉진료 차단을 위해 비중증 공제액을 대폭 인상하고 암, 뇌, 심장 등 중증질환 보장은 기존보다 강화됨.</div>
+                        </div>
+                     </div>
+                  </div>
                 </div>
 
                 <!-- ============================== [탭 3: 갱신 예상 보험료] ============================== -->
@@ -1447,20 +1478,26 @@
                     btn.className = "flex-1 py-3 text-center font-bold text-sm text-[#D4AF37] border-b-[3px] border-[#D4AF37] transition";
                     content.classList.remove('hidden');
                 } else {
-                    btn.className = "flex-1 py-3 text-center font-bold text-sm text-slate-400 hover:text-slate-600 border-b-[3px] border-transparent transition";
-                    content.classList.add('hidden');
-                }
+                    if (i === tabIdx) {
+                       btn.className = "flex-1 py-3 text-center font-bold text-sm text-blue-600 border-b-[3px] border-blue-600 transition";
+                       content.classList.remove('hidden');
+                    } else {
+                       btn.className = "flex-1 py-3 text-center font-bold text-sm text-slate-400 hover:text-slate-600 border-b-[3px] border-transparent transition";
+                       content.classList.add('hidden');
+                    }
             });
         }
 
-       let smGen = 'gen2';
+      let smGen = 'gen2';
         let smTreatType = 'outpatient'; // 통원(outpatient) / 입원(inpatient) 상태 변수
         let smGen1Type = 'nonLife';
         let smGen1Limit = '30m';
         let smGen1Pharm = 'combined';
         let smHospital = 'clinic';
         let lastSilbiResult = null;
+        let smGen5Severity = 'nonSevere'; // 5세대 중증도 상태 변수 (기본: 비중증)
 
+        // 🚑 통원 / 입원 토글 함수
         function setSilbiTreatType(type) {
             smTreatType = type;
             const outBtn = document.getElementById('smTreatBtn_outpatient');
@@ -1468,18 +1505,19 @@
             const visitBox = document.getElementById('smVisitCountBox');
             
             if (type === 'outpatient') {
-                outBtn.className = "flex-1 bg-[#D4AF37] text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5";
+                outBtn.className = "flex-1 bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5";
                 inBtn.className = "flex-1 bg-transparent text-slate-500 py-2.5 rounded-lg text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5";
                 // 통원일 때만 통원 횟수 입력칸 활성화 (1, 2세대)
                 if (smGen === 'gen1' || smGen === 'gen2') visitBox.classList.remove('hidden');
             } else {
-                inBtn.className = "flex-1 bg-[#D4AF37] text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5";
+                inBtn.className = "flex-1 bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5";
                 outBtn.className = "flex-1 bg-transparent text-slate-500 py-2.5 rounded-lg text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5";
                 // 입원일 때는 통원 횟수 입력칸 숨김
                 visitBox.classList.add('hidden');
             }
         }
 
+        // 🔄 초기화 함수
         function initSilbiMasterDefaults() {
             const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
             const startInput = document.getElementById('smStartDate');
@@ -1488,43 +1526,72 @@
             if (endInput && !endInput.value) endInput.value = todayStr;
         }
 
+        // ✅ 세대 전환 함수
         function setSilbiGen(gen) {
             smGen = gen;
-            ['gen1', 'gen2', 'gen3', 'gen4'].forEach(g => {
-                const b = document.getElementById(`smGenBtn_${g}`);
-                if (g === gen) {
-                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition shadow-sm";
-                } else {
-                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition shadow-sm";
+            // 5세대 포함하여 버튼 색상 변경 (네이비/블루 테마)
+            ['gen1', 'gen2', 'gen3', 'gen4', 'gen5'].forEach(g => {
+                const btn = document.getElementById(`smGenBtn_${g}`);
+                if(btn) {
+                    if (g === gen) {
+                        btn.className = "py-2 px-1 rounded-lg font-bold text-xs bg-slate-800 text-white shadow-sm transition";
+                    } else {
+                        btn.className = "py-2 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition";
+                    }
                 }
             });
-
+            
             const gen1Box = document.getElementById('smGen1SubOptions');
+            const gen5Box = document.getElementById('smGen5SubOptions'); // 5세대 박스
             const visitBox = document.getElementById('smVisitCountBox');
             const visitLabel = document.getElementById('smVisitCountLabel');
             const specialBox = document.getElementById('smSpecialNonCoveredBox');
             const gen4Note = document.getElementById('smGen4DocNote');
+            
+            // 기본 숨김 처리
+            gen1Box.classList.add('hidden');
+            if(gen5Box) gen5Box.classList.add('hidden');
+            visitBox.classList.add('hidden');
+            specialBox.classList.add('hidden');
+            if(gen4Note) gen4Note.classList.add('hidden');
 
             if (gen === 'gen1') {
                 gen1Box.classList.remove('hidden');
                 if (smTreatType === 'outpatient') visitBox.classList.remove('hidden');
                 visitLabel.innerText = "⚠️ 통원 횟수 확인 (동일 질병당 30회)";
-                specialBox.classList.add('hidden');
             } else if (gen === 'gen2') {
-                gen1Box.classList.add('hidden');
                 if (smTreatType === 'outpatient') visitBox.classList.remove('hidden');
                 visitLabel.innerText = "⚠️ 통원 횟수 확인 (연간 180회)";
-                specialBox.classList.add('hidden');
             } else if (gen === 'gen3' || gen === 'gen4') {
-                gen1Box.classList.add('hidden');
-                visitBox.classList.add('hidden');
                 specialBox.classList.remove('hidden');
-                if (gen === 'gen4') gen4Note.classList.remove('hidden');
-                else gen4Note.classList.add('hidden');
+                if (gen === 'gen4' && gen4Note) gen4Note.classList.remove('hidden');
+            } else if (gen === 'gen5') {
+                if(gen5Box) gen5Box.classList.remove('hidden'); // 5세대 중증도 옵션창 표시
+                specialBox.classList.remove('hidden');
+                if (gen4Note) {
+                    gen4Note.innerText = "* 4·5세대 도수치료는 10회마다 개선 확인서가 필요합니다.";
+                    gen4Note.classList.remove('hidden');
+                }
             }
         }
 
-        function setSilbiGen1Type(type) {
+        // ⭐️ 5세대 중증/비중증 선택 함수
+        function setSilbiGen5Severity(severity) {
+            smGen5Severity = severity;
+            const btnSevere = document.getElementById('smGen5Sev_severe');
+            const btnNonSevere = document.getElementById('smGen5Sev_nonSevere');
+            
+            if (severity === 'severe') {
+                btnSevere.className = "py-2 rounded-lg font-bold text-xs bg-blue-600 text-white shadow-sm transition";
+                btnNonSevere.className = "py-2 rounded-lg font-bold text-xs bg-white text-slate-600 border border-slate-300 shadow-sm transition";
+            } else {
+                btnNonSevere.className = "py-2 rounded-lg font-bold text-xs bg-blue-600 text-white shadow-sm transition";
+                btnSevere.className = "py-2 rounded-lg font-bold text-xs bg-white text-slate-600 border border-slate-300 shadow-sm transition";
+            }
+        }
+
+        // (이후 기존의 setSilbiGen1Type 함수 등이 이어집니다)
+       function setSilbiGen1Type(type) {
             smGen1Type = type;
             document.getElementById('smGen1Type_nonLife').className = type === 'nonLife' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
             document.getElementById('smGen1Type_life').className = type === 'life' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
@@ -1840,9 +1907,57 @@
                     const p2 = calculateItem(totalInj, cInj, 50, 30000, 0.3, 2500000, "주사료(특약)", details, 'gen4');
                     const p3 = calculateItem(totalMri, 0, 0, 30000, 0.3, 3000000, "MRI(특약)", details, 'gen4');
                     hospitalPayout = covPay + nonCovPay + p1 + p2 + p3;
+                } else if (smGen === 'gen5') {
+                    let curCov = cov;
+                    let curNonCov = nonCov;
+                    if (!isOutpatient && med > 0) curCov += med; // 입원 약제비 급여 합산
+
+                    let covPay = 0;
+                    let nonCovPay = 0;
+
+                    if (smGen5Severity === 'severe') {
+                        // [5세대 중증] 보장 강화: 급여 20%, 비급여 20% 공제
+                        details.push(`📝 5세대 [중증 질환] 적용`);
+                        if (curCov > 0) {
+                            const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
+                            const finalDed = Math.max(minCovDed, curCov * 0.2);
+                            covPay = Math.max(0, curCov - finalDed);
+                            if (covPay <= 0) details.push(`[급여 중증] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                            else details.push(`[급여 중증] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                        }
+                        if (curNonCov > 0) {
+                            const ded = Math.max(30000, curNonCov * 0.2); // 중증 비급여 공제 완화 (20%)
+                            nonCovPay = Math.max(0, curNonCov - ded);
+                            if (nonCovPay <= 0) details.push(`[비급여 중증] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
+                            else details.push(`[비급여 중증] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                        }
+                    } else {
+                        // [5세대 비중증] 공제금 대폭 인상: 급여 30%(최소2~3만), 비급여 40%(최소5만) 공제
+                        details.push(`📝 5세대 [비중증 일반질환] 적용 (페널티 공제)`);
+                        if (curCov > 0) {
+                            const minCovDed = (smHospital === 'tertiary') ? 30000 : 20000;
+                            const finalDed = Math.max(minCovDed, curCov * 0.3);
+                            covPay = Math.max(0, curCov - finalDed);
+                            if (covPay <= 0) details.push(`[급여 비중증] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                            else details.push(`[급여 비중증] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                        }
+                        if (curNonCov > 0) {
+                            const ded = Math.max(50000, curNonCov * 0.4); // 40% 공제, 최소 5만원
+                            nonCovPay = Math.max(0, curNonCov - ded);
+                            if (nonCovPay <= 0) details.push(`[비급여 비중증] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
+                            else details.push(`[비급여 비중증] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                        }
+                    }
+                    
+                    // 3대 비급여 (도수/주사/MRI) 특약: 기본적으로 4세대 룰 준용하되 강화됨. (여기서는 동일하게 30% 적용)
+                    const p1 = calculateItem(totalManual, cManual, 50, 30000, 0.3, 3500000, "도수치료", details, 'gen5');
+                    const p2 = calculateItem(totalInj, cInj, 50, 30000, 0.3, 2500000, "주사료", details, 'gen5');
+                    const p3 = calculateItem(totalMri, 0, 0, 30000, 0.3, 3000000, "MRI", details, 'gen5');
+                    hospitalPayout = covPay + nonCovPay + p1 + p2 + p3;
                 }
+                
                 totalPayout = hospitalPayout + pharmacyPay;
-            }
+            } // 이 닫기 중괄호는 기존 로직의 끝부분입니다.   
 
             const startD = document.getElementById('smStartDate').value || '시작일';
             const endD = document.getElementById('smEndDate').value || '종료일';
