@@ -274,105 +274,104 @@
                     </div>
                 </div>
             </div>
-
-            <!-- 2-1. 주요 업무 기능 9대 카드 섹션 (3행 3열 그리드) -->
-            <section id="features" class="bg-slate-900 py-12 text-white border-b border-slate-800">
+<!-- 2-1. 주요 업무 기능 9대 카드 섹션 (라이트 테마 적용) -->
+            <section id="features" class="bg-white py-12 text-slate-800 border-b border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
                     <div class="mb-8">
-                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                             <span>🛠️</span> <span>주요 업무 기능</span>
                         </h2>
-                        <p class="text-slate-400 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
+                        <p class="text-slate-500 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
 
                     <!-- 3행 3열 (총 9개) 그리드 카드 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
                         <!-- 카드 1: DB배정 -->
-                        <div onclick="openModal('scheduleModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                        <div onclick="openModal('scheduleModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📋</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition">DB배정 & 스케줄</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition">DB배정 & 스케줄</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리
                             </p>
                         </div>
 
                         <!-- 카드 2: 보장분석 -->
-                        <div onclick="openModal('coverageModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                        <div onclick="openModal('coverageModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition">보장분석</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-red-600 transition">보장분석</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 고객 보장 현황 자동 분석 및<br/>보장분석표 자동 완성
                             </p>
                         </div>
 
                         <!-- 카드 3: 약관분석 -->
-                        <div onclick="openModal('termsCloudModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                        <div onclick="openModal('termsCloudModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">약관분석 (구글 클라우드)</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition">약관분석 (구글 클라우드)</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 전 보험사 약관 검토 및<br/>비교,분석 결과 제공
                             </p>
                         </div>
 
-                        <!-- 카드 4: 알릴의무분석 (v5.0 AI 정밀 심사 엔진 탑재) -->
-                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-amber-500/50 hover:border-amber-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-lg hover:shadow-2xl relative overflow-hidden">
-                            <div class="absolute top-3 right-3 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
+                        <!-- 카드 4: 알릴의무분석 -->
+                        <div onclick="openModal('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무분석</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">알릴의무분석</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 진료이력 기반 분석<br/>고지의무 사항 자동 체크
                             </p>
                         </div>
 
                         <!-- 카드 5: 보험청구 -->
-                        <div onclick="openModal('claimModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                        <div onclick="openModal('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">보험청구 지원</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-emerald-600 transition">보험청구 지원</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 
                             </p>
                         </div>
 
                         <!-- 카드 6: 계약현황 -->
-                        <div onclick="openModal('contractDashboardModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
+                        <div onclick="openModal('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-teal-400 transition">계약현황 대시보드</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-teal-600 transition">계약현황 대시보드</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 계약 현황 및<br/>목표 달성률 실시간 조회
                             </p>
                         </div>
 
-                        <!-- 카드 7: 실비마스터 (1~4세대 계산기, 세대별 가이드, 갱신보험료 예측 통합) -->
-                        <div onclick="openModal('indemnityCalcModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-cyan-500/60 hover:border-cyan-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl relative overflow-hidden">
-                            <div class="absolute top-3 right-3 bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
+                        <!-- 카드 7: 실비마스터 -->
+                        <div onclick="openModal('indemnityCalcModal')" class="bg-white hover:bg-[#fff9e6] border border-slate-200 hover:border-[#D4AF37] rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition">실비 마스터</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-[#D4AF37] transition">실비 마스터</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 1~4세대 정밀 실비계산<br/>세대별 약관 & 갱신보험료 예측
                             </p>
                         </div>
 
                         <!-- 카드 8: 서비스 출시 예정 -->
-                        <div onclick="openModal('comingSoonModal')" class="bg-slate-800/40 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-75 hover:opacity-100">
+                        <div onclick="openModal('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
                             <div class="flex items-center gap-1 mb-1">
-                                <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
+                                <span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
                             </div>
-                            <h3 class="text-base font-bold text-slate-300">서비스 출시 예정</h3>
+                            <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.
                             </p>
                         </div>
 
                         <!-- 카드 9: 서비스 출시 예정 -->
-                        <div onclick="openModal('comingSoonModal')" class="bg-slate-800/40 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-75 hover:opacity-100">
+                        <div onclick="openModal('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">🔒</div>
                             <div class="flex items-center gap-1 mb-1">
-                                <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
+                                <span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
                             </div>
-                            <h3 class="text-base font-bold text-slate-300">서비스 출시 예정</h3>
+                            <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                                 신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.
                             </p>
