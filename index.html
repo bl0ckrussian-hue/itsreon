@@ -880,7 +880,15 @@
                 
                 <!-- ============================== [탭 1: 실비 계산기] ============================== -->
                 <div id="silbiTabContent0" class="space-y-4">
-                    
+                    <!-- 🚑 통원 / 입원 토글 버튼 -->
+                    <div class="flex bg-white rounded-xl border border-slate-200 shadow-sm p-1">
+                        <button id="smTreatBtn_outpatient" onclick="setSilbiTreatType('outpatient')" class="flex-1 bg-[#D4AF37] text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+                            <span class="text-base">🚑</span> <span>통원 (외래)</span>
+                        </button>
+                        <button id="smTreatBtn_inpatient" onclick="setSilbiTreatType('inpatient')" class="flex-1 bg-transparent text-slate-500 py-2.5 rounded-lg text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5">
+                            <span class="text-base">🏥</span> <span>입원</span>
+                        </button>
+                    </div>
                     <!-- 🔎 가입 시기로 세대 찾기 -->
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-2">
                         <div class="flex justify-between items-center">
@@ -1446,12 +1454,32 @@
             });
         }
 
-        let smGen = 'gen2';
+       let smGen = 'gen2';
+        let smTreatType = 'outpatient'; // 통원(outpatient) / 입원(inpatient) 상태 변수
         let smGen1Type = 'nonLife';
         let smGen1Limit = '30m';
         let smGen1Pharm = 'combined';
         let smHospital = 'clinic';
         let lastSilbiResult = null;
+
+        function setSilbiTreatType(type) {
+            smTreatType = type;
+            const outBtn = document.getElementById('smTreatBtn_outpatient');
+            const inBtn = document.getElementById('smTreatBtn_inpatient');
+            const visitBox = document.getElementById('smVisitCountBox');
+            
+            if (type === 'outpatient') {
+                outBtn.className = "flex-1 bg-[#D4AF37] text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5";
+                inBtn.className = "flex-1 bg-transparent text-slate-500 py-2.5 rounded-lg text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5";
+                // 통원일 때만 통원 횟수 입력칸 활성화 (1, 2세대)
+                if (smGen === 'gen1' || smGen === 'gen2') visitBox.classList.remove('hidden');
+            } else {
+                inBtn.className = "flex-1 bg-[#D4AF37] text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5";
+                outBtn.className = "flex-1 bg-transparent text-slate-500 py-2.5 rounded-lg text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5";
+                // 입원일 때는 통원 횟수 입력칸 숨김
+                visitBox.classList.add('hidden');
+            }
+        }
 
         function initSilbiMasterDefaults() {
             const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -1466,9 +1494,9 @@
             ['gen1', 'gen2', 'gen3', 'gen4'].forEach(g => {
                 const b = document.getElementById(`smGenBtn_${g}`);
                 if (g === gen) {
-                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition";
+                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition shadow-sm";
                 } else {
-                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition";
+                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition shadow-sm";
                 }
             });
 
@@ -1480,12 +1508,12 @@
 
             if (gen === 'gen1') {
                 gen1Box.classList.remove('hidden');
-                visitBox.classList.remove('hidden');
+                if (smTreatType === 'outpatient') visitBox.classList.remove('hidden');
                 visitLabel.innerText = "⚠️ 통원 횟수 확인 (동일 질병당 30회)";
                 specialBox.classList.add('hidden');
             } else if (gen === 'gen2') {
                 gen1Box.classList.add('hidden');
-                visitBox.classList.remove('hidden');
+                if (smTreatType === 'outpatient') visitBox.classList.remove('hidden');
                 visitLabel.innerText = "⚠️ 통원 횟수 확인 (연간 180회)";
                 specialBox.classList.add('hidden');
             } else if (gen === 'gen3' || gen === 'gen4') {
@@ -1499,8 +1527,8 @@
 
         function setSilbiGen1Type(type) {
             smGen1Type = type;
-            document.getElementById('smGen1Type_nonLife').className = type === 'nonLife' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
-            document.getElementById('smGen1Type_life').className = type === 'life' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
+            document.getElementById('smGen1Type_nonLife').className = type === 'nonLife' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
+            document.getElementById('smGen1Type_life').className = type === 'life' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
             
             const nonLifeBox = document.getElementById('smGen1NonLifeBox');
             const lifeNote = document.getElementById('smGen1LifeNote');
@@ -1515,8 +1543,8 @@
 
         function setSilbiGen1Pharm(pharm) {
             smGen1Pharm = pharm;
-            document.getElementById('smGen1Pharm_combined').className = pharm === 'combined' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
-            document.getElementById('smGen1Pharm_separate50k').className = pharm === 'separate50k' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
+            document.getElementById('smGen1Pharm_combined').className = pharm === 'combined' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
+            document.getElementById('smGen1Pharm_separate50k').className = pharm === 'separate50k' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
             const limitBox = document.getElementById('smGen1LimitBox');
             if (pharm === 'combined') limitBox.classList.remove('hidden');
             else limitBox.classList.add('hidden');
@@ -1524,16 +1552,16 @@
 
         function setSilbiGen1Limit(limit) {
             smGen1Limit = limit;
-            document.getElementById('smGen1Limit_30m').className = limit === '30m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
-            document.getElementById('smGen1Limit_100m').className = limit === '100m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
+            document.getElementById('smGen1Limit_30m').className = limit === '30m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
+            document.getElementById('smGen1Limit_100m').className = limit === '100m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
         }
 
         function setSilbiHospital(hosp) {
             smHospital = hosp;
             ['clinic', 'hospital', 'tertiary'].forEach(h => {
                 const b = document.getElementById(`smHospBtn_${h}`);
-                if (h === hosp) b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#D4AF37] text-white";
-                else b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700";
+                if (h === hosp) b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm";
+                else b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm";
             });
         }
 
@@ -1564,6 +1592,7 @@
             document.getElementById('smMriCount').value = '';
             document.getElementById('smResultBox').classList.add('hidden');
             setSilbiGen('gen2');
+            setSilbiTreatType('outpatient');
         }
 
         function calculateItem(totalAmount, count, maxCount, minDed, ratio, limit, name, logs, generation) {
@@ -1572,7 +1601,7 @@
             if (maxCount > 0 && count > maxCount) {
                 const unitPrice = totalAmount / count;
                 validAmount = unitPrice * maxCount;
-                logs.push(`[${name}] ⚠️ 연간 횟수(${maxCount}회) 초과! (${count - maxCount}회 제외)`);
+                logs.push(`[${name}] ⚠️ 연간 횟수(${maxCount}회) 초과! (${count - maxCount}회 제외됨)`);
             }
             if (generation === 'gen4' && name === '도수치료' && count > 10) {
                 logs.push(`💡 [참고] 4세대 도수치료 10회 초과: 병변 개선 확인서 필요`);
@@ -1580,28 +1609,32 @@
             const ded = Math.max(minDed, validAmount * ratio);
             const pay = validAmount - ded;
             if (pay <= 0) {
-                logs.push(`[${name}] ⚠️ 금액(${Math.floor(validAmount).toLocaleString()}원)이 공제금보다 적음`);
+                logs.push(`[${name}] ⚠️ 금액(${Math.floor(validAmount).toLocaleString()}원)이 공제금(${Math.floor(ded).toLocaleString()}원) 이하로 미지급`);
                 return 0;
             }
             if (pay > limit) {
-                logs.push(`[${name}] ⚠️ 연간 한도 초과! (${(limit / 10000).toLocaleString()}만원 까지만)`);
+                logs.push(`[${name}] ⚠️ 연간 한도 초과! (${(limit / 10000).toLocaleString()}만원 한도까지만 지급)`);
                 return limit;
             }
-            logs.push(`[${name}] 청구: ${Math.floor(validAmount).toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+            logs.push(`[${name}] 청구: ${Math.floor(validAmount).toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
             return pay;
         }
 
         function calculateSilbiPayout() {
+            const isOutpatient = (smTreatType === 'outpatient');
             const cov = parseNum(document.getElementById('smCoveredCost').value);
             const nonCov = parseNum(document.getElementById('smNonCoveredCost').value);
             const med = parseNum(document.getElementById('smMedicineCost').value);
             const visitCnt = parseNum(document.getElementById('smTotalVisitCount').value);
+            
             const uManual = parseNum(document.getElementById('smManualUnit').value);
             const cManual = parseNum(document.getElementById('smManualCount').value);
             const totalManual = uManual * cManual;
+            
             const uInj = parseNum(document.getElementById('smInjectionUnit').value);
             const cInj = parseNum(document.getElementById('smInjectionCount').value);
             const totalInj = uInj * cInj;
+            
             const uMri = parseNum(document.getElementById('smMriUnit').value);
             const cMri = parseNum(document.getElementById('smMriCount').value);
             const totalMri = uMri * cMri;
@@ -1616,131 +1649,197 @@
 
             let totalPayout = 0;
             let details = [];
+            
             let baseDed = 10000;
             if (smHospital === 'hospital') baseDed = (smGen === 'gen4') ? 10000 : 15000;
             else if (smHospital === 'tertiary') baseDed = 20000;
 
             if (smGen === 'gen1') {
-                if (smGen1Type === 'life') {
-                    details.push(`📝 1세대 생명보험 (외래20만 / 약제10만)`);
-                    let medPay = Math.max(0, totalHospital - 5000);
-                    if (medPay > 200000) {
-                        details.push(`[외래] ⚠️ 한도(20만) 초과! (20만 지급)`);
-                        medPay = 200000;
-                    } else {
-                        details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원)`);
-                    }
-                    let pharmPay = 0;
-                    if (med > 0) {
-                        pharmPay = med;
-                        if (pharmPay > 100000) {
-                            details.push(`[약제] ⚠️ 한도(10만) 초과! (10만 지급)`);
-                            pharmPay = 100000;
-                        } else {
-                            details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 지급)`);
-                        }
-                    }
-                    totalPayout = medPay + pharmPay;
+                if (!isOutpatient) {
+                    details.push(`📝 1세대 입원 (100% 보장)`);
+                    details.push(`[입원비] 청구: ${totalInput.toLocaleString()}원 (공제 없음)`);
+                    totalPayout = totalInput;
                 } else {
-                    if (smGen1Pharm === 'separate50k') {
-                        details.push(`📝 1세대 손해보험 (외래25만 / 약제5만)`);
+                    if (smGen1Type === 'life') {
+                        details.push(`📝 1세대 생명보험 통원 (외래20만 / 약제10만)`);
                         let medPay = Math.max(0, totalHospital - 5000);
-                        if (medPay > 250000) {
-                            details.push(`[외래] ⚠️ 한도(25만) 초과! (25만 지급)`);
-                            medPay = 250000;
+                        if (medPay > 200000) {
+                            details.push(`[외래] ⚠️ 한도(20만) 초과! (20만 지급)`);
+                            medPay = 200000;
                         } else {
-                            details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원)`);
+                            details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원 / 지급 ${medPay.toLocaleString()}원)`);
                         }
-                        let pharmPay = med;
+                        let pharmPay = 0;
                         if (med > 0) {
-                            if (pharmPay > 50000) {
-                                details.push(`[약제] ⚠️ 한도(5만) 초과! (5만 지급)`);
-                                pharmPay = 50000;
+                            pharmPay = med;
+                            if (pharmPay > 100000) {
+                                details.push(`[약제] ⚠️ 한도(10만) 초과! (10만 지급)`);
+                                pharmPay = 100000;
                             } else {
-                                details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 지급)`);
+                                details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 100% 지급)`);
                             }
                         }
                         totalPayout = medPay + pharmPay;
                     } else {
-                        const limitAmount = (smGen1Limit === '30m') ? 100000 : 250000;
-                        details.push(`📝 1세대 손해보험 (통원 합산 한도)`);
-                        const payout = totalInput - 5000;
-                        if (payout <= 0) {
-                            details.push(`⚠️ 공제금(5,000원) 미달로 0원`);
-                            totalPayout = 0;
+                        if (smGen1Pharm === 'separate50k') {
+                            details.push(`📝 1세대 손해보험 통원 (외래25만 / 약제5만 분리)`);
+                            let medPay = Math.max(0, totalHospital - 5000);
+                            if (medPay > 250000) {
+                                details.push(`[외래] ⚠️ 한도(25만) 초과! (25만 지급)`);
+                                medPay = 250000;
+                            } else {
+                                details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원 / 지급 ${medPay.toLocaleString()}원)`);
+                            }
+                            let pharmPay = med;
+                            if (med > 0) {
+                                if (pharmPay > 50000) {
+                                    details.push(`[약제] ⚠️ 한도(5만) 초과! (5만 지급)`);
+                                    pharmPay = 50000;
+                                } else {
+                                    details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 100% 지급)`);
+                                }
+                            }
+                            totalPayout = medPay + pharmPay;
                         } else {
-                            const finalPay = Math.min(payout, limitAmount);
-                            totalPayout = finalPay;
-                            details.push(`합산청구: ${totalInput.toLocaleString()}원 (공제 -5,000원)`);
-                            if (payout > limitAmount) details.push(`⚠️ 통원 한도(${limitAmount.toLocaleString()}원) 초과분 절사`);
+                            const limitAmount = (smGen1Limit === '30m') ? 100000 : 250000;
+                            details.push(`📝 1세대 손해보험 통원 (합산 한도)`);
+                            const payout = totalInput - 5000;
+                            if (payout <= 0) {
+                                details.push(`⚠️ 공제금(5,000원) 미달로 0원`);
+                                totalPayout = 0;
+                            } else {
+                                const finalPay = Math.min(payout, limitAmount);
+                                totalPayout = finalPay;
+                                details.push(`합산청구: ${totalInput.toLocaleString()}원 (공제 -5,000원 / 지급 ${finalPay.toLocaleString()}원)`);
+                                if (payout > limitAmount) details.push(`⚠️ 통원 한도(${limitAmount.toLocaleString()}원) 초과분 절사`);
+                            }
                         }
                     }
+                    if (visitCnt > 30) details.push(`⚠️ [경고] 동일 질병 통원 30회 초과 주의!`);
                 }
-                if (visitCnt > 30) details.push(`⚠️ [경고] 동일 질병 통원 30회 초과 주의!`);
             } else {
                 let pharmacyPay = 0;
-                if (med > 0) {
+                if (isOutpatient && med > 0) {
                     const pay = Math.max(0, med - 8000);
-                    if (pay <= 0) details.push(`[약값] ⚠️ 공제금(8,000원) 미달`);
+                    if (pay <= 0) details.push(`[약값 외래] ⚠️ 공제금(8,000원) 미달로 미지급`);
                     else {
                         pharmacyPay = pay;
-                        details.push(`[약값] 청구: ${med.toLocaleString()}원 (공제 -8,000원)`);
+                        details.push(`[약값 외래] 청구: ${med.toLocaleString()}원 (공제 -8,000원 / 지급 ${pay.toLocaleString()}원)`);
                     }
+                } else if (!isOutpatient && med > 0) {
+                    details.push(`💡 입원 시 약제비는 입원 의료비 급여/비급여에 포함되어 합산 공제됩니다.`);
                 }
 
                 let hospitalPayout = 0;
+                const targetHospitalFee = isOutpatient ? totalHospital : (totalHospital + med);
+
                 if (smGen === 'gen2') {
-                    const selfPay = totalHospital * 0.1;
-                    const finalDed = Math.max(baseDed, selfPay);
-                    const payout = Math.max(0, totalHospital - finalDed);
-                    if (visitCnt > 180) details.push(`⚠️ [경고] 연간 통원 180회 초과!`);
-                    if (payout <= 0) details.push(`[병원비] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
-                    else {
+                    if (isOutpatient) {
+                        details.push(`📝 2세대 통원 (의원/병원/상급 공제)`);
+                        const selfPay = targetHospitalFee * 0.1;
+                        const finalDed = Math.max(baseDed, selfPay);
+                        const payout = Math.max(0, targetHospitalFee - finalDed);
+                        if (visitCnt > 180) details.push(`⚠️ [경고] 연간 통원 180회 초과 주의!`);
+                        if (payout <= 0) details.push(`[병원비] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                        else {
+                            hospitalPayout = payout;
+                            details.push(`[병원비] 청구: ${targetHospitalFee.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(payout).toLocaleString()}원)`);
+                        }
+                    } else {
+                        details.push(`📝 2세대 입원 (10% 공제)`);
+                        let finalDed = targetHospitalFee * 0.1;
+                        if (finalDed > 2000000) {
+                            details.push(`💡 입원 자기부담금 연간 최대한도(200만원) 도달`);
+                            finalDed = 2000000;
+                        }
+                        const payout = Math.max(0, targetHospitalFee - finalDed);
                         hospitalPayout = payout;
-                        details.push(`[병원비] 청구: ${totalHospital.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                        details.push(`[입원비] 청구: ${targetHospitalFee.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(payout).toLocaleString()}원)`);
                     }
                 } else if (smGen === 'gen3') {
-                    const basicBill = cov + nonCov;
+                    let curCov = cov;
+                    let curNonCov = nonCov;
+                    if (!isOutpatient && med > 0) curCov += med; // 입원 약제비 급여 합산 간주
+                    
+                    const curBasicBill = curCov + curNonCov;
                     let basicPay = 0;
-                    if (basicBill > 0) {
-                        const ratioDed = (cov * 0.1) + (nonCov * 0.2);
-                        const finalDed = Math.max(baseDed, ratioDed);
-                        const pay = Math.max(0, basicBill - finalDed);
-                        if (pay <= 0) details.push(`[기본형] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
-                        else {
-                            basicPay = pay;
-                            details.push(`[기본형] 청구: ${basicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                    if (curBasicBill > 0) {
+                        if (isOutpatient) {
+                            details.push(`📝 3세대 통원 기본형`);
+                            const ratioDed = (curCov * 0.1) + (curNonCov * 0.2);
+                            const finalDed = Math.max(baseDed, ratioDed);
+                            const pay = Math.max(0, curBasicBill - finalDed);
+                            if (pay <= 0) details.push(`[기본형 외래] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                            else {
+                                basicPay = pay;
+                                details.push(`[기본형 외래] 청구: ${curBasicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+                            }
+                        } else {
+                            details.push(`📝 3세대 입원 기본형 (급여 10%, 비급여 20% 공제)`);
+                            let covDed = curCov * 0.1;
+                            if (covDed > 2000000) {
+                                details.push(`💡 급여 자기부담금 연간 최대한도(200만원) 도달`);
+                                covDed = 2000000;
+                            }
+                            const nonCovDed = curNonCov * 0.2;
+                            const finalDed = covDed + nonCovDed;
+                            basicPay = Math.max(0, curBasicBill - finalDed);
+                            details.push(`[기본형 입원] 청구: ${curBasicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(basicPay).toLocaleString()}원)`);
                         }
                     }
-                    const p1 = calculateItem(totalManual, cManual, 50, 20000, 0.3, 3500000, "도수치료", details, 'gen3');
-                    const p2 = calculateItem(totalInj, cInj, 50, 20000, 0.3, 2500000, "주사료", details, 'gen3');
-                    const p3 = calculateItem(totalMri, 0, 0, 20000, 0.3, 3000000, "MRI", details, 'gen3');
+                    const p1 = calculateItem(totalManual, cManual, 50, 20000, 0.3, 3500000, "도수치료(특약)", details, 'gen3');
+                    const p2 = calculateItem(totalInj, cInj, 50, 20000, 0.3, 2500000, "주사료(특약)", details, 'gen3');
+                    const p3 = calculateItem(totalMri, 0, 0, 20000, 0.3, 3000000, "MRI(특약)", details, 'gen3');
                     hospitalPayout = basicPay + p1 + p2 + p3;
                 } else if (smGen === 'gen4') {
+                    let curCov = cov;
+                    let curNonCov = nonCov;
+                    if (!isOutpatient && med > 0) curCov += med;
+
                     let covPay = 0;
-                    if (cov > 0) {
-                        const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
-                        const finalDed = Math.max(minCovDed, cov * 0.2);
-                        const pay = Math.max(0, cov - finalDed);
-                        if (pay <= 0) details.push(`[급여] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
-                        else {
-                            covPay = pay;
-                            details.push(`[급여] 청구: ${cov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                    if (curCov > 0) {
+                        if (isOutpatient) {
+                            details.push(`📝 4세대 급여 통원`);
+                            const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
+                            const finalDed = Math.max(minCovDed, curCov * 0.2);
+                            const pay = Math.max(0, curCov - finalDed);
+                            if (pay <= 0) details.push(`[급여 외래] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                            else {
+                                covPay = pay;
+                                details.push(`[급여 외래] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+                            }
+                        } else {
+                            details.push(`📝 4세대 급여 입원 (20% 공제)`);
+                            let finalDed = curCov * 0.2;
+                            if (finalDed > 2000000) {
+                                details.push(`💡 급여 자기부담금 연간 최대한도(200만원) 도달`);
+                                finalDed = 2000000;
+                            }
+                            covPay = Math.max(0, curCov - finalDed);
+                            details.push(`[급여 입원] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
                         }
                     }
                     let nonCovPay = 0;
-                    if (nonCov > 0) {
-                        const ded = Math.max(30000, nonCov * 0.3);
-                        const pay = Math.max(0, nonCov - ded);
-                        if (pay <= 0) details.push(`[일반비급여] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
-                        else {
-                            nonCovPay = pay;
-                            details.push(`[일반비급여] 청구: ${nonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                    if (curNonCov > 0) {
+                        if (isOutpatient) {
+                            details.push(`📝 4세대 비급여 통원`);
+                            const ded = Math.max(30000, curNonCov * 0.3);
+                            const pay = Math.max(0, curNonCov - ded);
+                            if (pay <= 0) details.push(`[비급여 외래] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
+                            else {
+                                nonCovPay = pay;
+                                details.push(`[비급여 외래] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+                            }
+                        } else {
+                            details.push(`📝 4세대 비급여 입원 (30% 공제)`);
+                            const ded = curNonCov * 0.3;
+                            nonCovPay = Math.max(0, curNonCov - ded);
+                            details.push(`[비급여 입원] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
                         }
                     }
-                    const p1 = calculateItem(totalManual, cManual, 50, 30000, 0.3, 3500000, "도수치료", details, 'gen4');
-                    const p2 = calculateItem(totalInj, cInj, 50, 30000, 0.3, 2500000, "주사료", details, 'gen4');
-                    const p3 = calculateItem(totalMri, 0, 0, 30000, 0.3, 3000000, "MRI", details, 'gen4');
+                    const p1 = calculateItem(totalManual, cManual, 50, 30000, 0.3, 3500000, "도수치료(특약)", details, 'gen4');
+                    const p2 = calculateItem(totalInj, cInj, 50, 30000, 0.3, 2500000, "주사료(특약)", details, 'gen4');
+                    const p3 = calculateItem(totalMri, 0, 0, 30000, 0.3, 3000000, "MRI(특약)", details, 'gen4');
                     hospitalPayout = covPay + nonCovPay + p1 + p2 + p3;
                 }
                 totalPayout = hospitalPayout + pharmacyPay;
@@ -1757,10 +1856,9 @@
             document.getElementById('smResultPeriod').innerText = lastSilbiResult.period;
             document.getElementById('smResultMoney').innerText = `${lastSilbiResult.money.toLocaleString()}원`;
             const logsContainer = document.getElementById('smResultLogs');
-            logsContainer.innerHTML = details.map(l => `<div>${l}</div>`).join('');
+            logsContainer.innerHTML = details.map(l => `<div class="mb-1">${l}</div>`).join('');
             document.getElementById('smResultBox').classList.remove('hidden');
         }
-
         function copySilbiResult() {
             if (!lastSilbiResult) return;
             const text = `[BMS 보험 청구 예상]\n기간: ${lastSilbiResult.period}\n예상 지급액: ${lastSilbiResult.money.toLocaleString()}원\n\n${lastSilbiResult.logs.join('\n')}`;
