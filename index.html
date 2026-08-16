@@ -2211,58 +2211,56 @@ ${rawText.slice(0, 60000)}
         }
 
         // ⬇️ 기존 callGeminiApi 함수를 찾아 이 코드로 완전히 덮어써주세요.
-       async function callGeminiApi(promptText, key) {
-            const proxyUrl = "https://script.google.com/macros/s/AKfycbw2DZvb8nBrvA86hSBtWDG3aUKOstPg5bkBabh5W_Fc1Jpza8u-KOO-8xgG0kRMWO7R/exec";
-            const maxRetries = 3;
+      async function callGeminiApi(promptText, key) {
+            // 사용자가 입력한 API 키의 공백 제거
+            const cleanKey = key.trim();
+            
+            // ⭐️ 가장 안정적인 최신 모델명으로 지정 (models/ 글자는 빼야 정상 작동합니다)
+            const modelName = "gemini-1.5-flash"; 
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
 
+            const maxRetries = 3;
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
-                    const res = await fetch(proxyUrl, {
+                    const res = await fetch(endpoint, {
                         method: 'POST',
-                        headers: { 
-                            'Content-Type': 'text/plain;charset=utf-8' 
-                        },
-                        body: JSON.stringify({ prompt: promptText })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptText }] }],
+                            generationConfig: { 
+                                temperature: 0.1, // 분석의 정확도를 높이기 위해 창의성 낮춤
+                                topP: 1, 
+                                topK: 1 
+                            }
+                        })
                     });
 
-                    // 데이터를 한 번만 읽어옵니다.
-                    const responseText = await res.text();
-                    let data;
-                    
-                    try {
-                        data = JSON.parse(responseText);
-                    } catch (e) {
-                        // GAS에서 JSON이 아닌 일반 텍스트로 에러를 보냈을 경우
-                        throw new Error(responseText.substring(0, 100));
-                    }
-
-                    // 1. 정상적으로 Gemini AI 답변이 돌아온 경우
-                    if (data && data.candidates && data.candidates.length > 0) {
-                        const text = data.candidates[0].content.parts[0].text;
+                    if (res.ok) {
+                        const data = await res.json();
+                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (text) return text;
                     }
 
-                    // 2. 구글 API 자체 에러인 경우 (할당량 초과, 인증 오류 등)
-                    if (data && data.error) {
-                        throw new Error(data.error.message || "구글 Gemini API 내부 오류");
+                    // 에러가 났을 경우 구글 서버의 에러 메시지 추출
+                    const errJson = await res.json().catch(() => ({}));
+                    const errMsg = errJson.error?.message || `HTTP ${res.status}`;
+
+                    // 사용량 한도 초과 에러 처리
+                    if (errMsg.includes("429") || errMsg.toLowerCase().includes("quota")) {
+                        if (attempt < maxRetries - 1) {
+                            await new Promise(r => setTimeout(r, (attempt + 1) * 3000));
+                            continue;
+                        } else {
+                            return "🚫 **구글 API 무료 제공량(Quota)을 초과했습니다. 잠시 후 다시 시도해 주세요.**";
+                        }
                     }
-
-                    // 3. 만약 GAS 스크립트에서 구조를 다르게 반환했을 경우 대응
-                    if (data && data.result) return data.result;
-
-                    // 위 조건에 모두 안 맞으면 상세 데이터 확인용 에러 출력
-                    throw new Error("예상치 못한 응답 형태: " + responseText.substring(0, 150));
+                    throw new Error(errMsg);
 
                 } catch (e) {
                     if (attempt === maxRetries - 1) {
-                        // 에러 내용을 알기 쉽게 출력합니다.
-                        let errorMsg = e.message;
-                        if(errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota")) {
-                            errorMsg = "구글 API 사용량(Quota)을 초과했습니다. 잠시 후 시도해주세요.";
-                        }
-                        throw new Error(`${errorMsg}`);
+                        throw new Error(`AI 분석 실패: ${e.message}`);
                     }
-                    // 실패 시 2초 대기 후 재시도
+                    // 통신 실패 시 2초 대기 후 재시도
                     await new Promise(r => setTimeout(r, 2000));
                 }
             }
