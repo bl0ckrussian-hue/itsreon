@@ -424,7 +424,7 @@
                                     <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">👁️</button>
                                 </div>
                             </div>
-                          <div><label class="block text-[11px] font-bold text-slate-400 mb-1">AI 모델 선택</label><select id="aiModelSelect" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-blue-400 font-bold focus:outline-none"><option value="gemini-1.5-flash" selected>models/gemini-1.5-flash</option></select></div>
+                          <div><label class="block text-[11px] font-bold text-slate-400 mb-1">AI 모델 선택</label><select id="aiModelSelect" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-blue-400 font-bold focus:outline-none"><option value="gemini-2.5-flash" selected>models/gemini-1.5-flash</option></select></div>
                         </div>
 
                         <div class="space-y-3 pt-2 border-t border-slate-800/80">
@@ -2213,7 +2213,7 @@ ${rawText.slice(0, 60000)}
        // ⬇️ 기존 callGeminiApi 함수를 찾아 이 코드로 완전히 덮어써주세요.
         async function callGeminiApi(promptText, key) {
             // 이전에 직접 구축해두신 안전한 구글 스크립트(GAS) 주소를 연결합니다.
-            const proxyUrl = "https://script.google.com/macros/s/AKfycbwF0xCSd__lPlGj0heHmRi6yHC7k37dZFZaEB8wS3ZYxvwCZf3lDMmKpAelCN6nmpIJ/exec";
+            const proxyUrl = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
             const maxRetries = 3;
 
             for (let attempt = 0; attempt < maxRetries; attempt++) {
