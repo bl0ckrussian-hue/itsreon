@@ -8,6 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PDF.js for client-side PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- SheetJS (XLSX) for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Marked.js for rendering AI Markdown responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body {
@@ -44,6 +50,37 @@
         .hero-slide {
             transition: opacity 0.6s ease-in-out;
         }
+        /* AI Report Table Custom Styling */
+        .ai-report-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+        .ai-report-content th {
+            background-color: #1E293B;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 8px 10px;
+            border: 1px solid #334155;
+            text-align: center;
+        }
+        .ai-report-content td {
+            padding: 8px 10px;
+            border: 1px solid #E2E8F0;
+            vertical-align: top;
+            color: #334155;
+        }
+        .ai-report-content tr:nth-child(even) {
+            background-color: #F8FAFC;
+        }
+        .ai-report-content h3, .ai-report-content h4 {
+            font-weight: 800;
+            color: #0F172A;
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
@@ -63,7 +100,7 @@
                 <!-- 네비게이션 메뉴 (페이지 전환 지원) -->
                 <nav class="hidden md:flex space-x-6 text-sm font-semibold text-slate-300">
                     <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold">잇츠리온 소개</button>
-                    <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">업무지원 </button>
+                    <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">업무지원</button>
                     <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white transition text-slate-400">DB효율</button>
                     <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400">왜 잇츠리온인가?</button>
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
@@ -71,7 +108,6 @@
 
                 <!-- 우측 사용자 프로필 -->
                 <div class="flex items-center space-x-3">
-                    <!-- 프로필 정보 -->
                     <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span class="font-bold text-slate-200">김설계 팀장</span>
@@ -167,7 +203,7 @@
 
                     <!-- 업무화면 바로가기 메인 CTA -->
                     <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-10 py-4 rounded-xl shadow-lg hover:shadow-2xl border border-blue-500 text-base transition transform hover:-translate-y-1 tracking-wide flex items-center gap-3">
-                        <span> 업무지원 바로가기→</span>
+                        <span>업무지원 바로가기→</span>
                     </button>
                     <p class="text-xs text-slate-500 mt-3">주요 업무지원 및 업무 효율 분석 화면으로 이동합니다.</p>
                 </div>
@@ -280,9 +316,10 @@
                             </p>
                         </div>
 
-                        <!-- 카드 4: 알릴의무분석 -->
-                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
-                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">⚠️</div>
+                        <!-- 카드 4: 알릴의무분석 (v5.0 AI 정밀 심사 엔진 탑재) -->
+                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-amber-500/50 hover:border-amber-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-lg hover:shadow-2xl relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무분석</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
                                 진료이력 기반 분석<br/>고지의무 사항 자동 체크
@@ -294,7 +331,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">보험청구 지원</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                 원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 
+                                원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구
                             </p>
                         </div>
 
@@ -307,7 +344,7 @@
                             </p>
                         </div>
 
-                        <!-- 카드 7: 실비계산기 (새로 추가) -->
+                        <!-- 카드 7: 실비계산기 -->
                         <div onclick="openModal('indemnityCalcModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[10px] font-bold px-2 py-0.5 rounded-full">NEW</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
@@ -549,33 +586,239 @@
         </div>
     </div>
 
-    <!-- 4. 알릴의무분석 모달 -->
-    <div id="dutyModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <button onclick="closeModal('dutyModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="flex items-center space-x-2 text-amber-600 mb-1">
-                <span>⚠️</span>
-                <span class="text-xs font-bold bg-amber-50 px-2 py-0.5 rounded">건강보험공단 검진표 연동</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900">알릴의무 (고지의무) 자동 분석기</h3>
-
-            <div class="mt-5 space-y-4 text-xs">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                    <label class="block font-bold text-slate-700">고객 병력 키워드 / 처방약 입력</label>
-                    <input id="diseaseInput" type="text" placeholder="예: 고혈압약 복용, 대장 용종 절제술" class="w-full px-3 py-2 border rounded-lg">
-                    <button onclick="analyzeDuty()" class="bg-amber-600 text-white px-4 py-2 rounded-lg font-bold">
-                        🔍 알릴의무 자동 판정 실행
-                    </button>
+    <!-- 4. 알릴의무 & 고지유무 정밀 분석기 (Streamlit UI App Layout Exact Match) -->
+    <div id="dutyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-slate-900 rounded-2xl max-w-7xl w-full text-slate-100 shadow-2xl relative max-h-[95vh] flex flex-col overflow-hidden border border-slate-700">
+            
+            <!-- 상단 윈도우 컨트롤 헤더 -->
+            <div class="bg-slate-950 px-5 py-3 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xl">🏥</span>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                            <span>보험 알릴의무 & 고지유무 정밀 분석</span>
+                            <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</span>
+                        </h3>
+                    </div>
                 </div>
-
-                <div id="dutyResult" class="hidden p-4 rounded-xl border bg-amber-50/50 border-amber-200">
-                    <h4 class="font-bold text-amber-900 text-sm mb-2">[분석 결과 리포트]</h4>
-                    <p class="text-slate-700">간편고지(3.5.5) 인수 가능 조건입니다.</p>
-                </div>
+                <button onclick="closeModal('dutyModal')" class="text-slate-400 hover:text-white font-bold text-xl px-2 leading-none transition">✕</button>
             </div>
 
-            <div class="mt-6 flex justify-end">
-                <button onclick="closeModal('dutyModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            <!-- 모달 내부: Streamlit 2컬럼 레이아웃 (좌측 사이드바 + 우측 메인 영역) -->
+            <div class="flex-grow overflow-y-auto grid grid-cols-1 lg:grid-cols-12 custom-scrollbar bg-slate-900">
+                
+                <!-- [STREAMLIT SIDEBAR] 좌측 설정 패널 (4 Columns) -->
+                <aside class="lg:col-span-4 bg-slate-950/90 border-r border-slate-800 p-5 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-6">
+                        
+                        <!-- 섹션 1: ⚙️ 설정 -->
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-extrabold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2">
+                                <span>⚙️</span> <span>설정</span>
+                            </h4>
+
+                            <!-- API Key Status -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">API Key Status</label>
+                                <input type="text" value="✅ Applied" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-bold">
+                            </div>
+
+                            <!-- PDF 비밀번호 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">PDF 비밀번호</label>
+                                <div class="relative">
+                                    <input id="pdfPasswordInput" type="password" placeholder="주민번호 앞자리 또는 설정 비밀번호" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 pr-8">
+                                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">👁️</button>
+                                </div>
+                            </div>
+
+                            <!-- AI 모델 선택 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">AI 모델 선택</label>
+                                <select id="aiModelSelect" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-amber-500">
+                                    <option value="gemini-1.5-flash" selected>models/gemini-1.5-flash (권장)</option>
+                                    <option value="gemini-2.0-flash">models/gemini-2.0-flash</option>
+                                    <option value="gemini-1.5-pro">models/gemini-1.5-pro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 섹션 2: 🔍 고지위반 점검 설정 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+                            <h4 class="text-sm font-extrabold text-slate-200 flex items-center gap-2">
+                                <span>🔍</span> <span>고지위반 점검 설정</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                기존 가입된 보험들의 고지위반 여부를 확인하려면 아래에 계약 정보를 입력하세요.
+                            </p>
+
+                            <!-- 점검할 계약 건수 카운터 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">점검할 계약 건수</label>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="changeContractCount(-1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1 rounded-lg border border-slate-700 text-xs">-</button>
+                                    <input id="contractCountInput" type="number" min="0" max="5" value="0" onchange="renderContractDateInputs()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-center text-xs text-white font-bold">
+                                    <button onclick="changeContractCount(1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1 rounded-lg border border-slate-700 text-xs">+</button>
+                                </div>
+                            </div>
+
+                            <!-- 동적 계약 체결일 입력 리스트 -->
+                            <div id="contractDatesContainer" class="space-y-2 pt-1">
+                                <!-- Dynamic Date Inputs rendered by JS -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 하단 브랜딩 엠블럼 -->
+                    <div class="pt-6 border-t border-slate-800/80 text-center">
+                        <div class="rounded-xl overflow-hidden shadow-lg border border-slate-800 bg-white">
+                            <img src="logo.jpg" alt="잇츠리온 - 이로운 가치, 성공의 이치를 밝히다" class="w-full h-auto object-contain block" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-slate-100 p-3.5 rounded-xl border-2 border-slate-800 text-slate-900 shadow-lg text-left flex items-center space-x-3\'><div class=\'w-10 h-10 rounded-lg bg-slate-900 text-amber-400 flex items-center justify-center text-lg font-black flex-shrink-0 shadow\'>🛡️</div><div><div class=\'text-base font-black tracking-tight text-slate-900 leading-none\'>잇츠리온</div><div class=\'text-[10px] font-bold text-slate-600 tracking-tight mt-1\'>이로운(利) 가치, 성공의 이치를 밝히다.</div></div></div>';">
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">© 2026. ItsRion All rights reserved.</p>
+                    </div>
+                </aside>
+
+                <!-- [STREAMLIT MAIN CONTENT] 우측 메인 대시보드 (8 Columns) -->
+                <main class="lg:col-span-8 p-6 space-y-6 bg-slate-900">
+                    
+                    <!-- 메인 타이틀 & 가이드 상자 -->
+                    <div class="space-y-4">
+                        <div class="border-b border-slate-800 pb-3">
+                            <h2 class="text-2xl font-black text-white flex items-center gap-2">
+                                <span>🏥</span> <span>보험 알릴의무 & 고지유무 정밀 분석</span>
+                            </h2>
+                        </div>
+
+                        <!-- [분석 로직 v5.0] 가이드 박스 -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
+                            <h4 class="font-bold text-amber-400 text-xs">📌 [분석 로직 v5.0]</h4>
+                            <ol class="list-decimal pl-4 space-y-1 text-slate-300 text-[11px] leading-relaxed">
+                                <li><strong class="text-white">일관성 확보:</strong> AI가 분석을 실행할 때마다 동일한 결과 생성.</li>
+                                <li><strong class="text-white">유추한 질병:</strong> 약물로 유추된 질병은 주상병과 함께 병기됩니다.</li>
+                                <li><strong class="text-white">기본로직:</strong> 입원/통원 분리, 중복제거, 부상병 유추, 일반심사(1년이내 검사/재검사 소견 여부 고객 확인 필), 간편심사(입원,수술만 표기. 투약 정보는 일반심사 참고)</li>
+                                <li><strong class="text-white">3개월 내원력:</strong> 3개월 내원력은 필히 고객님께 확인 해야합니다.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- 🌐 심평원 내진료정보 열람 바로가기 배너 -->
+                    <div class="bg-gradient-to-r from-blue-900/60 to-indigo-900/60 p-4 rounded-xl border border-blue-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div>
+                            <h4 class="font-bold text-blue-200 text-sm flex items-center gap-1.5">
+                                <span>🏥</span> <span>건강보험심사평가원 「내 진료정보 열람」 바로가기</span>
+                            </h4>
+                            <p class="text-slate-300 text-[11px] mt-1">
+                                고객 간편인증 후 다운로드받은 PDF 파일을 본 분석기에 첨부하시면 자동 분석됩니다.
+                            </p>
+                        </div>
+                        <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2 rounded-lg shadow transition flex items-center justify-center gap-1 flex-shrink-0">
+                            <span>🌐 심평원 바로가기</span>
+                            <span>↗</span>
+                        </a>
+                    </div>
+
+                    <!-- Streamlit 스타일 PDF Drag & Drop 업로더 -->
+                    <div class="space-y-3">
+                        <label class="block font-bold text-slate-300 text-xs">
+                            기본진료정보 / 세부진료정보 / 처방조제정보 / 교통사고기본·세부 (PDF)
+                        </label>
+
+                        <div id="pdfDropZone" onclick="document.getElementById('pdfFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-amber-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 group">
+                            <div class="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-amber-500/20 text-slate-400 group-hover:text-amber-400 flex items-center justify-center text-xl transition">
+                                ☁️
+                            </div>
+                            <div class="text-xs font-bold text-slate-300 group-hover:text-amber-300 transition" id="pdfFileNameDisplay">
+                                Drag and drop files here
+                            </div>
+                            <div class="text-[10px] text-slate-500">
+                                Limit 200MB per file • PDF
+                            </div>
+                            <button type="button" class="mt-2 bg-slate-800 group-hover:bg-slate-700 text-slate-200 px-3 py-1 rounded border border-slate-700 text-[11px] font-bold">
+                                Browse files
+                            </button>
+                            <input id="pdfFileInput" type="file" accept=".pdf" multiple class="hidden" onchange="handlePdfSelect(event)">
+                        </div>
+                    </div>
+
+                    <!-- 🚀 분석 실행 버튼 -->
+                    <div>
+                        <button id="runAnalysisBtn" onclick="executeDutyAnalysis()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-6 py-3 rounded-xl text-sm shadow-lg transition flex items-center gap-2">
+                            <span>🚀</span> <span>분석 실행</span>
+                        </button>
+                    </div>
+
+                    <!-- 로딩 바 -->
+                    <div id="dutyProgressArea" class="hidden p-4 bg-slate-950 text-white rounded-xl space-y-2 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span id="dutyProgressText">📄 PDF 진료기록 문서를 분석하고 있습니다...</span>
+                            <span id="dutyProgressPercent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="dutyProgressBar" class="bg-amber-400 h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- 분석 결과 탭 영역 (Tab 1: 알릴의무 분석 vs Tab 2: 고지위반 점검) -->
+                    <div id="dutyResultContainer" class="hidden space-y-5 pt-4 border-t border-slate-800">
+                        
+                        <!-- 탭 버튼 헤더 -->
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <div class="flex space-x-3">
+                                <button id="tabBtn1" onclick="switchResultTab('tab1')" class="px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition">
+                                    📋 알릴의무 분석 (신규)
+                                </button>
+                                <button id="tabBtn2" onclick="switchResultTab('tab2')" class="px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">
+                                    🔍 고지위반 점검 (기계약)
+                                </button>
+                            </div>
+
+                            <button onclick="exportDutyToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1.5 transition">
+                                <span>💾</span> <span>분석보고서 엑셀 다운로드</span>
+                            </button>
+                        </div>
+
+                        <!-- 탭 1 콘텐츠: 신규 가입 알릴의무 -->
+                        <div id="tab1Content" class="space-y-4">
+                            <!-- 요약 KPI 카드 4종 -->
+                            <div id="dutySummaryCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                <!-- Dynamic KPI Cards -->
+                            </div>
+
+                            <!-- 파이썬 규칙엔진 집계 Collapse -->
+                            <div class="border border-slate-800 rounded-xl overflow-hidden text-xs">
+                                <button onclick="toggleDebugVisibility()" class="w-full bg-slate-950 p-3 text-left font-bold text-amber-400 flex justify-between items-center border-b border-slate-800">
+                                    <span class="flex items-center gap-2"><span>⚡</span> <span>[파이썬 집계 데이터 (Rule Engine v5.0)]</span></span>
+                                    <span id="debugToggleIcon">▼</span>
+                                </button>
+                                <div id="dutyDebugContent" class="hidden p-4 bg-slate-950 text-slate-300 font-mono text-[11px] space-y-2 border-t border-slate-800 custom-scrollbar max-h-48 overflow-y-auto">
+                                    <!-- Dynamic Debug Output -->
+                                </div>
+                            </div>
+
+                            <!-- AI Markdown 심사 보고서 Output Box -->
+                            <div id="dutyAiReportBox1" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner">
+                                <!-- Rendered Markdown Table -->
+                            </div>
+                        </div>
+
+                        <!-- 탭 2 콘텐츠: 기계약 고지위반 점검 -->
+                        <div id="tab2Content" class="hidden space-y-4">
+                            <div id="violationNoticeBox" class="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
+                                <!-- Violation output for each contract date or setup prompt -->
+                            </div>
+                            <div id="dutyAiReportBox2" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner hidden">
+                                <!-- Rendered Markdown Table for Tab 2 -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                </main>
+            </div>
+            
+            <div class="bg-slate-950 px-5 py-3 border-t border-slate-800 flex justify-end flex-shrink-0">
+                <button onclick="closeModal('dutyModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg text-xs font-bold transition">닫기</button>
             </div>
         </div>
     </div>
@@ -602,7 +845,7 @@
         </div>
     </div>
 
-    <!-- 7. 실비계산기 모달 (신규 구현) -->
+    <!-- 7. 실비계산기 모달 -->
     <div id="indemnityCalcModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('indemnityCalcModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -714,12 +957,19 @@
         </div>
     </div>
 
-
     <!-- 스크립트 로직 -->
     <script>
+        // Configure PDF.js Worker
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
         let activeSlide = 1;
         let chart1Instance = null;
         let chart2Instance = null;
+        let activeResultTab = 'tab1';
+        let currentTab1Markdown = "";
+        let currentTab2Markdown = "";
 
         // 1페이지 vs 2페이지 화면 전환 (SPA View Switcher)
         function switchView(viewName, targetSectionId = null) {
@@ -791,19 +1041,13 @@
 
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
+            if (id === 'dutyModal') {
+                renderContractDateInputs();
+            }
         }
 
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
-        }
-
-        function analyzeDuty() {
-            const val = document.getElementById('diseaseInput').value.trim();
-            if (!val) {
-                alert('검진 정보 및 질환 키워드를 입력해주세요.');
-                return;
-            }
-            document.getElementById('dutyResult').classList.remove('hidden');
         }
 
         // 실비 예상 환급액 계산 로직
@@ -817,11 +1061,9 @@
                 return;
             }
 
-            // 급여 공제 (병원 기준 공제액과 20% 중 큰 금액)
             const nationalDeduct = Math.max(hospitalBase, Math.round(nationalFee * 0.2));
             const nationalRefund = Math.max(0, nationalFee - nationalDeduct);
 
-            // 비급여 공제 (비급여의 30%)
             const nonNationalDeduct = Math.round(nonNationalFee * 0.3);
             const nonNationalRefund = Math.max(0, nonNationalFee - nonNationalDeduct);
 
@@ -834,6 +1076,442 @@
             document.getElementById('resRefund').innerText = totalRefund.toLocaleString() + ' 원';
 
             document.getElementById('calcResultBox').classList.remove('hidden');
+        }
+
+        /* =========================================================================
+         *  [알릴의무 & 고지유무 정밀 분석기 v5.0 ENGINE JS]
+         * ========================================================================= */
+        
+        const MedicalRuleKeywords = {
+            surgery: ["수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", "카테터", "신경차단", "차단술", "조영술", "시멘트", "치조골", "발치", "임플란트", "제거"],
+            dentalExclude: ["치근활택", "치근확장", "근관확대", "스케일링", "치석", "진단및치료계획", "1단계", "방사선", "파노라마", "보철수복", "3단계", "보철"],
+            exclude: [
+                "수술후처치", "수술재료", "수술방", "마취", "검사", "영상", "진찰료", "의학관리료",
+                "단순처치", "질강처치", "드레싱", "물리치료", "체외충격파", "도수치료",
+                "기본진료", "투약", "처방전", "접종", "재료대", "치주소파", "치관수복", "보철물",
+                "ELECTRODE", "WIRE", "PROBE", "CATHETER", "TUBE", "NEEDLE", "SYRINGE",
+                "NYLON", "SILK", "VICRYL", "POLYSORB", "STAPLER", "SUTURE", "BLADE", "KNIFE",
+                "GAUZE", "BANDAGE", "STRIP", "CLOSURE", "HOOK", "SCREW", "PLATE", "MESH",
+                "BURR", "SAW", "절삭기류", "드릴",
+                "산소", "흡입", "감시", "측정", "모니터링", "심전도", "배액", "세척", "소독", "교환",
+                "유치", "삽입", "제거", "관장", "기저귀", "마사지", "온열", "냉동", "자극", "요법",
+                "주입로", "정맥내", "근육내", "피하", "주사", "수액", "영양제"
+            ],
+            forceInclude: [
+                "신경차단", "차단술", "조영술", "결찰술", "박리술", "신경성형술",
+                "고주파", "풍선확장", "후궁절제", "치환술", "절제술", "적출술",
+                "이식술", "재건술", "감압술", "티눈", "발치",
+                "치조골", "식립술", "매복치", "고정체"
+            ]
+        };
+
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('pdfPasswordInput');
+            pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function changeContractCount(delta) {
+            const input = document.getElementById('contractCountInput');
+            let val = parseInt(input.value) || 0;
+            val = Math.max(0, Math.min(5, val + delta));
+            input.value = val;
+            renderContractDateInputs();
+        }
+
+        function renderContractDateInputs() {
+            const count = parseInt(document.getElementById('contractCountInput').value) || 0;
+            const container = document.getElementById('contractDatesContainer');
+            container.innerHTML = '';
+
+            if (count === 0) return;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let i = 0; i < count; i++) {
+                const div = document.createElement('div');
+                div.className = "bg-slate-900 p-2.5 rounded-lg border border-slate-800 space-y-1";
+                div.innerHTML = `
+                    <label class="block text-[11px] font-bold text-slate-300">#${i + 1} 계약 체결일 (청약일)</label>
+                    <input type="date" id="contractDate_${i}" value="${todayStr}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function handlePdfSelect(event) {
+            const files = event.target.files;
+            const nameDisplay = document.getElementById('pdfFileNameDisplay');
+            if (files && files.length > 0) {
+                if (files.length === 1) {
+                    nameDisplay.innerText = `📄 ${files[0].name}`;
+                } else {
+                    nameDisplay.innerText = `📄 ${files.length}개의 PDF 파일 선택됨`;
+                }
+            } else {
+                nameDisplay.innerText = 'Drag and drop files here';
+            }
+        }
+
+        function toggleDebugVisibility() {
+            const content = document.getElementById('dutyDebugContent');
+            const icon = document.getElementById('debugToggleIcon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.innerText = '▲';
+            } else {
+                content.classList.add('hidden');
+                icon.innerText = '▼';
+            }
+        }
+
+        function switchResultTab(tabName) {
+            activeResultTab = tabName;
+            const btn1 = document.getElementById('tabBtn1');
+            const btn2 = document.getElementById('tabBtn2');
+            const tab1Content = document.getElementById('tab1Content');
+            const tab2Content = document.getElementById('tab2Content');
+
+            if (tabName === 'tab1') {
+                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition";
+                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition";
+                tab1Content.classList.remove('hidden');
+                tab2Content.classList.add('hidden');
+            } else {
+                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition";
+                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition";
+                tab2Content.classList.remove('hidden');
+                tab1Content.classList.add('hidden');
+            }
+        }
+
+        // Extract Text from PDF using PDF.js
+        async function extractTextFromPdfFiles(fileList, password) {
+            let combinedText = "";
+            for (let i = 0; i < fileList.length; i++) {
+                const file = fileList[i];
+                const arrayBuffer = await file.arrayBuffer();
+                try {
+                    const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer, password: password });
+                    const pdf = await loadingTask.promise;
+                    let fileText = `\n=== PDF: ${file.name} ===\n`;
+
+                    for (let p = 1; p <= pdf.numPages; p++) {
+                        const page = await pdf.getPage(p);
+                        const tokenized = await page.getTextContent();
+                        const pageText = tokenized.items.map(item => item.str).join(' ');
+                        fileText += pageText + '\n';
+                    }
+                    combinedText += fileText;
+                } catch (err) {
+                    if (err.name === 'PasswordException') {
+                        throw new Error(`PDF 암호 오류: ${file.name} (암호를 정확히 입력해주세요)`);
+                    } else {
+                        combinedText += `\n[${file.name} 파싱 실패: ${err.message}]\n`;
+                    }
+                }
+            }
+            return combinedText;
+        }
+
+        // Client-side Medical Rule Engine Parsing
+        function runClientRuleEngine(rawText, targetDate = null) {
+            const lines = rawText.split('\n');
+            const detectedInfo = {
+                surgeries: [],
+                longTermMeds: [],
+                admissions: [],
+                longTermTreatments: []
+            };
+
+            const visitCounter = {};
+            const admissionCounter = {};
+            const admissionDetails = {};
+
+            const dateRegex = /\b(20\d{2}[-./]?\d{2}[-./]?\d{2})\b/;
+
+            lines.forEach(line => {
+                if (!line.trim() || line.includes('약국')) return;
+
+                const dateMatch = line.match(dateRegex);
+                let lineDateStr = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : '';
+                
+                if (targetDate && lineDateStr && lineDateStr.length === 8) {
+                    const lYear = parseInt(lineDateStr.substring(0, 4));
+                    const lMonth = parseInt(lineDateStr.substring(4, 6)) - 1;
+                    const lDay = parseInt(lineDateStr.substring(6, 8));
+                    const lDate = new Date(lYear, lMonth, lDay);
+                    if (lDate > targetDate) return;
+                }
+
+                // Surgery Check
+                let isSurgery = false;
+                if (MedicalRuleKeywords.dentalExclude.some(k => line.includes(k))) {
+                    isSurgery = false;
+                } else if (MedicalRuleKeywords.surgery.some(k => line.includes(k))) {
+                    isSurgery = true;
+                } else if (line.includes('술') && !line.includes('처치')) {
+                    if (!MedicalRuleKeywords.exclude.some(k => line.includes(k))) isSurgery = true;
+                }
+
+                if (MedicalRuleKeywords.exclude.some(k => line.includes(k))) isSurgery = false;
+                if (MedicalRuleKeywords.forceInclude.some(k => line.includes(k))) isSurgery = true;
+
+                if (isSurgery) {
+                    detectedInfo.surgeries.push(`[${lineDateStr || '날짜미상'}] ${line.trim()}`);
+                }
+
+                // Long term Medication (30+ days)
+                const numMatches = line.match(/\b\d{2,3}\b/g);
+                if (numMatches && (line.includes('투약') || line.includes('일수') || line.includes('처방'))) {
+                    const days = Math.max(...numMatches.map(n => parseInt(n)));
+                    if (days >= 30 && !line.includes('입원')) {
+                        detectedInfo.longTermMeds.push(`(${days}일 처방) ${line.trim().substring(0, 50)}...`);
+                    }
+                }
+
+                // Extract Hospital and Disease
+                const parts = line.split(/[|,-]/).map(s => s.trim()).filter(Boolean);
+                let hospital = parts[0] || "OO병원";
+                let disease = parts[1] || "진단상병";
+
+                const key = `${hospital}|${disease}`;
+
+                if (line.includes('입원')) {
+                    const daysMatch = line.match(/(\d+)\s*일/);
+                    const days = daysMatch ? parseInt(daysMatch[1]) : 1;
+                    admissionCounter[key] = (admissionCounter[key] || 0) + days;
+                    if (!admissionDetails[key]) admissionDetails[key] = new Set();
+                    admissionDetails[key].add(`${lineDateStr || '일자미상'}(${days}일)`);
+                    detectedInfo.admissions.push(`입원 ${days}일: ${line.trim().substring(0, 50)}`);
+                } else {
+                    if (!visitCounter[key]) visitCounter[key] = new Set();
+                    if (lineDateStr) visitCounter[key].add(lineDateStr);
+                }
+            });
+
+            return { detectedInfo, visitCounter, admissionCounter, admissionDetails };
+        }
+
+        // Execute Duty Analysis Main Handler
+        async function executeDutyAnalysis() {
+            const apiKey = "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
+            const modelName = document.getElementById('aiModelSelect').value;
+            const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
+            const pdfFiles = document.getElementById('pdfFileInput').files;
+
+            if (!pdfFiles || pdfFiles.length === 0) {
+                alert('진료기록 PDF 파일을 선택해주세요.');
+                return;
+            }
+
+            const progressArea = document.getElementById('dutyProgressArea');
+            const progressText = document.getElementById('dutyProgressText');
+            const progressBar = document.getElementById('dutyProgressBar');
+            const progressPercent = document.getElementById('dutyProgressPercent');
+
+            const resultContainer = document.getElementById('dutyResultContainer');
+            const debugContent = document.getElementById('dutyDebugContent');
+            const reportBox1 = document.getElementById('dutyAiReportBox1');
+            const reportBox2 = document.getElementById('dutyAiReportBox2');
+            const violationNoticeBox = document.getElementById('violationNoticeBox');
+
+            progressArea.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+
+            try {
+                progressText.innerText = `📄 ${pdfFiles.length}개의 PDF 파일 문서를 추출하는 중...`;
+                progressBar.style.width = '30%';
+                progressPercent.innerText = '30%';
+
+                const fullText = await extractTextFromPdfFiles(pdfFiles, pdfPassword);
+
+                progressText.innerText = "⚙️ 규칙 엔진(Rule Engine v5.0) 파싱 중...";
+                progressBar.style.width = '55%';
+                progressPercent.innerText = '55%';
+
+                const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+                const { detectedInfo, visitCounter, admissionCounter } = runClientRuleEngine(fullText);
+
+                // Render Debug Data
+                debugContent.innerHTML = `
+                    <div class="text-amber-400 font-bold">📊 [파이썬 집계 규칙 엔진 결과]</div>
+                    <div><strong>[🚨 시스템 감지: 수술/시술 목록]</strong></div>
+                    <div class="text-amber-200 pl-3">${detectedInfo.surgeries.join('<br>') || '없음'}</div>
+                    <div class="mt-2"><strong>[💊 시스템 감지: 30일 이상 투약 처방]</strong></div>
+                    <div class="text-emerald-300 pl-3">${detectedInfo.longTermMeds.join('<br>') || '없음'}</div>
+                    <div class="mt-2"><strong>[🏥 병원 및 상병별 입원 일수]</strong></div>
+                    <pre class="text-slate-400 text-[10px] pl-3">${JSON.stringify(admissionCounter, null, 2)}</pre>
+                `;
+
+                // 요약 KPI 카드 렌더링
+                const summaryCardsEl = document.getElementById('dutySummaryCards');
+                summaryCardsEl.innerHTML = `
+                    <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-center">
+                        <span class="text-[10px] font-bold text-amber-400 block">수술/시술 감지</span>
+                        <span class="text-lg font-black text-amber-300 mt-0.5 block">${detectedInfo.surgeries.length} 건</span>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-center">
+                        <span class="text-[10px] font-bold text-emerald-400 block">30일 이상 장기투약</span>
+                        <span class="text-lg font-black text-emerald-300 mt-0.5 block">${detectedInfo.longTermMeds.length} 건</span>
+                    </div>
+                    <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 text-center">
+                        <span class="text-[10px] font-bold text-blue-400 block">입원 이력 집계</span>
+                        <span class="text-lg font-black text-blue-300 mt-0.5 block">${Object.keys(admissionCounter).length} 개 병원</span>
+                    </div>
+                    <div class="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-center">
+                        <span class="text-[10px] font-bold text-indigo-400 block">외래 방문 기록</span>
+                        <span class="text-lg font-black text-indigo-300 mt-0.5 block">${Object.keys(visitCounter).length} 개 상병</span>
+                    </div>
+                `;
+
+                progressText.innerText = "🤖 Gemini AI 정밀 심사 리포트 생성 중 (약 5~10초 소요)...";
+                progressBar.style.width = '80%';
+                progressPercent.innerText = '80%';
+
+                const promptTab1 = `
+당신은 보험 심사역입니다. 제공된 [진료기록 원문]과 [파이썬 집계 데이터]를 바탕으로 보고서를 작성하십시오.
+
+🕒 **기준일:** ${todayStr} (오늘 기준 역산)
+
+🚨 **[데이터 작성 금지 규칙 (Strict Negative Constraints)]**
+1. **절대 창작 금지:** 입력 데이터에 없는 병원이나 질병은 절대 행으로 만들지 마십시오.
+2. **경미한 건 제외:** 3개월 경과, 1년내 검사 없음, 5년내 입원/수술 없음, 7일 미만 통원, 30일 미만 투약인 건은 적지 마십시오.
+3. **[치과 수술 기재 금지 목록]:** 레진, 충전, 아말감, 인레이, 온레이, 크라운, 신경치료, 근관치료 등 보존적 치료는 수술이 아니므로 절대 수술로 기재하지 마십시오. 오직 발치, 치조골성형, 임플란트 식립술 등만 수술입니다.
+
+🚨 **[보고서 작성 규칙 - 하부 행 추가 원칙]**
+1. 같은 질병명과 병원은 하나의 그룹으로 묶으십시오.
+2. 입원 일자가 서로 다르거나 수술/시술 날짜가 다른 경우 하부 행(↳)을 추가하십시오.
+
+---
+**[진료기록 데이터]**
+${fullText.substring(0, 50000)}
+
+---
+### **[최종 심사 보고서]**
+
+#### 1️⃣ [일반심사] 표준 알릴의무 (요약)
+*기준: 3개월(내원), 1년(검사), 5년(입원/수술/7일통원/30일투약)*
+
+| 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
+| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+
+#### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
+*(입원 및 수술 이력만 기재 / 3개월내 내원력 및 투약 정보는 일반심사 참고)*
+
+| 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
+| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+                `;
+
+                // Call Gemini REST API directly
+                const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const response1 = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptTab1 }] }],
+                        generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
+                    })
+                });
+
+                if (!response1.ok) {
+                    const errData = await response1.json();
+                    throw new Error(errData.error?.message || 'Gemini API 호출에 실패했습니다.');
+                }
+
+                const resData1 = await response1.json();
+                const aiMarkdown1 = resData1.candidates?.[0]?.content?.parts?.[0]?.text || "분석 결과를 생성하지 못했습니다.";
+                currentTab1Markdown = aiMarkdown1;
+
+                // Check contract dates for Tab 2
+                const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
+                if (contractCount > 0) {
+                    let contractDatesStrList = [];
+                    for (let c = 0; c < contractCount; c++) {
+                        const dVal = document.getElementById(`contractDate_${c}`).value;
+                        if (dVal) contractDatesStrList.push(dVal);
+                    }
+
+                    violationNoticeBox.innerHTML = `
+                        <div class="font-bold text-amber-400 mb-1">📑 설정된 계약 청약일 목록: ${contractDatesStrList.join(', ')}</div>
+                        <p>각 계약 체결일 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>
+                    `;
+
+                    const promptTab2 = `
+당신은 보험 심사역입니다. 지정된 기계약 청약일 시점에서 고지위반 여부를 점검하십시오.
+청약일 목록: ${contractDatesStrList.join(', ')}
+
+---
+**[진료기록 데이터]**
+${fullText.substring(0, 50000)}
+                    `;
+
+                    const response2 = await fetch(apiEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptTab2 }] }],
+                            generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
+                        })
+                    });
+
+                    if (response2.ok) {
+                        const resData2 = await response2.json();
+                        currentTab2Markdown = resData2.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                        reportBox2.innerHTML = window.marked ? window.marked.parse(currentTab2Markdown) : `<pre>${currentTab2Markdown}</pre>`;
+                        reportBox2.classList.remove('hidden');
+                    }
+                } else {
+                    violationNoticeBox.innerHTML = `
+                        <div class="text-amber-400 font-bold mb-1">👈 고지위반 점검 설정 필요</div>
+                        <p>좌측 사이드바의 <strong>[🔍 고지위반 점검 설정]</strong>에서 '점검할 계약 건수'를 설정하시고 청약일을 입력한 후 다시 분석을 실행해주세요.</p>
+                    `;
+                    reportBox2.classList.add('hidden');
+                }
+
+                progressBar.style.width = '100%';
+                progressPercent.innerText = '100%';
+
+                setTimeout(() => {
+                    progressArea.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                    reportBox1.innerHTML = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
+                    switchResultTab('tab1');
+                }, 400);
+
+            } catch (error) {
+                progressArea.classList.add('hidden');
+                alert(`❌ 오류 발생: ${error.message}`);
+            }
+        }
+
+        // Export AI Duty Report to Excel (.xlsx)
+        function exportDutyToExcel() {
+            const activeMarkdown = activeResultTab === 'tab1' ? currentTab1Markdown : currentTab2Markdown;
+            if (!activeMarkdown) {
+                alert('다운로드할 분석 결과가 없습니다.');
+                return;
+            }
+
+            const activeReportBox = activeResultTab === 'tab1' ? document.getElementById('dutyAiReportBox1') : document.getElementById('dutyAiReportBox2');
+            const tables = activeReportBox.querySelectorAll('table');
+
+            const wb = XLSX.utils.book_new();
+
+            if (tables.length > 0) {
+                tables.forEach((table, idx) => {
+                    const ws = XLSX.utils.table_to_sheet(table);
+                    XLSX.utils.book_append_sheet(wb, ws, `심사표_${idx + 1}`);
+                });
+            } else {
+                const ws = XLSX.utils.aoa_to_sheet([
+                    ['알릴의무 심사 보고서'],
+                    [activeMarkdown]
+                ]);
+                XLSX.utils.book_append_sheet(wb, ws, '심사보고서');
+            }
+
+            const fileName = `잇츠리온_알릴의무심사보고서_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
         }
 
         // Chart.js 초기화
@@ -897,9 +1575,6 @@
                 }
             });
         });
-    </script>
-</body>
-</html>
     </script>
 </body>
 </html>
