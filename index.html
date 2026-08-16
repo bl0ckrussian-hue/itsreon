@@ -8,13 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- PDF.js for Client-Side PDF Parsing -->
+    <!-- PDF.js for client-side PDF text extraction -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- SheetJS for Excel Generation -->
+    <!-- SheetJS (XLSX) for Excel Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <!-- Marked.js for rendering AI Markdown responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body {
@@ -51,29 +50,36 @@
         .hero-slide {
             transition: opacity 0.6s ease-in-out;
         }
-        .duty-report-table table {
+        /* AI Report Table Custom Styling */
+        .ai-report-content table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 12px;
-            margin-bottom: 12px;
-            font-size: 11px;
+            margin-bottom: 16px;
+            font-size: 12px;
         }
-        .duty-report-table th {
+        .ai-report-content th {
             background-color: #1E293B;
-            color: #F8FAFC;
+            color: #ffffff;
             font-weight: 700;
-            padding: 8px 6px;
+            padding: 8px 10px;
             border: 1px solid #334155;
             text-align: center;
         }
-        .duty-report-table td {
-            padding: 8px 6px;
-            border: 1px solid #CBD5E1;
-            color: #1E293B;
-            background-color: #FFFFFF;
+        .ai-report-content td {
+            padding: 8px 10px;
+            border: 1px solid #E2E8F0;
+            vertical-align: top;
+            color: #334155;
         }
-        .duty-report-table tr:nth-child(even) td {
+        .ai-report-content tr:nth-child(even) {
             background-color: #F8FAFC;
+        }
+        .ai-report-content h3, .ai-report-content h4 {
+            font-weight: 800;
+            color: #0F172A;
+            margin-top: 18px;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -183,19 +189,19 @@
                 </div>
             </section>
 
-            <!-- 1-2. 브랜드 상징 & 업무화면 바로가기 -->
+            <!-- 1-2. 브랜드 상징 Emblem & 업무화면 바로가기 버튼 영역 -->
             <section class="bg-white py-14 border-b border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
                     
-                    <div class="w-full max-w-sm bg-slate-900 rounded-2xl p-6 shadow-xl border border-slate-800 text-white mb-6 flex flex-col items-center justify-center">
-                        <img src="logo.jpg" alt="잇츠리온 로고" class="w-full max-h-24 object-contain mb-3 rounded-lg" onerror="this.style.display='none'; document.getElementById('emblemFallback').style.display='block';">
-                        <div id="emblemFallback" style="display:none;" class="text-center">
-                            <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-inner mx-auto mb-2 text-2xl">🛡️</div>
-                            <div class="font-black text-lg tracking-wider text-slate-100">잇츠리온 (ItsRion)</div>
-                            <div class="text-[11px] font-semibold text-slate-400 mt-1">이로운(利) 가치, 성공의 이치를 밝히다.</div>
+                    <div class="w-full max-w-sm bg-slate-900 rounded-2xl p-8 shadow-xl border border-slate-800 text-white mb-6 flex flex-col items-center justify-center">
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 border-2 border-slate-600 flex items-center justify-center shadow-inner mb-4 text-3xl">
+                            🛡️
                         </div>
+                        <div class="font-black text-xl tracking-wider text-slate-100">SENTINEL ADVISORS</div>
+                        <div class="text-[11px] font-semibold text-slate-400 tracking-widest mt-1">STRATEGIC CAPITAL PARTNERS</div>
                     </div>
 
+                    <!-- 업무화면 바로가기 메인 CTA -->
                     <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-10 py-4 rounded-xl shadow-lg hover:shadow-2xl border border-blue-500 text-base transition transform hover:-translate-y-1 tracking-wide flex items-center gap-3">
                         <span>업무지원 바로가기→</span>
                     </button>
@@ -203,9 +209,10 @@
                 </div>
             </section>
 
-            <!-- 1-3. 왜 잇츠리온인가? -->
+            <!-- 1-3. 하단 왜 잇츠리온인가요? 섹션 -->
             <section id="whyUs" class="bg-slate-50 py-16 border-t border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
                     <div class="text-center max-w-2xl mx-auto mb-12">
                         <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">SYSTEM ADVANTAGE</span>
                         <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">왜 잇츠리온인가?</h2>
@@ -213,30 +220,36 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <!-- Left Image -->
                         <div class="rounded-2xl overflow-hidden shadow-lg border border-slate-200">
                             <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=1200&q=80" alt="Professional Advisor" class="w-full h-80 md:h-96 object-cover">
                         </div>
 
+                        <!-- Right Text Cards -->
                         <div class="space-y-8">
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">하나의 플랫폼, 모든 영업 도구</h3>
                                 <p class="text-sm text-slate-600 leading-relaxed">
-                                    고객관리부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 업무현황까지 영업 활동에 필수적인 모든 것을 잇츠리온에서 지원하는 플랫폼 하나로 해결하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용할 수 있습니다.
+                                    고객관리부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 업후현황까지 영업 활동에 필수적인 모든 것을 잇츠리온에서 지원하는 플랫폼 하나로 해결하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용 할 수 있습니다.
                                 </p>
                             </div>
+
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">스케줄 연동으로 놓침 없는 고객 관리</h3>
                                 <p class="text-sm text-slate-600 leading-relaxed">
-                                    영업인에게 고객관리는 생명과 같습니다. 고객 관리부터 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다. 놓치는 고객 없이 체계적으로 케어하세요.
+                                    영업인에게 고객관리는 생명과 같습니다. 이제 한 번에 해결하세요. 고객 관리부터 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다. 놓치는 고객 없이 체계적으로 케어하세요.
                                 </p>
                             </div>
+
                             <div class="pt-2">
                                 <button onclick="switchView('workspace')" class="bg-slate-900 hover:bg-blue-900 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition shadow flex items-center gap-2">
-                                    <span>주요 업무도구 및 실적분석 보기 →</span>
+                                    <span>주요 업무도구 및 실적분석 보기</span>
+                                    <span>→</span>
                                 </button>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </section>
         </div>
@@ -244,6 +257,7 @@
         <!-- ==================== [페이지 2: 주요 업무 기능 & 실적 분석 (업무 화면)] ==================== -->
         <div id="viewWorkspace" class="hidden transition-all duration-300">
             
+            <!-- 페이지 2 헤더 배너 -->
             <div class="bg-slate-900 text-white border-b border-slate-800 py-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
@@ -255,15 +269,16 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition">
-                            ← 잇츠리온 소개로 돌아가기
+                            ←잇츠리온 소개로 돌아가기
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- 2-1. 주요 업무 기능 9대 카드 섹션 -->
+            <!-- 2-1. 주요 업무 기능 9대 카드 섹션 (3행 3열 그리드) -->
             <section id="features" class="bg-slate-900 py-12 text-white border-b border-slate-800">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
                     <div class="mb-8">
                         <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
                             <span>🛠️</span> <span>주요 업무 기능</span>
@@ -271,6 +286,7 @@
                         <p class="text-slate-400 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
 
+                    <!-- 3행 3열 (총 9개) 그리드 카드 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
                         <!-- 카드 1: DB배정 -->
@@ -296,17 +312,17 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">약관분석 (구글 클라우드)</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                전 보험사 약관 검토 및<br/>비교, 분석 결과 제공
+                                전 보험사 약관 검토 및<br/>비교,분석 결과 제공
                             </p>
                         </div>
 
-                        <!-- 카드 4: 알릴의무분석 (v5.0 연동) -->
-                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-amber-500/80 hover:border-amber-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-lg hover:shadow-2xl relative overflow-hidden">
-                            <div class="absolute top-3 right-3 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">v5.0 AI</div>
+                        <!-- 카드 4: 알릴의무분석 (v5.0 AI 정밀 심사 엔진 탑재) -->
+                        <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-amber-500/50 hover:border-amber-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-lg hover:shadow-2xl relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무 정밀분석</h3>
+                            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무분석</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                심평원 PDF 자동 분석 &<br/>신규/기계약 고지위반 정밀 점검
+                                진료이력 기반 분석<br/>고지의무 사항 자동 체크
                             </p>
                         </div>
 
@@ -315,7 +331,7 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">보험청구 지원</h3>
                             <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구
+                                원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 
                             </p>
                         </div>
 
@@ -370,6 +386,7 @@
             <section id="myAnalytics" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
                     
+                    <!-- 상단 설계사 개인화 태그 & 헤더 -->
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
                         <div>
                             <div class="flex items-center space-x-2 mb-1.5">
@@ -382,6 +399,7 @@
                             </p>
                         </div>
 
+                        <!-- 실적 상태 요약 칩 -->
                         <div class="flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                             <div class="text-right">
                                 <div class="text-[11px] font-bold text-slate-500">당월 종합 DB 체결률</div>
@@ -395,6 +413,7 @@
                         </div>
                     </div>
 
+                    <!-- 개인 실적 KPI 요약 카드 4종 -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
                             <span class="text-[11px] font-semibold text-slate-500 block">당월 배정 DB 수량</span>
@@ -418,31 +437,36 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-xs font-bold text-slate-800">[김설계] DB 유형별 계약 체결률 (%)</h3>
-                                <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">최근 3개월 누적</span>
+                    <!-- 개인 맞춤 시각화 그래프 (Chart.js) -->
+                    <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- 차트 1: 개인 DB 유형별 체결률 -->
+                            <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-bold text-slate-800">[김설계] DB 유형별 계약 체결률 (%)</h3>
+                                    <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">최근 3개월 누적</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="conversionChart"></canvas>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-3 text-center">
+                                    💡 <span class="font-bold text-slate-700">보장분석 DB</span>에서 가장 높은 체결율(42.5%)을 기록하고 있습니다.
+                                </p>
                             </div>
-                            <div class="chart-container">
-                                <canvas id="conversionChart"></canvas>
-                            </div>
-                            <p class="text-[11px] text-slate-500 mt-3 text-center">
-                                💡 <span class="font-bold text-slate-700">보장분석 DB</span>에서 가장 높은 체결율(42.5%)을 기록하고 있습니다.
-                            </p>
-                        </div>
 
-                        <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-xs font-bold text-slate-800">[김설계] 월별 DB 소진 수량 vs 체결 건수</h3>
-                                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">실시간 추이</span>
+                            <!-- 차트 2: 월별 DB 배정 및 소진/체결 추이 -->
+                            <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-bold text-slate-800">[김설계] 월별 DB 소진 수량 vs 체결 건수</h3>
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">실시간 추이</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="monthlyTrendChart"></canvas>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-3 text-center">
+                                    📈 DB 소진 수량 증가에 따라 월별 체결 건수도 꾸준히 우상향하고 있습니다.
+                                </p>
                             </div>
-                            <div class="chart-container">
-                                <canvas id="monthlyTrendChart"></canvas>
-                            </div>
-                            <p class="text-[11px] text-slate-500 mt-3 text-center">
-                                📈 DB 소진 수량 증가에 따라 월별 체결 건수도 꾸준히 우상향하고 있습니다.
-                            </p>
                         </div>
                     </div>
 
@@ -456,9 +480,9 @@
     <footer class="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
             <div>
-                <p class="font-bold text-slate-200 text-sm">잇츠리온 (ItsRion)</p>
-                <p class="mt-1 text-slate-400">보험설계사를 위한 올인원 스마트 비즈니스 플랫폼</p>
-                <p class="mt-1 text-slate-500">이로운(利) 가치, 성공의 이치를 밝히다.</p>
+                <p class="font-bold text-slate-200 text-sm">잇츠리온</p>
+                <p class="mt-1 text-slate-400">보험설계사를 위한 올인원 비즈니스 플랫폼</p>
+                <p class="mt-1 text-slate-500">대표전화 02-1234-xxxx | 이메일 support@itsrion.co.kr</p>
                 <p class="mt-0.5 text-slate-500">© 2026 ItsRion. All rights reserved.</p>
             </div>
 
@@ -475,235 +499,9 @@
     </footer>
 
 
-    <!-- ==================== [핵심 기능 모달: 알릴의무 정밀분석 v5.0] ==================== -->
-    <div id="dutyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-6xl w-full text-slate-100 shadow-2xl relative max-h-[95vh] flex flex-col overflow-hidden">
-            
-            <!-- 상단 타이틀 바 -->
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-                <div class="flex items-center space-x-3">
-                    <span class="text-2xl">🏥</span>
-                    <div>
-                        <h3 class="text-base sm:text-lg font-black text-white">보험 알릴의무 & 고지유무 정밀 분석기 (v5.0)</h3>
-                        <p class="text-[11px] text-slate-400">심평원 진료기록 PDF 기반 일관성 있는 AI 심사 및 고지위반 자동 점검</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('dutyModal')" class="text-slate-400 hover:text-white text-xl font-bold p-1">✕</button>
-            </div>
+    <!-- ==================== 인터랙티브 기능 모달 ==================== -->
 
-            <!-- 메인 스플릿 바디 (좌측 사이드바 + 우측 메인 영역) -->
-            <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
-
-                <!-- 1. 좌측 사이드바 (설정 영역) -->
-                <div class="w-full md:w-80 bg-slate-950/60 border-r border-slate-800 p-5 overflow-y-auto custom-scrollbar flex flex-col justify-between shrink-0 space-y-6">
-                    <div class="space-y-5">
-                        
-                        <!-- 1-1. 설정 헤더 -->
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider mb-3">
-                                <span>⚙️</span> <span>설정</span>
-                            </h4>
-                            
-                            <!-- API Key Status -->
-                            <div class="mb-3">
-                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">API Key Status</label>
-                                <input type="text" value="✅ Applied (자동 연동)" disabled class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-emerald-400 font-bold">
-                            </div>
-
-                            <!-- Gemini API Key (자동입력 기본값) -->
-                            <div class="mb-3">
-                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Gemini API Key</label>
-                                <input id="geminiApiKey" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-slate-200 font-mono focus:border-blue-500 focus:outline-none">
-                            </div>
-
-                            <!-- PDF 비밀번호 -->
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">PDF 비밀번호</label>
-                                <div class="relative">
-                                    <input id="pdfPasswordInput" type="password" placeholder="주민번호 앞 6자리 또는 암호" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none pr-8">
-                                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-200 text-xs">👁️</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-slate-800/80 pt-4">
-                            <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider mb-1">
-                                <span>🔍</span> <span>고지위반 점검 설정</span>
-                            </h4>
-                            <p class="text-[11px] text-slate-500 mb-3 leading-tight">
-                                기존 가입된 보험들의 고지위반 여부를 확인하려면 아래에 계약 정보를 입력하세요.
-                            </p>
-
-                            <!-- 점검할 계약 건수 Stepper -->
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-400 mb-1.5">점검할 계약 건수</label>
-                                <div class="flex items-center bg-slate-900 border border-slate-700 rounded p-1">
-                                    <button onclick="updateContractCount(-1)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold text-xs">-</button>
-                                    <span id="contractCountDisplay" class="flex-grow text-center text-xs font-bold text-white">0</span>
-                                    <button onclick="updateContractCount(1)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold text-xs">+</button>
-                                </div>
-                            </div>
-
-                            <!-- 계약일 날짜 입력 컨테이너 (동적 생성) -->
-                            <div id="contractDatesContainer" class="mt-3 space-y-2 max-h-48 overflow-y-auto custom-scrollbar"></div>
-                        </div>
-
-                    </div>
-
-                    <!-- 사이드바 하단 브랜딩 로고 -->
-                    <div class="border-t border-slate-800 pt-4 text-center">
-                        <img src="logo.jpg" alt="잇츠리온" class="w-full max-h-16 object-contain mx-auto rounded border border-slate-800" onerror="this.style.display='none'; document.getElementById('sidebarTextLogo').style.display='block';">
-                        <div id="sidebarTextLogo" style="display:none;" class="text-xs font-black text-slate-300 py-1">잇츠리온 (ItsRion)</div>
-                        <p class="text-[10px] text-slate-500 mt-2">ⓒ 2026. ItsRion All rights reserved.</p>
-                    </div>
-                </div>
-
-                <!-- 2. 우측 메인 영역 (분석기 뷰) -->
-                <div class="flex-grow p-5 sm:p-7 overflow-y-auto custom-scrollbar space-y-6">
-
-                    <!-- 상단 안내 가이드 박스 (v5.0 로직) -->
-                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 space-y-2">
-                        <div class="font-bold text-blue-400 flex items-center gap-1.5 text-sm">
-                            <span>📋</span> <span>[분석 로직 v5.0]</span>
-                        </div>
-                        <ol class="list-decimal list-inside space-y-1 text-slate-400 leading-relaxed text-[11px]">
-                            <li><strong class="text-slate-200">일관성 확보:</strong> AI가 분석을 실행할 때마다 동일한 결과 생성.</li>
-                            <li><strong class="text-slate-200">유추한 질병:</strong> 약물로 유추된 질병은 주상병과 함께 병기됩니다.</li>
-                            <li><strong class="text-slate-200">기본로직:</strong> 입원/통원 분리, 중복제거, 부상병 유추, 일반심사(1년이내 검사/재검사 소견 여부 고객 확인 필), 간편심사(입원, 수술만 표기. 투약 정보는 일반심사 참고)</li>
-                            <li><strong class="text-slate-200">3개월 내원력:</strong> 3개월 내원력은 필히 고객님께 확인해야 합니다.</li>
-                        </ol>
-                    </div>
-
-                    <!-- 심평원 내 진료정보 열람 바로가기 배너 -->
-                    <div class="bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-slate-900 border border-blue-700/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
-                        <div class="flex items-center space-x-3">
-                            <div class="text-2xl sm:text-3xl">🌐</div>
-                            <div>
-                                <h4 class="text-sm font-bold text-blue-300">건강보험심사평가원 「내 진료정보 열람」 바로가기</h4>
-                                <p class="text-xs text-slate-400 mt-0.5">고객 인증 후 다운로드받은 PDF 파일을 아래 업로드 영역에 넣어주세요.</p>
-                            </div>
-                        </div>
-                        <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-4 py-2 rounded-lg shadow transition shrink-0 flex items-center gap-1.5">
-                            <span>심평원 사이트 바로가기 ↗</span>
-                        </a>
-                    </div>
-
-                    <!-- PDF Drag & Drop 업로더 -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-2">
-                            기본진료정보 / 세부진료정보 / 처방조제정보 / 교통사고기본·세부 (PDF 파일 업로드)
-                        </label>
-                        <div id="pdfDropZone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)" onclick="document.getElementById('pdfFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/40 hover:bg-slate-900/60 rounded-xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group">
-                            <input id="pdfFileInput" type="file" accept="application/pdf" multiple onchange="handleFileSelect(event)" class="hidden">
-                            <div class="text-3xl text-slate-400 group-hover:scale-110 transition mb-2">☁️</div>
-                            <div class="text-xs font-semibold text-slate-200">
-                                Drag and drop files here
-                            </div>
-                            <div class="text-[11px] text-slate-500 mt-1">
-                                Limit 200MB per file • PDF
-                            </div>
-                            <button type="button" class="mt-3 bg-slate-800 group-hover:bg-blue-600 text-slate-200 group-hover:text-white px-3.5 py-1.5 rounded text-xs font-bold transition border border-slate-700">
-                                Browse files
-                            </button>
-                        </div>
-
-                        <!-- 선택된 파일 목록 -->
-                        <div id="selectedFileList" class="mt-2 space-y-1 text-xs"></div>
-                    </div>
-
-                    <!-- 분석 실행 버튼 & 프로그래스 바 -->
-                    <div class="flex items-center gap-3 pt-2">
-                        <button id="btnRunAnalysis" onclick="executeDutyAnalysis()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-6 py-2.5 rounded-lg text-xs shadow-lg transition flex items-center gap-2">
-                            <span>🚀 분석 실행</span>
-                        </button>
-                        <button onclick="fillSampleMedicalData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2.5 rounded-lg text-xs font-bold border border-slate-700 transition">
-                            📌 샘플 데이터 테스트
-                        </button>
-                    </div>
-
-                    <!-- 프로그래스 바 & 로딩 상태 -->
-                    <div id="analysisProgressBarContainer" class="hidden space-y-2 pt-2">
-                        <div class="flex justify-between text-xs text-blue-400 font-bold">
-                            <span id="analysisProgressText">📄 PDF 문서를 정밀 분석하고 있습니다...</span>
-                            <span id="analysisProgressPercent">0%</span>
-                        </div>
-                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div id="analysisProgressBar" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <!-- 결과 출력 컨테이너 (Tabs: Tab 1 vs Tab 2) -->
-                    <div id="dutyResultSection" class="hidden space-y-5 pt-4 border-t border-slate-800">
-                        
-                        <!-- 탭 전환 버튼 -->
-                        <div class="flex space-x-2 border-b border-slate-800 pb-2">
-                            <button id="tabBtnNew" onclick="switchResultTab('new')" class="px-4 py-2 text-xs font-extrabold text-blue-400 border-b-2 border-blue-500">
-                                📋 알릴의무 분석 (신규)
-                            </button>
-                            <button id="tabBtnOld" onclick="switchResultTab('old')" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-200">
-                                🔍 고지위반 점검 (기계약)
-                            </button>
-                        </div>
-
-                        <!-- [Tab 1] 신규 가입 알릴의무 분석 결과 -->
-                        <div id="resultTabNew" class="space-y-4">
-                            
-                            <!-- 파이썬 계산 결과 (디버깅/요약 토글) -->
-                            <details class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-300">
-                                <summary class="font-bold cursor-pointer text-blue-400 flex items-center gap-1">
-                                    <span>🔍</span> <span>파이썬 계산 결과 (Rule Engine 집계 디버깅)</span>
-                                </summary>
-                                <div class="mt-3 space-y-2 text-[11px] text-slate-300 font-mono bg-slate-900/90 p-3 rounded-lg border border-slate-800">
-                                    <div><strong>• 입원 일수 합계:</strong> <span id="debugAdmissionSummary">-</span></div>
-                                    <div><strong>• 감지된 수술/시술:</strong> <span id="debugSurgeriesSummary">-</span></div>
-                                    <div><strong>• 30일 이상 투약:</strong> <span id="debugMedsSummary">-</span></div>
-                                </div>
-                            </details>
-
-                            <!-- AI 심사 보고서 마크다운 / HTML 렌더링 -->
-                            <div class="bg-white text-slate-900 rounded-xl p-5 shadow-lg border border-slate-200">
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <h4 class="font-black text-sm text-slate-900 flex items-center gap-2">
-                                        <span>📑</span> <span>신규 가입을 위한 알릴의무 심사 보고서</span>
-                                    </h4>
-                                    <button onclick="downloadExcelReport('신규')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-1.5 rounded shadow transition flex items-center gap-1.5">
-                                        <span>💾 [신규] 분석보고서 엑셀 다운로드</span>
-                                    </button>
-                                </div>
-                                <div id="dutyReportContentNew" class="duty-report-table space-y-3"></div>
-                            </div>
-                        </div>
-
-                        <!-- [Tab 2] 기계약 고지위반 점검 결과 -->
-                        <div id="resultTabOld" class="hidden space-y-4">
-                            <div class="bg-white text-slate-900 rounded-xl p-5 shadow-lg border border-slate-200">
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <h4 class="font-black text-sm text-slate-900 flex items-center gap-2">
-                                        <span>📑</span> <span>기계약 고지위반 여부 정밀 점검 보고서</span>
-                                    </h4>
-                                    <button onclick="downloadExcelReport('기계약')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-1.5 rounded shadow transition flex items-center gap-1.5">
-                                        <span>💾 [통합] 고지위반 점검보고서 엑셀 다운로드</span>
-                                    </button>
-                                </div>
-                                <div id="dutyReportContentOld" class="duty-report-table space-y-4">
-                                    <p class="text-xs text-slate-500">좌측 사이드바에서 점검할 계약 건수와 청약일을 입력해주세요.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ==================== 기타 부가 모달 (DB배정, 보장분석, 약관, 청구, 실비계산기 등) ==================== -->
-
-    <!-- DB배정 / 스케줄 모달 -->
+    <!-- 1. DB배정 / 스케줄 모달 -->
     <div id="scheduleModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('scheduleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -740,7 +538,7 @@
         </div>
     </div>
 
-    <!-- 보장분석 모달 -->
+    <!-- 2. 보장분석 모달 -->
     <div id="coverageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('coverageModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -766,7 +564,7 @@
         </div>
     </div>
 
-    <!-- 약관분석 모달 -->
+    <!-- 3. 약관분석 (구글 클라우드) 모달 -->
     <div id="termsCloudModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('termsCloudModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -788,31 +586,264 @@
         </div>
     </div>
 
-    <!-- 보험청구 모달 -->
+    <!-- 4. 알릴의무 & 고지유무 정밀 분석기 (Streamlit UI App Layout Exact Match) -->
+    <div id="dutyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-slate-900 rounded-2xl max-w-7xl w-full text-slate-100 shadow-2xl relative max-h-[95vh] flex flex-col overflow-hidden border border-slate-700">
+            
+            <!-- 상단 윈도우 컨트롤 헤더 -->
+            <div class="bg-slate-950 px-5 py-3 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xl">🏥</span>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                            <span>보험 알릴의무 & 고지유무 정밀 분석</span>
+                            <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</span>
+                        </h3>
+                    </div>
+                </div>
+                <button onclick="closeModal('dutyModal')" class="text-slate-400 hover:text-white font-bold text-xl px-2 leading-none transition">✕</button>
+            </div>
+
+            <!-- 모달 내부: Streamlit 2컬럼 레이아웃 (좌측 사이드바 + 우측 메인 영역) -->
+            <div class="flex-grow overflow-y-auto grid grid-cols-1 lg:grid-cols-12 custom-scrollbar bg-slate-900">
+                
+                <!-- [STREAMLIT SIDEBAR] 좌측 설정 패널 (4 Columns) -->
+                <aside class="lg:col-span-4 bg-slate-950/90 border-r border-slate-800 p-5 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-6">
+                        
+                        <!-- 섹션 1: ⚙️ 설정 -->
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-extrabold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2">
+                                <span>⚙️</span> <span>설정</span>
+                            </h4>
+
+                            <!-- API Key Status -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">API Key Status</label>
+                                <input type="text" value="✅ Applied" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-bold">
+                            </div>
+
+                            <!-- PDF 비밀번호 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">PDF 비밀번호</label>
+                                <div class="relative">
+                                    <input id="pdfPasswordInput" type="password" placeholder="주민번호 앞자리 또는 설정 비밀번호" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 pr-8">
+                                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">👁️</button>
+                                </div>
+                            </div>
+
+                            <!-- AI 모델 선택 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">AI 모델 선택</label>
+                                <select id="aiModelSelect" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-bold focus:outline-none">
+                                    <option value="gemini-2.5-flash" selected>models/gemini-2.5-flash (2.5 전용 고정)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 섹션 2: 🔍 고지위반 점검 설정 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+                            <h4 class="text-sm font-extrabold text-slate-200 flex items-center gap-2">
+                                <span>🔍</span> <span>고지위반 점검 설정</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                기존 가입된 보험들의 고지위반 여부를 확인하려면 아래에 계약 정보를 입력하세요.
+                            </p>
+
+                            <!-- 점검할 계약 건수 카운터 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-1">점검할 계약 건수</label>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="changeContractCount(-1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1 rounded-lg border border-slate-700 text-xs">-</button>
+                                    <input id="contractCountInput" type="number" min="0" max="10" value="0" onchange="renderContractDateInputs()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-center text-xs text-white font-bold">
+                                    <button onclick="changeContractCount(1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1 rounded-lg border border-slate-700 text-xs">+</button>
+                                </div>
+                            </div>
+
+                            <!-- 동적 계약 체결일 입력 리스트 -->
+                            <div id="contractDatesContainer" class="space-y-2 pt-1 max-h-48 overflow-y-auto custom-scrollbar">
+                                <!-- Dynamic Date Inputs rendered by JS -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 하단 브랜딩 엠블럼 -->
+                    <div class="pt-6 border-t border-slate-800/80 text-center">
+                        <div class="rounded-xl overflow-hidden shadow-lg border border-slate-800 bg-white">
+                            <img src="logo.jpg" alt="잇츠리온 - 이로운 가치, 성공의 이치를 밝히다" class="w-full h-auto object-contain block" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-slate-100 p-3.5 rounded-xl border-2 border-slate-800 text-slate-900 shadow-lg text-left flex items-center space-x-3\'><div class=\'w-10 h-10 rounded-lg bg-slate-900 text-amber-400 flex items-center justify-center text-lg font-black flex-shrink-0 shadow\'>🛡️</div><div><div class=\'text-base font-black tracking-tight text-slate-900 leading-none\'>잇츠리온</div><div class=\'text-[10px] font-bold text-slate-600 tracking-tight mt-1\'>이로운(利) 가치, 성공의 이치를 밝히다.</div></div></div>';">
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">© 2026. ItsRion All rights reserved.</p>
+                    </div>
+                </aside>
+
+                <!-- [STREAMLIT MAIN CONTENT] 우측 메인 대시보드 (8 Columns) -->
+                <main class="lg:col-span-8 p-6 space-y-6 bg-slate-900">
+                    
+                    <!-- 메인 타이틀 & 가이드 상자 -->
+                    <div class="space-y-4">
+                        <div class="border-b border-slate-800 pb-3">
+                            <h2 class="text-2xl font-black text-white flex items-center gap-2">
+                                <span>🏥</span> <span>보험 알릴의무 & 고지유무 정밀 분석</span>
+                            </h2>
+                        </div>
+
+                        <!-- [분석 로직 v5.0] 가이드 박스 -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
+                            <h4 class="font-bold text-amber-400 text-xs">📌 [분석 로직 v5.0]</h4>
+                            <ol class="list-decimal pl-4 space-y-1 text-slate-300 text-[11px] leading-relaxed">
+                                <li><strong class="text-white">일관성 확보:</strong> AI가 분석을 실행할 때마다 동일한 결과 생성.</li>
+                                <li><strong class="text-white">유추한 질병:</strong> 약물로 유추된 질병은 주상병과 함께 병기됩니다.</li>
+                                <li><strong class="text-white">기본로직:</strong> 입원/통원 분리, 중복제거, 부상병 유추, 일반심사(1년이내 검사/재검사 소견 여부 고객 확인 필), 간편심사(입원,수술만 표기. 투약 정보는 일반심사 참고)</li>
+                                <li><strong class="text-white">3개월 내원력:</strong> 3개월 내원력은 필히 고객님께 확인 해야합니다.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- 🌐 심평원 내진료정보 열람 바로가기 배너 -->
+                    <div class="bg-gradient-to-r from-blue-900/60 to-indigo-900/60 p-4 rounded-xl border border-blue-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div>
+                            <h4 class="font-bold text-blue-200 text-sm flex items-center gap-1.5">
+                                <span>🏥</span> <span>건강보험심사평가원 「내 진료정보 열람」 바로가기</span>
+                            </h4>
+                            <p class="text-slate-300 text-[11px] mt-1">
+                                고객 간편인증 후 다운로드받은 PDF 파일을 본 분석기에 첨부하시면 자동 분석됩니다.
+                            </p>
+                        </div>
+                        <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2 rounded-lg shadow transition flex items-center justify-center gap-1 flex-shrink-0">
+                            <span>🌐 심평원 바로가기</span>
+                            <span>↗</span>
+                        </a>
+                    </div>
+
+                    <!-- Streamlit 스타일 PDF Drag & Drop 업로더 -->
+                    <div class="space-y-3">
+                        <label class="block font-bold text-slate-300 text-xs">
+                            기본진료정보 / 세부진료정보 / 처방조제정보 / 교통사고기본·세부 (PDF)
+                        </label>
+
+                        <div id="pdfDropZone" onclick="document.getElementById('pdfFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-amber-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 group">
+                            <div class="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-amber-500/20 text-slate-400 group-hover:text-amber-400 flex items-center justify-center text-xl transition">
+                                ☁️
+                            </div>
+                            <div class="text-xs font-bold text-slate-300 group-hover:text-amber-300 transition" id="pdfFileNameDisplay">
+                                Drag and drop files here
+                            </div>
+                            <div class="text-[10px] text-slate-500">
+                                Limit 200MB per file • PDF
+                            </div>
+                            <button type="button" class="mt-2 bg-slate-800 group-hover:bg-slate-700 text-slate-200 px-3 py-1 rounded border border-slate-700 text-[11px] font-bold">
+                                Browse files
+                            </button>
+                            <input id="pdfFileInput" type="file" accept=".pdf" multiple class="hidden" onchange="handlePdfSelect(event)">
+                        </div>
+                    </div>
+
+                    <!-- 🚀 분석 실행 버튼 -->
+                    <div>
+                        <button id="runAnalysisBtn" onclick="executeDutyAnalysis()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-6 py-3 rounded-xl text-sm shadow-lg transition flex items-center gap-2">
+                            <span>🚀</span> <span>분석 실행</span>
+                        </button>
+                    </div>
+
+                    <!-- 로딩 바 -->
+                    <div id="dutyProgressArea" class="hidden p-4 bg-slate-950 text-white rounded-xl space-y-2 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span id="dutyProgressText">📄 PDF 진료기록 문서를 분석하고 있습니다...</span>
+                            <span id="dutyProgressPercent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="dutyProgressBar" class="bg-amber-400 h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- 분석 결과 탭 영역 (Tab 1: 알릴의무 분석 vs Tab 2: 고지위반 점검) -->
+                    <div id="dutyResultContainer" class="hidden space-y-5 pt-4 border-t border-slate-800">
+                        
+                        <!-- 탭 버튼 헤더 -->
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <div class="flex space-x-3">
+                                <button id="tabBtn1" onclick="switchResultTab('tab1')" class="px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition">
+                                    📋 알릴의무 분석 (신규)
+                                </button>
+                                <button id="tabBtn2" onclick="switchResultTab('tab2')" class="px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">
+                                    🔍 고지위반 점검 (기계약)
+                                </button>
+                            </div>
+
+                            <button onclick="exportDutyToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1.5 transition">
+                                <span>💾</span> <span id="excelBtnText">분석보고서 엑셀 다운로드</span>
+                            </button>
+                        </div>
+
+                        <!-- 탭 1 콘텐츠: 신규 가입 알릴의무 -->
+                        <div id="tab1Content" class="space-y-4">
+                            <!-- 요약 KPI 카드 4종 -->
+                            <div id="dutySummaryCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                <!-- Dynamic KPI Cards -->
+                            </div>
+
+                            <!-- 파이썬 규칙엔진 집계 Collapse -->
+                            <div class="border border-slate-800 rounded-xl overflow-hidden text-xs">
+                                <button onclick="toggleDebugVisibility()" class="w-full bg-slate-950 p-3 text-left font-bold text-amber-400 flex justify-between items-center border-b border-slate-800">
+                                    <span class="flex items-center gap-2"><span>⚡</span> <span>[파이썬 집계 데이터 (Rule Engine v5.0)]</span></span>
+                                    <span id="debugToggleIcon">▼</span>
+                                </button>
+                                <div id="dutyDebugContent" class="hidden p-4 bg-slate-950 text-slate-300 font-mono text-[11px] space-y-2 border-t border-slate-800 custom-scrollbar max-h-48 overflow-y-auto">
+                                    <!-- Dynamic Debug Output -->
+                                </div>
+                            </div>
+
+                            <!-- AI Markdown 심사 보고서 Output Box -->
+                            <div id="dutyAiReportBox1" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner">
+                                <!-- Rendered Markdown Table -->
+                            </div>
+                        </div>
+
+                        <!-- 탭 2 콘텐츠: 기계약 고지위반 점검 -->
+                        <div id="tab2Content" class="hidden space-y-4">
+                            <div id="violationNoticeBox" class="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
+                                <!-- Violation output for each contract date or setup prompt -->
+                            </div>
+                            <div id="dutyAiReportBox2" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner hidden">
+                                <!-- Rendered Markdown Table for Tab 2 -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                </main>
+            </div>
+            
+            <div class="bg-slate-950 px-5 py-3 border-t border-slate-800 flex justify-end flex-shrink-0">
+                <button onclick="closeModal('dutyModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg text-xs font-bold transition">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 보험청구 모달 -->
     <div id="claimModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('claimModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900">보험사별 팩스 번호 & 서류 다운로드</h3>
-            <p class="text-xs text-slate-500 mt-1">모바일 팩스 및 보험금 청구 양식을 지원합니다.</p>
             <div class="mt-6 flex justify-end">
                 <button onclick="closeModal('claimModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
             </div>
         </div>
     </div>
 
-    <!-- 계약현황 대시보드 모달 -->
+    <!-- 6. 계약현황 대시보드 모달 -->
     <div id="contractDashboardModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('contractDashboardModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900">당월 계약 현황 대시보드</h3>
-            <p class="text-xs text-slate-500 mt-1">목표 달성률 및 가망 고객 계약 진척도를 확인합니다.</p>
             <div class="mt-6 flex justify-end">
                 <button onclick="closeModal('contractDashboardModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
             </div>
         </div>
     </div>
 
-    <!-- 실비계산기 모달 -->
+    <!-- 7. 실비계산기 모달 -->
     <div id="indemnityCalcModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('indemnityCalcModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -873,11 +904,13 @@
         </div>
     </div>
 
-    <!-- 서비스 출시 예정 모달 -->
+    <!-- 8 & 9. 서비스 출시 예정 안내 모달 -->
     <div id="comingSoonModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
             <button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">⏳</div>
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">
+                ⏳
+            </div>
             <h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3>
             <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                 설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.
@@ -888,7 +921,7 @@
         </div>
     </div>
 
-    <!-- 문의하기 모달 -->
+    <!-- 10. 문의하기 모달 -->
     <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -907,7 +940,7 @@
         </div>
     </div>
 
-    <!-- 프로필 설정 모달 -->
+    <!-- 11. 프로필 설정 모달 -->
     <div id="quickUpdateModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('quickUpdateModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -922,14 +955,21 @@
         </div>
     </div>
 
-
-    <!-- ==================== 자바스크립트 비즈니스 및 엔진 로직 ==================== -->
+    <!-- 스크립트 로직 -->
     <script>
-        // --- 1. 기본 뷰 전환 및 슬라이더 스크립트 ---
+        // Configure PDF.js Worker
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
         let activeSlide = 1;
         let chart1Instance = null;
         let chart2Instance = null;
+        let activeResultTab = 'tab1';
+        let currentTab1Markdown = "";
+        let currentTab2Markdown = "";
 
+        // 1페이지 vs 2페이지 화면 전환 (SPA View Switcher)
         function switchView(viewName, targetSectionId = null) {
             const introView = document.getElementById('viewIntro');
             const workspaceView = document.getElementById('viewWorkspace');
@@ -965,6 +1005,7 @@
             }
         }
 
+        // Hero Slider Logic
         function switchSlide(slideNum) {
             activeSlide = slideNum;
             const slide1 = document.getElementById('slide1');
@@ -995,12 +1036,16 @@
 
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
+            if (id === 'dutyModal') {
+                renderContractDateInputs();
+            }
         }
 
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
         }
 
+        // 실비 예상 환급액 계산 로직
         function calculateIndemnity() {
             const hospitalBase = parseInt(document.getElementById('calcHospitalType').value) || 10000;
             const nationalFee = parseInt(document.getElementById('calcNationalFee').value) || 0;
@@ -1028,321 +1073,333 @@
             document.getElementById('calcResultBox').classList.remove('hidden');
         }
 
-
-        // =========================================================================
-        // --- 2. 알릴의무 정밀 분석기 (MedicalRuleEngine v5.0 JS 포팅) ---
-        // =========================================================================
-
-        let uploadedPdfFiles = [];
-        let contractCount = 0;
-        let lastAnalysisResultMarkdownNew = "";
-        let lastAnalysisResultMarkdownOld = "";
-
-        const MedicalRuleEngine = {
-            surgeryKeywords: ["수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", "카테터", "신경차단", "차단술", "조영술", "시멘트", "치조골", "발치", "임플란트", "제거"],
-            dentalExcludeKeywords: ["치근활택", "치근확장", "근관확대", "스케일링", "치석", "진단및치료계획", "1단계", "방사선", "파노라마", "보철수복", "3단계", "보철"],
-            excludeKeywords: ["수술후처치", "수술재료", "수술방", "마취", "검사", "영상", "진찰료", "의학관리료", "단순처치", "질강처치", "드레싱", "물리치료", "체외충격파", "도수치료", "기본진료", "투약", "처방전", "접종", "재료대", "치주소파", "치관수복", "보철물", "ELECTRODE", "WIRE", "PROBE", "CATHETER", "TUBE", "NEEDLE", "SYRINGE", "NYLON", "SILK", "VICRYL", "POLYSORB", "STAPLER", "SUTURE", "BLADE", "KNIFE", "GAUZE", "BANDAGE", "STRIP", "CLOSURE", "HOOK", "SCREW", "PLATE", "MESH", "BURR", "SAW", "절삭기류", "드릴", "산소", "흡입", "감시", "측정", "모니터링", "심전도", "배액", "세척", "소독", "교환", "유치", "삽입", "제거", "관장", "기저귀", "마사지", "온열", "냉동", "자극", "요법", "주입로", "정맥내", "근육내", "피하", "주사", "수액", "영양제"],
-            forceInclude: ["신경차단", "차단술", "조영술", "결찰술", "박리술", "신경성형술", "고주파", "풍선확장", "후궁절제", "치환술", "절제술", "적출술", "이식술", "재건술", "감압술", "티눈", "발치", "치조골", "식립술", "매복치", "고정체"],
-
-            cleanNumber(val) {
-                if (!val) return 0;
-                const cleaned = String(val).replace(/[^\d]/g, '');
-                return cleaned ? parseInt(cleaned, 10) : 0;
-            },
-
-            analyzeText(rawText) {
-                const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
-                const visitCounter = {};
-                const admissionCounter = {};
-                const admissionDetails = {};
-
-                const lines = rawText.split('\n');
-                lines.forEach(line => {
-                    const rowText = line.trim();
-                    if (!rowText || rowText.includes('약국')) return;
-
-                    const dateMatch = rowText.match(/(\d{4}[-.\/]?\d{2}[-.\/]?\d{2})/);
-                    const rowDate = dateMatch ? dateMatch[1].replace(/[-.\/]/g, '') : "";
-
-                    const isAdmission = rowText.includes("입원") || rowText.includes("입원료");
-
-                    // 수술/시술 체크
-                    let isSurgery = false;
-                    if (this.dentalExcludeKeywords.some(k => rowText.includes(k))) {
-                        isSurgery = false;
-                    } else if (this.surgeryKeywords.some(k => rowText.includes(k))) {
-                        isSurgery = true;
-                    } else if (rowText.includes("술") && !rowText.includes("처치")) {
-                        if (!this.excludeKeywords.some(k => rowText.includes(k))) isSurgery = true;
-                    }
-
-                    if (this.excludeKeywords.some(k => rowText.includes(k))) isSurgery = false;
-                    if (this.forceInclude.some(k => rowText.includes(k))) isSurgery = true;
-
-                    if (isSurgery) {
-                        detectedInfo.surgeries.push(`[${rowDate || '날짜미상'}] ${rowText.slice(0, 60)}`);
-                    }
-
-                    // 30일 이상 투약 체크
-                    if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방")) {
-                        const numMatches = rowText.match(/\d+/g);
-                        if (numMatches) {
-                            const nums = numMatches.map(n => parseInt(n, 10)).filter(n => n >= 30 && n <= 365);
-                            if (nums.length > 0 && !isAdmission) {
-                                detectedInfo.long_term_meds.push(`(${Math.max(...nums)}일 처방) ${rowText.slice(0, 50)}...`);
-                            }
-                        }
-                    }
-
-                    // 입원 일수 및 통원 집계 (간이 파싱)
-                    const hospitalMatch = rowText.match(/([가-힣]+(?:병원|의원|의료원|클리닉|내과|정형외과|이비인후과|치과))/);
-                    const hospital = hospitalMatch ? hospitalMatch[1] : "의료기관";
-
-                    const diseaseMatch = rowText.match(/([가-힣]+(?:염|증|통|암|절제|골절|질환|장애|[A-Z]\d{2}))/);
-                    const disease = diseaseMatch ? diseaseMatch[1] : "질병";
-
-                    const key = `${hospital}|${disease}`;
-
-                    if (isAdmission) {
-                        const numMatches = rowText.match(/\d+/g);
-                        let days = 1;
-                        if (numMatches) {
-                            const nums = numMatches.map(n => parseInt(n, 10)).filter(n => n > 0 && n <= 180);
-                            if (nums.length > 0) days = nums[0];
-                        }
-                        admissionCounter[key] = (admissionCounter[key] || 0) + days;
-                        if (!admissionDetails[key]) admissionDetails[key] = [];
-                        admissionDetails[key].push(`${rowDate}(${days}일)`);
-                        detectedInfo.admissions.push(`입원 ${days}일: ${rowText.slice(0, 50)}`);
-                    } else if (rowDate) {
-                        if (!visitCounter[key]) visitCounter[key] = new Set();
-                        visitCounter[key].add(rowDate);
-                    }
-                });
-
-                return { detectedInfo, visitCounter, admissionCounter, admissionDetails };
-            }
+        /* =========================================================================
+         *  [알릴의무 & 고지유무 정밀 분석기 v5.0 ENGINE JS - 원본 Python 로직 완벽 이식]
+         * ========================================================================= */
+        
+        // 원본 Python 소스의 MedicalRuleEngine 키워드 매핑
+        const MedicalRuleKeywords = {
+            surgeryKeywords: [
+                "수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", 
+                "카테터", "신경차단", "차단술", "조영술", "시멘트", "치조골", "발치", "임플란트", "제거"
+            ],
+            dentalExcludeKeywords: [
+                "치근활택", "치근확장", "근관확대", "스케일링", "치석", 
+                "진단및치료계획", "1단계", "방사선", "파노라마", "보철수복", "3단계", "보철"
+            ],
+            excludeKeywords: [
+                "수술후처치", "수술재료", "수술방", "마취", "검사", "영상", "진찰료", "의학관리료",
+                "단순처치", "질강처치", "드레싱", "물리치료", "체외충격파", "도수치료", 
+                "기본진료", "투약", "처방전", "접종", "재료대", "치주소파", "치관수복", "보철물",
+                "ELECTRODE", "WIRE", "PROBE", "CATHETER", "TUBE", "NEEDLE", "SYRINGE",
+                "NYLON", "SILK", "VICRYL", "POLYSORB", "STAPLER", "SUTURE", "BLADE", "KNIFE",
+                "GAUZE", "BANDAGE", "STRIP", "CLOSURE", "HOOK", "SCREW", "PLATE", "MESH",
+                "BURR", "SAW", "절삭기류", "드릴",
+                "산소", "흡입", "감시", "측정", "모니터링", "심전도", "배액", "세척", "소독", "교환",
+                "유치", "삽입", "제거", "관장", "기저귀", "마사지", "온열", "냉동", "자극", "요법",
+                "주입로", "정맥내", "근육내", "피하", "주사", "수액", "영양제"
+            ],
+            forceInclude: [
+                "신경차단", "차단술", "조영술", "결찰술", "박리술", "신경성형술", 
+                "고주파", "풍선확장", "후궁절제", "치환술", "절제술", "적출술", 
+                "이식술", "재건술", "감압술", "티눈", "발치", 
+                "치조골", "식립술", "매복치", "고정체"
+            ]
         };
 
-        // --- 3. UI 인터랙션 (비밀번호 보기, 계약 카운트, 파일 업로드) ---
-        function togglePasswordVisibility() {
-            const input = document.getElementById('pdfPasswordInput');
-            input.type = input.type === 'password' ? 'text' : 'password';
+        function cleanNumber(val) {
+            if (!val) return 0;
+            const cleaned = String(val).replace(/[^\d]/g, '');
+            return cleaned ? parseInt(cleaned, 10) : 0;
         }
 
-        function updateContractCount(delta) {
-            contractCount = Math.max(0, Math.min(10, contractCount + delta));
-            document.getElementById('contractCountDisplay').innerText = contractCount;
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('pdfPasswordInput');
+            pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function changeContractCount(delta) {
+            const input = document.getElementById('contractCountInput');
+            let val = parseInt(input.value) || 0;
+            val = Math.max(0, Math.min(10, val + delta));
+            input.value = val;
             renderContractDateInputs();
         }
 
         function renderContractDateInputs() {
+            const count = parseInt(document.getElementById('contractCountInput').value) || 0;
             const container = document.getElementById('contractDatesContainer');
-            container.innerHTML = "";
-            for (let i = 0; i < contractCount; i++) {
+            container.innerHTML = '';
+
+            if (count === 0) return;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let i = 0; i < count; i++) {
                 const div = document.createElement('div');
-                div.className = "flex items-center justify-between text-xs bg-slate-900 p-2 rounded border border-slate-800";
+                div.className = "bg-slate-900 p-2.5 rounded-lg border border-slate-800 space-y-1";
                 div.innerHTML = `
-                    <span class="text-slate-400 font-semibold">#${i + 1} 체결일</span>
-                    <input type="date" id="contract_date_${i}" value="${new Date().toISOString().split('T')[0]}" class="bg-slate-950 border border-slate-700 text-slate-200 px-2 py-1 rounded text-xs focus:border-blue-500 focus:outline-none">
+                    <label class="block text-[11px] font-bold text-slate-300">#${i + 1} 계약 체결일 (청약일)</label>
+                    <input type="date" id="contractDate_${i}" value="${todayStr}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
                 `;
                 container.appendChild(div);
             }
         }
 
-        function handleDragOver(e) {
-            e.preventDefault();
-            document.getElementById('pdfDropZone').classList.add('border-blue-500', 'bg-slate-900');
-        }
-
-        function handleDragLeave(e) {
-            e.preventDefault();
-            document.getElementById('pdfDropZone').classList.remove('border-blue-500', 'bg-slate-900');
-        }
-
-        function handleFileDrop(e) {
-            e.preventDefault();
-            document.getElementById('pdfDropZone').classList.remove('border-blue-500', 'bg-slate-900');
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                uploadedPdfFiles = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf" || f.name.endsWith('.pdf'));
-                renderSelectedFiles();
+        function handlePdfSelect(event) {
+            const files = event.target.files;
+            const nameDisplay = document.getElementById('pdfFileNameDisplay');
+            if (files && files.length > 0) {
+                if (files.length === 1) {
+                    nameDisplay.innerText = `📄 ${files[0].name}`;
+                } else {
+                    nameDisplay.innerText = `📄 ${files.length}개의 PDF 파일 선택됨`;
+                }
+            } else {
+                nameDisplay.innerText = 'Drag and drop files here';
             }
         }
 
-        function handleFileSelect(e) {
-            if (e.target.files && e.target.files.length > 0) {
-                uploadedPdfFiles = Array.from(e.target.files);
-                renderSelectedFiles();
+        function toggleDebugVisibility() {
+            const content = document.getElementById('dutyDebugContent');
+            const icon = document.getElementById('debugToggleIcon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.innerText = '▲';
+            } else {
+                content.classList.add('hidden');
+                icon.innerText = '▼';
             }
-        }
-
-        function renderSelectedFiles() {
-            const list = document.getElementById('selectedFileList');
-            list.innerHTML = "";
-            uploadedPdfFiles.forEach((f, idx) => {
-                const item = document.createElement('div');
-                item.className = "flex items-center justify-between bg-slate-950 px-3 py-1.5 rounded border border-slate-800 text-slate-300";
-                item.innerHTML = `
-                    <span class="truncate">📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)</span>
-                    <span class="text-emerald-400 font-bold text-[10px]">선택완료</span>
-                `;
-                list.appendChild(item);
-            });
         }
 
         function switchResultTab(tabName) {
-            const tabBtnNew = document.getElementById('tabBtnNew');
-            const tabBtnOld = document.getElementById('tabBtnOld');
-            const viewNew = document.getElementById('resultTabNew');
-            const viewOld = document.getElementById('resultTabOld');
+            activeResultTab = tabName;
+            const btn1 = document.getElementById('tabBtn1');
+            const btn2 = document.getElementById('tabBtn2');
+            const tab1Content = document.getElementById('tab1Content');
+            const tab2Content = document.getElementById('tab2Content');
+            const excelBtnText = document.getElementById('excelBtnText');
 
-            if (tabName === 'new') {
-                tabBtnNew.className = "px-4 py-2 text-xs font-extrabold text-blue-400 border-b-2 border-blue-500";
-                tabBtnOld.className = "px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-200";
-                viewNew.classList.remove('hidden');
-                viewOld.classList.add('hidden');
+            if (tabName === 'tab1') {
+                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition";
+                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition";
+                tab1Content.classList.remove('hidden');
+                tab2Content.classList.add('hidden');
+                if (excelBtnText) excelBtnText.innerText = "[신규] 분석보고서 엑셀 다운로드";
             } else {
-                tabBtnOld.className = "px-4 py-2 text-xs font-extrabold text-blue-400 border-b-2 border-blue-500";
-                tabBtnNew.className = "px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-200";
-                viewOld.classList.remove('hidden');
-                viewNew.classList.add('hidden');
+                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition";
+                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition";
+                tab2Content.classList.remove('hidden');
+                tab1Content.classList.add('hidden');
+                if (excelBtnText) excelBtnText.innerText = "[통합] 고지위반 점검보고서 엑셀 다운로드";
             }
         }
 
+        // PDF.js를 통한 PDF 텍스트 추출
+        async function extractTextFromPdfFiles(fileList, password) {
+            let combinedText = "";
+            for (let i = 0; i < fileList.length; i++) {
+                const file = fileList[i];
+                const arrayBuffer = await file.arrayBuffer();
+                try {
+                    const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer, password: password || undefined });
+                    const pdf = await loadingTask.promise;
+                    let fileText = `\n=== ${file.name} ===\n`;
 
-        // --- 4. PDF 텍스트 추출 (PDF.js) ---
-        async function extractTextFromPdf(file, password) {
-            const arrayBuffer = await file.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({
-                data: arrayBuffer,
-                password: password || undefined
+                    for (let p = 1; p <= pdf.numPages; p++) {
+                        const page = await pdf.getPage(p);
+                        const tokenized = await page.getTextContent();
+                        const pageText = tokenized.items.map(item => item.str).join(' ');
+                        fileText += pageText + '\n';
+                    }
+                    combinedText += fileText;
+                } catch (err) {
+                    if (err.name === 'PasswordException') {
+                        throw new Error(`암호 오류: ${file.name} (PDF 비밀번호를 정확히 입력해주세요)`);
+                    } else {
+                        combinedText += `\n[${file.name} 파싱 실패: ${err.message}]\n`;
+                    }
+                }
+            }
+            return combinedText;
+        }
+
+        // Python 소스의 analyze_tables 로직을 텍스트 스트림 기반으로 재현
+        function analyzeMedicalRecords(rawText) {
+            const detectedInfo = {
+                surgeries: [],
+                long_term_meds: [],
+                admissions: [],
+                long_term_treatments: []
+            };
+
+            const visitCounter = {};
+            const admissionCounter = {};
+            const admissionDetails = {};
+
+            const lines = rawText.split('\n');
+            const dateRegex = /(20\d{2}[-./]?\d{2}[-./]?\d{2})/;
+
+            lines.forEach(line => {
+                const rowText = line.trim();
+                if (!rowText) return;
+
+                const normalizedText = rowText.replace(/\s+/g, '');
+                if (normalizedText.includes('약국')) return;
+
+                const dateMatch = rowText.match(dateRegex);
+                const rowDate = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : "";
+
+                const isAdmissionRow = rowText.includes("입원") || (rowText.includes("입원") && rowText.includes("입원료"));
+
+                // 수술 / 시술 감지 판정
+                let isSurgeryCandidate = false;
+                if (MedicalRuleKeywords.dentalExcludeKeywords.some(k => rowText.includes(k))) {
+                    isSurgeryCandidate = false;
+                } else if (MedicalRuleKeywords.surgeryKeywords.some(k => rowText.includes(k))) {
+                    isSurgeryCandidate = true;
+                } else if (rowText.includes("술") && !rowText.includes("처치")) {
+                    if (!MedicalRuleKeywords.excludeKeywords.some(k => rowText.includes(k))) {
+                        isSurgeryCandidate = true;
+                    }
+                }
+
+                if (MedicalRuleKeywords.excludeKeywords.some(k => rowText.includes(k))) {
+                    isSurgeryCandidate = false;
+                }
+                if (MedicalRuleKeywords.forceInclude.some(k => rowText.includes(k))) {
+                    isSurgeryCandidate = true;
+                }
+
+                if (isSurgeryCandidate) {
+                    detectedInfo.surgeries.push(`[${rowDate || '날짜미상'}] ${rowText.slice(0, 60)}`);
+                }
+
+                // 30일 이상 투약 감지
+                if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방")) {
+                    const numMatches = rowText.match(/\b\d{2,3}\b/g);
+                    if (numMatches) {
+                        const numbers = numMatches.map(n => cleanNumber(n)).filter(n => n >= 30 && n <= 365);
+                        if (numbers.length > 0 && !isAdmissionRow) {
+                            detectedInfo.long_term_meds.push(`(${Math.max(...numbers)}일 처방) ${rowText.slice(0, 50)}...`);
+                        }
+                    }
+                }
+
+                // 병원명 및 상병 추출
+                const hospitalMatch = rowText.match(/([가-힣A-Za-z0-9]+(?:병원|의원|의료원|클리닉|내과|정형외과|이비인후과|치과|안과|피부과|비뇨기과|외과|한의원))/);
+                const hospital = hospitalMatch ? hospitalMatch[1] : "의료기관";
+
+                const diseaseMatch = rowText.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|[A-Z]\d{2}))/);
+                const disease = diseaseMatch ? diseaseMatch[1].trim() : "질병미상";
+
+                if (rowDate && rowDate.length >= 8) {
+                    const key = `${hospital}|${disease}`;
+                    if (isAdmissionRow) {
+                        const numMatches = rowText.match(/\d+/g);
+                        let days = 1;
+                        if (numMatches) {
+                            const nums = numMatches.map(n => cleanNumber(n)).filter(n => n > 0 && n <= 365);
+                            if (nums.length > 0) days = Math.max(...nums);
+                        }
+                        admissionCounter[key] = (admissionCounter[key] || 0) + days;
+                        if (!admissionDetails[key]) admissionDetails[key] = new Set();
+                        admissionDetails[key].add(`${rowDate}(${days}일)`);
+                        detectedInfo.admissions.push(`입원 ${days}일: ${rowText.slice(0, 50)}`);
+                    } else {
+                        if (!visitCounter[key]) visitCounter[key] = new Set();
+                        visitCounter[key].add(rowDate);
+                    }
+                }
             });
 
-            const pdf = await loadingTask.promise;
-            let fullText = "";
-
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(item => item.str).join(" ");
-                fullText += `\n[PAGE ${pageNum}]\n` + pageText;
-            }
-            return fullText;
+            return { detectedInfo, visitCounter, admissionCounter, admissionDetails };
         }
 
+        // [Tab 1] 원본 Python run_original_analysis 프롬프트 생성기
+        function buildOriginalAnalysisPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails) {
+            const today = new Date();
+            const allKeys = new Set([...Object.keys(visitRecords), ...Object.keys(admissionRecords)]);
+            const sortedHints = [];
 
-        // --- 5. Gemini 2.5 Flash API 호출 함수 ---
-        async function callGeminiApi(promptText, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }],
-                    generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
-                })
+            allKeys.forEach(k => {
+                const [hosp, dis] = k.split('|');
+                const visitDates = Array.from(visitRecords[k] || []).sort();
+                const visitCnt = visitDates.length;
+                const admitDaysTotal = admissionRecords[k] || 0;
+                const admitEvents = Array.from(admissionDetails[k] || []).sort();
+                const lastDateStr = visitDates.length ? visitDates[visitDates.length - 1] : "";
+
+                let isTarget = false;
+                const reason = [];
+                let priority = 99;
+
+                if (admitDaysTotal > 0) {
+                    isTarget = true;
+                    reason.push("5년내 입원");
+                    priority = 1;
+                }
+
+                if (lastDateStr && lastDateStr.length === 8) {
+                    const year = parseInt(lastDateStr.substring(0, 4), 10);
+                    const month = parseInt(lastDateStr.substring(4, 6), 10) - 1;
+                    const day = parseInt(lastDateStr.substring(6, 8), 10);
+                    const lastDt = new Date(year, month, day);
+                    const diffDays = Math.floor((today - lastDt) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 90) {
+                        isTarget = true;
+                        reason.push("3개월내 내원");
+                        priority = Math.min(priority, 5);
+                    } else if (diffDays <= 365) {
+                        isTarget = true;
+                        reason.push("1년내 검사/재검사");
+                        priority = Math.min(priority, 4);
+                    } else if (diffDays <= 365 * 5) {
+                        if (visitCnt >= 7) {
+                            isTarget = true;
+                            reason.push("7일이상 치료");
+                            priority = Math.min(priority, 3);
+                        }
+                    }
+                } else if (admitDaysTotal === 0 && visitCnt === 0) {
+                    isTarget = true;
+                    reason.push("날짜확인필요");
+                }
+
+                if (!isTarget) return;
+
+                if (dis !== "질병미상" && dis !== "None" && dis !== "") {
+                    const reasonStr = reason.join(', ');
+                    let admitDetailStr = "";
+                    if (admitEvents.length > 0) {
+                        admitDetailStr = " / [입원상세: " + admitEvents.join(', ') + "]";
+                    }
+                    const lineText = `- ${hosp} | ${dis} -> [외래통원: ${visitCnt}회] / [입원: ${admitDaysTotal}일${admitDetailStr}] / [사유: ${reasonStr}]`;
+                    sortedHints.push({ priority, lineText });
+                }
             });
 
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error?.message || `HTTP ${response.status}`);
+            sortedHints.sort((a, b) => a.priority - b.priority || a.lineText.localeCompare(b.lineText));
+
+            let hintText = "\n[✅ 파이썬 집계 데이터]\n";
+            sortedHints.forEach(item => {
+                hintText += item.lineText + "\n";
+            });
+
+            if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
+                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함)]\n` + Array.from(new Set(detectedInfo.surgeries)).join('\n');
+            }
+            if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
+                hintText += `\n[💊시스템 감지: 30일 이상 투약]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
             }
 
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 결과가 생성되지 않았습니다.";
-        }
+            const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            const truncatedText = rawText.slice(0, 60000);
 
+            const prompt = `당신은 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [진료기록 원문]을 바탕으로 보고서를 작성하십시오.
 
-        // --- 6. 분석 실행 메인 컨트롤러 ---
-        async function executeDutyAnalysis() {
-            const apiKey = (document.getElementById('geminiApiKey').value || "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg").trim();
-            const password = document.getElementById('pdfPasswordInput').value.trim();
-
-            if (uploadedPdfFiles.length === 0) {
-                alert("심평원 진료기록 PDF 파일을 최소 1개 이상 업로드해주세요. (또는 '샘플 데이터 테스트' 버튼 클릭)");
-                return;
-            }
-
-            const progressContainer = document.getElementById('analysisProgressBarContainer');
-            const progressBar = document.getElementById('analysisProgressBar');
-            const progressPercent = document.getElementById('analysisProgressPercent');
-            const progressText = document.getElementById('analysisProgressText');
-            const btnRun = document.getElementById('btnRunAnalysis');
-
-            progressContainer.classList.remove('hidden');
-            btnRun.disabled = true;
-            btnRun.classList.add('opacity-50');
-
-            let combinedRawText = "";
-            let overallDetected = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
-            let overallVisits = {};
-            let overallAdmissions = {};
-            let overallAdmissionDetails = {};
-
-            try {
-                // PDF 파싱 진행
-                for (let i = 0; i < uploadedPdfFiles.length; i++) {
-                    const file = uploadedPdfFiles[i];
-                    progressText.innerText = `📄 [${i + 1}/${uploadedPdfFiles.length}] ${file.name} 추출 중...`;
-                    const percent = Math.round(((i + 0.5) / (uploadedPdfFiles.length + 1)) * 100);
-                    progressBar.style.width = `${percent}%`;
-                    progressPercent.innerText = `${percent}%`;
-
-                    const extractedText = await extractTextFromPdf(file, password);
-                    combinedRawText += `\n=== ${file.name} ===\n${extractedText}`;
-
-                    const { detectedInfo, visitCounter, admissionCounter, admissionDetails } = MedicalRuleEngine.analyzeText(extractedText);
-
-                    overallDetected.surgeries.push(...detectedInfo.surgeries);
-                    overallDetected.long_term_meds.push(...detectedInfo.long_term_meds);
-                    overallDetected.admissions.push(...detectedInfo.admissions);
-
-                    for (const [k, v] of Object.entries(visitCounter)) {
-                        if (!overallVisits[k]) overallVisits[k] = new Set();
-                        v.forEach(d => overallVisits[k].add(d));
-                    }
-                    for (const [k, v] of Object.entries(admissionCounter)) {
-                        overallAdmissions[k] = (overallAdmissions[k] || 0) + v;
-                    }
-                    for (const [k, v] of Object.entries(admissionDetails)) {
-                        if (!overallAdmissionDetails[k]) overallAdmissionDetails[k] = [];
-                        overallAdmissionDetails[k].push(...v);
-                    }
-                }
-
-                // 디버깅 힌트 데이터 요약
-                document.getElementById('debugAdmissionSummary').innerText = JSON.stringify(overallAdmissions);
-                document.getElementById('debugSurgeriesSummary').innerText = overallDetected.surgeries.length ? overallDetected.surgeries.join(', ') : "없음";
-                document.getElementById('debugMedsSummary').innerText = overallDetected.long_term_meds.length ? overallDetected.long_term_meds.join(', ') : "없음";
-
-                // 파이썬 집계 데이터 힌트 텍스트 구성
-                let hintText = "\n[✅ 파이썬 집계 데이터]\n";
-                const allKeys = new Set([...Object.keys(overallVisits), ...Object.keys(overallAdmissions)]);
-                allKeys.forEach(k => {
-                    const [hosp, dis] = k.split('|');
-                    const visitCnt = overallVisits[k] ? overallVisits[k].size : 0;
-                    const admitDays = overallAdmissions[k] || 0;
-                    const admitDetails = overallAdmissionDetails[k] ? ` / [입원상세: ${overallAdmissionDetails[k].join(', ')}]` : '';
-                    hintText += `- ${hosp} | ${dis} -> [외래통원: ${visitCnt}회] / [입원: ${admitDays}일${admitDetails}]\n`;
-                });
-
-                if (overallDetected.surgeries.length) {
-                    hintText += `\n[🚨시스템 감지: 수술/시술]\n` + Array.from(new Set(overallDetected.surgeries)).join('\n');
-                }
-                if (overallDetected.long_term_meds.length) {
-                    hintText += `\n[💊시스템 감지: 30일 이상 투약]\n` + Array.from(new Set(overallDetected.long_term_meds)).join('\n');
-                }
-
-                progressText.innerText = "🤖 Gemini 2.5 Flash가 심사 보고서를 생성하고 있습니다...";
-                progressBar.style.width = "85%";
-                progressPercent.innerText = "85%";
-
-                const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-
-                // Tab 1 프롬프트 생성 및 호출
-                const promptNew = `당신은 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [진료기록 원문]을 바탕으로 보고서를 작성하십시오.
-
-🕒 **기준일:** ${todayStr} (오늘 기준 역산)
+🕒 **기준일:** ${todayDate} (오늘 기준 역산)
 
 🚨 **[데이터 작성 금지 규칙 (Strict Negative Constraints)]**
 1. **절대 창작 금지:** [파이썬 집계 데이터] 목록에 **없는 병원이나 질병은 절대 행으로 만들지 마십시오.**
@@ -1352,7 +1409,7 @@
 🚨 **[보고서 작성 규칙 - 하부 행 추가 원칙]**
 1. **기본 원칙:** 같은 질병명과 병원은 **하나의 그룹**으로 묶으십시오.
 2. **하부 행 생성:** - **입원 일자**가 서로 다르거나, **수술/시술 날짜**가 서로 다른 경우에만 하부 행을 만드십시오.
-   - 즉, 전체 요약 행(Total)을 먼저 적고, 그 아래에 날짜별 상세 내역(Detail)을 하부 행으로 추가하여 구성을 깔끔하게 만드십시오.
+   - **즉, 전체 요약 행(Total)을 먼저 적고, 그 아래에 날짜별 상세 내역(Detail)을 하부 행으로 추가하여 구성을 깔끔하게 만드십시오.**
 3. **수술/시술 횟수 누락 금지:**
    - 파이썬 데이터의 \`[🚨시스템 감지: 수술/시술]\` 목록에 있는 수술은 **날짜가 다르면 모두 각각 하부 행으로 표기**하십시오.
    - 같은 날 같은 병원의 진단명이 여러 개라도, 해당 수술은 **가장 연관성 높은 1개의 질병에만 1회 기재(중복 복사 금지)** 하십시오.
@@ -1362,7 +1419,7 @@
 ${hintText}
 
 **[진료기록 원문]**
-${combinedRawText.slice(0, 40000)}
+${truncatedText}
 
 ---
 ### **[최종 심사 보고서]**
@@ -1372,161 +1429,433 @@ ${combinedRawText.slice(0, 40000)}
 
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+| **예: 골괴사 (M87)** | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 2회 | 10일 | **예** | - | **5년내 수술, 입원** |
+| ↳ | | 2021.07.11 | 2021.07.15 | - | 5일 | 아니오 | - | 1차 입원 |
+| ↳ | | 2023.07.20 | 2023.07.25 | - | 5일 | 예 | 인공관절치환술 | 2차 입원/수술 |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
 *(입원 및 수술 이력만 기재 / 3개월내 내원력 및 투약 정보는 일반심사 참고)*
 
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+| **예: 위암 (C16)** | OO병원 | 2021.01.01 | 2021.06.01 | - | 15일 | **예** | - | **5년내 암, 수술, 입원** |
+| ↳ | | 2021.01.01 | 2021.01.10 | - | 10일 | 예 | 위절제술 | 1차 수술 |
+| ↳ | | 2021.02.01 | 2021.02.05 | - | 5일 | 아니오 | - | 2차 입원 |
 `;
+            return { prompt, hintText, sortedHints };
+        }
 
-                const aiResponseNew = await callGeminiApi(promptNew, apiKey);
-                lastAnalysisResultMarkdownNew = aiResponseNew;
-                renderMarkdownTable(aiResponseNew, 'dutyReportContentNew');
+        // [Tab 2] 원본 Python run_violation_check_analysis 프롬프트 생성기
+        function buildViolationCheckPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, targetDate) {
+            const allKeys = new Set([...Object.keys(visitRecords), ...Object.keys(admissionRecords)]);
+            const sortedHints = [];
 
-                // Tab 2 (기계약 고지위반 점검) 처리
-                if (contractCount > 0) {
-                    let oldReportHtml = "";
-                    let fullOldMarkdown = "";
-                    for (let idx = 0; idx < contractCount; idx++) {
-                        const targetDateInput = document.getElementById(`contract_date_${idx}`).value;
-                        const promptOld = `당신은 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [원문]을 바탕으로 보고서를 작성하십시오.
+            allKeys.forEach(k => {
+                const [hosp, dis] = k.split('|');
+                const rawDates = Array.from(visitRecords[k] || []).sort();
+                const admitEvents = Array.from(admissionDetails[k] || []).sort();
 
-🕒 **분석 기준일(청약일):** ${targetDateInput}
+                const validVisitDates = [];
+                rawDates.forEach(dStr => {
+                    if (dStr.length === 8) {
+                        const y = parseInt(dStr.substring(0, 4), 10);
+                        const m = parseInt(dStr.substring(4, 6), 10) - 1;
+                        const d = parseInt(dStr.substring(6, 8), 10);
+                        const dt = new Date(y, m, d);
+                        if (dt <= targetDate) validVisitDates.push(dStr);
+                    }
+                });
 
-🚨 **[데이터 작성 금지 규칙]**
-1. **경미한 건 제외:** 알릴의무 대상(3개월/1년/5년 기준)이 아닌 건은 제외하십시오.
-2. **치과 수술 기재 금지:** 레진, 인레이, 크라운 등은 절대 수술로 기재하지 마십시오.
+                const validAdmitEvents = [];
+                admitEvents.forEach(adStr => {
+                    const match = adStr.match(/^(\d{8})/);
+                    if (match) {
+                        const dStr = match[1];
+                        const y = parseInt(dStr.substring(0, 4), 10);
+                        const m = parseInt(dStr.substring(4, 6), 10) - 1;
+                        const d = parseInt(dStr.substring(6, 8), 10);
+                        const dt = new Date(y, m, d);
+                        if (dt <= targetDate) validAdmitEvents.push(adStr);
+                    }
+                });
+
+                const visitCnt = validVisitDates.length;
+                let isTarget = false;
+                const reason = [];
+                let priority = 99;
+
+                if (validAdmitEvents.length > 0) {
+                    isTarget = true;
+                    reason.push("5년내 입원");
+                    priority = Math.min(priority, 1);
+                }
+
+                if (visitCnt > 0) {
+                    const lastDtStr = validVisitDates[validVisitDates.length - 1];
+                    const y = parseInt(lastDtStr.substring(0, 4), 10);
+                    const m = parseInt(lastDtStr.substring(4, 6), 10) - 1;
+                    const d = parseInt(lastDtStr.substring(6, 8), 10);
+                    const lastDt = new Date(y, m, d);
+                    const diffDays = Math.floor((targetDate - lastDt) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 90) {
+                        isTarget = true;
+                        reason.push("3개월내 내원");
+                        priority = Math.min(priority, 5);
+                    } else if (diffDays <= 365) {
+                        isTarget = true;
+                        reason.push("1년내 검사/재검사");
+                        priority = Math.min(priority, 4);
+                    } else if (diffDays <= 365 * 5 && visitCnt >= 7) {
+                        isTarget = true;
+                        reason.push("7일이상 치료");
+                        priority = Math.min(priority, 3);
+                    }
+                }
+
+                if (!isTarget) return;
+
+                const reasonStr = reason.join(', ');
+                let admitDetailStr = "";
+                if (validAdmitEvents.length > 0) {
+                    admitDetailStr = " (입원상세: " + validAdmitEvents.join(', ') + ")";
+                }
+
+                const lineText = `● ${hosp} | ${dis} -> [외래통원: ${visitCnt}회] / [입원: ${validAdmitEvents.length}건${admitDetailStr}] / [사유: ${reasonStr}]`;
+                sortedHints.push({ priority, lineText });
+            });
+
+            sortedHints.sort((a, b) => a.priority - b.priority || a.lineText.localeCompare(b.lineText));
+
+            let hintText = "\n[✅ 파이썬 집계 데이터 (엄격 필터링됨)]\n" + sortedHints.map(s => s.lineText).join('\n');
+            if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
+                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함)]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+            }
+            if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
+                hintText += `\n[💊시스템 감지: 30일 이상 투약]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
+            }
+
+            const targetDateStr = targetDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const prompt = `당신은 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [원문]을 바탕으로 보고서를 작성하십시오.
+
+🕒 **분석 기준일(청약일):** ${targetDateStr}
+
+🚨 **[데이터 작성 금지 규칙 (Strict Negative Constraints)]**
+1. **경미한 건 제외:** 알릴의무 대상(3개월/1년/5년 기준)이 아닌 건은 **보고서에 적지 마십시오.** (예: 1회 통원 감기 등)
+2. **치과 수술 기재 금지 목록:** 레진, 충전, 아말감, 인레이, 크라운, 신경치료, 근관치료 등 보존적 치료는 **절대 수술로 기재하지 마십시오.** (발치, 치조골성형, 임플란트 식립술만 기재)
+
+🚨 **[보고서 작성 규칙 - 하부 행 추가 원칙]**
+1. **기본 원칙:** 같은 질병명과 병원은 **하나의 그룹**으로 묶어서 보여주되, **상세 내역이 다르면 하부 행을 추가**하십시오.
+2. **하부 행 생성 조건:** - **입원 일자**가 서로 다르거나, **수술/시술 날짜**가 서로 다른 경우.
+   - **즉, 전체 요약 행(Total)을 먼저 적고, 그 아래에 날짜별 상세 내역(Detail)을 하부 행으로 추가하십시오.**
+3. **수술/시술 중복 기재 방지:**
+   - 파이썬 데이터의 \`[🚨시스템 감지: 수술/시술]\` 목록에 있는 수술 1건은 가장 연관성 높은 1개의 질병 하부 행에만 1번 표기하십시오. (중복 복사 금지)
+   - 단, 서로 다른 날짜에 발생한 동일 수술(예: 티눈제거술 여러 번)은 날짜별로 각각 하부 행으로 나누어 모두 표기하십시오.
+4. **약물 유추 및 병기:** 주상병(진단명) 아래에 \`<br>(유추) 병명\` 형태로 반드시 병기하십시오.
+5. **[간편심사] 작성 기준:**
+   - 입원/수술 이력이 있는 건만 기재하며, 위와 동일하게 하부 행 방식으로 작성하십시오.
+   - 단순 통원 건은 간편심사 표에 적지 마십시오.
 
 ---
 **[파이썬 집계 데이터]**
 ${hintText}
 
 **[진료기록 원문]**
-${combinedRawText.slice(0, 40000)}
+${rawText.slice(0, 60000)}
 
 ---
-### 📑 계약 #${idx + 1} (청약일: ${targetDateInput}) 심사 결과
+### **[최종 심사 보고서]**
+
+#### 1️⃣ [일반심사] 표준 알릴의무 (요약)
+*기준: 3개월(내원), 1년(검사), 5년(입원/수술/7일통원/30일투약)*
+
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+| **예: 골괴사 (M87)** | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 2회 | 10일 | **예** | - | **5년내 수술, 입원** |
+| ↳ | | 2021.07.11 | 2021.07.15 | - | 5일 | 아니오 | - | 1차 입원 |
+| ↳ | | 2023.07.20 | 2023.07.25 | - | 5일 | 예 | 인공관절치환술 | 2차 입원/수술 |
+
+#### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
+*(입원 및 수술 이력만 기재 / 단순 통원 제외)*
 `;
-                        const aiRespOld = await callGeminiApi(promptOld, apiKey);
-                        fullOldMarkdown += `\n\n### 계약 #${idx + 1} (${targetDateInput})\n` + aiRespOld;
+            return prompt;
+        }
+
+        // Gemini API Helper (지정된 Key 자동 적용 및 지수 백오프 재시도)
+        async function callGeminiApi(promptText, key) {
+            const cleanKey = key.trim();
+            const modelName = "gemini-2.5-flash";
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+
+            const maxRetries = 3;
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptText }] }],
+                            generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (text) return text;
                     }
-                    lastAnalysisResultMarkdownOld = fullOldMarkdown;
-                    renderMarkdownTable(fullOldMarkdown, 'dutyReportContentOld');
-                } else {
-                    document.getElementById('dutyReportContentOld').innerHTML = "<p class='text-xs text-slate-500'>좌측 사이드바에서 점검할 계약 건수와 청약일을 설정하시면 계약별 고지위반 점검표가 생성됩니다.</p>";
+
+                    const errJson = await res.json().catch(() => ({}));
+                    const errMsg = errJson.error?.message || `HTTP ${res.status}`;
+
+                    if (errMsg.includes("429") || errMsg.toLowerCase().includes("quota")) {
+                        if (attempt < maxRetries - 1) {
+                            await new Promise(r => setTimeout(r, (attempt + 1) * 3000));
+                            continue;
+                        } else {
+                            return "🚫 **구글 정책 상 무분별한 AI 사용을 제어(분당 20회)하기 때문에 잠시 후에 다시 실행해 주세요.**";
+                        }
+                    }
+                    throw new Error(errMsg);
+                } catch (e) {
+                    if (attempt === maxRetries - 1) {
+                        throw new Error(`AI 분석 실패: ${e.message}`);
+                    }
+                    await new Promise(r => setTimeout(r, 2000));
                 }
-
-                progressBar.style.width = "100%";
-                progressPercent.innerText = "100%";
-                progressText.innerText = "✅ AI 정밀 심사 보고서 생성 완료!";
-                document.getElementById('dutyResultSection').classList.remove('hidden');
-
-            } catch (err) {
-                alert(`❌ 오류 발생: ${err.message}`);
-                progressText.innerText = `❌ 오류: ${err.message}`;
-            } finally {
-                btnRun.disabled = false;
-                btnRun.classList.remove('opacity-50');
             }
         }
 
+        // Execute Duty Analysis Main Handler
+        async function executeDutyAnalysis() {
+            // 코드에 기본 적용된 구글 API 키
+            const apiKey = "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
+            const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
+            const pdfFiles = document.getElementById('pdfFileInput').files;
 
-        // --- 7. 마크다운 표 렌더링 및 엑셀 다운로드 (SheetJS) ---
-        function renderMarkdownTable(mdText, targetElementId) {
-            const container = document.getElementById(targetElementId);
-            const lines = mdText.split('\n');
-            let html = "";
-            let inTable = false;
+            if (!pdfFiles || pdfFiles.length === 0) {
+                alert('진료기록 PDF 파일을 선택해주세요.');
+                return;
+            }
 
-            lines.forEach(line => {
-                const trimmed = line.trim();
-                if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-                    if (trimmed.includes('---')) return;
-                    const cells = trimmed.slice(1, -1).split('|').map(c => c.trim());
-                    if (!inTable) {
-                        html += '<div class="overflow-x-auto"><table class="w-full"><thead><tr>';
-                        cells.forEach(c => { html += `<th>${c}</th>`; });
-                        html += '</tr></thead><tbody>';
-                        inTable = true;
-                    } else {
-                        html += '<tr>';
-                        cells.forEach(c => {
-                            const isSub = c.startsWith('↳');
-                            html += `<td class="${isSub ? 'text-slate-500 pl-4 bg-slate-50' : ''}">${c}</td>`;
-                        });
-                        html += '</tr>';
+            const progressArea = document.getElementById('dutyProgressArea');
+            const progressText = document.getElementById('dutyProgressText');
+            const progressBar = document.getElementById('dutyProgressBar');
+            const progressPercent = document.getElementById('dutyProgressPercent');
+
+            const resultContainer = document.getElementById('dutyResultContainer');
+            const debugContent = document.getElementById('dutyDebugContent');
+            const reportBox1 = document.getElementById('dutyAiReportBox1');
+            const reportBox2 = document.getElementById('dutyAiReportBox2');
+            const violationNoticeBox = document.getElementById('violationNoticeBox');
+
+            progressArea.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+
+            try {
+                progressText.innerText = `📄 ${pdfFiles.length}개의 PDF 문서에서 진료기록을 추출하고 있습니다...`;
+                progressBar.style.width = '25%';
+                progressPercent.innerText = '25%';
+
+                const fullText = await extractTextFromPdfFiles(pdfFiles, pdfPassword);
+
+                progressText.innerText = "⚙️ [v5.0 Rule Engine] 수술/시술, 30일 투약 및 입원/통원 집계 중...";
+                progressBar.style.width = '50%';
+                progressPercent.innerText = '50%';
+
+                const { detectedInfo, visitCounter, admissionCounter, admissionDetails } = analyzeMedicalRecords(fullText);
+
+                // 파이썬 디버깅 콘솔 출력 렌더링
+                debugContent.innerHTML = `
+                    <div class="text-amber-400 font-bold">📊 [파이썬 Rule Engine 집계 결과]</div>
+                    <div class="mt-1"><strong>• 입원 일수 합계:</strong></div>
+                    <pre class="text-slate-300 pl-3">${JSON.stringify(admissionCounter, null, 2)}</pre>
+                    <div class="mt-2"><strong>• 감지된 수술/시술 (${detectedInfo.surgeries.length}건):</strong></div>
+                    <div class="text-amber-200 pl-3">${Array.from(new Set(detectedInfo.surgeries)).join('<br>') || '없음'}</div>
+                    <div class="mt-2"><strong>• 30일 이상 투약 처방 (${detectedInfo.long_term_meds.length}건):</strong></div>
+                    <div class="text-emerald-300 pl-3">${Array.from(new Set(detectedInfo.long_term_meds)).join('<br>') || '없음'}</div>
+                `;
+
+                // 상단 요약 KPI 카드 렌더링
+                const summaryCardsEl = document.getElementById('dutySummaryCards');
+                summaryCardsEl.innerHTML = `
+                    <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-center">
+                        <span class="text-[10px] font-bold text-amber-400 block">수술/시술 감지</span>
+                        <span class="text-lg font-black text-amber-300 mt-0.5 block">${detectedInfo.surgeries.length} 건</span>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-center">
+                        <span class="text-[10px] font-bold text-emerald-400 block">30일 이상 장기투약</span>
+                        <span class="text-lg font-black text-emerald-300 mt-0.5 block">${detectedInfo.long_term_meds.length} 건</span>
+                    </div>
+                    <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 text-center">
+                        <span class="text-[10px] font-bold text-blue-400 block">입원 이력 집계</span>
+                        <span class="text-lg font-black text-blue-300 mt-0.5 block">${Object.keys(admissionCounter).length} 개 상병</span>
+                    </div>
+                    <div class="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-center">
+                        <span class="text-[10px] font-bold text-indigo-400 block">외래 통원 기록</span>
+                        <span class="text-lg font-black text-indigo-300 mt-0.5 block">${Object.keys(visitCounter).length} 개 상병</span>
+                    </div>
+                `;
+
+                progressText.innerText = "🤖 Gemini 2.5 Flash가 [신규] 표준 알릴의무 보고서를 작성 중입니다...";
+                progressBar.style.width = '75%';
+                progressPercent.innerText = '75%';
+
+                // Tab 1 분석 생성
+                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails);
+                const aiMarkdown1 = await callGeminiApi(promptTab1, apiKey);
+                currentTab1Markdown = aiMarkdown1;
+
+                // Tab 2 다중 청약일 고지위반 점검
+                const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
+                if (contractCount > 0) {
+                    let fullOldMarkdown = "";
+                    let contractDatesStrList = [];
+
+                    for (let c = 0; c < contractCount; c++) {
+                        const dateInput = document.getElementById(`contractDate_${c}`);
+                        const dVal = dateInput ? dateInput.value : "";
+                        if (dVal) {
+                            contractDatesStrList.push(dVal);
+                            const parts = dVal.split('-');
+                            const targetDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            
+                            progressText.innerText = `⏳ 계약 #${c + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
+                            const promptTab2 = buildViolationCheckPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, targetDateObj);
+                            const aiRespOld = await callGeminiApi(promptTab2, apiKey);
+                            
+                            fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
+                        }
                     }
+
+                    currentTab2Markdown = fullOldMarkdown;
+                    violationNoticeBox.innerHTML = `
+                        <div class="font-bold text-amber-400 mb-1">📑 설정된 계약 청약일 목록: ${contractDatesStrList.join(', ')}</div>
+                        <p class="text-slate-300">각 계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>
+                    `;
+                    reportBox2.innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
+                    reportBox2.classList.remove('hidden');
                 } else {
-                    if (inTable) {
-                        html += '</tbody></table></div>';
-                        inTable = false;
-                    }
-                    if (trimmed.startsWith('####')) {
-                        html += `<h4 class="text-xs font-bold text-slate-900 mt-4 mb-2">${trimmed.replace(/^#+\s*/, '')}</h4>`;
-                    } else if (trimmed.startsWith('###')) {
-                        html += `<h3 class="text-sm font-black text-blue-900 mt-5 mb-2">${trimmed.replace(/^#+\s*/, '')}</h3>`;
-                    } else if (trimmed) {
-                        html += `<p class="text-xs text-slate-600 my-1">${trimmed}</p>`;
-                    }
+                    currentTab2Markdown = "";
+                    violationNoticeBox.innerHTML = `
+                        <div class="text-amber-400 font-bold mb-1">👈 고지위반 점검 설정 필요</div>
+                        <p class="text-slate-400">좌측 사이드바의 <strong>[🔍 고지위반 점검 설정]</strong>에서 '점검할 계약 건수'를 설정하시고 청약일을 입력한 후 다시 분석을 실행해주세요.</p>
+                    `;
+                    reportBox2.classList.add('hidden');
                 }
-            });
 
-            if (inTable) html += '</tbody></table></div>';
-            container.innerHTML = html;
+                progressBar.style.width = '100%';
+                progressPercent.innerText = '100%';
+
+                setTimeout(() => {
+                    progressArea.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                    reportBox1.innerHTML = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
+                    switchResultTab('tab1');
+                }, 400);
+
+            } catch (error) {
+                progressArea.classList.add('hidden');
+                alert(`❌ 오류 발생: ${error.message}`);
+            }
         }
 
-        function downloadExcelReport(type) {
-            const md = type === '신규' ? lastAnalysisResultMarkdownNew : lastAnalysisResultMarkdownOld;
-            if (!md) {
-                alert('다운로드할 분석 결과가 없습니다.');
+        // Export AI Duty Report to Excel (.xlsx) - 원본 Python xlsxwriter 구조 구현
+        function exportDutyToExcel() {
+            const isTab1 = (activeResultTab === 'tab1');
+            const mdText = isTab1 ? currentTab1Markdown : currentTab2Markdown;
+
+            if (!mdText) {
+                alert('다운로드할 분석 결과가 없습니다. 먼저 분석을 실행해주세요.');
                 return;
             }
 
             const wb = XLSX.utils.book_new();
-            const lines = md.split('\n');
-            const rows = [];
+            const now = new Date();
+            const timeStr = now.toISOString().replace(/[-:T]/g, '').slice(0, 12);
 
-            lines.forEach(line => {
-                const trimmed = line.trim();
-                if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-                    if (trimmed.includes('---')) return;
-                    const cells = trimmed.slice(1, -1).split('|').map(c => c.trim());
-                    rows.push(cells);
-                } else if (trimmed) {
-                    rows.push([trimmed.replace(/#/g, '').trim()]);
+            if (isTab1) {
+                const lines = mdText.split('\n');
+                const rows = [
+                    [`분석 일시: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`],
+                    [`기준일: 현재 (신규가입)`],
+                    ["--------------------------------------------------"]
+                ];
+
+                let tableBuffer = [];
+                lines.forEach(line => {
+                    if (line.includes('|')) {
+                        if (line.includes('---')) return;
+                        let rowData = line.trim().split('|').map(c => c.trim());
+                        if (rowData.length > 0 && rowData[0] === '') rowData.shift();
+                        if (rowData.length > 0 && rowData[rowData.length - 1] === '') rowData.pop();
+                        if (rowData.length > 0) tableBuffer.push(rowData);
+                    } else {
+                        if (tableBuffer.length > 0) {
+                            tableBuffer.forEach(r => rows.push(r));
+                            rows.push([]);
+                            tableBuffer = [];
+                        }
+                        const cleanLine = line.replace(/#/g, '').trim();
+                        if (cleanLine) rows.push([cleanLine]);
+                    }
+                });
+
+                if (tableBuffer.length > 0) {
+                    tableBuffer.forEach(r => rows.push(r));
                 }
-            });
 
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            XLSX.utils.book_append_sheet(wb, ws, "심사보고서");
-            const fileName = `${type}심사보고서_${new Date().toISOString().slice(0, 10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                XLSX.utils.book_append_sheet(wb, ws, "심사보고서");
+                XLSX.writeFile(wb, `신규심사_${timeStr}.xlsx`);
+            } else {
+                // Tab 2: 계약별 시트 분리 생성
+                const contractSections = mdText.split(/### 📑 계약/);
+                let sheetCount = 0;
+
+                contractSections.forEach((section, idx) => {
+                    if (!section.trim()) return;
+                    sheetCount++;
+                    const lines = section.split('\n');
+                    const rows = [
+                        [`분석 기준일: 기계약 점검`],
+                        ["주의: 해당 계약일 이후의 진료기록은 제외된 결과입니다."],
+                        ["--------------------------------------------------"]
+                    ];
+
+                    let tableBuffer = [];
+                    lines.forEach(line => {
+                        if (line.includes('|')) {
+                            if (line.includes('---')) return;
+                            let rowData = line.trim().split('|').map(c => c.trim());
+                            if (rowData.length > 0 && rowData[0] === '') rowData.shift();
+                            if (rowData.length > 0 && rowData[rowData.length - 1] === '') rowData.pop();
+                            if (rowData.length > 0) tableBuffer.push(rowData);
+                        } else {
+                            if (tableBuffer.length > 0) {
+                                tableBuffer.forEach(r => rows.push(r));
+                                rows.push([]);
+                                tableBuffer = [];
+                            }
+                            const cleanLine = line.replace(/#/g, '').trim();
+                            if (cleanLine) rows.push([cleanLine]);
+                        }
+                    });
+
+                    if (tableBuffer.length > 0) {
+                        tableBuffer.forEach(r => rows.push(r));
+                    }
+
+                    const ws = XLSX.utils.aoa_to_sheet(rows);
+                    XLSX.utils.book_append_sheet(wb, ws, `계약_${sheetCount}`);
+                });
+
+                XLSX.writeFile(wb, `고지위반점검_통합_${timeStr}.xlsx`);
+            }
         }
 
-
-        // --- 8. 샘플 데이터 채우기 (테스트용) ---
-        function fillSampleMedicalData() {
-            const sampleText = `
-=== 서울대학교병원 진료기록 ===
-2021-07-11 서울대학교병원 대퇴골두무혈성괴사(M87) 입원 5일
-2021-07-15 서울대학교병원 퇴원
-2023-07-20 서울대학교병원 대퇴골두무혈성괴사(M87) 입원 5일 인공관절치환술 수술 시행
-2023-07-25 서울대학교병원 퇴원
-2024-03-10 세브란스병원 본태성고혈압(I10) 외래 통원 30일 투약 처방전 발급
-2024-06-15 세브란스병원 본태성고혈압(I10) 외래 통원 60일 투약 처방전 발급
-2026-01-10 연세치과의원 매복치발치술 수술 시행
-`;
-            const fakeFile = new File([sampleText], "심평원_진료기록_샘플.pdf", { type: "application/pdf" });
-            uploadedPdfFiles = [fakeFile];
-            renderSelectedFiles();
-            alert("샘플 진료 데이터가 로드되었습니다. '🚀 분석 실행' 버튼을 클릭하세요!");
-        }
-
-
-        // --- 9. Chart.js 초기화 ---
+        // Chart.js 초기화
         window.addEventListener('DOMContentLoaded', () => {
             const ctx1 = document.getElementById('conversionChart').getContext('2d');
             chart1Instance = new Chart(ctx1, {
@@ -1547,7 +1876,9 @@ ${combinedRawText.slice(0, 40000)}
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: function(context) { return ' ' + context.dataset.label + ': ' + context.parsed.y + '%'; }
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
                             }
                         }
                     },
