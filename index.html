@@ -631,16 +631,6 @@
                                     <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">👁️</button>
                                 </div>
                             </div>
-
-                            <!-- AI 모델 선택 -->
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-400 mb-1">AI 모델 선택</label>
-                                <select id="aiModelSelect" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-amber-500">
-                                    <option value="gemini-2.5-flash" selected>models/gemini-2.5-flash (권장)</option>
-                                    <option value="gemini-2.0-flash">models/gemini-2.0-flash</option>
-                                    <option value="gemini-1.5-flash">models/gemini-1.5-flash</option>
-                                </select>
-                            </div>
                         </div>
 
                         <!-- 섹션 2: 🔍 고지위반 점검 설정 -->
@@ -1292,10 +1282,38 @@
             return { detectedInfo, visitCounter, admissionCounter, admissionDetails };
         }
 
+        // Gemini API Helper (Gemini 2.5 Flash 단일 모델 전용)
+        async function callGeminiApi(promptText, key) {
+            const cleanKey = key.trim();
+            const modelName = "gemini-2.5-flash"; // gemini-2.5-flash 전용 고정
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                }
+                
+                const errJson = await res.json().catch(() => ({}));
+                throw new Error(errJson.error?.message || `HTTP ${res.status}`);
+            } catch (e) {
+                throw new Error(`Gemini 2.5 Flash 호출 오류: ${e.message}`);
+            }
+        }
+
         // Execute Duty Analysis Main Handler
         async function executeDutyAnalysis() {
             const apiKey = "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
-            const modelName = document.getElementById('aiModelSelect').value;
             const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
             const pdfFiles = document.getElementById('pdfFileInput').files;
 
@@ -1402,40 +1420,7 @@ ${fullText.substring(0, 50000)}
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
                 `;
 
-                // Gemini API Helper with Automatic Fallback
-                async function callGeminiApi(promptText, preferredModel, key) {
-                    const cleanKey = key.trim();
-                    const modelsToTry = [...new Set([preferredModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'])];
-                    let lastErrMsg = '';
-
-                    for (const m of modelsToTry) {
-                        try {
-                            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${cleanKey}`;
-                            const res = await fetch(endpoint, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    contents: [{ parts: [{ text: promptText }] }],
-                                    generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
-                                })
-                            });
-
-                            if (res.ok) {
-                                const data = await res.json();
-                                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                                if (text) return text;
-                            } else {
-                                const errJson = await res.json().catch(() => ({}));
-                                lastErrMsg = errJson.error?.message || `HTTP ${res.status}`;
-                            }
-                        } catch (e) {
-                            lastErrMsg = e.message;
-                        }
-                    }
-                    throw new Error(lastErrMsg || 'Gemini API 호출에 실패했습니다.');
-                }
-
-                const aiMarkdown1 = await callGeminiApi(promptTab1, modelName, apiKey);
+                const aiMarkdown1 = await callGeminiApi(promptTab1, apiKey);
                 currentTab1Markdown = aiMarkdown1;
 
                 // Check contract dates for Tab 2
@@ -1461,7 +1446,7 @@ ${fullText.substring(0, 50000)}
 ${fullText.substring(0, 50000)}
                     `;
 
-                    currentTab2Markdown = await callGeminiApi(promptTab2, modelName, apiKey);
+                    currentTab2Markdown = await callGeminiApi(promptTab2, apiKey);
                     reportBox2.innerHTML = window.marked ? window.marked.parse(currentTab2Markdown) : `<pre>${currentTab2Markdown}</pre>`;
                     reportBox2.classList.remove('hidden');
                 } else {
