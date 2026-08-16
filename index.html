@@ -97,7 +97,7 @@
                     </button>
                 </div>
 
-                <!-- 네비게이션 메뉴 -->
+                <!-- 네비게이션 메뉴 (페이지 전환 지원) -->
                 <nav class="hidden md:flex space-x-6 text-sm font-semibold text-slate-300">
                     <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold">잇츠리온 소개</button>
                     <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">업무지원</button>
@@ -122,53 +122,86 @@
     </header>
 
     <main class="flex-grow">
+
         <!-- ==================== [페이지 1: 잇츠리온 소개 및 안내] ==================== -->
         <div id="viewIntro" class="block transition-all duration-300">
+            
             <!-- 1-1. 히어로 슬라이더 섹션 -->
             <section id="introHero" class="relative bg-slate-950 text-white overflow-hidden min-h-[460px] md:min-h-[500px] flex items-center">
+                
+                <!-- Slide 1 -->
                 <div id="slide1" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-100">
                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1600&q=80');"></div>
                     <div class="absolute inset-0 bg-slate-950/80 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-900/60"></div>
+                    
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                         <div class="max-w-2xl">
-                            <span class="inline-block bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">보험 설계사 전용 스마트 영업지원 시스템</span>
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">차원이 다른 영업 생산성,<br/>잇츠리온 플랫폼 안내</h1>
-                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">고객관리부터 스케줄 연동까지, 보장/약관 분석, 알릴의무 자동분석, 실비계산기, 업무효율분석까지 원스톱으로 지원합니다.</p>
+                            <span class="inline-block bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                                보험 설계사 전용 스마트 영업지원 시스템
+                            </span>
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
+                                차원이 다른 영업 생산성,<br/>잇츠리온 플랫폼 안내
+                            </h1>
+                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">
+                                고객관리부터 스케줄 연동까지, 보장/약관 분석, 알릴의무 자동분석, 실비계산기, 업무효율분석까지 원스톱으로 지원합니다.
+                            </p>
                             <div class="mt-8 flex flex-wrap gap-3">
-                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2"><span>업무지원 바로가기→</span></button>
-                                <a href="#whyUs" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm transition">왜 잇츠리온인가?→</a>
+                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                                    <span>업무지원 바로가기→</span>
+                                </button>
+                                <a href="#whyUs" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm transition">
+                                    왜 잇츠리온인가?→
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Slide 2 -->
                 <div id="slide2" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-0 pointer-events-none">
                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80');"></div>
                     <div class="absolute inset-0 bg-slate-950/80 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-900/60"></div>
+
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                         <div class="max-w-2xl">
-                            <span class="inline-block bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">올인원 영업 비즈니스 플랫폼</span>
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">영업 성과를 최상으로 높이는<br/>스마트 워크스페이스</h1>
-                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">체계적인 고객관리 및 계약 업무 효율성 분석으로 성공적인 영업 활동을 이어가세요.</p>
+                            <span class="inline-block bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                                올인원 영업 비즈니스 플랫폼
+                            </span>
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
+                                영업 성과를 최상으로 높이는<br/>스마트 워크스페이스
+                            </h1>
+                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">
+                                체계적인 고객관리 및 계약 업무 효율성 분석으로 성공적인 영업 활동을 이어가세요.
+                            </p>
                             <div class="mt-8 flex flex-wrap gap-3">
-                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5">업무지원 바로가기→</button>
+                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5">
+                                    업무지원 바로가기→
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Carousel Pagination Dots -->
                 <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3">
-                    <button id="dot1" onclick="switchSlide(1)" class="w-3 h-3 rounded-full bg-white transition-all duration-300"></button>
-                    <button id="dot2" onclick="switchSlide(2)" class="w-3 h-3 rounded-full bg-white/40 transition-all duration-300"></button>
+                    <button id="dot1" onclick="switchSlide(1)" class="w-3 h-3 rounded-full bg-white transition-all duration-300" aria-label="Slide 1"></button>
+                    <button id="dot2" onclick="switchSlide(2)" class="w-3 h-3 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 2"></button>
                 </div>
             </section>
 
-            <!-- 1-2. 브랜드 상징 & 업무화면 바로가기 버튼 영역 -->
+            <!-- 1-2. 브랜드 상징 Emblem & 업무화면 바로가기 버튼 영역 -->
             <section class="bg-white py-14 border-b border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+                    
                     <div class="w-full max-w-sm bg-slate-900 rounded-2xl p-8 shadow-xl border border-slate-800 text-white mb-6 flex flex-col items-center justify-center">
-                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 border-2 border-slate-600 flex items-center justify-center shadow-inner mb-4 text-3xl">🛡️</div>
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 border-2 border-slate-600 flex items-center justify-center shadow-inner mb-4 text-3xl">
+                            🛡️
+                        </div>
                         <div class="font-black text-xl tracking-wider text-slate-100">SENTINEL ADVISORS</div>
                         <div class="text-[11px] font-semibold text-slate-400 tracking-widest mt-1">STRATEGIC CAPITAL PARTNERS</div>
                     </div>
+
+                    <!-- 업무화면 바로가기 메인 CTA -->
                     <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-10 py-4 rounded-xl shadow-lg hover:shadow-2xl border border-blue-500 text-base transition transform hover:-translate-y-1 tracking-wide flex items-center gap-3">
                         <span>업무지원 바로가기→</span>
                     </button>
@@ -179,37 +212,51 @@
             <!-- 1-3. 하단 왜 잇츠리온인가요? 섹션 -->
             <section id="whyUs" class="bg-slate-50 py-16 border-t border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
                     <div class="text-center max-w-2xl mx-auto mb-12">
                         <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">SYSTEM ADVANTAGE</span>
                         <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">왜 잇츠리온인가?</h2>
                         <p class="text-slate-500 text-sm mt-2">보험 설계사 영업 현장에 최적화된 올인원 비즈니스 워크스페이스</p>
                     </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <!-- Left Image -->
                         <div class="rounded-2xl overflow-hidden shadow-lg border border-slate-200">
                             <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=1200&q=80" alt="Professional Advisor" class="w-full h-80 md:h-96 object-cover">
                         </div>
+
+                        <!-- Right Text Cards -->
                         <div class="space-y-8">
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">하나의 플랫폼, 모든 영업 도구</h3>
-                                <p class="text-sm text-slate-600 leading-relaxed">고객관리부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 업후현황까지 영업 활동에 필수적인 모든 것을 잇츠리온에서 지원하는 플랫폼 하나로 해결하세요.</p>
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    고객관리부터 보장분석, 약관분석, 알릴의무분석, 보험청구, 실비계산기, 업후현황까지 영업 활동에 필수적인 모든 것을 잇츠리온에서 지원하는 플랫폼 하나로 해결하세요. 별도의 프로그램 설치 없이 웹에서 바로 사용 할 수 있습니다.
+                                </p>
                             </div>
+
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">스케줄 연동으로 놓침 없는 고객 관리</h3>
-                                <p class="text-sm text-slate-600 leading-relaxed">영업인에게 고객관리는 생명과 같습니다. 고객 관리부터 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다.</p>
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    영업인에게 고객관리는 생명과 같습니다. 이제 한 번에 해결하세요. 고객 관리부터 스케줄과 자동 연동되어 상담 일정 관리가 한결 수월해집니다. 놓치는 고객 없이 체계적으로 케어하세요.
+                                </p>
                             </div>
+
                             <div class="pt-2">
                                 <button onclick="switchView('workspace')" class="bg-slate-900 hover:bg-blue-900 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition shadow flex items-center gap-2">
-                                    <span>주요 업무도구 및 실적분석 보기 →</span>
+                                    <span>주요 업무도구 및 실적분석 보기</span>
+                                    <span>→</span>
                                 </button>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </section>
         </div>
 
         <!-- ==================== [페이지 2: 주요 업무 기능 & 실적 분석 (업무 화면)] ==================== -->
         <div id="viewWorkspace" class="hidden transition-all duration-300">
+            
             <!-- 페이지 2 헤더 배너 -->
             <div class="bg-slate-900 text-white border-b border-slate-800 py-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -221,7 +268,9 @@
                         <h1 class="text-2xl font-black text-white mt-1">팀장님의 주요 업무 기능 & 실적 분석</h1>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition">←잇츠리온 소개로 돌아가기</button>
+                        <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition">
+                            ←잇츠리온 소개로 돌아가기
+                        </button>
                     </div>
                 </div>
             </div>
@@ -229,43 +278,70 @@
             <!-- 2-1. 주요 업무 기능 9대 카드 섹션 (3행 3열 그리드) -->
             <section id="features" class="bg-slate-900 py-12 text-white border-b border-slate-800">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
                     <div class="mb-8">
-                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2"><span>🛠️</span> <span>주요 업무 기능</span></h2>
+                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                            <span>🛠️</span> <span>주요 업무 기능</span>
+                        </h2>
                         <p class="text-slate-400 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
 
+                    <!-- 3행 3열 (총 9개) 그리드 카드 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        <!-- 카드 1~6 생략 (위의 1~6 카드와 동일하게 삽입) -->
+
+                        <!-- 카드 1: DB배정 -->
                         <div onclick="openModal('scheduleModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📋</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition">DB배정 & 스케줄</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리</p>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리
+                            </p>
                         </div>
+
+                        <!-- 카드 2: 보장분석 -->
                         <div onclick="openModal('coverageModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition">보장분석</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">고객 보장 현황 자동 분석 및<br/>보장분석표 자동 완성</p>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                고객 보장 현황 자동 분석 및<br/>보장분석표 자동 완성
+                            </p>
                         </div>
+
+                        <!-- 카드 3: 약관분석 -->
                         <div onclick="openModal('termsCloudModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">약관분석 (구글 클라우드)</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                전 보험사 약관 검토 및<br/>비교,분석 결과 제공
+                            </p>
                         </div>
+
+                        <!-- 카드 4: 알릴의무분석 (v5.0 AI 정밀 심사 엔진 탑재) -->
                         <div onclick="openModal('dutyModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-amber-500/50 hover:border-amber-400 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-lg hover:shadow-2xl relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">알릴의무분석</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">진료이력 기반 분석<br/>고지의무 사항 자동 체크</p>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                진료이력 기반 분석<br/>고지의무 사항 자동 체크
+                            </p>
                         </div>
+
+                        <!-- 카드 5: 보험청구 -->
                         <div onclick="openModal('claimModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">보험청구 지원</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구</p>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 
+                            </p>
                         </div>
+
+                        <!-- 카드 6: 계약현황 -->
                         <div onclick="openModal('contractDashboardModal')" class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-md hover:shadow-xl">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
                             <h3 class="text-lg font-bold text-white group-hover:text-teal-400 transition">계약현황 대시보드</h3>
-                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">계약 현황 및<br/>목표 달성률 실시간 조회</p>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                계약 현황 및<br/>목표 달성률 실시간 조회
+                            </p>
                         </div>
 
                         <!-- 카드 7: 실비마스터 (1~4세대 계산기, 세대별 가이드, 갱신보험료 예측 통합) -->
@@ -278,38 +354,242 @@
                             </p>
                         </div>
 
+                        <!-- 카드 8: 서비스 출시 예정 -->
                         <div onclick="openModal('comingSoonModal')" class="bg-slate-800/40 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-75 hover:opacity-100">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
-                            <div class="flex items-center gap-1 mb-1"><span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
+                            <div class="flex items-center gap-1 mb-1">
+                                <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
+                            </div>
                             <h3 class="text-base font-bold text-slate-300">서비스 출시 예정</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.
+                            </p>
                         </div>
+
+                        <!-- 카드 9: 서비스 출시 예정 -->
                         <div onclick="openModal('comingSoonModal')" class="bg-slate-800/40 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-75 hover:opacity-100">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">🔒</div>
-                            <div class="flex items-center gap-1 mb-1"><span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
+                            <div class="flex items-center gap-1 mb-1">
+                                <span class="bg-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span>
+                            </div>
                             <h3 class="text-base font-bold text-slate-300">서비스 출시 예정</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.
+                            </p>
                         </div>
+
                     </div>
                 </div>
             </section>
 
             <!-- 2-2. 개인별 DB 체결효율 & 소진분석 섹션 -->
             <section id="myAnalytics" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <!-- 위 기존 코드에 있던 DB 통계 분석 UI 그대로 유지 -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                    
+                    <!-- 상단 설계사 개인화 태그 & 헤더 -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
+                        <div>
+                            <div class="flex items-center space-x-2 mb-1.5">
+                                <span class="bg-blue-600 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">개인 실적 데이터 리포트</span>
+                                <span class="text-xs font-bold text-slate-500">사번: WIZ-2026-8801</span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-slate-900">📊 체결 효율 & DB 소진 분석</h2>
+                            <p class="text-xs text-slate-500 mt-1">
+                                [김설계 팀장님]에게 배정된 DB 실시간 사용 소진율 및 계약 체결 효율성 통계입니다.
+                            </p>
+                        </div>
+
+                        <!-- 실적 상태 요약 칩 -->
+                        <div class="flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <div class="text-right">
+                                <div class="text-[11px] font-bold text-slate-500">당월 종합 DB 체결률</div>
+                                <div class="text-lg font-black text-blue-600">41.6 % <span class="text-xs font-normal text-emerald-600">▲ 5.2%</span></div>
+                            </div>
+                            <div class="w-px h-8 bg-slate-200"></div>
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-500">당월 소진 DB</div>
+                                <div class="text-lg font-black text-slate-800">24 <span>건</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 개인 실적 KPI 요약 카드 4종 -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                            <span class="text-[11px] font-semibold text-slate-500 block">당월 배정 DB 수량</span>
+                            <span class="text-xl font-black text-slate-900 mt-1 block">24 <span>건</span></span>
+                            <span class="text-[10px] text-blue-600 font-bold">100% 소진 진행중</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                            <span class="text-[11px] font-semibold text-slate-500 block">최종 계약 체결 건수</span>
+                            <span class="text-xl font-black text-emerald-600 mt-1 block">10 <span>건</span></span>
+                            <span class="text-[10px] text-emerald-600 font-bold">목표(12건)의 83%</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                            <span class="text-[11px] font-semibold text-slate-500 block">평균 상담 소요 기간</span>
+                            <span class="text-xl font-black text-indigo-600 mt-1 block">3.2 <span>일</span></span>
+                            <span class="text-[10px] text-slate-400">배정 후 1차 계약까지</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                            <span class="text-[11px] font-semibold text-slate-500 block">당월 누적 체결 수수료</span>
+                            <span class="text-xl font-black text-blue-700 mt-1 block">385 <span>만원</span></span>
+                            <span class="text-[10px] text-slate-400">전월 대비 +12%</span>
+                        </div>
+                    </div>
+
+                    <!-- 개인 맞춤 시각화 그래프 (Chart.js) -->
+                    <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- 차트 1: 개인 DB 유형별 체결률 -->
+                            <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-bold text-slate-800">[김설계] DB 유형별 계약 체결률 (%)</h3>
+                                    <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">최근 3개월 누적</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="conversionChart"></canvas>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-3 text-center">
+                                    💡 <span class="font-bold text-slate-700">보장분석 DB</span>에서 가장 높은 체결율(42.5%)을 기록하고 있습니다.
+                                </p>
+                            </div>
+
+                            <!-- 차트 2: 월별 DB 배정 및 소진/체결 추이 -->
+                            <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-bold text-slate-800">[김설계] 월별 DB 소진 수량 vs 체결 건수</h3>
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">실시간 추이</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="monthlyTrendChart"></canvas>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-3 text-center">
+                                    📈 DB 소진 수량 증가에 따라 월별 체결 건수도 꾸준히 우상향하고 있습니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </section>
         </div>
+
     </main>
 
     <!-- 하단 푸터 -->
     <footer class="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
-        <!-- 위 기존 코드에 있던 푸터 UI 그대로 유지 -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+            <div>
+                <p class="font-bold text-slate-200 text-sm">잇츠리온</p>
+                <p class="mt-1 text-slate-400">보험설계사를 위한 올인원 비즈니스 플랫폼</p>
+                <p class="mt-1 text-slate-500">대표전화 02-1234-xxxx | 이메일 support@itsrion.co.kr</p>
+                <p class="mt-0.5 text-slate-500">© 2026 ItsRion. All rights reserved.</p>
+            </div>
+
+            <div class="flex justify-center space-x-4 text-slate-400 text-[11px] pt-2 border-t border-slate-800/80">
+                <button onclick="switchView('intro')" class="hover:text-white">1페이지 (잇츠리온 소개)</button>
+                <span>|</span>
+                <button onclick="switchView('workspace')" class="hover:text-white">2페이지 (업무 대시보드)</button>
+                <span>|</span>
+                <button onclick="switchView('workspace', 'myAnalytics')" class="hover:text-white">실적 & DB분석</button>
+                <span>|</span>
+                <button onclick="openModal('contactModal')" class="hover:text-white">문의하기</button>
+            </div>
+        </div>
     </footer>
+
+
     <!-- ==================== 인터랙티브 기능 모달 ==================== -->
 
-    <!-- 알릴의무 & 고지유무 정밀 분석기 (Streamlit UI App Layout Exact Match) -->
+    <!-- 1. DB배정 / 스케줄 모달 -->
+    <div id="scheduleModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeModal('scheduleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <div class="flex items-center space-x-2 text-blue-600 mb-1">
+                <span>📋</span>
+                <span class="text-xs font-bold bg-blue-50 px-2 py-0.5 rounded">DB 배정 & 네이버 캘린더 연동</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">김설계 팀장 배정 DB 일정</h3>
+            <p class="text-xs text-slate-500 mt-1">네이버 캘린더 앱과 동기화된 상담 스케줄입니다.</p>
+
+            <div class="mt-5 space-y-3">
+                <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg flex justify-between items-center text-xs">
+                    <div>
+                        <span class="font-bold text-blue-900">[오늘 14:00] 서울 강남구 역삼동 - 보장분석 상담</span>
+                        <div class="text-slate-600 mt-0.5">고객: 이*철 님 (010-***-4920) | 메모: 기존 실손 만기 재설계</div>
+                    </div>
+                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold">확정</span>
+                </div>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-center text-xs">
+                    <div>
+                        <span class="font-bold text-slate-800">[오늘 16:30] 서울 서초구 방배동 - 운전자 플랜</span>
+                        <div class="text-slate-600 mt-0.5">고객: 박*영 님 (010-***-1182) | 메모: 변호사선임비용 비교 요청</div>
+                    </div>
+                    <span class="bg-amber-500 text-white px-2 py-1 rounded text-[10px] font-bold">이동중</span>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-2">
+                <button onclick="alert('네이버 캘린더 앱과 즉시 동기화되었습니다.')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-500">
+                    🔄 네이버 캘린더 동기화
+                </button>
+                <button onclick="closeModal('scheduleModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 보장분석 모달 -->
+    <div id="coverageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeModal('coverageModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <div class="flex items-center space-x-2 text-red-600 mb-1">
+                <span>🛡️</span>
+                <span class="text-xs font-bold bg-red-50 px-2 py-0.5 rounded">종합 보장 갭 진단</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">고객 보장 항목 분석 리포트</h3>
+            <p class="text-xs text-slate-500 mt-1">권장 가입 금액 대비 현재 가입 수준 분석입니다.</p>
+
+            <div class="mt-4 space-y-4 text-xs">
+                <div>
+                    <div class="flex justify-between font-bold mb-1"><span>일반암 진단비</span> <span class="text-rose-600">부족 (2,000만 / 권장 5,000만)</span></div>
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-rose-500 h-full" style="width: 40%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('coverageModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 약관분석 (구글 클라우드) 모달 -->
+    <div id="termsCloudModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeModal('termsCloudModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <div class="flex items-center space-x-2 text-indigo-600 mb-1">
+                <span>📖</span>
+                <span class="text-xs font-bold bg-indigo-50 px-2 py-0.5 rounded">구글 클라우드 연동</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">전 금융사 개정 약관 라이브러리</h3>
+            <p class="text-xs text-slate-500 mt-1">구글 드라이브와 공유된 표준약관 PDF 자료입니다.</p>
+
+            <div class="mt-4 flex gap-2">
+                <input type="text" placeholder="약관명 또는 질병코드 검색" class="flex-grow px-3 py-2 border rounded-lg text-xs">
+                <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold">검색</button>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('termsCloudModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 알릴의무 & 고지유무 정밀 분석기 (Streamlit UI App Layout Exact Match) -->
     <div id="dutyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
         <div class="bg-slate-900 rounded-2xl max-w-7xl w-full text-slate-100 shadow-2xl relative max-h-[95vh] flex flex-col overflow-hidden border border-slate-700">
+            
             <!-- 상단 윈도우 컨트롤 헤더 -->
             <div class="bg-slate-950 px-5 py-3 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
                 <div class="flex items-center space-x-3">
@@ -324,20 +604,32 @@
                 <button onclick="closeModal('dutyModal')" class="text-slate-400 hover:text-white font-bold text-xl px-2 leading-none transition">✕</button>
             </div>
 
+            <!-- 모달 내부: Streamlit 2컬럼 레이아웃 (좌측 사이드바 + 우측 메인 영역) -->
             <div class="flex-grow overflow-y-auto grid grid-cols-1 lg:grid-cols-12 custom-scrollbar bg-slate-900">
-                <!-- 좌측 설정 패널 (4 Columns) -->
+                
+                <!-- [STREAMLIT SIDEBAR] 좌측 설정 패널 (4 Columns) -->
                 <aside class="lg:col-span-4 bg-slate-950/90 border-r border-slate-800 p-5 space-y-6 flex flex-col justify-between">
                     <div class="space-y-6">
+                        
+                        <!-- 섹션 1: ⚙️ 설정 -->
                         <div class="space-y-3">
-                            <h4 class="text-sm font-extrabold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2"><span>⚙️</span> <span>설정</span></h4>
+                            <h4 class="text-sm font-extrabold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2">
+                                <span>⚙️</span> <span>설정</span>
+                            </h4>
+
+                            <!-- API Key Status -->
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 mb-1">API Key Status</label>
                                 <input type="text" value="✅ Applied" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-bold">
                             </div>
+
+                            <!-- Gemini API Key (새로 발급받은 키 입력 지원) -->
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 mb-1">Gemini API Key</label>
                                 <input id="geminiApiKeyInput" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" placeholder="새 API Key 붙여넣기" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 font-mono">
                             </div>
+
+                            <!-- PDF 비밀번호 -->
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 mb-1">PDF 비밀번호</label>
                                 <div class="relative">
@@ -345,6 +637,8 @@
                                     <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">👁️</button>
                                 </div>
                             </div>
+
+                            <!-- AI 모델 선택 -->
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 mb-1">AI 모델 선택</label>
                                 <select id="aiModelSelect" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-bold focus:outline-none">
@@ -353,9 +647,16 @@
                             </div>
                         </div>
 
+                        <!-- 섹션 2: 🔍 고지위반 점검 설정 -->
                         <div class="space-y-3 pt-2 border-t border-slate-800/80">
-                            <h4 class="text-sm font-extrabold text-slate-200 flex items-center gap-2"><span>🔍</span> <span>고지위반 점검 설정</span></h4>
-                            <p class="text-[11px] text-slate-400 leading-relaxed">기존 가입된 보험들의 고지위반 여부를 확인하려면 아래에 계약 정보를 입력하세요.</p>
+                            <h4 class="text-sm font-extrabold text-slate-200 flex items-center gap-2">
+                                <span>🔍</span> <span>고지위반 점검 설정</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                기존 가입된 보험들의 고지위반 여부를 확인하려면 아래에 계약 정보를 입력하세요.
+                            </p>
+
+                            <!-- 점검할 계약 건수 카운터 -->
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 mb-1">점검할 계약 건수</label>
                                 <div class="flex items-center space-x-2">
@@ -364,34 +665,82 @@
                                     <button onclick="changeContractCount(1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1 rounded-lg border border-slate-700 text-xs">+</button>
                                 </div>
                             </div>
-                            <div id="contractDatesContainer" class="space-y-2 pt-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
+
+                            <!-- 동적 계약 체결일 입력 리스트 -->
+                            <div id="contractDatesContainer" class="space-y-2 pt-1 max-h-48 overflow-y-auto custom-scrollbar">
+                                <!-- Dynamic Date Inputs rendered by JS -->
+                            </div>
                         </div>
+
+                    </div>
+
+                    <!-- 하단 브랜딩 엠블럼 -->
+                    <div class="pt-6 border-t border-slate-800/80 text-center">
+                        <div class="rounded-xl overflow-hidden shadow-lg border border-slate-800 bg-white">
+                            <img src="logo.jpg" alt="잇츠리온 - 이로운 가치, 성공의 이치를 밝히다" class="w-full h-auto object-contain block" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-slate-100 p-3.5 rounded-xl border-2 border-slate-800 text-slate-900 shadow-lg text-left flex items-center space-x-3\'><div class=\'w-10 h-10 rounded-lg bg-slate-900 text-amber-400 flex items-center justify-center text-lg font-black flex-shrink-0 shadow\'>🛡️</div><div><div class=\'text-base font-black tracking-tight text-slate-900 leading-none\'>잇츠리온</div><div class=\'text-[10px] font-bold text-slate-600 tracking-tight mt-1\'>이로운(利) 가치, 성공의 이치를 밝히다.</div></div></div>';">
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">© 2026. ItsRion All rights reserved.</p>
                     </div>
                 </aside>
 
-                <!-- 우측 메인 대시보드 (8 Columns) -->
+                <!-- [STREAMLIT MAIN CONTENT] 우측 메인 대시보드 (8 Columns) -->
                 <main class="lg:col-span-8 p-6 space-y-6 bg-slate-900">
+                    
+                    <!-- 메인 타이틀 & 가이드 상자 -->
                     <div class="space-y-4">
                         <div class="border-b border-slate-800 pb-3">
-                            <h2 class="text-2xl font-black text-white flex items-center gap-2"><span>🏥</span> <span>보험 알릴의무 & 고지유무 정밀 분석</span></h2>
+                            <h2 class="text-2xl font-black text-white flex items-center gap-2">
+                                <span>🏥</span> <span>보험 알릴의무 & 고지유무 정밀 분석</span>
+                            </h2>
                         </div>
+
+                        <!-- [분석 로직 v5.0] 가이드 박스 -->
                         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
                             <h4 class="font-bold text-amber-400 text-xs">📌 [분석 로직 v5.0]</h4>
                             <ol class="list-decimal pl-4 space-y-1 text-slate-300 text-[11px] leading-relaxed">
                                 <li><strong class="text-white">일관성 확보:</strong> AI가 분석을 실행할 때마다 동일한 결과 생성.</li>
                                 <li><strong class="text-white">유추한 질병:</strong> 약물로 유추된 질병은 주상병과 함께 병기됩니다.</li>
-                                <li><strong class="text-white">기본로직:</strong> 입원/통원 분리, 중복제거, 부상병 유추, 일반심사(1년이내 검사/재검사 소견 여부 고객 확인 필), 간편심사(입원,수술만 표기)</li>
+                                <li><strong class="text-white">기본로직:</strong> 입원/통원 분리, 중복제거, 부상병 유추, 일반심사(1년이내 검사/재검사 소견 여부 고객 확인 필), 간편심사(입원,수술만 표기. 투약 정보는 일반심사 참고)</li>
+                                <li><strong class="text-white">3개월 내원력:</strong> 3개월 내원력은 필히 고객님께 확인 해야합니다.</li>
                             </ol>
                         </div>
                     </div>
 
-                    <!-- PDF Drag & Drop 업로더 -->
+                    <!-- 🌐 심평원 내진료정보 열람 바로가기 배너 -->
+                    <div class="bg-gradient-to-r from-blue-900/60 to-indigo-900/60 p-4 rounded-xl border border-blue-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div>
+                            <h4 class="font-bold text-blue-200 text-sm flex items-center gap-1.5">
+                                <span>🏥</span> <span>건강보험심사평가원 「내 진료정보 열람」 바로가기</span>
+                            </h4>
+                            <p class="text-slate-300 text-[11px] mt-1">
+                                고객 간편인증 후 다운로드받은 PDF 파일을 본 분석기에 첨부하시면 자동 분석됩니다.
+                            </p>
+                        </div>
+                        <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2 rounded-lg shadow transition flex items-center justify-center gap-1 flex-shrink-0">
+                            <span>🌐 심평원 바로가기</span>
+                            <span>↗</span>
+                        </a>
+                    </div>
+
+                    <!-- Streamlit 스타일 PDF Drag & Drop 업로더 -->
                     <div class="space-y-3">
-                        <label class="block font-bold text-slate-300 text-xs">기본진료정보 / 세부진료정보 / 처방조제정보 / 교통사고기본·세부 (PDF)</label>
+                        <label class="block font-bold text-slate-300 text-xs">
+                            기본진료정보 / 세부진료정보 / 처방조제정보 / 교통사고기본·세부 (PDF)
+                        </label>
+
                         <div id="pdfDropZone" class="border-2 border-dashed border-slate-700 hover:border-amber-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 group">
-                            <div class="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-amber-500/20 text-slate-400 group-hover:text-amber-400 flex items-center justify-center text-xl transition pointer-events-none">☁️</div>
-                            <div class="text-xs font-bold text-slate-300 group-hover:text-amber-300 transition pointer-events-none" id="pdfFileNameDisplay">Drag and drop files here</div>
-                            <button type="button" onclick="document.getElementById('pdfFileInput').click()" class="mt-2 bg-slate-800 group-hover:bg-slate-700 text-slate-200 px-3 py-1 rounded border border-slate-700 text-[11px] font-bold">Browse files</button>
+                            <div class="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-amber-500/20 text-slate-400 group-hover:text-amber-400 flex items-center justify-center text-xl transition pointer-events-none">
+                                ☁️
+                            </div>
+                            <div class="text-xs font-bold text-slate-300 group-hover:text-amber-300 transition pointer-events-none" id="pdfFileNameDisplay">
+                                Drag and drop files here
+                            </div>
+                            <div class="text-[10px] text-slate-500 pointer-events-none">
+                                Limit 200MB per file • PDF
+                            </div>
+                            <button type="button" onclick="document.getElementById('pdfFileInput').click()" class="mt-2 bg-slate-800 group-hover:bg-slate-700 text-slate-200 px-3 py-1 rounded border border-slate-700 text-[11px] font-bold">
+                                Browse files
+                            </button>
                             <input id="pdfFileInput" type="file" accept=".pdf" multiple class="hidden" onchange="handlePdfSelect(event)">
                         </div>
                     </div>
@@ -403,13 +752,31 @@
                         </button>
                     </div>
 
+                    <!-- 로딩 바 -->
+                    <div id="dutyProgressArea" class="hidden p-4 bg-slate-950 text-white rounded-xl space-y-2 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span id="dutyProgressText">📄 PDF 진료기록 문서를 분석하고 있습니다...</span>
+                            <span id="dutyProgressPercent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="dutyProgressBar" class="bg-amber-400 h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
                     <!-- 분석 결과 탭 영역 (Tab 1: 알릴의무 분석 vs Tab 2: 고지위반 점검) -->
                     <div id="dutyResultContainer" class="hidden space-y-5 pt-4 border-t border-slate-800">
+                        
+                        <!-- 탭 버튼 헤더 -->
                         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                             <div class="flex space-x-3">
-                                <button id="tabBtn1" onclick="switchResultTab('tab1')" class="px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition">📋 알릴의무 분석 (신규)</button>
-                                <button id="tabBtn2" onclick="switchResultTab('tab2')" class="px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">🔍 고지위반 점검 (기계약)</button>
+                                <button id="tabBtn1" onclick="switchResultTab('tab1')" class="px-4 py-2 font-bold text-xs rounded-lg bg-amber-500 text-slate-950 transition">
+                                    📋 알릴의무 분석 (신규)
+                                </button>
+                                <button id="tabBtn2" onclick="switchResultTab('tab2')" class="px-4 py-2 font-bold text-xs rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">
+                                    🔍 고지위반 점검 (기계약)
+                                </button>
                             </div>
+
                             <button onclick="exportDutyToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1.5 transition">
                                 <span>💾</span> <span id="excelBtnText">분석보고서 엑셀 다운로드</span>
                             </button>
@@ -417,33 +784,72 @@
 
                         <!-- 탭 1 콘텐츠: 신규 가입 알릴의무 -->
                         <div id="tab1Content" class="space-y-4">
-                            <div id="dutySummaryCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs"></div>
+                            <!-- 요약 KPI 카드 4종 -->
+                            <div id="dutySummaryCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                <!-- Dynamic KPI Cards -->
+                            </div>
+
+                            <!-- 파이썬 규칙엔진 집계 Collapse -->
                             <div class="border border-slate-800 rounded-xl overflow-hidden text-xs">
                                 <button onclick="toggleDebugVisibility()" class="w-full bg-slate-950 p-3 text-left font-bold text-amber-400 flex justify-between items-center border-b border-slate-800">
                                     <span class="flex items-center gap-2"><span>⚡</span> <span>[파이썬 집계 데이터 (Rule Engine v5.0)]</span></span>
                                     <span id="debugToggleIcon">▼</span>
                                 </button>
-                                <div id="dutyDebugContent" class="hidden p-4 bg-slate-950 text-slate-300 font-mono text-[11px] space-y-2 border-t border-slate-800 custom-scrollbar max-h-48 overflow-y-auto"></div>
+                                <div id="dutyDebugContent" class="hidden p-4 bg-slate-950 text-slate-300 font-mono text-[11px] space-y-2 border-t border-slate-800 custom-scrollbar max-h-48 overflow-y-auto">
+                                    <!-- Dynamic Debug Output -->
+                                </div>
                             </div>
-                            <div id="dutyAiReportBox1" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner"></div>
+
+                            <!-- AI Markdown 심사 보고서 Output Box -->
+                            <div id="dutyAiReportBox1" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner">
+                                <!-- Rendered Markdown Table -->
+                            </div>
                         </div>
 
                         <!-- 탭 2 콘텐츠: 기계약 고지위반 점검 -->
                         <div id="tab2Content" class="hidden space-y-4">
-                            <div id="violationNoticeBox" class="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300"></div>
-                            <div id="dutyAiReportBox2" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner hidden"></div>
+                            <div id="violationNoticeBox" class="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
+                                <!-- Violation output for each contract date or setup prompt -->
+                            </div>
+                            <div id="dutyAiReportBox2" class="ai-report-content p-5 bg-white rounded-xl text-slate-800 custom-scrollbar overflow-x-auto shadow-inner hidden">
+                                <!-- Rendered Markdown Table for Tab 2 -->
+                            </div>
                         </div>
+
                     </div>
+
                 </main>
             </div>
+            
             <div class="bg-slate-950 px-5 py-3 border-t border-slate-800 flex justify-end flex-shrink-0">
                 <button onclick="closeModal('dutyModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg text-xs font-bold transition">닫기</button>
             </div>
         </div>
     </div>
 
+    <!-- 5. 보험청구 모달 -->
+    <div id="claimModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('claimModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900">보험사별 팩스 번호 & 서류 다운로드</h3>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('claimModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- ==================== 7. 실비 마스터 모달 (BMS 실비마스터 앱 UI 1:1 완벽 이식) ==================== -->
+    <!-- 6. 계약현황 대시보드 모달 -->
+    <div id="contractDashboardModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('contractDashboardModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900">당월 계약 현황 대시보드</h3>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('contractDashboardModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. 실비 마스터 모달 (BMS 실비마스터 앱 UI 1:1 완벽 이식) -->
     <div id="indemnityCalcModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full text-slate-800 shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
             
@@ -475,29 +881,19 @@
                 <!-- ============================== [탭 1: 실비 계산기] ============================== -->
                 <div id="silbiTabContent0" class="space-y-4">
                     
-                    <!-- 앰블런스 통원 / 입원 버튼 -->
-                    <div class="flex bg-white rounded-full shadow-sm p-1">
-                        <button class="flex-1 bg-[#D4AF37] text-white py-2 rounded-full text-xs font-bold shadow transition flex items-center justify-center gap-1.5">
-                            <span class="text-base">🚑</span> <span>통원 (외래)</span>
-                        </button>
-                        <button class="flex-1 bg-transparent text-slate-400 py-2 rounded-full text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5">
-                            <span class="text-base">🏥</span> <span>입원</span>
-                        </button>
-                    </div>
-
                     <!-- 🔎 가입 시기로 세대 찾기 -->
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-bold text-[#D4AF37] flex items-center gap-1">
                                 <span>🔎</span> <span>가입 시기로 세대 찾기</span>
                             </span>
-                            <button onclick="resetSilbiAll()" class="bg-[#95a5a6] hover:bg-slate-500 text-white px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
-                                <span>🔄</span> <span>초기화</span>
+                            <button onclick="resetSilbiAll()" class="bg-[#95a5a6] hover:bg-slate-500 text-white px-3 py-1 rounded-full text-xs font-bold transition">
+                                🔄 초기화
                             </button>
                         </div>
                         <div class="flex gap-2 pt-1">
                             <input id="smJoinDate" type="text" maxlength="8" placeholder="예: 20150101" class="flex-grow bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#D4AF37]">
-                            <button onclick="findSilbiGeneration()" class="bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold px-4 py-2 rounded-lg text-sm transition shadow-sm">
+                            <button onclick="findSilbiGeneration()" class="bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold px-4 py-2 rounded-lg text-sm transition">
                                 조회
                             </button>
                         </div>
@@ -505,38 +901,32 @@
 
                     <!-- ✅ 실비 세대 선택 -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-1">
-                            <span class="text-[#27ae60]">✅</span> <span>실비 세대 선택</span>
-                        </label>
-                        <div class="grid grid-cols-5 gap-1.5">
-                            <button id="smGenBtn_gen1" onclick="setSilbiGen('gen1')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition shadow-sm">1세대</button>
-                            <button id="smGenBtn_gen2" onclick="setSilbiGen('gen2')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition shadow-sm">2세대</button>
-                            <button id="smGenBtn_gen3" onclick="setSilbiGen('gen3')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition shadow-sm">3세대</button>
-                            <button id="smGenBtn_gen4" onclick="setSilbiGen('gen4')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition shadow-sm">4세대</button>
-                            <button class="py-2 px-1 rounded-lg font-bold text-[10px] bg-[#fdf2f8] text-[#8e44ad] border border-[#9b59b6] transition shadow-sm flex flex-col items-center justify-center">
-                                <span>5세대</span>
-                                <span class="scale-90">(예정)</span>
-                            </button>
+                        <label class="block text-sm font-bold text-slate-800 mb-2">✅ 실비 세대 선택</label>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button id="smGenBtn_gen1" onclick="setSilbiGen('gen1')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition">1세대</button>
+                            <button id="smGenBtn_gen2" onclick="setSilbiGen('gen2')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition">2세대</button>
+                            <button id="smGenBtn_gen3" onclick="setSilbiGen('gen3')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition">3세대</button>
+                            <button id="smGenBtn_gen4" onclick="setSilbiGen('gen4')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition">4세대</button>
                         </div>
                     </div>
 
                     <!-- 1세대 전용 서브 옵션 박스 -->
-                    <div id="smGen1SubOptions" class="hidden bg-[#fff9e6] p-3.5 rounded-xl border border-[#f0e6cc] space-y-3 shadow-inner">
+                    <div id="smGen1SubOptions" class="hidden bg-[#fff9e6] p-3.5 rounded-xl border border-[#f0e6cc] space-y-3">
                         <label class="block text-xs font-bold text-[#D4AF37]">보험사 종류 (1세대 전용)</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <button id="smGen1Type_nonLife" onclick="setSilbiGen1Type('nonLife')" class="py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm">손보(화재)</button>
-                            <button id="smGen1Type_life" onclick="setSilbiGen1Type('life')" class="py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm">생보(생명)</button>
+                            <button id="smGen1Type_nonLife" onclick="setSilbiGen1Type('nonLife')" class="py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white">손보(화재)</button>
+                            <button id="smGen1Type_life" onclick="setSilbiGen1Type('life')" class="py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700">생보(생명)</button>
                         </div>
 
                         <div id="smGen1NonLifeBox" class="space-y-2 pt-2 border-t border-[#f0e6cc]">
                             <label class="block text-xs font-bold text-[#D4AF37]">약제비 한도 / 통원 한도</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <button id="smGen1Pharm_combined" onclick="setSilbiGen1Pharm('combined')" class="py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm">통원 합산</button>
-                                <button id="smGen1Pharm_separate50k" onclick="setSilbiGen1Pharm('separate50k')" class="py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm">약제 5만 분리</button>
+                                <button id="smGen1Pharm_combined" onclick="setSilbiGen1Pharm('combined')" class="py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white">통원 합산</button>
+                                <button id="smGen1Pharm_separate50k" onclick="setSilbiGen1Pharm('separate50k')" class="py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700">약제 5만 분리</button>
                             </div>
                             <div id="smGen1LimitBox" class="grid grid-cols-2 gap-2 pt-1">
-                                <button id="smGen1Limit_30m" onclick="setSilbiGen1Limit('30m')" class="py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm">3천 한도</button>
-                                <button id="smGen1Limit_100m" onclick="setSilbiGen1Limit('100m')" class="py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm">1억 한도</button>
+                                <button id="smGen1Limit_30m" onclick="setSilbiGen1Limit('30m')" class="py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white">3천 한도</button>
+                                <button id="smGen1Limit_100m" onclick="setSilbiGen1Limit('100m')" class="py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700">1억 한도</button>
                             </div>
                         </div>
                         <p id="smGen1LifeNote" class="hidden text-xs text-[#e74c3c] text-center">* 생명보험은 [외래 20만 / 약제 10만] 고정</p>
@@ -544,50 +934,38 @@
 
                     <!-- 🏥 병원 종류 -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-1">
-                            <span>🏥</span> <span>병원 종류</span>
-                        </label>
+                        <label class="block text-sm font-bold text-slate-800 mb-2">🏥 병원 종류</label>
                         <div class="grid grid-cols-3 gap-1.5">
-                            <button id="smHospBtn_clinic" onclick="setSilbiHospital('clinic')" class="py-2.5 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm">병원 (의원)</button>
-                            <button id="smHospBtn_hospital" onclick="setSilbiHospital('hospital')" class="py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm">종합병원</button>
-                            <button id="smHospBtn_tertiary" onclick="setSilbiHospital('tertiary')" class="py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm">상급병원</button>
+                            <button id="smHospBtn_clinic" onclick="setSilbiHospital('clinic')" class="py-2.5 rounded-lg font-bold text-xs bg-[#D4AF37] text-white">의원(동네)</button>
+                            <button id="smHospBtn_hospital" onclick="setSilbiHospital('hospital')" class="py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700">병원/종합</button>
+                            <button id="smHospBtn_tertiary" onclick="setSilbiHospital('tertiary')" class="py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700">상급종합</button>
                         </div>
                     </div>
 
                     <!-- 💰 금액 및 진료 기간 -->
                     <div class="space-y-2.5">
-                        <label class="block text-sm font-bold text-[#a67c00] flex items-center gap-1">
-                            <span>💰</span> <span>병원비 입력</span>
-                        </label>
+                        <label class="block text-sm font-bold text-slate-800">💰 금액 및 진료 기간</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <input id="smStartDate" type="text" placeholder="20260816" class="bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-sm font-bold text-slate-800 text-center shadow-sm focus:outline-none focus:border-[#D4AF37]">
-                            <input id="smEndDate" type="text" placeholder="20260816" class="bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-sm font-bold text-slate-800 text-center shadow-sm focus:outline-none focus:border-[#D4AF37]">
+                            <input id="smStartDate" type="text" placeholder="시작일" class="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 text-center focus:outline-none focus:border-[#D4AF37]">
+                            <input id="smEndDate" type="text" placeholder="종료일" class="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 text-center focus:outline-none focus:border-[#D4AF37]">
                         </div>
 
-                        <div class="space-y-3 pt-2">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-[#3498db]"></span> <span>급여 (본인부담금)</span>
-                                </label>
-                                <input id="smCoveredCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-base text-right text-slate-800 font-bold shadow-sm focus:outline-none focus:border-[#D4AF37]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-[#e74c3c]"></span> <span>일반 비급여 (검사료 등)</span>
-                                </label>
-                                <input id="smNonCoveredCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-base text-right text-slate-800 font-bold shadow-sm focus:outline-none focus:border-[#D4AF37]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                                    <span>💊</span> <span>약값 (약제비)</span>
-                                </label>
-                                <input id="smMedicineCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-base text-right text-slate-800 font-bold shadow-sm focus:outline-none focus:border-[#D4AF37]">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">🔵 급여 (본인부담금)</label>
+                            <input id="smCoveredCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-base text-right text-slate-800 font-bold focus:outline-none focus:border-[#D4AF37]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">🔴 일반 비급여 (검사료 등)</label>
+                            <input id="smNonCoveredCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-base text-right text-slate-800 font-bold focus:outline-none focus:border-[#D4AF37]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">💊 약값 (약제비)</label>
+                            <input id="smMedicineCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-base text-right text-slate-800 font-bold focus:outline-none focus:border-[#D4AF37]">
                         </div>
                     </div>
 
                     <!-- 1·2세대 통원 횟수 확인 -->
-                    <div id="smVisitCountBox" class="bg-[#fff3cd] p-3.5 rounded-xl border border-[#ffeeba] space-y-2 shadow-sm">
+                    <div id="smVisitCountBox" class="bg-[#fff3cd] p-3.5 rounded-xl border border-[#ffeeba] space-y-2">
                         <label id="smVisitCountLabel" class="block text-xs font-bold text-[#856404]">⚠️ 통원 횟수 확인 (연간 180회)</label>
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-slate-600">누적 횟수:</span>
@@ -596,18 +974,18 @@
                     </div>
 
                     <!-- 3·4세대 3대 비급여 특약 (1회당 금액 × 횟수) -->
-                    <div id="smSpecialNonCoveredBox" class="hidden bg-[#fff3cd] p-3.5 rounded-xl border border-[#ffeeba] space-y-2.5 shadow-sm">
+                    <div id="smSpecialNonCoveredBox" class="hidden bg-[#fff3cd] p-3.5 rounded-xl border border-[#ffeeba] space-y-2.5">
                         <span class="text-xs font-bold text-[#856404] block">✨ 3대 비급여 (1회당 금액 × 횟수)</span>
                         
                         <!-- 도수치료 -->
                         <div class="grid grid-cols-3 gap-2 items-center">
                             <div class="col-span-2">
                                 <label class="block text-[11px] text-slate-600 mb-0.5">도수 1회당 금액</label>
-                                <input id="smManualUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right text-slate-800 shadow-sm">
+                                <input id="smManualUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right text-slate-800">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-slate-600 mb-0.5">횟수</label>
-                                <input id="smManualCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center text-slate-800 shadow-sm">
+                                <input id="smManualCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center text-slate-800">
                             </div>
                         </div>
 
@@ -615,11 +993,11 @@
                         <div class="grid grid-cols-3 gap-2 items-center">
                             <div class="col-span-2">
                                 <label class="block text-[11px] text-slate-600 mb-0.5">주사 1회당 금액</label>
-                                <input id="smInjectionUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right text-slate-800 shadow-sm">
+                                <input id="smInjectionUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right text-slate-800">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-slate-600 mb-0.5">횟수</label>
-                                <input id="smInjectionCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center text-slate-800 shadow-sm">
+                                <input id="smInjectionCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center text-slate-800">
                             </div>
                         </div>
 
@@ -627,11 +1005,11 @@
                         <div class="grid grid-cols-3 gap-2 items-center">
                             <div class="col-span-2">
                                 <label class="block text-[11px] text-slate-600 mb-0.5">MRI 1회당 금액</label>
-                                <input id="smMriUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right text-slate-800 shadow-sm">
+                                <input id="smMriUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right text-slate-800">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-slate-600 mb-0.5">횟수</label>
-                                <input id="smMriCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center text-slate-800 shadow-sm">
+                                <input id="smMriCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center text-slate-800">
                             </div>
                         </div>
 
@@ -670,9 +1048,7 @@
 
                 <!-- ============================== [탭 2: 실비 궁금해요?] ============================== -->
                 <div id="silbiTabContent1" class="hidden space-y-3.5">
-                    <h4 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                        <span>💡</span> <span>실비 세대별 상세 분석</span>
-                    </h4>
+                    <h4 class="text-lg font-bold text-slate-800 mb-1 ml-1">💡 실비 세대별 상세 분석</h4>
 
                     <!-- 1세대 (구 실손) -->
                     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-2">
@@ -682,7 +1058,7 @@
                                     <h5 class="text-lg font-bold text-slate-800">1세대 (구 실손)</h5>
                                     <span class="text-xs text-slate-400">~ 2009.09</span>
                                 </div>
-                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">보장 최강</span>
+                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full">보장 최강</span>
                             </div>
                             <p class="text-sm text-slate-600 mt-2">자기부담금이 거의 없는 전설의 실비</p>
                             <div class="text-center mt-2"><span id="infoArrow1" class="text-[#D4AF37] text-lg font-bold">▼</span></div>
@@ -706,7 +1082,7 @@
                                     <h5 class="text-lg font-bold text-slate-800">2세대 (표준화)</h5>
                                     <span class="text-xs text-slate-400">2009.10 ~ 2017.03</span>
                                 </div>
-                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">가성비</span>
+                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full">가성비</span>
                             </div>
                             <p class="text-sm text-slate-600 mt-2">90% 보장 + 병원비 쓴 만큼 갱신</p>
                             <div class="text-center mt-2"><span id="infoArrow2" class="text-[#D4AF37] text-lg font-bold">▼</span></div>
@@ -730,7 +1106,7 @@
                                     <h5 class="text-lg font-bold text-slate-800">3세대 (착한 실손)</h5>
                                     <span class="text-xs text-slate-400">2017.04 ~ 2021.06</span>
                                 </div>
-                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">보험료 저렴</span>
+                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full">보험료 저렴</span>
                             </div>
                             <p class="text-sm text-slate-600 mt-2">3대 비급여 특약 분리 + 저렴한 보험료</p>
                             <div class="text-center mt-2"><span id="infoArrow3" class="text-[#D4AF37] text-lg font-bold">▼</span></div>
@@ -754,7 +1130,7 @@
                                     <h5 class="text-lg font-bold text-slate-800">4세대 (현재)</h5>
                                     <span class="text-xs text-slate-400">2021.07 ~ 현재</span>
                                 </div>
-                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">할인/할증</span>
+                                <span class="bg-[#D4AF37] text-white text-[11px] font-bold px-2.5 py-1 rounded-full">할인/할증</span>
                             </div>
                             <p class="text-sm text-slate-600 mt-2">비급여 많이 쓰면 할증, 안 쓰면 할인</p>
                             <div class="text-center mt-2"><span id="infoArrow4" class="text-[#D4AF37] text-lg font-bold">▼</span></div>
@@ -775,46 +1151,43 @@
                 <div id="silbiTabContent2" class="hidden space-y-4">
                     
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3.5">
-                        <span class="text-base font-bold text-[#D4AF37] block flex items-center gap-1.5">
-                            <span>👤</span> <span>고객 정보 및 설정</span>
-                        </span>
+                        <span class="text-base font-bold text-[#D4AF37] block">👤 고객 정보 및 설정</span>
 
-                        <div class="grid grid-cols-1 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">가입시기 (예: 20090101)</label>
+                                <label class="block text-xs text-slate-600 mb-1">가입시기 (예:20090101)</label>
                                 <div class="flex gap-1.5">
-                                    <input id="premJoinDate" type="text" maxlength="8" placeholder="YYYYMMDD" class="flex-grow bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-800 text-center font-bold shadow-sm focus:outline-none focus:border-[#D4AF37]">
-                                    <button onclick="checkPremGeneration()" class="bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold px-4 py-2.5 rounded-lg text-sm shadow-sm transition">세대 확인</button>
+                                    <input id="premJoinDate" type="text" maxlength="8" placeholder="20090101" class="flex-grow bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#D4AF37]">
+                                    <button onclick="checkPremGeneration()" class="bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold px-3 py-2 rounded-lg text-xs">확인</button>
                                 </div>
-                                <span id="premGenDisplay" class="text-xs text-blue-600 font-bold block mt-1 hidden"></span>
+                                <span id="premGenDisplay" class="text-xs text-blue-600 font-bold block mt-1"></span>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">생년월일 (예: 19830505)</label>
-                                <input id="prembirthDate" type="text" maxlength="8" oninput="calculateCurrentAge()" placeholder="YYYYMMDD" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-800 text-center font-bold shadow-sm focus:outline-none focus:border-[#D4AF37]">
-                                <input id="premCurrentAge" type="hidden" value="">
+                                <label class="block text-xs text-slate-600 mb-1">현재 나이 (필수)</label>
+                                <input id="premCurrentAge" type="number" placeholder="예: 42" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#D4AF37]">
                             </div>
                         </div>
 
-                        <div class="border-t border-slate-100 pt-1">
-                            <label class="block text-xs font-bold text-slate-600 mb-1">현재 보험료 (원)</label>
-                            <input id="premCurrentPremium" type="text" placeholder="금액 입력" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-3 text-lg font-bold text-right text-slate-800 shadow-sm focus:outline-none focus:border-[#D4AF37]">
+                        <div>
+                            <label class="block text-xs text-slate-600 mb-1">현재 보험료 (원)</label>
+                            <input id="premCurrentPremium" type="text" placeholder="금액 입력" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-base font-bold text-right text-slate-800 focus:outline-none focus:border-[#D4AF37]">
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">갱신 주기 (년)</label>
-                                <input id="premCycle" type="number" placeholder="입력" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-center text-slate-800 font-bold shadow-sm focus:outline-none focus:border-[#D4AF37]">
+                                <label class="block text-xs text-slate-600 mb-1">갱신 주기 (년)</label>
+                                <input id="premCycle" type="number" value="1" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-center text-slate-800 focus:outline-none focus:border-[#D4AF37]">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">연평균 인상률(옵션)</label>
-                                <input id="premManualRate" type="text" placeholder="자동계산" class="w-full bg-white border border-[#D4AF37] rounded-lg px-3 py-2.5 text-sm text-center text-[#D4AF37] font-bold shadow-sm focus:outline-none">
+                                <label class="block text-xs text-slate-600 mb-1">연평균 인상률(옵션)</label>
+                                <input id="premManualRate" type="text" placeholder="자동계산" class="w-full bg-white border border-[#D4AF37] rounded-lg px-3 py-2 text-sm text-center text-[#D4AF37] font-bold focus:outline-none">
                             </div>
                         </div>
-                        <p class="text-[10px] text-slate-500">* 가입일 기준 갱신 시점을 찾아 정확한 나이를 계산합니다.</p>
+                        <p class="text-[11px] text-slate-400">* 미입력 시 통계 기반 연평균 인상률이 자동 적용됩니다.</p>
 
-                        <button onclick="calculateRenewalPremium()" class="w-full bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition flex items-center justify-center gap-1.5 mt-2">
-                            <span>📈</span> <span>미래 보험료 예측하기</span>
+                        <button onclick="calculateRenewalPremium()" class="w-full bg-[#D4AF37] hover:bg-[#c29f30] text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition">
+                            📈 미래 보험료 예측하기
                         </button>
                     </div>
 
@@ -848,11 +1221,6 @@
                     </div>
                 </div>
 
-                <!-- 하단 공통 배너 (DB 배정 모달 연결) -->
-                <div onclick="openModal('scheduleModal')" class="bg-[#2c3e50] rounded-xl p-4 text-center cursor-pointer shadow-lg transform hover:-translate-y-0.5 transition mt-4">
-                    <h4 class="text-[#f1c40f] font-black text-lg">DB를 매월 산다? 부담스럽지 않아?</h4>
-                    <p class="text-white font-bold text-sm mt-1">클릭하여 해결법 확인하기 👉</p>
-                </div>
             </div>
 
             <!-- 하단 닫기 바 -->
@@ -861,13 +1229,18 @@
             </div>
         </div>
     </div>
+
     <!-- 8 & 9. 서비스 출시 예정 안내 모달 -->
     <div id="comingSoonModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
             <button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">⏳</div>
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">
+                ⏳
+            </div>
             <h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3>
-            <p class="text-xs text-slate-500 mt-2 leading-relaxed">설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.</p>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.
+            </p>
             <div class="mt-6">
                 <button onclick="closeModal('comingSoonModal')" class="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-xs">확인</button>
             </div>
@@ -1093,9 +1466,9 @@
             ['gen1', 'gen2', 'gen3', 'gen4'].forEach(g => {
                 const b = document.getElementById(`smGenBtn_${g}`);
                 if (g === gen) {
-                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition shadow-sm";
+                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#D4AF37] text-white transition";
                 } else {
-                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition shadow-sm";
+                    b.className = "py-2.5 px-1 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 transition";
                 }
             });
 
@@ -1126,8 +1499,8 @@
 
         function setSilbiGen1Type(type) {
             smGen1Type = type;
-            document.getElementById('smGen1Type_nonLife').className = type === 'nonLife' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
-            document.getElementById('smGen1Type_life').className = type === 'life' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
+            document.getElementById('smGen1Type_nonLife').className = type === 'nonLife' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
+            document.getElementById('smGen1Type_life').className = type === 'life' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
             
             const nonLifeBox = document.getElementById('smGen1NonLifeBox');
             const lifeNote = document.getElementById('smGen1LifeNote');
@@ -1142,8 +1515,8 @@
 
         function setSilbiGen1Pharm(pharm) {
             smGen1Pharm = pharm;
-            document.getElementById('smGen1Pharm_combined').className = pharm === 'combined' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
-            document.getElementById('smGen1Pharm_separate50k').className = pharm === 'separate50k' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
+            document.getElementById('smGen1Pharm_combined').className = pharm === 'combined' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
+            document.getElementById('smGen1Pharm_separate50k').className = pharm === 'separate50k' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
             const limitBox = document.getElementById('smGen1LimitBox');
             if (pharm === 'combined') limitBox.classList.remove('hidden');
             else limitBox.classList.add('hidden');
@@ -1151,16 +1524,16 @@
 
         function setSilbiGen1Limit(limit) {
             smGen1Limit = limit;
-            document.getElementById('smGen1Limit_30m').className = limit === '30m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
-            document.getElementById('smGen1Limit_100m').className = limit === '100m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm';
+            document.getElementById('smGen1Limit_30m').className = limit === '30m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
+            document.getElementById('smGen1Limit_100m').className = limit === '100m' ? 'py-2 rounded-lg font-bold text-xs bg-[#D4AF37] text-white' : 'py-2 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700';
         }
 
         function setSilbiHospital(hosp) {
             smHospital = hosp;
             ['clinic', 'hospital', 'tertiary'].forEach(h => {
                 const b = document.getElementById(`smHospBtn_${h}`);
-                if (h === hosp) b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#D4AF37] text-white shadow-sm";
-                else b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700 shadow-sm";
+                if (h === hosp) b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#D4AF37] text-white";
+                else b.className = "py-2.5 rounded-lg font-bold text-xs bg-[#e2e6ea] text-slate-700";
             });
         }
 
@@ -1199,7 +1572,7 @@
             if (maxCount > 0 && count > maxCount) {
                 const unitPrice = totalAmount / count;
                 validAmount = unitPrice * maxCount;
-                logs.push(`[${name}] ⚠️ 연간 횟수(${maxCount}회) 초과! (${count - maxCount}회 제외됨)`);
+                logs.push(`[${name}] ⚠️ 연간 횟수(${maxCount}회) 초과! (${count - maxCount}회 제외)`);
             }
             if (generation === 'gen4' && name === '도수치료' && count > 10) {
                 logs.push(`💡 [참고] 4세대 도수치료 10회 초과: 병변 개선 확인서 필요`);
@@ -1207,14 +1580,14 @@
             const ded = Math.max(minDed, validAmount * ratio);
             const pay = validAmount - ded;
             if (pay <= 0) {
-                logs.push(`[${name}] ⚠️ 금액(${Math.floor(validAmount).toLocaleString()}원)이 공제금(${Math.floor(ded).toLocaleString()}원) 이하로 미지급`);
+                logs.push(`[${name}] ⚠️ 금액(${Math.floor(validAmount).toLocaleString()}원)이 공제금보다 적음`);
                 return 0;
             }
             if (pay > limit) {
-                logs.push(`[${name}] ⚠️ 연간 한도 초과! (${(limit / 10000).toLocaleString()}만원 한도까지만 지급)`);
+                logs.push(`[${name}] ⚠️ 연간 한도 초과! (${(limit / 10000).toLocaleString()}만원 까지만)`);
                 return limit;
             }
-            logs.push(`[${name}] 청구: ${Math.floor(validAmount).toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+            logs.push(`[${name}] 청구: ${Math.floor(validAmount).toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
             return pay;
         }
 
@@ -1255,7 +1628,7 @@
                         details.push(`[외래] ⚠️ 한도(20만) 초과! (20만 지급)`);
                         medPay = 200000;
                     } else {
-                        details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원 / 지급 ${medPay.toLocaleString()}원)`);
+                        details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원)`);
                     }
                     let pharmPay = 0;
                     if (med > 0) {
@@ -1264,19 +1637,19 @@
                             details.push(`[약제] ⚠️ 한도(10만) 초과! (10만 지급)`);
                             pharmPay = 100000;
                         } else {
-                            details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 100% 지급)`);
+                            details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 지급)`);
                         }
                     }
                     totalPayout = medPay + pharmPay;
                 } else {
                     if (smGen1Pharm === 'separate50k') {
-                        details.push(`📝 1세대 손해보험 (외래25만 / 약제5만 분리)`);
+                        details.push(`📝 1세대 손해보험 (외래25만 / 약제5만)`);
                         let medPay = Math.max(0, totalHospital - 5000);
                         if (medPay > 250000) {
                             details.push(`[외래] ⚠️ 한도(25만) 초과! (25만 지급)`);
                             medPay = 250000;
                         } else {
-                            details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원 / 지급 ${medPay.toLocaleString()}원)`);
+                            details.push(`[외래] 청구: ${totalHospital.toLocaleString()}원 (공제 -5,000원)`);
                         }
                         let pharmPay = med;
                         if (med > 0) {
@@ -1284,7 +1657,7 @@
                                 details.push(`[약제] ⚠️ 한도(5만) 초과! (5만 지급)`);
                                 pharmPay = 50000;
                             } else {
-                                details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 100% 지급)`);
+                                details.push(`[약제] 청구: ${med.toLocaleString()}원 (한도 내 지급)`);
                             }
                         }
                         totalPayout = medPay + pharmPay;
@@ -1298,7 +1671,7 @@
                         } else {
                             const finalPay = Math.min(payout, limitAmount);
                             totalPayout = finalPay;
-                            details.push(`합산청구: ${totalInput.toLocaleString()}원 (공제 -5,000원 / 지급 ${finalPay.toLocaleString()}원)`);
+                            details.push(`합산청구: ${totalInput.toLocaleString()}원 (공제 -5,000원)`);
                             if (payout > limitAmount) details.push(`⚠️ 통원 한도(${limitAmount.toLocaleString()}원) 초과분 절사`);
                         }
                     }
@@ -1308,10 +1681,10 @@
                 let pharmacyPay = 0;
                 if (med > 0) {
                     const pay = Math.max(0, med - 8000);
-                    if (pay <= 0) details.push(`[약값] ⚠️ 공제금(8,000원) 미달로 미지급`);
+                    if (pay <= 0) details.push(`[약값] ⚠️ 공제금(8,000원) 미달`);
                     else {
                         pharmacyPay = pay;
-                        details.push(`[약값] 청구: ${med.toLocaleString()}원 (공제 -8,000원 / 지급 ${pay.toLocaleString()}원)`);
+                        details.push(`[약값] 청구: ${med.toLocaleString()}원 (공제 -8,000원)`);
                     }
                 }
 
@@ -1320,11 +1693,11 @@
                     const selfPay = totalHospital * 0.1;
                     const finalDed = Math.max(baseDed, selfPay);
                     const payout = Math.max(0, totalHospital - finalDed);
-                    if (visitCnt > 180) details.push(`⚠️ [경고] 연간 통원 180회 초과 주의!`);
+                    if (visitCnt > 180) details.push(`⚠️ [경고] 연간 통원 180회 초과!`);
                     if (payout <= 0) details.push(`[병원비] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
                     else {
                         hospitalPayout = payout;
-                        details.push(`[병원비] 청구: ${totalHospital.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(payout).toLocaleString()}원)`);
+                        details.push(`[병원비] 청구: ${totalHospital.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
                     }
                 } else if (smGen === 'gen3') {
                     const basicBill = cov + nonCov;
@@ -1336,7 +1709,7 @@
                         if (pay <= 0) details.push(`[기본형] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
                         else {
                             basicPay = pay;
-                            details.push(`[기본형] 청구: ${basicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+                            details.push(`[기본형] 청구: ${basicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
                         }
                     }
                     const p1 = calculateItem(totalManual, cManual, 50, 20000, 0.3, 3500000, "도수치료", details, 'gen3');
@@ -1352,7 +1725,7 @@
                         if (pay <= 0) details.push(`[급여] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
                         else {
                             covPay = pay;
-                            details.push(`[급여] 청구: ${cov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+                            details.push(`[급여] 청구: ${cov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
                         }
                     }
                     let nonCovPay = 0;
@@ -1362,7 +1735,7 @@
                         if (pay <= 0) details.push(`[일반비급여] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
                         else {
                             nonCovPay = pay;
-                            details.push(`[일반비급여] 청구: ${nonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(pay).toLocaleString()}원)`);
+                            details.push(`[일반비급여] 청구: ${nonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
                         }
                     }
                     const p1 = calculateItem(totalManual, cManual, 50, 30000, 0.3, 3500000, "도수치료", details, 'gen4');
@@ -1384,7 +1757,7 @@
             document.getElementById('smResultPeriod').innerText = lastSilbiResult.period;
             document.getElementById('smResultMoney').innerText = `${lastSilbiResult.money.toLocaleString()}원`;
             const logsContainer = document.getElementById('smResultLogs');
-            logsContainer.innerHTML = details.map(l => `<div class="leading-relaxed">• ${l}</div>`).join('');
+            logsContainer.innerHTML = details.map(l => `<div>${l}</div>`).join('');
             document.getElementById('smResultBox').classList.remove('hidden');
         }
 
@@ -1392,13 +1765,12 @@
             if (!lastSilbiResult) return;
             const text = `[BMS 보험 청구 예상]\n기간: ${lastSilbiResult.period}\n예상 지급액: ${lastSilbiResult.money.toLocaleString()}원\n\n${lastSilbiResult.logs.join('\n')}`;
             navigator.clipboard.writeText(text).then(() => {
-                alert("📋 클립보드에 계산 내역이 복사되었습니다.");
+                alert("📋 복사 준비 완료: 클립보드에 복사되었습니다.");
             }).catch(() => {
-                alert(text);
+                alert("복사 준비 완료\n\n" + text);
             });
         }
 
-        // [탭 2: 실비 궁금해요? 아코디언 토글]
         function toggleInfoAccordion(idx) {
             const body = document.getElementById(`infoBody${idx}`);
             const arrow = document.getElementById(`infoArrow${idx}`);
@@ -1411,26 +1783,7 @@
             }
         }
 
-        // [탭 3: 갱신보험료 예측 계단식 엔진]
         let premGenInfo = null;
-
-        // 생년월일 입력 시 현재 나이 자동 계산
-        function calculateCurrentAge() {
-            const birthInput = document.getElementById('prembirthDate').value.trim();
-            if (birthInput.length === 8) {
-                const birthYear = parseInt(birthInput.substring(0, 4), 10);
-                const birthMonth = parseInt(birthInput.substring(4, 6), 10);
-                const birthDay = parseInt(birthInput.substring(6, 8), 10);
-                
-                const today = new Date();
-                let age = today.getFullYear() - birthYear;
-                if (today.getMonth() + 1 < birthMonth || (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
-                    age--;
-                }
-                
-                document.getElementById('premCurrentAge').value = age;
-            }
-        }
 
         function checkPremGeneration() {
             const dateStr = document.getElementById('premJoinDate').value.trim();
@@ -1438,11 +1791,10 @@
             if (info) {
                 premGenInfo = info;
                 document.getElementById('premCycle').value = info.cycle;
-                const genDisplay = document.getElementById('premGenDisplay');
-                genDisplay.innerText = `✅ ${info.name} 확인 (기본 갱신주기: ${info.cycle}년)`;
-                genDisplay.classList.remove('hidden');
+                document.getElementById('premGenDisplay').innerText = `✅ ${info.name} (갱신주기 ${info.cycle}년)`;
+                alert(`확인: ${info.name} 확인됨.\n기본 갱신주기 ${info.cycle}년`);
             } else {
-                alert("가입시기를 8자리 숫자(예: 20090101)로 입력해주세요.");
+                alert("오류: 날짜 형식이 올바르지 않습니다.");
             }
         }
 
@@ -1453,11 +1805,11 @@
             const manualRate = document.getElementById('premManualRate').value.trim();
 
             if (!nowPrem || nowPrem === 0) {
-                alert("현재 월 보험료 금액을 입력해주세요.");
+                alert("입력: 현재 보험료를 입력해주세요.");
                 return;
             }
             if (!ageInput) {
-                alert("생년월일을 8자리로 입력하여 나이를 계산해주세요.");
+                alert("입력: 현재 나이를 입력해주세요.");
                 return;
             }
 
@@ -1484,7 +1836,6 @@
                         annualRate = 5.0;
                     }
 
-                    // 금액 구간별 인상폭 현실성 보정
                     if (monthlyPrem > 300000) annualRate *= 0.8;
                     if (monthlyPrem > 500000) annualRate *= 0.7;
                     if (monthlyPrem > 800000) annualRate *= 0.5;
@@ -1515,34 +1866,33 @@
                 sumTotal += monthlyPrem * 12;
             }
 
-            // 단기 갱신 렌더링
             const shortContainer = document.getElementById('premShortLogs');
             shortContainer.innerHTML = shortLogs.map(item => `
-                <div class="flex justify-between items-center bg-white border border-slate-200 p-2.5 rounded-lg shadow-sm text-xs">
+                <div class="flex justify-between items-center bg-[#f0f2f5] p-2.5 rounded-lg text-xs">
                     <div class="flex items-center gap-2">
-                        <span class="bg-slate-700 text-white font-bold px-2 py-0.5 rounded text-[10px]">${item.count}회차</span>
-                        <span class="text-slate-800 font-bold">${item.futureAge}세 갱신</span>
+                        <span class="bg-[#555] text-white font-bold px-2 py-0.5 rounded text-[10px]">${item.count}회차</span>
+                        <span class="text-slate-700 font-bold">${item.futureAge}세 갱신</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[#D4AF37] font-black text-sm">${item.amount.toLocaleString()}원</span>
-                        <span class="text-[10px] text-rose-500 block">(연 ${item.rate}% 인상 반영)</span>
+                        <span class="text-[#D4AF37] font-bold text-sm">${item.amount.toLocaleString()}원</span>
+                        <span class="text-[10px] text-red-500 block">(연 ${item.rate}% 반영)</span>
                     </div>
                 </div>
             `).join('');
 
-            // 장기 미래 렌더링
             const longContainer = document.getElementById('premLongLogs');
             longContainer.innerHTML = longLogs.map(item => `
-                <div class="flex justify-between items-center bg-white border border-slate-200 p-2.5 rounded-lg shadow-sm text-xs">
+                <div class="flex justify-between items-center bg-[#f0f2f5] p-2.5 rounded-lg text-xs">
                     <div class="flex items-center gap-2">
                         <span class="bg-[#c0392b] text-white font-bold px-2 py-0.5 rounded text-[10px]">${item.label}</span>
-                        <span class="text-slate-800 font-bold">${item.realAge}세 시점</span>
+                        <span class="text-slate-800 font-bold">${item.realAge}세</span>
                     </div>
-                    <span class="text-[#c0392b] font-black text-sm">${item.amount.toLocaleString()}원</span>
+                    <span class="text-[#c0392b] font-bold text-sm">${item.amount.toLocaleString()}원</span>
                 </div>
             `).join('');
 
             document.getElementById('premTotalSum').innerText = `${sumTotal.toLocaleString()}원`;
+            document.getElementById('premSummaryCaption').innerHTML = `현재 ${startAge}세부터 90세까지 내야 할 보험료 합계입니다.<br/>(연령별 위험률 반영 / 갱신주기별 인상 적용)`;
             document.getElementById('premResultBox').classList.remove('hidden');
         }
 
@@ -1579,6 +1929,12 @@
                 "치조골", "식립술", "매복치", "고정체"
             ]
         };
+
+        function cleanNumber(val) {
+            if (!val) return 0;
+            const cleaned = String(val).replace(/[^\d]/g, '');
+            return cleaned ? parseInt(cleaned, 10) : 0;
+        }
 
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById('pdfPasswordInput');
@@ -1632,6 +1988,7 @@
             }
         }
 
+        // 드롭존 이벤트 바인딩
         window.addEventListener('DOMContentLoaded', () => {
             const dropZone = document.getElementById('pdfDropZone');
             if (dropZone) {
@@ -1640,21 +1997,25 @@
                         document.getElementById('pdfFileInput').click();
                     }
                 });
+
                 dropZone.addEventListener('dragenter', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     this.classList.add('border-amber-500', 'bg-slate-900');
                 });
+
                 dropZone.addEventListener('dragover', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     this.classList.add('border-amber-500', 'bg-slate-900');
                 });
+
                 dropZone.addEventListener('dragleave', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     this.classList.remove('border-amber-500', 'bg-slate-900');
                 });
+
                 dropZone.addEventListener('drop', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1718,6 +2079,7 @@
                     const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer, password: password || undefined });
                     const pdf = await loadingTask.promise;
                     let fileText = `\n=== ${file.name} ===\n`;
+
                     for (let p = 1; p <= pdf.numPages; p++) {
                         const page = await pdf.getPage(p);
                         const tokenized = await page.getTextContent();
@@ -1737,21 +2099,30 @@
         }
 
         function analyzeMedicalRecords(rawText) {
-            const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
+            const detectedInfo = {
+                surgeries: [],
+                long_term_meds: [],
+                admissions: [],
+                long_term_treatments: []
+            };
+
             const visitCounter = {};
             const admissionCounter = {};
             const admissionDetails = {};
+
             const lines = rawText.split('\n');
             const dateRegex = /(20\d{2}[-./]?\d{2}[-./]?\d{2})/;
 
             lines.forEach(line => {
                 const rowText = line.trim();
                 if (!rowText) return;
+
                 const normalizedText = rowText.replace(/\s+/g, '');
                 if (normalizedText.includes('약국')) return;
 
                 const dateMatch = rowText.match(dateRegex);
                 const rowDate = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : "";
+
                 const isAdmissionRow = rowText.includes("입원") || (rowText.includes("입원") && rowText.includes("입원료"));
 
                 let isSurgeryCandidate = false;
