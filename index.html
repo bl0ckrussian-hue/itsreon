@@ -880,8 +880,8 @@
                 <!-- ============================== [탭 1: 실비 계산기] ============================== -->
                 <div id="silbiTabContent0" class="space-y-4">
                     <!-- 🚑 통원 / 입원 토글 버튼 -->
-                    <div class="flex bg-white rounded-xl border border-slate-200 shadow-sm p-1">
-                        <button id="smTreatBtn_outpatient" onclick="setSilbiTreatType('outpatient')" class="flex-1 bg-[#D4AF37] text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+                   <div class="flex bg-white rounded-xl border border-slate-200 shadow-sm p-1">
+                        <button id="smTreatBtn_outpatient" onclick="setSilbiTreatType('outpatient')" class="flex-1 bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
                             <span class="text-base">🚑</span> <span>통원 (외래)</span>
                         </button>
                         <button id="smTreatBtn_inpatient" onclick="setSilbiTreatType('inpatient')" class="flex-1 bg-transparent text-slate-500 py-2.5 rounded-lg text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1.5">
@@ -894,7 +894,9 @@
                             <span class="text-sm font-bold text-[#D4AF37] flex items-center gap-1">
                                 <span>🔎</span> <span>가입 시기로 세대 찾기</span>
                             </span>
-                            <button onclick="resetSilbiAll()" class="bg-[#95a5a6] hover:bg-slate-500 text-white px-3 py-1 rounded-full text-xs font-bold transition">
+                            <button onclick="findSilbiGeneration()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition shadow-sm">
+                                조회
+                            </button>
                                 🔄 초기화
                             </button>
                         </div>
@@ -1469,22 +1471,43 @@
         }
 
         let currentSilbiTab = 0;
+        function switchSilbiTab(tabName) {
+            activeResultTab = tabName;
+            const btn1 = document.getElementById('tabBtn1');
+            const btn2 = document.getElementById('tabBtn2');
+            const tab1Content = document.getElementById('tab1Content');
+            const tab2Content = document.getElementById('tab2Content');
+            const excelBtnText = document.getElementById('excelBtnText');
+
+            if (tabName === 'tab1') {
+                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-blue-600 text-white transition shadow-sm";
+                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition";
+                tab1Content.classList.remove('hidden');
+                tab2Content.classList.add('hidden');
+                if (excelBtnText) excelBtnText.innerText = "[신규] 분석보고서 엑셀 다운로드";
+            } else {
+                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-blue-600 text-white transition shadow-sm";
+                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition";
+                tab2Content.classList.remove('hidden');
+                tab1Content.classList.add('hidden');
+                if (excelBtnText) excelBtnText.innerText = "[통합] 고지위반 점검보고서 엑셀 다운로드";
+            }
+        }
+
+        // 실비마스터 내부 탭 전환
+        let currentSilbiTab = 0;
         function switchSilbiTab(tabIdx) {
             currentSilbiTab = tabIdx;
             [0, 1, 2].forEach(i => {
                 const btn = document.getElementById(`smTabBtn${i}`);
                 const content = document.getElementById(`silbiTabContent${i}`);
                 if (i === tabIdx) {
-                    btn.className = "flex-1 py-3 text-center font-bold text-sm text-[#D4AF37] border-b-[3px] border-[#D4AF37] transition";
+                    btn.className = "flex-1 py-3 text-center font-bold text-sm text-blue-600 border-b-[3px] border-blue-600 transition";
                     content.classList.remove('hidden');
                 } else {
-                    if (i === tabIdx) {
-                       btn.className = "flex-1 py-3 text-center font-bold text-sm text-blue-600 border-b-[3px] border-blue-600 transition";
-                       content.classList.remove('hidden');
-                    } else {
-                       btn.className = "flex-1 py-3 text-center font-bold text-sm text-slate-400 hover:text-slate-600 border-b-[3px] border-transparent transition";
-                       content.classList.add('hidden');
-                    }
+                    btn.className = "flex-1 py-3 text-center font-bold text-sm text-slate-400 hover:text-slate-600 border-b-[3px] border-transparent transition";
+                    content.classList.add('hidden');
+                }
             });
         }
 
@@ -1919,40 +1942,64 @@
                         // [5세대 중증] 보장 강화: 급여 20%, 비급여 20% 공제
                         details.push(`📝 5세대 [중증 질환] 적용`);
                         if (curCov > 0) {
-                            const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
-                            const finalDed = Math.max(minCovDed, curCov * 0.2);
-                            covPay = Math.max(0, curCov - finalDed);
-                            if (covPay <= 0) details.push(`[급여 중증] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
-                            else details.push(`[급여 중증] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                            if (isOutpatient) {
+                                const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
+                                const finalDed = Math.max(minCovDed, curCov * 0.2);
+                                covPay = Math.max(0, curCov - finalDed);
+                                if (covPay <= 0) details.push(`[급여 중증(외래)] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                                else details.push(`[급여 중증(외래)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                            } else {
+                                const finalDed = Math.min(2000000, curCov * 0.2); // 연간 한도 200만
+                                covPay = Math.max(0, curCov - finalDed);
+                                details.push(`[급여 중증(입원)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                            }
                         }
                         if (curNonCov > 0) {
-                            const ded = Math.max(30000, curNonCov * 0.2); // 중증 비급여 공제 완화 (20%)
-                            nonCovPay = Math.max(0, curNonCov - ded);
-                            if (nonCovPay <= 0) details.push(`[비급여 중증] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
-                            else details.push(`[비급여 중증] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                            if (isOutpatient) {
+                                const ded = Math.max(30000, curNonCov * 0.2); // 중증 비급여 공제 완화 (20%)
+                                nonCovPay = Math.max(0, curNonCov - ded);
+                                if (nonCovPay <= 0) details.push(`[비급여 중증(외래)] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
+                                else details.push(`[비급여 중증(외래)] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                            } else {
+                                const ded = curNonCov * 0.2;
+                                nonCovPay = Math.max(0, curNonCov - ded);
+                                details.push(`[비급여 중증(입원)] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                            }
                         }
                     } else {
                         // [5세대 비중증] 공제금 대폭 인상: 급여 30%(최소2~3만), 비급여 40%(최소5만) 공제
-                        details.push(`📝 5세대 [비중증 일반질환] 적용 (페널티 공제)`);
+                        details.push(`📝 5세대 [비중증/일반질환] 적용 (페널티 공제)`);
                         if (curCov > 0) {
-                            const minCovDed = (smHospital === 'tertiary') ? 30000 : 20000;
-                            const finalDed = Math.max(minCovDed, curCov * 0.3);
-                            covPay = Math.max(0, curCov - finalDed);
-                            if (covPay <= 0) details.push(`[급여 비중증] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
-                            else details.push(`[급여 비중증] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                            if (isOutpatient) {
+                                const minCovDed = (smHospital === 'tertiary') ? 30000 : 20000;
+                                const finalDed = Math.max(minCovDed, curCov * 0.3); // 비중증 급여 30% 공제
+                                covPay = Math.max(0, curCov - finalDed);
+                                if (covPay <= 0) details.push(`[급여 비중증(외래)] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 미달`);
+                                else details.push(`[급여 비중증(외래)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                            } else {
+                                const finalDed = Math.min(2000000, curCov * 0.3);
+                                covPay = Math.max(0, curCov - finalDed);
+                                details.push(`[급여 비중증(입원)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원)`);
+                            }
                         }
                         if (curNonCov > 0) {
-                            const ded = Math.max(50000, curNonCov * 0.4); // 40% 공제, 최소 5만원
-                            nonCovPay = Math.max(0, curNonCov - ded);
-                            if (nonCovPay <= 0) details.push(`[비급여 비중증] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
-                            else details.push(`[비급여 비중증] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                            if (isOutpatient) {
+                                const ded = Math.max(50000, curNonCov * 0.4); // 40% 공제, 최소 5만원
+                                nonCovPay = Math.max(0, curNonCov - ded);
+                                if (nonCovPay <= 0) details.push(`[비급여 비중증(외래)] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 미달`);
+                                else details.push(`[비급여 비중증(외래)] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                            } else {
+                                const ded = curNonCov * 0.4;
+                                nonCovPay = Math.max(0, curNonCov - ded);
+                                details.push(`[비급여 비중증(입원)] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원)`);
+                            }
                         }
                     }
                     
-                    // 3대 비급여 (도수/주사/MRI) 특약: 기본적으로 4세대 룰 준용하되 강화됨. (여기서는 동일하게 30% 적용)
-                    const p1 = calculateItem(totalManual, cManual, 50, 30000, 0.3, 3500000, "도수치료", details, 'gen5');
-                    const p2 = calculateItem(totalInj, cInj, 50, 30000, 0.3, 2500000, "주사료", details, 'gen5');
-                    const p3 = calculateItem(totalMri, 0, 0, 30000, 0.3, 3000000, "MRI", details, 'gen5');
+                    // 3대 비급여 특약
+                    const p1 = calculateItem(totalManual, cManual, 50, 30000, 0.3, 3500000, "도수치료(특약)", details, 'gen5');
+                    const p2 = calculateItem(totalInj, cInj, 50, 30000, 0.3, 2500000, "주사료(특약)", details, 'gen5');
+                    const p3 = calculateItem(totalMri, 0, 0, 30000, 0.3, 3000000, "MRI(특약)", details, 'gen5');
                     hospitalPayout = covPay + nonCovPay + p1 + p2 + p3;
                 }
                 
