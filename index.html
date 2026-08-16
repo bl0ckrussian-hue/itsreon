@@ -2210,25 +2210,27 @@ ${rawText.slice(0, 60000)}
             return prompt;
         }
 
+        // ⬇️ 기존 callGeminiApi 함수를 찾아 이 코드로 완전히 덮어써주세요.
         async function callGeminiApi(promptText, key) {
-            const cleanKey = key.trim();
-            const modelName = "gemini-2.5-flash";
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+            // 새로 발급받은 구글 앱스 스크립트(GAS) 우체국 주소 적용
+            const proxyUrl = "https://script.google.com/macros/s/AKfycbw2DZvb8nBrvA86hSBtWDG3aUKOstPg5bkBabh5W_Fc1Jpza8u-KOO-8xgG0kRMWO7R/exec";
 
             const maxRetries = 3;
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
-                    const res = await fetch(endpoint, {
+                    const res = await fetch(proxyUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: promptText }] }],
-                            generationConfig: { temperature: 0.0, topP: 1, topK: 1 }
-                        })
+                        headers: { 
+                            // Google Apps Script CORS 에러 방지용 text/plain 설정
+                            'Content-Type': 'text/plain;charset=utf-8' 
+                        },
+                        // GAS에서 설정한 파라미터명(prompt)에 맞춰서 데이터 전송
+                        body: JSON.stringify({ prompt: promptText })
                     });
 
                     if (res.ok) {
                         const data = await res.json();
+                        // AI 응답 데이터 추출 (GAS 스크립트 반환 구조)
                         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (text) return text;
                     }
