@@ -1985,11 +1985,16 @@
             return combinedText;
         }
 
-        function analyzeMedicalRecords(rawText) {
+       function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
             const visitCounter = {};
             const admissionCounter = {};
             const admissionDetails = {};
+            const testDetails = {}; // ⭐️ 새로 추가: 검사 이력만 따로 저장
+            
+            // 검사를 식별하는 키워드
+            const testKeywords = ["검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray"];
+            
             const lines = rawText.split('\n');
             const dateRegex = /(20\d{2}[-./]?\d{2}[-./]?\d{2})/;
 
@@ -2043,6 +2048,13 @@
 
                 if (rowDate && rowDate.length >= 8) {
                     const key = `${hospital}|${disease}`;
+                    
+                    // ⭐️ 새로 추가: 검사 키워드가 있으면 검사 이력에 별도 저장
+                    if (testKeywords.some(k => rowText.includes(k))) {
+                        if (!testDetails[key]) testDetails[key] = new Set();
+                        testDetails[key].add(rowDate);
+                    }
+
                     if (isAdmissionRow) {
                         const numMatches = rowText.match(/\d+/g);
                         let days = 1;
@@ -2061,10 +2073,11 @@
                 }
             });
 
-            return { detectedInfo, visitCounter, admissionCounter, admissionDetails };
+            // ⭐️ 반환값에 testDetails 추가
+            return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails };
         }
 
-        function buildOriginalAnalysisPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails) {
+        function buildOriginalAnalysisPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, testDetails) {
             const today = new Date();
             const allKeys = new Set([...Object.keys(visitRecords), ...Object.keys(admissionRecords)]);
             const sortedHints = [];
@@ -2075,12 +2088,15 @@
                 const visitCnt = visitDates.length;
                 const admitDaysTotal = admissionRecords[k] || 0;
                 const admitEvents = Array.from(admissionDetails[k] || []).sort();
+                const testDates = Array.from(testDetails[k] || []).sort();
+                
                 const lastDateStr = visitDates.length ? visitDates[visitDates.length - 1] : "";
 
                 let isTarget = false;
                 const reason = [];
                 let priority = 99;
 
+                // 1. 5년 내 입원
                 if (admitDaysTotal > 0) {
                     isTarget = true;
                     reason.push("5년내 입원");
@@ -2094,22 +2110,38 @@
                     const lastDt = new Date(year, month, day);
                     const diffDays = Math.floor((today - lastDt) / (1000 * 60 * 60 * 24));
 
+                    // 2. 3개월 내 내원 (정확히 90일 이하까지만 포함)
                     if (diffDays <= 90) {
                         isTarget = true;
                         reason.push("3개월내 내원");
                         priority = Math.min(priority, 5);
-                    } else if (diffDays <= 365) {
+                    } 
+                    
+                    // 3. 5년 내 7일 이상 통원
+                    if (diffDays <= 365 * 5 && visitCnt >= 7) {
                         isTarget = true;
-                        reason.push("1년내 검사/재검사");
-                        priority = Math.min(priority, 4);
-                    } else if (diffDays <= 365 * 5) {
-                        if (visitCnt >= 7) {
-                            isTarget = true;
-                            reason.push("7일이상 치료");
-                            priority = Math.min(priority, 3);
-                        }
+                        reason.push("7일이상 치료");
+                        priority = Math.min(priority, 3);
                     }
-                } else if (admitDaysTotal === 0 && visitCnt === 0) {
+                }
+
+                // 4. 1년 내 추가검사 (진짜 검사 기록이 있을 때만 포함시킴)
+                if (testDates.length > 0) {
+                    const lastTestStr = testDates[testDates.length - 1];
+                    const y = parseInt(lastTestStr.substring(0, 4), 10);
+                    const m = parseInt(lastTestStr.substring(4, 6), 10) - 1;
+                    const d = parseInt(lastTestStr.substring(6, 8), 10);
+                    const lastTestDt = new Date(y, m, d);
+                    const diffTestDays = Math.floor((today - lastTestDt) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffTestDays > 90 && diffTestDays <= 365) {
+                        isTarget = true;
+                        reason.push("1년내 검사");
+                        priority = Math.min(priority, 4);
+                    }
+                }
+
+                if (admitDaysTotal === 0 && visitCnt === 0) {
                     isTarget = true;
                     reason.push("날짜확인필요");
                 }
@@ -2144,31 +2176,26 @@
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
             const truncatedText = rawText.slice(0, 60000);
 
-            const prompt = `당신은 고객이 보험 가입을 위해 제출한 병원 기록을 검토하는 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [진료기록 원문]을 바탕으로 보고서를 작성하십시오.
+            const prompt = `당신은 고객이 보험 가입을 위해 제출한 병원 기록을 검토하는 전문 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [진료기록 원문]을 바탕으로 보고서를 작성하십시오.
 
 🕒 **기준일:** ${todayDate} (오늘 기준 역산)
 
 🚨 **[고객 성명 추출 및 서두 작성 규칙 (⭐️필수)]**
-- [진료기록 원문], 파일명 또는 문서 상단의 수진자/성명란에서 **고객(환자)의 성명**을 정확히 추출하십시오.
-- 보고서의 가장 첫 문장은 반드시 아래 형식으로 시작하십시오:
+- [진료기록 원문] 또는 문서 상단에서 **고객(환자)의 성명**을 정확히 추출하십시오.
+- 보고서 첫 문장은 반드시 아래 형식으로 시작하십시오:
   👉 **[추출된 고객이름]님의 보험 가입을 위한 병원 기록 검토 보고서입니다. 제공된 파이썬 집계 데이터와 진료기록 원문을 바탕으로 기준일 (${todayDate})에 맞춰 작성되었습니다.**
-  *(단, 성명을 전혀 확인할 수 없는 경우에만 '고객님'으로 기재)*
-  
-🚨 **[데이터 작성 금지 규칙 (Strict Negative Constraints)]**
-1. **절대 창작 금지:** [파이썬 집계 데이터] 목록에 **없는 병원이나 질병은 절대 행으로 만들지 마십시오.**
-2. **경미한 건 제외:** 3개월 경과, 1년내 검사 없음, 5년내 입원/수술 없음, 7일 미만 통원, 30일 미만 투약인 건은 **보고서에 적지 마십시오.**
-3. **[치과 수술 기재 금지 목록] 레진, 충전, 아말감, 인레이, 온레이, 크라운, 신경치료, 근관치료 등 보존적 치료는 수술이 아니므로 절대 수술로 기재하지 마십시오.**(단, *발치*, *치조골*, *식립술*은 수술로 기재하십시오.)
 
-🚨 **[보고서 작성 규칙 - 하부 행 추가 원칙]**
-1. **기본 원칙:** 같은 질병명과 병원은 **하나의 그룹**으로 묶으십시오.
-2. **하부 행 생성:** - **입원 일자**가 서로 다르거나, **수술/시술 날짜**가 서로 다른 경우에만 하부 행을 만드십시오.
-   - **즉, 전체 요약 행(Total)을 먼저 적고, 그 아래에 날짜별 상세 내역(Detail)을 하부 행으로 추가하여 구성을 깔끔하게 만드십시오.**
-3. **수술/시술명 강제 기재 및 누락 금지 (⭐️매우 중요):**
-   - 파이썬 데이터의 \`[🚨시스템 감지: 수술/시술]\` 목록을 확인하여 수술(여부)가 '예'라면, **반드시 '수술 및 시술 명칭' 열에 원문에서 찾은 정확한 수술/시술명(예: 용종절제술, 백내장수술 등)을 구체적으로 기재**하십시오. 절대 빈칸이나 '-' 기호로 누락하지 마십시오!
-   - 같은 날 여러 진단명이 있어도 수술은 가장 연관성 높은 1개의 질병 하부 행에만 1번 표기하십시오 (중복 복사 금지). 단, 서로 다른 날짜의 수술은 각각 하부 행으로 모두 표기하십시오.
-4. **약물 유추 및 병기:** 주상병(진단명) 아래에 \`<br>(유추) 병명\` 형태로 반드시 병기하십시오.
+🚨 **[데이터 작성 금지 규칙]**
+1. **절대 창작 금지:** [파이썬 집계 데이터] 목록에 없는 병원이나 질병은 절대 행으로 만들지 마십시오.
+2. **경미한 건 제외:** 3개월 경과, 1년내 검사 없음, 5년내 입원/수술 없음, 7일 미만 통원인 단순 질환은 보고서에 적지 마십시오.
+
+🚨 **[보고서 작성 규칙]**
+1. 같은 질병명과 병원은 하나의 그룹으로 묶고, 내역이 다르면 하부 행을 추가하십시오.
+2. **수술/시술명 구체적 기재:** 수술여부가 '예'라면 수술명을 반드시 기재하십시오. 빈칸이나 '-' 기호 금지!
+3. 간편심사는 입원/수술 이력만 기재. 단순 통원 제외.
+
 ---
-**[파이썬 집계 데이터 (이 목록에 있는 것만 작성할 것)]**
+**[파이썬 집계 데이터]**
 ${hintText}
 
 **[진료기록 원문]**
@@ -2182,23 +2209,14 @@ ${truncatedText}
 
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-| **예: 골괴사 (M87)** | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 2회 | 10일 | **예** | - | **5년내 수술, 입원** |
-| ↳ | | 2021.07.11 | 2021.07.15 | - | 5일 | 아니오 | - | 1차 입원 |
-| ↳ | | 2023.07.20 | 2023.07.25 | - | 5일 | 예 | 인공관절치환술 | 2차 입원/수술 |
+| **예: 골괴사 (M87)** | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 2회 | 10일 | **예** | 인공관절치환술 | **5년내 수술, 입원** |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(입원 및 수술 이력만 기재 / 3개월내 내원력 및 투약 정보는 일반심사 참고)*
-
-| 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
-| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-| **예: 위암 (C16)** | OO병원 | 2021.01.01 | 2021.06.01 | - | 15일 | **예** | - | **5년내 암, 수술, 입원** |
-| ↳ | | 2021.01.01 | 2021.01.10 | - | 10일 | 예 | 위절제술 | 1차 수술 |
-| ↳ | | 2021.02.01 | 2021.02.05 | - | 5일 | 아니오 | - | 2차 입원 |
+*(입원 및 수술 이력만 기재 / 단순 통원 제외)*
 `;
             return { prompt, hintText, sortedHints };
         }
-
-        function buildViolationCheckPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, targetDate) {
+        function buildViolationCheckPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, testDetails, targetDate) {
             const allKeys = new Set([...Object.keys(visitRecords), ...Object.keys(admissionRecords)]);
             const sortedHints = [];
 
@@ -2206,29 +2224,25 @@ ${truncatedText}
                 const [hosp, dis] = k.split('|');
                 const rawDates = Array.from(visitRecords[k] || []).sort();
                 const admitEvents = Array.from(admissionDetails[k] || []).sort();
+                const rawTestDates = Array.from(testDetails[k] || []).sort();
 
-                const validVisitDates = [];
-                rawDates.forEach(dStr => {
-                    if (dStr.length === 8) {
-                        const y = parseInt(dStr.substring(0, 4), 10);
-                        const m = parseInt(dStr.substring(4, 6), 10) - 1;
-                        const d = parseInt(dStr.substring(6, 8), 10);
-                        const dt = new Date(y, m, d);
-                        if (dt <= targetDate) validVisitDates.push(dStr);
-                    }
+                const validVisitDates = rawDates.filter(dStr => {
+                    if(dStr.length !== 8) return false;
+                    const dt = new Date(parseInt(dStr.substring(0, 4)), parseInt(dStr.substring(4, 6)) - 1, parseInt(dStr.substring(6, 8)));
+                    return dt <= targetDate;
                 });
 
-                const validAdmitEvents = [];
-                admitEvents.forEach(adStr => {
+                const validAdmitEvents = admitEvents.filter(adStr => {
                     const match = adStr.match(/^(\d{8})/);
-                    if (match) {
-                        const dStr = match[1];
-                        const y = parseInt(dStr.substring(0, 4), 10);
-                        const m = parseInt(dStr.substring(4, 6), 10) - 1;
-                        const d = parseInt(dStr.substring(6, 8), 10);
-                        const dt = new Date(y, m, d);
-                        if (dt <= targetDate) validAdmitEvents.push(adStr);
-                    }
+                    if(!match) return false;
+                    const dt = new Date(parseInt(match[1].substring(0, 4)), parseInt(match[1].substring(4, 6)) - 1, parseInt(match[1].substring(6, 8)));
+                    return dt <= targetDate;
+                });
+
+                const validTestDates = rawTestDates.filter(dStr => {
+                    if(dStr.length !== 8) return false;
+                    const dt = new Date(parseInt(dStr.substring(0, 4)), parseInt(dStr.substring(4, 6)) - 1, parseInt(dStr.substring(6, 8)));
+                    return dt <= targetDate;
                 });
 
                 const visitCnt = validVisitDates.length;
@@ -2244,24 +2258,30 @@ ${truncatedText}
 
                 if (visitCnt > 0) {
                     const lastDtStr = validVisitDates[validVisitDates.length - 1];
-                    const y = parseInt(lastDtStr.substring(0, 4), 10);
-                    const m = parseInt(lastDtStr.substring(4, 6), 10) - 1;
-                    const d = parseInt(lastDtStr.substring(6, 8), 10);
-                    const lastDt = new Date(y, m, d);
+                    const lastDt = new Date(parseInt(lastDtStr.substring(0, 4)), parseInt(lastDtStr.substring(4, 6)) - 1, parseInt(lastDtStr.substring(6, 8)));
                     const diffDays = Math.floor((targetDate - lastDt) / (1000 * 60 * 60 * 24));
 
                     if (diffDays <= 90) {
                         isTarget = true;
                         reason.push("3개월내 내원");
                         priority = Math.min(priority, 5);
-                    } else if (diffDays <= 365) {
-                        isTarget = true;
-                        reason.push("1년내 검사/재검사");
-                        priority = Math.min(priority, 4);
-                    } else if (diffDays <= 365 * 5 && visitCnt >= 7) {
+                    } 
+                    if (diffDays <= 365 * 5 && visitCnt >= 7) {
                         isTarget = true;
                         reason.push("7일이상 치료");
                         priority = Math.min(priority, 3);
+                    }
+                }
+
+                if (validTestDates.length > 0) {
+                    const lastTestStr = validTestDates[validTestDates.length - 1];
+                    const lastTestDt = new Date(parseInt(lastTestStr.substring(0, 4)), parseInt(lastTestStr.substring(4, 6)) - 1, parseInt(lastTestStr.substring(6, 8)));
+                    const diffTestDays = Math.floor((targetDate - lastTestDt) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffTestDays > 90 && diffTestDays <= 365) {
+                        isTarget = true;
+                        reason.push("1년내 검사");
+                        priority = Math.min(priority, 4);
                     }
                 }
 
@@ -2269,51 +2289,27 @@ ${truncatedText}
 
                 const reasonStr = reason.join(', ');
                 let admitDetailStr = "";
-                if (validAdmitEvents.length > 0) {
-                    admitDetailStr = " (입원상세: " + validAdmitEvents.join(', ') + ")";
-                }
+                if (validAdmitEvents.length > 0) admitDetailStr = " (입원상세: " + validAdmitEvents.join(', ') + ")";
 
                 const lineText = `● ${hosp} | ${dis} -> [외래통원: ${visitCnt}회] / [입원: ${validAdmitEvents.length}건${admitDetailStr}] / [사유: ${reasonStr}]`;
                 sortedHints.push({ priority, lineText });
             });
 
             sortedHints.sort((a, b) => a.priority - b.priority || a.lineText.localeCompare(b.lineText));
-
-            let hintText = "\n[✅ 파이썬 집계 데이터 (엄격 필터링됨)]\n" + sortedHints.map(s => s.lineText).join('\n');
-            if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함)]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
-            }
-            if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
-                hintText += `\n[💊시스템 감지: 30일 이상 투약]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
-            }
-
+            let hintText = "\n[✅ 파이썬 집계 데이터]\n" + sortedHints.map(s => s.lineText).join('\n');
             const targetDateStr = targetDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            const prompt = `당신은 고객이 보험 가입을 위해 제출한 병원 기록을 검토하는 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [원문]을 바탕으로 보고서를 작성하십시오.
+            const prompt = `당신은 고객이 보험 가입을 위해 제출한 병원 기록을 검토하는 전문 보험 심사역입니다.
 
 🕒 **분석 기준일(청약일):** ${targetDateStr}
 
 🚨 **[고객 성명 추출 및 서두 작성 규칙 (⭐️필수)]**
-- [진료기록 원문], 파일명 또는 문서 상단의 수진자/성명란에서 **고객(환자)의 성명**을 정확히 추출하십시오.
-- 보고서의 가장 첫 문장은 반드시 아래 형식으로 시작하십시오:
-  👉 **[추출된 고객이름]님의 보험 가입을 위한 병원 기록 검토 보고서입니다. 제공된 파이썬 집계 데이터와 진료기록 원문을 바탕으로 기준일 (${todayDate})에 맞춰 작성되었습니다.**
-  *(단, 성명을 전혀 확인할 수 없는 경우에만 '고객님'으로 기재)*
-  
-🚨 **[데이터 작성 금지 규칙 (Strict Negative Constraints)]**
-1. **경미한 건 제외:** 알릴의무 대상(3개월/1년/5년 기준)이 아닌 건은 **보고서에 적지 마십시오.** (예: 1회 통원 감기 등)
-2. **[치과 수술 기재 금지 목록] 레진, 충전, 아말감, 인레이, 온레이, 크라운, 신경치료, 근관치료 등 보존적 치료는 수술이 아니므로 절대 수술로 기재하지 마십시오.**(단, *발치*, *치조골*, *식립술*은 수술로 기재하십시오.)
+- [진료기록 원문] 등에서 **고객(환자)의 성명**을 찾아 첫 문장을 시작하십시오:
+  👉 **[추출된 고객이름]님의 기계약 고지위반 점검 검토 보고서입니다. 청약일 (${targetDateStr}) 기준으로 역산되었습니다.**
 
-🚨 **[보고서 작성 규칙 - 하부 행 추가 원칙]**
-1. **기본 원칙:** 같은 질병명과 병원은 **하나의 그룹**으로 묶어서 보여주되, **상세 내역이 다르면 하부 행을 추가**하십시오.
-2. **하부 행 생성 조건:** - **입원 일자**가 서로 다르거나, **수술/시술 날짜**가 서로 다른 경우.
-   - **즉, 전체 요약 행(Total)을 먼저 적고, 그 아래에 날짜별 상세 내역(Detail)을 하부 행으로 추가하십시오.**
-3. **수술/시술명 강제 기재 및 누락 금지 (⭐️매우 중요):**
-   - 파이썬 데이터의 \`[🚨시스템 감지: 수술/시술]\` 목록을 확인하여 수술(여부)가 '예'라면, **반드시 '수술 및 시술 명칭' 열에 원문에서 찾은 정확한 수술/시술명(예: 용종절제술, 백내장수술 등)을 구체적으로 기재**하십시오. 절대 빈칸이나 '-' 기호로 누락하지 마십시오!
-   - 같은 날 여러 진단명이 있어도 수술은 가장 연관성 높은 1개의 질병 하부 행에만 1번 표기하십시오 (중복 복사 금지). 단, 서로 다른 날짜의 수술은 각각 하부 행으로 모두 표기하십시오.
-4. **약물 유추 및 병기:** 주상병(진단명) 아래에 \`<br>(유추) 병명\` 형태로 반드시 병기하십시오.
-5. **[간편심사] 작성 기준:**
-   - 입원/수술 이력이 있는 건만 기재하며, 위와 동일하게 하부 행 방식으로 작성하십시오.
-   - 단순 통원 건은 간편심사 표에 적지 마십시오.
+🚨 **[보고서 작성 규칙]**
+1. 3개월 경과, 1년내 검사 없음, 7일 미만 통원은 적지 마십시오.
+2. 수술명이 확인되면 '수술 및 시술 명칭' 칸에 구체적인 명칭을 반드시 기재하십시오.
 
 ---
 **[파이썬 집계 데이터]**
@@ -2324,24 +2320,9 @@ ${rawText.slice(0, 60000)}
 
 ---
 ### **[최종 심사 보고서]**
-
 #### 1️⃣ [일반심사] 표준 알릴의무 (요약)
-*기준: 3개월(내원), 1년(검사), 5년(입원/수술/7일통원/30일투약)*
-
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-| **예: 골괴사 (M87)** | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 2회 | 10일 | **예** | 인공관절치환술 | **5년내 수술, 입원** |
-| ↳ | | 2021.07.11 | 2021.07.15 | - | 5일 | 아니오 | - | 1차 입원 |
-| ↳ | | 2023.07.20 | 2023.07.25 | - | 5일 | 예 | 인공관절치환술 | 2차 입원/수술 |
-
-#### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(입원 및 수술 이력만 기재 / 3개월내 내원력 및 투약 정보는 일반심사 참고)*
-
-| 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
-| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-| **예: 위암 (C16)** | OO병원 | 2021.01.01 | 2021.06.01 | - | 15일 | **예** | 위절제술 | **5년내 암, 수술, 입원** |
-| ↳ | | 2021.01.01 | 2021.01.10 | - | 10일 | 예 | 위절제술 | 1차 수술 |
-| ↳ | | 2021.02.01 | 2021.02.05 | - | 5일 | 아니오 | - | 2차 입원 |
 `;
             return prompt;
         }
@@ -2393,7 +2374,8 @@ ${rawText.slice(0, 60000)}
             }
         }
 
-        async function executeDutyAnalysis() {
+       async function executeDutyAnalysis() {
+            // (이전과 동일한 시작 부분 유지...)
             const inputKey = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value.trim() : "";
             const apiKey = inputKey || "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
             const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
@@ -2417,7 +2399,6 @@ ${rawText.slice(0, 60000)}
             progressArea.classList.remove('hidden');
             resultContainer.classList.add('hidden');
 
-            // ⭐️ 자동 진행률 애니메이션을 위한 변수
             let progressTimer = null;
             let currentP = 0;
             
@@ -2435,14 +2416,15 @@ ${rawText.slice(0, 60000)}
 
             try {
                 progressText.innerText = `📄 ${selectedPdfFiles.length}개의 PDF 문서에서 진료기록을 추출하고 있습니다...`;
-                startFakeProgress(0, 25, 100); // 0%에서 25%까지 빠르게 올라감
+                startFakeProgress(0, 25, 100); 
 
                 const fullText = await extractTextFromPdfFiles(selectedPdfFiles, pdfPassword);
 
                 progressText.innerText = "⚙️ [v5.0 Rule Engine] 수술/시술, 장기투약 및 입원/통원 집계 중...";
-                startFakeProgress(25, 50, 100); // 25%에서 50%까지 빠르게 올라감
+                startFakeProgress(25, 50, 100); 
 
-                const { detectedInfo, visitCounter, admissionCounter, admissionDetails } = analyzeMedicalRecords(fullText);
+                // ⭐️ testDetails 가 추가로 받아집니다!
+                const { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails } = analyzeMedicalRecords(fullText);
 
                 debugContent.innerHTML = `
                     <div class="text-amber-400 font-bold">📊 [파이썬 Rule Engine 집계 결과]</div>
@@ -2450,79 +2432,64 @@ ${rawText.slice(0, 60000)}
                     <pre class="text-slate-300 pl-3">${JSON.stringify(admissionCounter, null, 2)}</pre>
                     <div class="mt-2"><strong>• 감지된 수술/시술 (${detectedInfo.surgeries.length}건):</strong></div>
                     <div class="text-amber-200 pl-3">${Array.from(new Set(detectedInfo.surgeries)).join('<br>') || '없음'}</div>
-                    <div class="mt-2"><strong>• 30일 이상 투약 처방 (${detectedInfo.long_term_meds.length}건):</strong></div>
-                    <div class="text-emerald-300 pl-3">${Array.from(new Set(detectedInfo.long_term_meds)).join('<br>') || '없음'}</div>
                 `;
 
                 const summaryCardsEl = document.getElementById('dutySummaryCards');
                 summaryCardsEl.innerHTML = `
-                    <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-center">
-                        <span class="text-[10px] font-bold text-amber-400 block">수술/시술 감지</span>
-                        <span class="text-lg font-black text-amber-300 mt-0.5 block">${detectedInfo.surgeries.length} 건</span>
+                    <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-rose-600 block">수술/시술 감지</span>
+                        <span class="text-lg font-black text-rose-700 mt-0.5 block">${detectedInfo.surgeries.length} 건</span>
                     </div>
-                    <div class="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-center">
-                        <span class="text-[10px] font-bold text-emerald-400 block">30일 이상 장기투약</span>
-                        <span class="text-lg font-black text-emerald-300 mt-0.5 block">${detectedInfo.long_term_meds.length} 건</span>
+                    <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-emerald-600 block">30일 이상 장기투약</span>
+                        <span class="text-lg font-black text-emerald-700 mt-0.5 block">${detectedInfo.long_term_meds.length} 건</span>
                     </div>
-                    <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 text-center">
-                        <span class="text-[10px] font-bold text-blue-400 block">입원 이력 집계</span>
-                        <span class="text-lg font-black text-blue-300 mt-0.5 block">${Object.keys(admissionCounter).length} 개 상병</span>
+                    <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-blue-600 block">입원 이력 집계</span>
+                        <span class="text-lg font-black text-blue-700 mt-0.5 block">${Object.keys(admissionCounter).length} 상병</span>
                     </div>
-                    <div class="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-center">
-                        <span class="text-[10px] font-bold text-indigo-400 block">외래 통원 기록</span>
-                        <span class="text-lg font-black text-indigo-300 mt-0.5 block">${Object.keys(visitCounter).length} 개 상병</span>
+                    <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-indigo-600 block">외래 통원 기록</span>
+                        <span class="text-lg font-black text-indigo-700 mt-0.5 block">${Object.keys(visitCounter).length} 상병</span>
                     </div>
                 `;
 
-                progressText.innerText = "🤖 AI 엔진이 표준 알릴의무 보고서를 작성 중입니다. (가장 오래 걸립니다. 최대 5분이상)";
-                // ⭐️ AI 답변을 기다리는 동안 50% -> 85%까지 0.6초에 1%씩 부드럽게 계속 차오르게 만듭니다.
+                progressText.innerText = "🤖 AI 엔진이 표준 알릴의무 보고서를 작성 중입니다. (가장 오래 걸립니다)";
                 startFakeProgress(50, 85, 600); 
 
-                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails);
+                // ⭐️ testDetails 가 추가로 전달됩니다!
+                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails);
                 const aiMarkdown1 = await callGeminiApi(promptTab1, apiKey);
                 currentTab1Markdown = aiMarkdown1;
 
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
                     let fullOldMarkdown = "";
-                    let contractDatesStrList = [];
-
                     for (let c = 0; c < contractCount; c++) {
                         const dateInput = document.getElementById(`contractDate_${c}`);
                         const dVal = dateInput ? dateInput.value : "";
                         if (dVal) {
-                            contractDatesStrList.push(dVal);
                             const parts = dVal.split('-');
                             const targetDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-                            
                             progressText.innerText = `⏳ 계약 #${c + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
-                            // ⭐️ 기계약 점검이 있으면 85% -> 95%까지 추가로 오르도록 세팅
                             startFakeProgress(currentP, 95, 800); 
                             
-                            const promptTab2 = buildViolationCheckPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, targetDateObj);
+                            // ⭐️ testDetails 가 추가로 전달됩니다!
+                            const promptTab2 = buildViolationCheckPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, targetDateObj);
                             const aiRespOld = await callGeminiApi(promptTab2, apiKey);
                             
                             fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
                         }
                     }
-
                     currentTab2Markdown = fullOldMarkdown;
-                    violationNoticeBox.innerHTML = `
-                        <div class="font-bold text-amber-400 mb-1">📑 설정된 계약 청약일 목록: ${contractDatesStrList.join(', ')}</div>
-                        <p class="text-slate-300">각 계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>
-                    `;
+                    violationNoticeBox.innerHTML = `<p class="text-blue-600">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>`;
                     reportBox2.innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
                     reportBox2.classList.remove('hidden');
                 } else {
                     currentTab2Markdown = "";
-                    violationNoticeBox.innerHTML = `
-                        <div class="text-amber-400 font-bold mb-1">👈 고지위반 점검 설정 필요</div>
-                        <p class="text-slate-400">좌측 사이드바의 <strong>[🔍 고지위반 점검 설정]</strong>에서 '점검할 계약 건수'를 설정하시고 청약일을 입력한 후 다시 분석을 실행해주세요.</p>
-                    `;
                     reportBox2.classList.add('hidden');
                 }
 
-                // 모든 통신이 완료되면 타이머를 끄고 100%로 꽉 채워줍니다.
                 if(progressTimer) clearInterval(progressTimer);
                 progressBar.style.width = '100%';
                 progressPercent.innerText = '100%';
@@ -2533,7 +2500,7 @@ ${rawText.slice(0, 60000)}
                     resultContainer.classList.remove('hidden');
                     reportBox1.innerHTML = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
                     switchResultTab('tab1');
-                }, 800); // 100%를 보여주고 0.8초 뒤에 결과창으로 넘어갑니다.
+                }, 800);
 
             } catch (error) {
                 if(progressTimer) clearInterval(progressTimer);
