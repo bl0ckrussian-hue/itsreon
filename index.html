@@ -51,9 +51,33 @@
                     <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400">왜 잇츠리온인가?</button>
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
+                
+                <!-- ⭐️ 우측 사용자 프로필 (로그인/회원가입 제어 복구 완료) -->
+                <div class="flex items-center space-x-3">
+                    <!-- 비로그인 상태 UI -->
+                    <div id="loggedOutUI" class="flex space-x-2">
+                        <button onclick="openModal('loginModal')" class="text-xs font-bold text-slate-300 hover:text-white transition">로그인</button>
+                        <button onclick="openModal('signupModal')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-md">회원가입</button>
+                    </div>
+                    <!-- 로그인 완료 상태 UI -->
+                    <div id="loggedInUI" class="hidden flex items-center space-x-3">
+                        <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
+                            <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span id="displayUserName" class="font-bold text-slate-200">사용자</span>
+                            <span id="displayUserStatus" class="text-amber-400 font-semibold">(승인대기)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="logoutUser()" class="text-[11px] text-slate-400 hover:text-white underline">로그아웃</button>
+                            <span class="text-slate-600 text-[10px]">|</span>
+                            <button onclick="openModal('withdrawModal')" class="text-[11px] text-rose-400 hover:text-rose-300 underline">회원탈퇴</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
-      <main class="flex-grow">
+
+    <main class="flex-grow">
         <!-- ==================== [페이지 1: 잇츠리온 소개 및 안내] ==================== -->
         <div id="viewIntro" class="block transition-all duration-300">
             <!-- 1-1. 히어로 슬라이더 섹션 -->
@@ -142,7 +166,6 @@
                 </div>
             </section>
         </div>
-
         <!-- ==================== [페이지 2: 주요 업무 기능 & 실적 분석 (업무 화면)] ==================== -->
         <div id="viewWorkspace" class="hidden transition-all duration-300">
             <!-- 페이지 2 헤더 배너 -->
@@ -168,10 +191,10 @@
                         <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2"><span>🛠️</span> <span>주요 업무 기능</span></h2>
                         <p class="text-slate-500 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
-                   <!-- 3행 3열 (총 9개) 그리드 카드 -->
+                    <!-- 3행 3열 (총 9개) 그리드 카드 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
-                        <!-- 1: DB배정 (회원전용 / 출시예정 뱃지) -->
+                        <!-- 1: DB배정 -->
                         <div onclick="checkAuthAndOpen('scheduleModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📋</div>
@@ -179,7 +202,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리</p>
                         </div>
 
-                        <!-- 2: 보장분석 (회원전용 / 출시예정 뱃지) -->
+                        <!-- 2: 보장분석 -->
                         <div onclick="checkAuthAndOpen('coverageModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
@@ -187,7 +210,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">고객 보장 현황 자동 분석 및<br/>보장분석표 자동 완성</p>
                         </div>
 
-                        <!-- 3: 약관분석 (회원전용 / 출시예정 뱃지) -->
+                        <!-- 3: 약관분석 -->
                         <div onclick="checkAuthAndOpen('termsCloudModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
@@ -195,7 +218,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
                         </div>
 
-                        <!-- 4: 알릴의무분석 (회원전용 / 뱃지 그대로 유지) -->
+                        <!-- 4: 알릴의무분석 -->
                         <div onclick="checkAuthAndOpen('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
@@ -203,7 +226,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/>고지의무 사항 자동 체크</p>
                         </div>
 
-                        <!-- 5: 보험청구 지원 (무료 오픈 / 출시예정 뱃지) -->
+                        <!-- 5: 보험청구 지원 -->
                         <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
@@ -211,7 +234,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 </p>
                         </div>
 
-                        <!-- 6: 계약현황 대시보드 (회원전용 / 출시예정 뱃지) -->
+                        <!-- 6: 계약현황 대시보드 -->
                         <div onclick="checkAuthAndOpen('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
@@ -219,7 +242,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">계약 현황 및<br/>목표 달성률 실시간 조회</p>
                         </div>
 
-                        <!-- 7: 실비 마스터 (무료 오픈 / 뱃지 그대로 유지) -->
+                        <!-- 7: 실비 마스터 -->
                         <div onclick="checkAuthAndOpen('indemnityCalcModal')" class="bg-white hover:bg-[#f8fafc] border border-slate-200 hover:border-slate-800 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
@@ -227,7 +250,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/>세대별 약관 & 갱신보험료 예측</p>
                         </div>
 
-                        <!-- 8: 서비스 출시 예정 (회원전용) -->
+                        <!-- 8: 서비스 출시 예정 -->
                         <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
                             <div class="flex items-center gap-1 mb-1"><span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
@@ -235,7 +258,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
                         </div>
 
-                        <!-- 9: 서비스 출시 예정 (회원전용) -->
+                        <!-- 9: 서비스 출시 예정 -->
                         <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">🔒</div>
                             <div class="flex items-center gap-1 mb-1"><span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
@@ -311,7 +334,6 @@
             </div>
         </div>
     </footer>
-
     <!-- ==================== 인터랙티브 기능 모달 ==================== -->
     <div id="scheduleModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -454,7 +476,6 @@
                         </div>
                     </div>
                 </aside>
-
                 <main class="lg:col-span-8 p-6 space-y-6 bg-slate-900">
                     <div class="space-y-4">
                         <div class="border-b border-slate-800 pb-3">
@@ -541,10 +562,10 @@
             </div>
         </div>
     </div>
+
     <!-- ⭐️ 7. 실비 마스터 모달 (5세대 중증도 반영 & 네이비+화이트 테마) -->
     <div id="indemnityCalcModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full text-slate-800 shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
-            
             <!-- 네이비 헤더 -->
             <div class="bg-slate-900 px-5 py-3.5 flex justify-between items-center flex-shrink-0 shadow-md">
                 <div class="flex items-center space-x-2.5">
@@ -564,7 +585,6 @@
             <div class="flex-grow overflow-y-auto p-5 space-y-5 custom-scrollbar bg-slate-50">
                 <!-- ============================== [탭 1: 실비 계산기] ============================== -->
                 <div id="silbiTabContent0" class="space-y-4">
-                    
                     <div class="flex bg-white rounded-xl border border-slate-200 shadow-sm p-1">
                         <button id="smTreatBtn_outpatient" onclick="setSilbiTreatType('outpatient')" class="flex-1 bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
                             <span class="text-base">🚑</span> <span>통원 (외래)</span>
@@ -894,7 +914,7 @@
             </div>
         </div>
     </div>
-    <!-- ==================== 🔐 회원 관리 모달 3종 세트 ==================== -->
+    
     <!-- 🔑 로그인 모달 -->
     <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
@@ -959,10 +979,8 @@
             </div>
         </div>
     </div>
-    
     <!-- ⬇️ 기존 스크립트 시작 부분 -->
     <script>
-   <script>
         function switchSilbiTab(tabName) {
             activeResultTab = tabName;
             const btn1 = document.getElementById('tabBtn1');
@@ -1990,7 +2008,7 @@
                 if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방")) {
                     const numMatches = rowText.match(/\b\d{2,3}\b/g);
                     if (numMatches) {
-                        const numbers = numMatches.map(n => cleanNumber(n)).filter(n => n >= 30 && n <= 365);
+                        const numbers = numMatches.map(n => parseNum(n)).filter(n => n >= 30 && n <= 365);
                         if (numbers.length > 0 && !isAdmissionRow) {
                             detectedInfo.long_term_meds.push(`(${Math.max(...numbers)}일 처방) ${rowText.slice(0, 50)}...`);
                         }
@@ -2009,7 +2027,7 @@
                         const numMatches = rowText.match(/\d+/g);
                         let days = 1;
                         if (numMatches) {
-                            const nums = numMatches.map(n => cleanNumber(n)).filter(n => n > 0 && n <= 365);
+                            const nums = numMatches.map(n => parseNum(n)).filter(n => n > 0 && n <= 365);
                             if (nums.length > 0) days = Math.max(...nums);
                         }
                         admissionCounter[key] = (admissionCounter[key] || 0) + days;
@@ -2290,9 +2308,7 @@ ${rawText.slice(0, 60000)}
             return prompt;
         }
 
-       // ⬇️ 기존 callGeminiApi 함수를 찾아 이 코드로 완전히 덮어써주세요.
         async function callGeminiApi(promptText, key) {
-            // 이전에 직접 구축해두신 안전한 구글 스크립트(GAS) 주소를 연결합니다.
             const proxyUrl = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
             const maxRetries = 3;
 
@@ -2300,36 +2316,28 @@ ${rawText.slice(0, 60000)}
                 try {
                     const res = await fetch(proxyUrl, {
                         method: 'POST',
-                        headers: { 
-                            // 구글 스크립트 CORS 에러 방지용 설정
-                            'Content-Type': 'text/plain;charset=utf-8' 
-                        },
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ prompt: promptText })
                     });
 
-                    // 데이터를 텍스트로 먼저 받아옵니다.
                     const responseText = await res.text();
                     let data;
                     
                     try {
                         data = JSON.parse(responseText);
                     } catch (e) {
-                        // GAS에서 에러를 일반 텍스트로 보냈을 경우의 예외 처리
                         throw new Error(responseText.substring(0, 100));
                     }
 
-                    // 1. 정상적으로 AI 답변이 돌아온 경우
                     if (data && data.candidates && data.candidates.length > 0) {
                         const text = data.candidates[0].content.parts[0].text;
                         if (text) return text;
                     }
 
-                    // 2. 구글 API 자체 에러인 경우 (할당량 초과, 인증 오류 등)
                     if (data && data.error) {
                         throw new Error(data.error.message || "구글 Gemini API 내부 오류");
                     }
 
-                    // 3. GAS 스크립트에서 result 형태로 반환했을 경우
                     if (data && data.result) return data.result;
 
                     throw new Error("예상치 못한 응답 형태입니다.");
@@ -2342,11 +2350,11 @@ ${rawText.slice(0, 60000)}
                         }
                         throw new Error(`${errorMsg}`);
                     }
-                    // 실패 시 2초 대기 후 재시도
                     await new Promise(r => setTimeout(r, 2000));
                 }
             }
         }
+
         async function executeDutyAnalysis() {
             const inputKey = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value.trim() : "";
             const apiKey = inputKey || "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
@@ -2567,55 +2575,7 @@ ${rawText.slice(0, 60000)}
             }
         }
 
-        // Chart.js 초기화
-        window.addEventListener('DOMContentLoaded', () => {
-            const ctx1 = document.getElementById('conversionChart').getContext('2d');
-            chart1Instance = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['보장분석 DB', '운전자/상해', '간편/유병자', '태아/어린이'],
-                    datasets: [{
-                        label: '개인 체결률 (%)',
-                        data: [42.5, 33.3, 38.0, 28.0],
-                        backgroundColor: ['#2563EB', '#4F46E5', '#D97706', '#059669'],
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) { return ' ' + context.dataset.label + ': ' + context.parsed.y + '%'; }
-                            }
-                        }
-                    },
-                    scales: { y: { beginAtZero: true, max: 50 } }
-                }
-            });
-
-            const ctx2 = document.getElementById('monthlyTrendChart').getContext('2d');
-            chart2Instance = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: ['5월', '6월', '7월', '8월(금월)'],
-                    datasets: [
-                        { label: '배정 DB 소진', data: [15, 18, 20, 24], borderColor: '#2563EB', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.3 },
-                        { label: '계약 체결 건수', data: [5, 7, 8, 10], borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        });
-
-       // --- 🔒 회원가입/승인 제어 로직 ---
+        // --- 🔒 회원가입/승인 제어 로직 ---
         let isAuthorized = false; 
 
         // ⭐️ 1단계에서 새로 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
@@ -2775,3 +2735,5 @@ ${rawText.slice(0, 60000)}
     </script>
 </body>
 </html>
+    
+                
