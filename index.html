@@ -65,9 +65,12 @@
                             <span id="displayUserName" class="font-bold text-slate-200">사용자</span>
                             <span id="displayUserStatus" class="text-amber-400 font-semibold">(승인대기)</span>
                         </div>
-                        <button onclick="logoutUser()" class="text-[11px] text-slate-400 hover:text-white underline">로그아웃</button>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="logoutUser()" class="text-[11px] text-slate-400 hover:text-white underline">로그아웃</button>
+                            <span class="text-slate-600 text-[10px]">|</span>
+                            <button onclick="openModal('withdrawModal')" class="text-[11px] text-rose-400 hover:text-rose-300 underline">회원탈퇴</button>
+                        </div>
                     </div>
-                </div>
         </div>
     </header>
     <!-- 🔑 로그인 모달 -->
@@ -75,18 +78,14 @@
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 text-center mb-1">잇츠리온 로그인</h3>
-            <p class="text-[11px] text-slate-500 text-center mb-5">회원가입 시 생성된 아이디와 연락처로 로그인하세요.</p>
+            <p class="text-[11px] text-slate-500 text-center mb-5">등록된 이름과 사번으로 로그인하세요.</p>
             <div class="space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름+사번)</label><input id="loginId" type="text" placeholder="예: 홍길동(WIZ-0001)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
-                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (핸드폰번호)</label><input id="loginPhone" type="password" placeholder="숫자만 입력 (예: 01012345678)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="loginId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="loginPw" type="password" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <button onclick="submitLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition">로그인 하기</button>
-                
-                <!-- ⭐️ 새로 추가된 부분: 회원가입 유도 버튼 영역 -->
                 <div class="flex justify-between items-center pt-3 mt-2 border-t border-slate-100">
                     <span class="text-[11px] text-slate-400">아직 계정이 없으신가요?</span>
-                    <button onclick="closeModal('loginModal'); openModal('signupModal');" class="text-xs font-black text-blue-600 hover:text-blue-800 transition">
-                        회원가입 →
-                    </button>
+                    <button onclick="closeModal('loginModal'); openModal('signupModal');" class="text-xs font-black text-blue-600 hover:text-blue-800 transition">회원가입 →</button>
                 </div>
             </div>
         </div>
@@ -97,12 +96,47 @@
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('signupModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
-            <div class="space-y-3 text-xs">
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block font-bold text-slate-700 mb-1">이름</label><input id="regName" oninput="autoGenerateId()" type="text" placeholder="예: 홍길동" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
-                    <div><label class="block font-bold text-slate-700 mb-1">우리회사 사번</label><input id="regEmpId" oninput="autoGenerateId()" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+            <div class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-bold text-slate-700 mb-1">이름 (아이디)</label><input id="regName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">사번 (비밀번호)</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
                 </div>
-                
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">주민등록번호</label>
+                    <div class="flex items-center gap-2">
+                        <input id="regBirth6" type="text" maxlength="6" placeholder="YYMMDD" class="w-1/2 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center tracking-widest font-mono text-sm">
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input id="regGender1" type="text" maxlength="1" placeholder="1" class="w-10 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center font-bold text-sm">
+                        <span class="text-slate-400 text-lg tracking-widest pt-1">******</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">휴대폰 번호 (숫자만 8자리)</label>
+                    <div class="flex items-center gap-2">
+                        <div class="px-3 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm">010</div>
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input id="regPhone8" type="tel" maxlength="8" placeholder="12345678" class="flex-grow px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 tracking-widest font-bold text-sm">
+                    </div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">가입 신청 완료하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🗑️ 회원탈퇴 모달 -->
+    <div id="withdrawModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('withdrawModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 text-center mb-1">회원 탈퇴</h3>
+            <p class="text-[11px] text-rose-500 text-center mb-5 font-bold">탈퇴 시 모든 정보가 삭제되며 복구할 수 없습니다.</p>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="withdrawId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-rose-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="withdrawPw" type="password" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-rose-500"></div>
+                <button onclick="submitWithdraw()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">영구 탈퇴하기</button>
+            </div>
+        </div>
+    </div>
                 <!-- ⭐️ 자동 생성되는 아이디 칸 (수정 불가) -->
                 <div>
                     <label class="block font-bold text-blue-600 mb-1">생성된 아이디 (이름+사번)</label>
@@ -2613,65 +2647,52 @@ ${rawText.slice(0, 60000)}
             });
         });
 
-        // --- 🔒 회원가입/승인 제어 로직 ---
-        let isAuthorized = false; // 기본값: 비승인(false). 관리자 승인 시 true로 변경 처리
+       // --- 🔒 회원가입/승인 제어 로직 ---
+        let isAuthorized = false; 
 
-        // ⭐️ 1단계에서 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbxMfV5BzamfWgQbKSFHV4Y_L6k4ZB4599GRCmic7bcjn197iKa9vKtuqW-ZlSqOqpAA/exec";
+        // ⭐️ 1단계에서 새로 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycby2YT6-91WzhqQY5WEBoJvA0-kertCZ4Td6Tcv5YfYLjmEsLSJcCam6RB9ZV85kmvtI/exec";
 
         let currentUser = { isLoggedIn: false, name: '', status: '' };
 
-        // 1. 아이디 자동 완성 함수
-        function autoGenerateId() {
-            const name = document.getElementById('regName').value.trim();
-            const empId = document.getElementById('regEmpId').value.trim();
-            const idField = document.getElementById('regId');
-            if (name || empId) {
-                idField.value = `${name}(${empId})`;
-            } else {
-                idField.value = '';
-            }
-        }
-
-        // 2. 권한 확인 후 모달 열기 함수
         function checkAuthAndOpen(modalId) {
-            // 무료 개방 서비스: 보험청구, 실비마스터, 준비중인 서비스
             if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
                 openModal(modalId);
                 return;
             }
-
-            // 회원가입/승인 제어
             if (!currentUser.isLoggedIn) {
                 alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
                 openModal('loginModal');
             } else if (currentUser.status !== '승인') {
                 alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
             } else {
-                openModal(modalId); // 승인된 회원만 정상 작동
+                openModal(modalId); 
             }
         }
 
-        // 3. 회원가입 전송 함수
         async function submitSignup() {
-            const userId = document.getElementById('regId').value;
-            const name = document.getElementById('regName').value;
-            const empId = document.getElementById('regEmpId').value;
-            const rrn = document.getElementById('regRrn').value;
-            const phone = document.getElementById('regPhone').value;
-            const email = document.getElementById('regEmail').value;
+            const name = document.getElementById('regName').value.trim();
+            const empId = document.getElementById('regEmpId').value.trim();
+            const birth6 = document.getElementById('regBirth6').value.trim();
+            const gender1 = document.getElementById('regGender1').value.trim();
+            const phone8 = document.getElementById('regPhone8').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
 
-            if (!name || !empId || !rrn || !phone || !email) {
-                alert("모든 정보를 입력해주세요."); return;
+            if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
+                alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
             }
 
-            document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]').innerText = "신청 중...";
+            const userId = name; 
+            const phone = `010${phone8}`; 
+
+            const btn = document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]');
+            btn.innerText = "신청 중...";
 
             try {
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "signup", userId, name, empId, rrn, phone, email })
+                    body: JSON.stringify({ action: "signup", userId, name, empId, birth6, gender1, phone, email })
                 });
                 const data = await res.json();
                 alert(data.message);
@@ -2682,17 +2703,16 @@ ${rawText.slice(0, 60000)}
             } catch (e) {
                 alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
             } finally {
-                document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]').innerText = "가입 신청 완료하기";
+                btn.innerText = "가입 신청 완료하기";
             }
         }
 
-        // 4. 로그인 전송 함수
         async function submitLogin() {
-            const userId = document.getElementById('loginId').value.trim();
-            const phone = document.getElementById('loginPhone').value.trim();
+            const userId = document.getElementById('loginId').value.trim(); 
+            const loginPw = document.getElementById('loginPw').value.trim();
 
-            if (!userId || !phone) {
-                alert("아이디와 비밀번호(핸드폰번호)를 입력해주세요."); return;
+            if (!userId || !loginPw) {
+                alert("이름과 사번을 입력해주세요."); return;
             }
 
             const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
@@ -2702,7 +2722,7 @@ ${rawText.slice(0, 60000)}
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "login", userId, phone })
+                    body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
                 });
                 const data = await res.json();
                 
@@ -2710,7 +2730,6 @@ ${rawText.slice(0, 60000)}
                     currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
                     updateLoginUI();
                     closeModal('loginModal');
-                    
                     if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
                     else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
                 } else {
@@ -2723,7 +2742,40 @@ ${rawText.slice(0, 60000)}
             }
         }
 
-        // 5. 화면 UI 업데이트 함수
+        async function submitWithdraw() {
+            const userId = document.getElementById('withdrawId').value.trim();
+            const loginPw = document.getElementById('withdrawPw').value.trim();
+
+            if (!userId || !loginPw) {
+                alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
+            }
+
+            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 권한이 상실됩니다.`)) return;
+
+            const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
+            btn.innerText = "탈퇴 처리 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "withdraw", userId: userId, password: loginPw })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('withdrawModal');
+                    if(currentUser.isLoggedIn && currentUser.name === userId) {
+                        logoutUser();
+                    }
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "영구 탈퇴하기";
+            }
+        }
+
         function updateLoginUI() {
             if (currentUser.isLoggedIn) {
                 document.getElementById('loggedOutUI').classList.add('hidden');
@@ -2732,7 +2784,6 @@ ${rawText.slice(0, 60000)}
                 
                 const statusEl = document.getElementById('displayUserStatus');
                 const dotEl = document.getElementById('statusDot');
-                
                 if (currentUser.status === '승인') {
                     statusEl.innerText = "(승인완료)";
                     statusEl.className = "text-emerald-400 font-semibold";
