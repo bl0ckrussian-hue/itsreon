@@ -51,26 +51,6 @@
                     <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400">왜 잇츠리온인가?</button>
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
-               <!-- 우측 사용자 프로필 (로그인/회원가입 제어) -->
-                <div class="flex items-center space-x-3">
-                    <!-- 비로그인 상태 UI -->
-                    <div id="loggedOutUI" class="flex space-x-2">
-                        <button onclick="openModal('loginModal')" class="text-xs font-bold text-slate-300 hover:text-white transition">로그인</button>
-                        <button onclick="openModal('signupModal')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-md">회원가입</button>
-                    </div>
-                    <!-- 로그인 완료 상태 UI -->
-                    <div id="loggedInUI" class="hidden flex items-center space-x-3">
-                        <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
-                            <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                            <span id="displayUserName" class="font-bold text-slate-200">사용자</span>
-                            <span id="displayUserStatus" class="text-amber-400 font-semibold">(승인대기)</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="logoutUser()" class="text-[11px] text-slate-400 hover:text-white underline">로그아웃</button>
-                            <span class="text-slate-600 text-[10px]">|</span>
-                            <button onclick="openModal('withdrawModal')" class="text-[11px] text-rose-400 hover:text-rose-300 underline">회원탈퇴</button>
-                        </div>
-                    </div>
         </div>
     </header>
     <!-- 🔑 로그인 모달 -->
