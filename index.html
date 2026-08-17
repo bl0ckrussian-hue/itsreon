@@ -2604,7 +2604,7 @@ ${rawText.slice(0, 60000)}
                 }
             });
         });
-    </script
+
         // --- 🔒 회원가입/승인 제어 로직 ---
         let isAuthorized = false; // 기본값: 비승인(false). 관리자 승인 시 true로 변경 처리
 
@@ -2625,7 +2625,7 @@ ${rawText.slice(0, 60000)}
             }
         }
 
-        // 2. 권한 확인 후 모달 열기 함수 (기존 checkAuthAndOpen 덮어쓰기)
+        // 2. 권한 확인 후 모달 열기 함수
         function checkAuthAndOpen(modalId) {
             // 무료 개방 서비스: 보험청구, 실비마스터, 준비중인 서비스
             if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
@@ -2745,6 +2745,6 @@ ${rawText.slice(0, 60000)}
             updateLoginUI();
             alert('로그아웃 되었습니다.');
         }
-        // ------------------------------------
+    </script>
 </body>
-</html> 
+</html>
