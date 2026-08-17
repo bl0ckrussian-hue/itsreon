@@ -181,56 +181,81 @@
                         <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2"><span>🛠️</span> <span>주요 업무 기능</span></h2>
                         <p class="text-slate-500 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
+                   <!-- 3행 3열 (총 9개) 그리드 카드 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        <div onclick="openModal('scheduleModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
+
+                        <!-- 1: DB배정 (회원전용 / 출시예정 뱃지) -->
+                        <div onclick="checkAuthAndOpen('scheduleModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📋</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition">DB배정 & 스케줄</h3>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition">스케줄관리(DB배정)</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리</p>
                         </div>
-                        <div onclick="openModal('coverageModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
+
+                        <!-- 2: 보장분석 (회원전용 / 출시예정 뱃지) -->
+                        <div onclick="checkAuthAndOpen('coverageModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-red-600 transition">보장분석</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">고객 보장 현황 자동 분석 및<br/>보장분석표 자동 완성</p>
                         </div>
-                        <div onclick="openModal('termsCloudModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
+
+                        <!-- 3: 약관분석 (회원전용 / 출시예정 뱃지) -->
+                        <div onclick="checkAuthAndOpen('termsCloudModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition">약관분석 (구글 클라우드)</h3>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition">약관비교분석</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
                         </div>
-                        <div onclick="openModal('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+
+                        <!-- 4: 알릴의무분석 (회원전용 / 뱃지 그대로 유지) -->
+                        <div onclick="checkAuthAndOpen('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v5.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">알릴의무분석</h3>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">AI알릴의무분석</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/>고지의무 사항 자동 체크</p>
                         </div>
-                        <div onclick="openModal('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
+
+                        <!-- 5: 보험청구 지원 (무료 오픈 / 출시예정 뱃지) -->
+                        <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-emerald-600 transition">보험청구 지원</h3>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-emerald-600 transition">보험청구</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 </p>
                         </div>
-                        <div onclick="openModal('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md">
+
+                        <!-- 6: 계약현황 대시보드 (회원전용 / 출시예정 뱃지) -->
+                        <div onclick="checkAuthAndOpen('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-teal-600 transition">계약현황 대시보드</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">계약 현황 및<br/>목표 달성률 실시간 조회</p>
                         </div>
-                        <div onclick="openModal('indemnityCalcModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-600 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <div class="absolute top-3 right-3 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
+
+                        <!-- 7: 실비 마스터 (무료 오픈 / 뱃지 그대로 유지) -->
+                        <div onclick="checkAuthAndOpen('indemnityCalcModal')" class="bg-white hover:bg-[#f8fafc] border border-slate-200 hover:border-slate-800 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition">실비 마스터</h3>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 transition">실비 마스터</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/>세대별 약관 & 갱신보험료 예측</p>
                         </div>
-                        <div onclick="openModal('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm">
+
+                        <!-- 8: 서비스 출시 예정 (회원전용) -->
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
                             <div class="flex items-center gap-1 mb-1"><span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
                             <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
                         </div>
-                        <div onclick="openModal('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm">
+
+                        <!-- 9: 서비스 출시 예정 (회원전용) -->
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">🔒</div>
                             <div class="flex items-center gap-1 mb-1"><span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
                             <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
                         </div>
+
                     </div>
                 </div>
             </section>
