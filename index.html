@@ -51,21 +51,66 @@
                     <button onclick="switchView('intro', 'whyUs')" class="hover:text-white transition text-slate-400">왜 잇츠리온인가?</button>
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
-                <!-- 우측 사용자 프로필 -->
+               <!-- 우측 사용자 프로필 (로그인/회원가입 제어) -->
                 <div class="flex items-center space-x-3">
-                    <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="font-bold text-slate-200">김설계 팀장</span>
-                        <span class="text-blue-400 font-semibold">(WIZ-2026)</span>
+                    <!-- 비로그인 상태 UI -->
+                    <div id="loggedOutUI" class="flex space-x-2">
+                        <button onclick="openModal('loginModal')" class="text-xs font-bold text-slate-300 hover:text-white transition">로그인</button>
+                        <button onclick="openModal('signupModal')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-md">회원가입</button>
                     </div>
-                    <button onclick="openModal('quickUpdateModal')" title="프로필 및 계정 설정" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center border border-slate-700 transition text-slate-300">
-                        👤
-                    </button>
+                    <!-- 로그인 완료 상태 UI -->
+                    <div id="loggedInUI" class="hidden flex items-center space-x-3">
+                        <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
+                            <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span id="displayUserName" class="font-bold text-slate-200">사용자</span>
+                            <span id="displayUserStatus" class="text-amber-400 font-semibold">(승인대기)</span>
+                        </div>
+                        <button onclick="logoutUser()" class="text-[11px] text-slate-400 hover:text-white underline">로그아웃</button>
+                    </div>
                 </div>
-            </div>
         </div>
     </header>
+    <!-- 🔑 로그인 모달 -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 text-center mb-1">잇츠리온 로그인</h3>
+            <p class="text-[11px] text-slate-500 text-center mb-5">회원가입 시 생성된 아이디와 연락처로 로그인하세요.</p>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름+사번)</label><input id="loginId" type="text" placeholder="예: 홍길동(WIZ-0001)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (핸드폰번호)</label><input id="loginPhone" type="password" placeholder="숫자만 입력 (예: 01012345678)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <button onclick="submitLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition">로그인 하기</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- 📝 회원가입 모달 -->
+    <div id="signupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeModal('signupModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">이름</label><input id="regName" oninput="autoGenerateId()" type="text" placeholder="예: 홍길동" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">우리회사 사번</label><input id="regEmpId" oninput="autoGenerateId()" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                </div>
+                
+                <!-- ⭐️ 자동 생성되는 아이디 칸 (수정 불가) -->
+                <div>
+                    <label class="block font-bold text-blue-600 mb-1">생성된 아이디 (이름+사번)</label>
+                    <input id="regId" type="text" readonly placeholder="이름과 사번을 입력하면 자동 생성됩니다." class="w-full px-3 py-2 border border-blue-200 bg-blue-50 rounded-lg font-bold text-blue-800 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">생년월일 및 성별</label><input id="regRrn" type="text" placeholder="예: 800101-1" maxlength="8" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">핸드폰번호 (-제외)</label><input id="regPhone" type="tel" placeholder="예: 01012345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                
+                <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-4 transition shadow">가입 신청 완료하기</button>
+            </div>
+        </div>
+    </div>
     <main class="flex-grow">
         <!-- ==================== [페이지 1: 잇츠리온 소개 및 안내] ==================== -->
         <div id="viewIntro" class="block transition-all duration-300">
@@ -2559,6 +2604,147 @@ ${rawText.slice(0, 60000)}
                 }
             });
         });
-    </script>
+    </script
+        // --- 🔒 회원가입/승인 제어 로직 ---
+        let isAuthorized = false; // 기본값: 비승인(false). 관리자 승인 시 true로 변경 처리
+
+        // ⭐️ 1단계에서 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
+        const USER_DB_URL = "https://script.google.com/macros/s/새로만든_주소를_넣으세요/exec";
+
+        let currentUser = { isLoggedIn: false, name: '', status: '' };
+
+        // 1. 아이디 자동 완성 함수
+        function autoGenerateId() {
+            const name = document.getElementById('regName').value.trim();
+            const empId = document.getElementById('regEmpId').value.trim();
+            const idField = document.getElementById('regId');
+            if (name || empId) {
+                idField.value = `${name}(${empId})`;
+            } else {
+                idField.value = '';
+            }
+        }
+
+        // 2. 권한 확인 후 모달 열기 함수 (기존 checkAuthAndOpen 덮어쓰기)
+        function checkAuthAndOpen(modalId) {
+            // 무료 개방 서비스: 보험청구, 실비마스터, 준비중인 서비스
+            if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
+                openModal(modalId);
+                return;
+            }
+
+            // 회원가입/승인 제어
+            if (!currentUser.isLoggedIn) {
+                alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
+                openModal('loginModal');
+            } else if (currentUser.status !== '승인') {
+                alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
+            } else {
+                openModal(modalId); // 승인된 회원만 정상 작동
+            }
+        }
+
+        // 3. 회원가입 전송 함수
+        async function submitSignup() {
+            const userId = document.getElementById('regId').value;
+            const name = document.getElementById('regName').value;
+            const empId = document.getElementById('regEmpId').value;
+            const rrn = document.getElementById('regRrn').value;
+            const phone = document.getElementById('regPhone').value;
+            const email = document.getElementById('regEmail').value;
+
+            if (!name || !empId || !rrn || !phone || !email) {
+                alert("모든 정보를 입력해주세요."); return;
+            }
+
+            document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]').innerText = "신청 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "signup", userId, name, empId, rrn, phone, email })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('signupModal');
+                    openModal('loginModal');
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
+            } finally {
+                document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]').innerText = "가입 신청 완료하기";
+            }
+        }
+
+        // 4. 로그인 전송 함수
+        async function submitLogin() {
+            const userId = document.getElementById('loginId').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+
+            if (!userId || !phone) {
+                alert("아이디와 비밀번호(핸드폰번호)를 입력해주세요."); return;
+            }
+
+            const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
+            btn.innerText = "로그인 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "login", userId, phone })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+                    updateLoginUI();
+                    closeModal('loginModal');
+                    
+                    if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
+                    else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert("로그인 통신 오류가 발생했습니다.");
+            } finally {
+                btn.innerText = "로그인 하기";
+            }
+        }
+
+        // 5. 화면 UI 업데이트 함수
+        function updateLoginUI() {
+            if (currentUser.isLoggedIn) {
+                document.getElementById('loggedOutUI').classList.add('hidden');
+                document.getElementById('loggedInUI').classList.remove('hidden');
+                document.getElementById('displayUserName').innerText = currentUser.name + " 님";
+                
+                const statusEl = document.getElementById('displayUserStatus');
+                const dotEl = document.getElementById('statusDot');
+                
+                if (currentUser.status === '승인') {
+                    statusEl.innerText = "(승인완료)";
+                    statusEl.className = "text-emerald-400 font-semibold";
+                    dotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                } else {
+                    statusEl.innerText = "(승인대기)";
+                    statusEl.className = "text-amber-400 font-semibold";
+                    dotEl.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                }
+            } else {
+                document.getElementById('loggedOutUI').classList.remove('hidden');
+                document.getElementById('loggedInUI').classList.add('hidden');
+            }
+        }
+
+        function logoutUser() {
+            currentUser = { isLoggedIn: false, name: '', status: '' };
+            updateLoginUI();
+            alert('로그아웃 되었습니다.');
+        }
+        // ------------------------------------
 </body>
 </html> 
