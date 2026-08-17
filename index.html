@@ -176,7 +176,7 @@
                             <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded">2페이지</span>
                             <span class="text-xs text-slate-400 font-medium">설계사 업무지원</span>
                         </div>
-                        <h1 class="text-2xl font-black text-white mt-1">팀장님의 주요 업무 기능 & 실적 분석</h1>
+                        <h1 id="workspaceGreeting" class="text-2xl font-black text-white mt-1">팀장님의 주요 업무 기능 & 실적 분석</h1>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="switchView('intro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition">←잇츠리온 소개로 돌아가기</button>
@@ -2710,6 +2710,12 @@ ${rawText.slice(0, 60000)}
                 document.getElementById('loggedInUI').classList.remove('hidden');
                 document.getElementById('displayUserName').innerText = currentUser.name + " 님";
                 
+                // ⭐️ 새로 추가된 부분: 2페이지 타이틀에 로그인한 유저 이름 적용
+                const greetingEl = document.getElementById('workspaceGreeting');
+                if (greetingEl) {
+                    greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
+                }
+                
                 const statusEl = document.getElementById('displayUserStatus');
                 const dotEl = document.getElementById('statusDot');
                 if (currentUser.status === '승인') {
@@ -2724,6 +2730,12 @@ ${rawText.slice(0, 60000)}
             } else {
                 document.getElementById('loggedOutUI').classList.remove('hidden');
                 document.getElementById('loggedInUI').classList.add('hidden');
+                
+                // ⭐️ 새로 추가된 부분: 로그아웃 시 원래 기본 문구로 되돌리기
+                const greetingEl = document.getElementById('workspaceGreeting');
+                if (greetingEl) {
+                    greetingEl.innerText = "팀장님의 주요 업무 기능 & 실적 분석";
+                }
             }
         }
 
