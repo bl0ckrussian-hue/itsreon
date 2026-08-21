@@ -1011,9 +1011,13 @@
         let selectedPdfFiles = [];
         let currentSilbiTab = 0;
 
-        // [오류 수정] 선언되지 않아 참조 오류(ReferenceError)를 발생시키는 전역 변수 추가
+        // --- 🔒 회원가입/승인 제어 로직 ---
+        let isAuthorized = false; 
+
+        // ⭐️ 1단계에서 새로 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
+
         let currentUser = { isLoggedIn: false, name: '', status: '' };
-        const USER_DB_URL = ""; // 실제 연동하실 백엔드 API URL(예: Google Apps Script Web App URL 등)을 입력하세요.
 
         function switchResultTab(tabName) {
             activeResultTab = tabName;
@@ -1116,6 +1120,21 @@
             switchSlide(activeSlide === 1 ? 2 : 1);
         }, 6000);
 
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            window.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+            document.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
             if (id === 'dutyModal') {
@@ -1157,6 +1176,167 @@
                 icon.innerText = '▼';
             }
         }
+
+        function checkAuthAndOpen(modalId) {
+            if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
+                openModal(modalId);
+                return;
+            }
+            if (!currentUser.isLoggedIn) {
+                alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
+                openModal('loginModal');
+            } else if (currentUser.status !== '승인') {
+                alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
+            } else {
+                openModal(modalId); 
+            }
+        }
+
+        async function submitSignup() {
+            const name = document.getElementById('regName').value.trim();
+            const empId = document.getElementById('regEmpId').value.trim();
+            const birth6 = document.getElementById('regBirth6').value.trim();
+            const gender1 = document.getElementById('regGender1').value.trim();
+            const phone8 = document.getElementById('regPhone8').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+
+            if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
+                alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
+            }
+
+            const userId = name; 
+            const phone = `010${phone8}`; 
+
+            const btn = document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]');
+            btn.innerText = "신청 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "signup", userId, name, empId, birth6, gender1, phone, email })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('signupModal');
+                    openModal('loginModal');
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "가입 신청 완료하기";
+            }
+        }
+
+        async function submitLogin() {
+            const userId = document.getElementById('loginId').value.trim(); 
+            const loginPw = document.getElementById('loginPw').value.trim();
+
+            if (!userId || !loginPw) {
+                alert("이름과 사번을 입력해주세요."); return;
+            }
+
+            const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
+            btn.innerText = "로그인 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+                    updateLoginUI();
+                    closeModal('loginModal');
+                    if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
+                    else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert("로그인 통신 오류가 발생했습니다.");
+            } finally {
+                btn.innerText = "로그인 하기";
+            }
+        }
+
+        async function submitWithdraw() {
+            const userId = document.getElementById('withdrawId').value.trim();
+            const loginPw = document.getElementById('withdrawPw').value.trim();
+
+            if (!userId || !loginPw) {
+                alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
+            }
+
+            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 권한이 상실됩니다.`)) return;
+
+            const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
+            btn.innerText = "탈퇴 처리 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "withdraw", userId: userId, password: loginPw })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('withdrawModal');
+                    if(currentUser.isLoggedIn && currentUser.name === userId) {
+                        logoutUser();
+                    }
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "영구 탈퇴하기";
+            }
+        }
+
+        function updateLoginUI() {
+            if (currentUser.isLoggedIn) {
+                document.getElementById('loggedOutUI').classList.add('hidden');
+                document.getElementById('loggedInUI').classList.remove('hidden');
+                document.getElementById('displayUserName').innerText = currentUser.name + " 님";
+                
+                const greetingEl = document.getElementById('workspaceGreeting');
+                if (greetingEl) {
+                    greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
+                }
+                
+                const statusEl = document.getElementById('displayUserStatus');
+                const dotEl = document.getElementById('statusDot');
+                if (currentUser.status === '승인') {
+                    statusEl.innerText = "(승인완료)";
+                    statusEl.className = "text-emerald-400 font-semibold";
+                    dotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                } else {
+                    statusEl.innerText = "(승인대기)";
+                    statusEl.className = "text-amber-400 font-semibold";
+                    dotEl.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                }
+            } else {
+                document.getElementById('loggedOutUI').classList.remove('hidden');
+                document.getElementById('loggedInUI').classList.add('hidden');
+                
+                const greetingEl = document.getElementById('workspaceGreeting');
+                if (greetingEl) {
+                    greetingEl.innerText = "팀장님의 주요 업무 기능 & 실적 분석";
+                }
+            }
+        }
+
+        function logoutUser() {
+            currentUser = { isLoggedIn: false, name: '', status: '' };
+            updateLoginUI();
+            alert('로그아웃 되었습니다.');
+        }
+
         // --- 2. 실비 마스터 (계산기 & 예측) 로직 ---
         let smGen = 'gen2';
         let smTreatType = 'outpatient'; 
@@ -1829,6 +2009,7 @@
             document.getElementById('premTotalSum').innerText = `${sumTotal.toLocaleString()}원`;
             document.getElementById('premResultBox').classList.remove('hidden');
         }
+
         const MedicalRuleKeywords = {
             surgeryKeywords: [
                 "수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", 
@@ -1969,6 +2150,7 @@
             }
             return combinedText;
         }
+
         function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
             const visitCounter = {};
@@ -2322,7 +2504,7 @@ ${truncatedText}
             let hintText = "\n[✅ 파이썬 집계 데이터 (엄격 필터링됨)]\n" + sortedHints.map(s => s.lineText).join('\n');
             
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임 임의로 판단/요약하지 말고, 표의 '하부 행'에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 판단/요약하지 말고, 표의 '하부 행'에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
                 hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 투약 정보는 반드시 부상병(통풍, 고지혈증 등)으로 유추하여 주상병 아래에 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
@@ -2363,6 +2545,7 @@ ${rawText.slice(0, 60000)}
 `;
             return prompt;
         }
+
         async function callGeminiApi(promptText, key) {
             const proxyUrl = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
             const maxRetries = 3;
@@ -2677,348 +2860,6 @@ ${rawText.slice(0, 60000)}
                 XLSX.writeFile(wb, `고지위반점검_통합_${timeStr}.xlsx`);
             }
         }
-
-                // --- 🔒 회원가입/승인 제어 로직 ---
-
-        let isAuthorized = false; 
-
-
-
-        // ⭐️ 1단계에서 새로 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
-
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
-
-
-
-        let currentUser = { isLoggedIn: false, name: '', status: '' };
-
-
-
-        function checkAuthAndOpen(modalId) {
-
-            if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
-
-                openModal(modalId);
-
-                return;
-
-            }
-
-            if (!currentUser.isLoggedIn) {
-
-                alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
-
-                openModal('loginModal');
-
-            } else if (currentUser.status !== '승인') {
-
-                alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
-
-            } else {
-
-                openModal(modalId); 
-
-            }
-
-        }
-
-
-
-        async function submitSignup() {
-
-            const name = document.getElementById('regName').value.trim();
-
-            const empId = document.getElementById('regEmpId').value.trim();
-
-            const birth6 = document.getElementById('regBirth6').value.trim();
-
-            const gender1 = document.getElementById('regGender1').value.trim();
-
-            const phone8 = document.getElementById('regPhone8').value.trim();
-
-            const email = document.getElementById('regEmail').value.trim();
-
-
-
-            if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
-
-                alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
-
-            }
-
-
-
-            const userId = name; 
-
-            const phone = `010${phone8}`; 
-
-
-
-            const btn = document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]');
-
-            btn.innerText = "신청 중...";
-
-
-
-            try {
-
-                const res = await fetch(USER_DB_URL, {
-
-                    method: 'POST',
-
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-
-                    body: JSON.stringify({ action: "signup", userId, name, empId, birth6, gender1, phone, email })
-
-                });
-
-                const data = await res.json();
-
-                alert(data.message);
-
-                if (data.success) {
-
-                    closeModal('signupModal');
-
-                    openModal('loginModal');
-
-                }
-
-            } catch (e) {
-
-                alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
-
-            } finally {
-
-                btn.innerText = "가입 신청 완료하기";
-
-            }
-
-        }
-
-
-
-        async function submitLogin() {
-
-            const userId = document.getElementById('loginId').value.trim(); 
-
-            const loginPw = document.getElementById('loginPw').value.trim();
-
-
-
-            if (!userId || !loginPw) {
-
-                alert("이름과 사번을 입력해주세요."); return;
-
-            }
-
-
-
-            const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
-
-            btn.innerText = "로그인 중...";
-
-
-
-            try {
-
-                const res = await fetch(USER_DB_URL, {
-
-                    method: 'POST',
-
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-
-                    body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
-
-                });
-
-                const data = await res.json();
-
-                
-
-                if (data.success) {
-
-                    currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
-
-                    updateLoginUI();
-
-                    closeModal('loginModal');
-
-                    if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
-
-                    else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
-
-                } else {
-
-                    alert(data.message);
-
-                }
-
-            } catch (e) {
-
-                alert("로그인 통신 오류가 발생했습니다.");
-
-            } finally {
-
-                btn.innerText = "로그인 하기";
-
-            }
-
-        }
-
-
-
-        async function submitWithdraw() {
-
-            const userId = document.getElementById('withdrawId').value.trim();
-
-            const loginPw = document.getElementById('withdrawPw').value.trim();
-
-
-
-            if (!userId || !loginPw) {
-
-                alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
-
-            }
-
-
-
-            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 권한이 상실됩니다.`)) return;
-
-
-
-            const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
-
-            btn.innerText = "탈퇴 처리 중...";
-
-
-
-            try {
-
-                const res = await fetch(USER_DB_URL, {
-
-                    method: 'POST',
-
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-
-                    body: JSON.stringify({ action: "withdraw", userId: userId, password: loginPw })
-
-                });
-
-                const data = await res.json();
-
-                alert(data.message);
-
-                if (data.success) {
-
-                    closeModal('withdrawModal');
-
-                    if(currentUser.isLoggedIn && currentUser.name === userId) {
-
-                        logoutUser();
-
-                    }
-
-                }
-
-            } catch (e) {
-
-                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-
-            } finally {
-
-                btn.innerText = "영구 탈퇴하기";
-
-            }
-
-        }
-
-
-
-        function updateLoginUI() {
-
-            if (currentUser.isLoggedIn) {
-
-                document.getElementById('loggedOutUI').classList.add('hidden');
-
-                document.getElementById('loggedInUI').classList.remove('hidden');
-
-                document.getElementById('displayUserName').innerText = currentUser.name + " 님";
-
-                
-
-                // ⭐️ 새로 추가된 부분: 2페이지 타이틀에 로그인한 유저 이름 적용
-
-                const greetingEl = document.getElementById('workspaceGreeting');
-
-                if (greetingEl) {
-
-                    greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
-
-                }
-
-                
-
-                const statusEl = document.getElementById('displayUserStatus');
-
-                const dotEl = document.getElementById('statusDot');
-
-                if (currentUser.status === '승인') {
-
-                    statusEl.innerText = "(승인완료)";
-
-                    statusEl.className = "text-emerald-400 font-semibold";
-
-                    dotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-
-                } else {
-
-                    statusEl.innerText = "(승인대기)";
-
-                    statusEl.className = "text-amber-400 font-semibold";
-
-                    dotEl.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-
-                }
-
-            } else {
-
-                document.getElementById('loggedOutUI').classList.remove('hidden');
-
-                document.getElementById('loggedInUI').classList.add('hidden');
-
-                
-
-                // ⭐️ 새로 추가된 부분: 로그아웃 시 원래 기본 문구로 되돌리기
-
-                const greetingEl = document.getElementById('workspaceGreeting');
-
-                if (greetingEl) {
-
-                    greetingEl.innerText = "팀장님의 주요 업무 기능 & 실적 분석";
-
-                }
-
-            }
-
-        }
-
-
-
-        function logoutUser() {
-
-            currentUser = { isLoggedIn: false, name: '', status: '' };
-
-            updateLoginUI();
-
-            alert('로그아웃 되었습니다.');
-
-        }
-
     </script>
-
 </body>
-
-</html>
-                
+</html>       
