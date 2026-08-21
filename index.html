@@ -1001,6 +1001,16 @@
     </div>
     <!-- ⬇️ 기존 스크립트 시작 부분 -->
     <script>
+        // --- 1. 기본 전역 변수 및 UI 제어 함수 ---
+        let activeSlide = 1;
+        let chart1Instance = null;
+        let chart2Instance = null;
+        let activeResultTab = 'tab1';
+        let currentTab1Markdown = "";
+        let currentTab2Markdown = "";
+        let selectedPdfFiles = [];
+        let currentSilbiTab = 0;
+
         function switchResultTab(tabName) {
             activeResultTab = tabName;
             const btn1 = document.getElementById('tabBtn1');
@@ -1010,21 +1020,20 @@
             const excelBtnText = document.getElementById('excelBtnText');
 
             if (tabName === 'tab1') {
-                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-blue-600 text-white transition shadow-sm";
-                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition";
+                btn1.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-900 text-white transition shadow-sm";
+                btn2.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition";
                 tab1Content.classList.remove('hidden');
                 tab2Content.classList.add('hidden');
                 if (excelBtnText) excelBtnText.innerText = "[신규] 분석보고서 엑셀 다운로드";
             } else {
-                btn2.className = "px-4 py-2 font-bold text-xs rounded-lg bg-blue-600 text-white transition shadow-sm";
-                btn1.className = "px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition";
+                btn2.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-900 text-white transition shadow-sm";
+                btn1.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition";
                 tab2Content.classList.remove('hidden');
                 tab1Content.classList.add('hidden');
                 if (excelBtnText) excelBtnText.innerText = "[통합] 고지위반 점검보고서 엑셀 다운로드";
             }
         }
 
-        let currentSilbiTab = 0;
         function switchSilbiTab(tabIdx) {
             currentSilbiTab = tabIdx;
             [0, 1, 2].forEach(i => {
@@ -1039,29 +1048,6 @@
                 }
             });
         }
-
-        if (window.pdfjsLib) {
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        }
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            window.addEventListener(eventName, function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-            document.addEventListener(eventName, function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-
-        let activeSlide = 1;
-        let chart1Instance = null;
-        let chart2Instance = null;
-        let activeResultTab = 'tab1';
-        let currentTab1Markdown = "";
-        let currentTab2Markdown = "";
-        let selectedPdfFiles = [];
 
         function switchView(viewName, targetSectionId = null) {
             const introView = document.getElementById('viewIntro');
@@ -1139,6 +1125,45 @@
             document.getElementById(id).classList.add('hidden');
         }
 
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('pdfPasswordInput');
+            pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function toggleInfoAccordion(idx) {
+            const body = document.getElementById(`infoBody${idx}`);
+            const arrow = document.getElementById(`infoArrow${idx}`);
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                arrow.innerText = '▲';
+            } else {
+                body.classList.add('hidden');
+                arrow.innerText = '▼';
+            }
+        }
+
+        function toggleDebugVisibility() {
+            const content = document.getElementById('dutyDebugContent');
+            const icon = document.getElementById('debugToggleIcon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.innerText = '▲';
+            } else {
+                content.classList.add('hidden');
+                icon.innerText = '▼';
+            }
+        }
+        // --- 2. 실비 마스터 (계산기 & 예측) 로직 ---
+        let smGen = 'gen2';
+        let smTreatType = 'outpatient'; 
+        let smGen1Type = 'nonLife';
+        let smGen1Limit = '30m';
+        let smGen1Pharm = 'combined';
+        let smHospital = 'clinic';
+        let lastSilbiResult = null;
+        let smGen5Severity = 'nonSevere'; 
+        let premGenInfo = null;
+
         const REALISTIC_RATES = {
             young:  { gen1: 3.0,  gen2: 2.0,  gen3: 0.0,  gen4: -1.0 },
             thirty: { gen1: 8.0,  gen2: 6.0,  gen3: 2.0,  gen4: 1.0 },
@@ -1179,15 +1204,6 @@
             return { code: 'gen4', name: '4세대 (현재)', cycle: 1 };
         }
 
-        let smGen = 'gen2';
-        let smTreatType = 'outpatient'; 
-        let smGen1Type = 'nonLife';
-        let smGen1Limit = '30m';
-        let smGen1Pharm = 'combined';
-        let smHospital = 'clinic';
-        let lastSilbiResult = null;
-        let smGen5Severity = 'nonSevere'; 
-
         function setSilbiTreatType(type) {
             smTreatType = type;
             const outBtn = document.getElementById('smTreatBtn_outpatient');
@@ -1218,11 +1234,8 @@
             ['gen1', 'gen2', 'gen3', 'gen4', 'gen5'].forEach(g => {
                 const btn = document.getElementById(`smGenBtn_${g}`);
                 if(btn) {
-                    if (g === gen) {
-                        btn.className = "py-2 px-1 rounded-lg font-bold text-xs bg-slate-800 text-white shadow-sm transition";
-                    } else {
-                        btn.className = "py-2 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition";
-                    }
+                    if (g === gen) btn.className = "py-2 px-1 rounded-lg font-bold text-xs bg-slate-800 text-white shadow-sm transition";
+                    else btn.className = "py-2 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm transition";
                 }
             });
             
@@ -1463,8 +1476,8 @@
                             }
                         }
                     }
-                    if (visitCnt > 30) details.push(`⚠️ [경고] 동일 질병 통원 30회 초과 주의!`);
                 }
+                if (visitCnt > 30) details.push(`⚠️ [경고] 동일 질병 통원 30회 초과 주의!`);
             } else {
                 let pharmacyPay = 0;
                 if (isOutpatient && med > 0) {
@@ -1698,8 +1711,6 @@
             }
         }
 
-        let premGenInfo = null;
-
         function calculateCurrentAge() {
             const birthInput = document.getElementById('prembirthDate').value.trim();
             if (birthInput.length === 8) {
@@ -1826,7 +1837,6 @@
             document.getElementById('premTotalSum').innerText = `${sumTotal.toLocaleString()}원`;
             document.getElementById('premResultBox').classList.remove('hidden');
         }
-
         const MedicalRuleKeywords = {
             surgeryKeywords: [
                 "수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", 
@@ -1855,11 +1865,6 @@
                 "치조골", "식립술", "매복치", "고정체"
             ]
         };
-
-        function togglePasswordVisibility() {
-            const pwdInput = document.getElementById('pdfPasswordInput');
-            pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
-        }
 
         function changeContractCount(delta) {
             const input = document.getElementById('contractCountInput');
@@ -1946,18 +1951,6 @@
             }
         });
 
-        function toggleDebugVisibility() {
-            const content = document.getElementById('dutyDebugContent');
-            const icon = document.getElementById('debugToggleIcon');
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                icon.innerText = '▲';
-            } else {
-                content.classList.add('hidden');
-                icon.innerText = '▼';
-            }
-        }
-
         async function extractTextFromPdfFiles(fileList, password) {
             let combinedText = "";
             for (let i = 0; i < fileList.length; i++) {
@@ -1984,15 +1977,15 @@
             }
             return combinedText;
         }
-
-       function analyzeMedicalRecords(rawText) {
+        function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
             const visitCounter = {};
             const admissionCounter = {};
             const admissionDetails = {};
-            const testDetails = {}; // ⭐️ 새로 추가: 검사 이력만 따로 저장
+            const testDetails = {}; 
+            const surgeryDetails = {}; 
+            const longMedDetails = {}; 
             
-            // 검사를 식별하는 키워드
             const testKeywords = ["검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray"];
             
             const lines = rawText.split('\n');
@@ -2002,7 +1995,7 @@
                 const rowText = line.trim();
                 if (!rowText) return;
                 const normalizedText = rowText.replace(/\s+/g, '');
-                if (normalizedText.includes('약국')) return;
+                if (normalizedText.includes('약국')) return; 
 
                 const dateMatch = rowText.match(dateRegex);
                 const rowDate = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : "";
@@ -2026,33 +2019,40 @@
                     isSurgeryCandidate = true;
                 }
 
-                if (isSurgeryCandidate) {
-                    detectedInfo.surgeries.push(`[${rowDate || '날짜미상'}] ${rowText.slice(0, 60)}`);
-                }
-
+                let longMedDays = 0;
                 if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방")) {
                     const numMatches = rowText.match(/\b\d{2,3}\b/g);
                     if (numMatches) {
                         const numbers = numMatches.map(n => parseNum(n)).filter(n => n >= 30 && n <= 365);
                         if (numbers.length > 0 && !isAdmissionRow) {
-                            detectedInfo.long_term_meds.push(`(${Math.max(...numbers)}일 처방) ${rowText.slice(0, 50)}...`);
+                            longMedDays = Math.max(...numbers);
                         }
                     }
                 }
 
                 const hospitalMatch = rowText.match(/([가-힣A-Za-z0-9]+(?:병원|의원|의료원|클리닉|내과|정형외과|이비인후과|치과|안과|피부과|비뇨기과|외과|한의원))/);
                 const hospital = hospitalMatch ? hospitalMatch[1] : "의료기관";
-
                 const diseaseMatch = rowText.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|[A-Z]\d{2}))/);
                 const disease = diseaseMatch ? diseaseMatch[1].trim() : "질병미상";
 
                 if (rowDate && rowDate.length >= 8) {
                     const key = `${hospital}|${disease}`;
                     
-                    // ⭐️ 새로 추가: 검사 키워드가 있으면 검사 이력에 별도 저장
                     if (testKeywords.some(k => rowText.includes(k))) {
                         if (!testDetails[key]) testDetails[key] = new Set();
                         testDetails[key].add(rowDate);
+                    }
+
+                    if (isSurgeryCandidate) {
+                        detectedInfo.surgeries.push(`[${rowDate}] ${rowText.slice(0, 60)}`);
+                        if (!surgeryDetails[key]) surgeryDetails[key] = new Set();
+                        surgeryDetails[key].add(rowDate);
+                    }
+
+                    if (longMedDays >= 30) {
+                        detectedInfo.long_term_meds.push(`(${longMedDays}일 처방) ${rowText.slice(0, 50)}...`);
+                        if (!longMedDetails[key]) longMedDetails[key] = new Set();
+                        longMedDetails[key].add(rowDate);
                     }
 
                     if (isAdmissionRow) {
@@ -2073,12 +2073,10 @@
                 }
             });
 
-            // ⭐️ 반환값에 testDetails 추가
-            return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails };
+            return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails };
         }
 
-        // 1. 신규가입 알릴의무 분석 프롬프트 함수
-        function buildOriginalAnalysisPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, testDetails, fileNames) {
+        function buildOriginalAnalysisPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, testDetails, surgeryDetails, longMedDetails, fileNames) {
             const today = new Date();
             const allKeys = new Set([...Object.keys(visitRecords), ...Object.keys(admissionRecords)]);
             const sortedHints = [];
@@ -2090,6 +2088,8 @@
                 const admitDaysTotal = admissionRecords[k] || 0;
                 const admitEvents = Array.from(admissionDetails[k] || []).sort();
                 const testDates = Array.from(testDetails[k] || []).sort();
+                const surgeryDates = Array.from(surgeryDetails[k] || []).sort();
+                const longMedDates = Array.from(longMedDetails[k] || []).sort();
                 
                 const lastDateStr = visitDates.length ? visitDates[visitDates.length - 1] : "";
 
@@ -2101,6 +2101,17 @@
                     isTarget = true;
                     reason.push("5년내 입원");
                     priority = 1;
+                }
+                
+                if (surgeryDates.length > 0) {
+                    isTarget = true;
+                    reason.push("수술 및 시술 시행");
+                    priority = Math.min(priority, 2);
+                }
+                if (longMedDates.length > 0) {
+                    isTarget = true;
+                    reason.push("30일이상 장기투약");
+                    priority = Math.min(priority, 2);
                 }
 
                 if (lastDateStr && lastDateStr.length === 8) {
@@ -2158,17 +2169,16 @@
 
             sortedHints.sort((a, b) => a.priority - b.priority || a.lineText.localeCompare(b.lineText));
 
-            let hintText = "\n[✅ 파이썬 집계 데이터]\n";
+            let hintText = "\n[✅ 파이썬 집계 데이터 (필터링 됨)]\n";
             sortedHints.forEach(item => {
                 hintText += item.lineText + "\n";
             });
 
-            // ⭐️ 경고 문구를 삽입하여 AI가 절대 데이터를 무시하지 못하게 강제함
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 판단/요약하지 말고, 표의 '하부 행'에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 사소하다고 판단/요약하지 말고, 표의 하부 행(Detail)에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
-                hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 투약 정보는 반드시 부상병(통풍, 고지혈증 등)으로 유추하여 주상병 아래에 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
+                hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 약물 기록을 바탕으로 부상병(통풍, 고지혈증, 당뇨 등)을 유추하여 진단명 아래에 반드시 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
             }
 
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -2176,24 +2186,25 @@
 
             const prompt = `당신은 고객이 보험 가입을 위해 제출한 병원 기록을 검토하는 전문 보험 심사역입니다. 제공된 [파이썬 집계 데이터]와 [진료기록 원문]을 바탕으로 보고서를 작성하십시오.
 
-🕒 **분석 기준일(청약일):** ${targetDateStr}
+🕒 **기준일:** ${todayDate} (오늘 기준 역산)
 
 🚨 **[고객 성명 추출 및 서두 작성 규칙]**
-- **첨부된 파일명(${fileNames})** 등에서 **고객(환자)의 성명**을 찾아 첫 문장을 시작하십시오.
+- **첨부된 파일명(${fileNames})** 또는 [진료기록 원문]에서 **고객(환자)의 성명**을 정확히 추출하여 보고서의 첫 줄을 시작하십시오. (예: OOO님의 보험 가입을 위한...)
 
 🚨 **[데이터 표기/제외 최우선 원칙 (⭐️절대 엄수)]**
-1. **약국 기재 절대 금지:** 약국 방문 이력은 표에 절대 기재하지 마십시오.
-2. **무조건 표기 대상:** 알릴의무(3개월 내원, 1년 검사/재검사, 5년내 입원/수술/30일투약) 중 하나라도 해당하면 7일 미만 통원이더라도 절대 제외하지 말고 기재하십시오. (같은 질병이라도 검사일/방법이 다르면 모두 하부행으로 기재)
-3. **비고란 작성 원칙 (⭐️누락 절대 금지):** 파이썬 집계 데이터의 `[사유: ...]` 안의 내용(예: 7일이상 치료, 30일이상 투약, 1년내 검사 및 추가검사 등)을 **단 하나도 누락하지 말고 '비고'란에 그대로 복사**하여 적으십시오. 절대 AI 임의로 요약하거나 생략하지 마십시오.
-4. **과잉 진단 금지:** 파이썬 데이터 [사유]에 명시되지 않은 경미한 과거 건(단순 피부건조증, 감기 등)은 AI가 임의로 '1년내 검사' 등으로 오진하여 추가하지 말고 완전히 제외하십시오.
+1. **약국 기재 절대 금지:** 'OO약국' 등 약국 방문 이력은 표의 병원명이나 방문 행으로 절대 기재하지 마십시오. 오직 약물 유추 용도로만 쓰십시오.
+2. **무조건 표기 대상 (아래 중 단 하나라도 해당하면 7일 미만 통원이라도 절대 제외하지 말고 무조건 표기할 것):**
+   - 최근 3개월 이내 내원 (단 1일이라도 포함)
+   - 최근 1년 이내 검사 및 추가/재검사 (같은 병명이라도 방문일이나 검사 방법이 다르면 하부 행으로 추가하여 모두 표기)
+   - 최근 5년 이내 입원, 수술 및 시술
+   - 최근 5년 이내 **합산 30일 이상 장기 투약 (반드시 유추 병명 기재)**
+3. **경미한 건만 제외:** 위 2번의 알릴의무 조건에 '단 하나도 해당하지 않는' 과거의 단순 감기/타박상 등의 1회성 통원 이력만 제외하십시오.
 
-🚨 **[수술/시술 누락 방지 및 자체 검증]**
-1. **수술명 강제 기재 및 횟수별 분리:** `[🚨시스템 감지: 수술/시술]`에 있는 항목(예: 척추신경차단술 등)은 AI 임의로 합치거나 누락하지 말고, **날짜가 다르면 반드시 각각 독립된 하부 행(Detail)으로 분리하여 모두 표기**하고 구체적 명칭을 기재하십시오. (빈칸 금지)
-2. **[매우 중요] 수술/시술 중복 기재 절대 금지:** 환자가 같은 날 같은 병원에서 진단 코드를 여러 개 받았더라도, 1개의 수술 내역을 양쪽 질병 모두에 중복 복사해서 적지 마십시오. 가장 연관성이 높은 **1개의 주상병 하부 행에만 딱 1회 표기**하십시오.
-3. **치과 보존치료 기재 금지:** 레진, 충전, 아말감, 인레이, 온레이, 크라운, 신경치료, 근관치료 등 보존적 치료는 수술이 아니므로 절대 수술로 기재하지 마십시오. (발치, 치조골성형, 임플란트 식립술 등 잇몸 절개 시술만 인정)
-4. **약물 유추 병명:** 장기 투약 데이터를 바탕으로 고지혈증, 통풍 등을 파악하여 주상병 아래에 `<br>(유추) 병명` 형태로 반드시 병기하십시오.
-5. **최종 검증:** 표 출력 전, 시스템이 감지한 수술 내역과 30일 투약 내역이 표에 100% 반영되었는지 교차 검증(Cross-check) 하십시오.
-6. 간편심사는 입원/수술 이력만 기재하십시오. (단순 통원 제외)
+🚨 **[수술/시술 누락 방지 및 자체 검증 (Cross-check)]**
+1. \`[🚨시스템 감지: 수술/시술]\` 데이터는 처치/시술 키워드(신경차단술, 내시경, 절제술 등)로 필터링된 핵심 데이터입니다. **AI 임의로 사소하다고 판단하여 요약하거나 누락하지 마십시오.** (치과 보존치료만 제외)
+2. **이 목록에 있는 모든 수술/시술 데이터(예: 척추신경차단술)는 동일한 시술이라도 날짜가 다르면 반드시 각각 독립된 하부 행(Detail)을 생성하여 '수술 및 시술 명칭' 란에 데이터 그대로 100% 기재하십시오.** (빈칸이나 '-' 처리 절대 금지)
+3. \`[💊시스템 감지: 30일 이상 투약]\` 목록을 바탕으로, 통풍, 고지혈증, 당뇨 등의 장기 투약 기록이 있다면 해당 병원 진단명 아래에 \`<br>(유추) 통풍\`, \`<br>(유추) 고지혈증\` 형태로 **반드시 병기**하십시오.
+4. **자체 검토:** 표 작성을 완료하기 전, \`[🚨시스템 감지]\` 목록의 시술 개수와 표에 네가 출력한 수술 행의 개수가 100% 일치하는지, 약국 데이터가 들어가지 않았는지, 30일 투약 병명이 유추되었는지 스스로 검토하고 누락분을 채워 넣으십시오.
 
 ---
 **[파이썬 집계 데이터]**
@@ -2221,8 +2232,7 @@ ${truncatedText}
             return { prompt, hintText, sortedHints };
         }
 
-        // 2. 기계약 점검 프롬프트 함수
-        function buildViolationCheckPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, testDetails, targetDate, fileNames) {
+        function buildViolationCheckPrompt(rawText, detectedInfo, visitRecords, admissionRecords, admissionDetails, testDetails, surgeryDetails, longMedDetails, targetDate, fileNames) {
             const allKeys = new Set([...Object.keys(visitRecords), ...Object.keys(admissionRecords)]);
             const sortedHints = [];
 
@@ -2231,23 +2241,26 @@ ${truncatedText}
                 const rawDates = Array.from(visitRecords[k] || []).sort();
                 const admitEvents = Array.from(admissionDetails[k] || []).sort();
                 const rawTestDates = Array.from(testDetails[k] || []).sort();
+                const rawSurgeryDates = Array.from(surgeryDetails[k] || []).sort();
+                const rawLongMedDates = Array.from(longMedDetails[k] || []).sort();
 
-                const validVisitDates = rawDates.filter(dStr => {
-                    if(dStr.length !== 8) return false;
-                    const dt = new Date(parseInt(dStr.substring(0, 4)), parseInt(dStr.substring(4, 6)) - 1, parseInt(dStr.substring(6, 8)));
-                    return dt <= targetDate;
-                });
+                const filterByDate = (dateArray) => {
+                    return dateArray.filter(dStr => {
+                        if(dStr.length !== 8) return true; 
+                        const dt = new Date(parseInt(dStr.substring(0, 4)), parseInt(dStr.substring(4, 6)) - 1, parseInt(dStr.substring(6, 8)));
+                        return dt <= targetDate;
+                    });
+                };
 
+                const validVisitDates = filterByDate(rawDates);
+                const validTestDates = filterByDate(rawTestDates);
+                const validSurgeryDates = filterByDate(rawSurgeryDates);
+                const validLongMedDates = filterByDate(rawLongMedDates);
+                
                 const validAdmitEvents = admitEvents.filter(adStr => {
                     const match = adStr.match(/^(\d{8})/);
                     if(!match) return false;
                     const dt = new Date(parseInt(match[1].substring(0, 4)), parseInt(match[1].substring(4, 6)) - 1, parseInt(match[1].substring(6, 8)));
-                    return dt <= targetDate;
-                });
-
-                const validTestDates = rawTestDates.filter(dStr => {
-                    if(dStr.length !== 8) return false;
-                    const dt = new Date(parseInt(dStr.substring(0, 4)), parseInt(dStr.substring(4, 6)) - 1, parseInt(dStr.substring(6, 8)));
                     return dt <= targetDate;
                 });
 
@@ -2260,6 +2273,18 @@ ${truncatedText}
                     isTarget = true;
                     reason.push("5년내 입원");
                     priority = Math.min(priority, 1);
+                }
+
+                if (validSurgeryDates.length > 0) {
+                    isTarget = true;
+                    reason.push("수술/시술 시행");
+                    priority = Math.min(priority, 1);
+                }
+
+                if (validLongMedDates.length > 0) {
+                    isTarget = true;
+                    reason.push("30일이상 투약");
+                    priority = Math.min(priority, 2);
                 }
 
                 if (visitCnt > 0) {
@@ -2322,17 +2347,14 @@ ${truncatedText}
 
 🚨 **[데이터 표기/제외 최우선 원칙 (⭐️절대 엄수)]**
 1. **약국 기재 절대 금지:** 약국 방문 이력은 표에 절대 기재하지 마십시오.
-2. **무조건 표기 대상:** 알릴의무(3개월 내원, 1년 검사/재검사, 5년내 입원/수술/30일투약) 중 하나라도 해당하면 7일 미만 통원이더라도 절대 제외하지 말고 기재하십시오. (같은 질병이라도 검사일/방법이 다르면 모두 하부행으로 기재)
-3. **비고란 작성 원칙 (⭐️누락 절대 금지):** 파이썬 집계 데이터의 `[사유: ...]` 안의 내용(예: 7일이상 치료, 30일이상 투약, 1년내 검사 및 추가검사 등)을 **단 하나도 누락하지 말고 '비고'란에 그대로 복사**하여 적으십시오. 절대 AI 임의로 요약하거나 생략하지 마십시오.
-4. **과잉 진단 금지:** 파이썬 데이터 [사유]에 명시되지 않은 경미한 과거 건(단순 피부건조증, 감기 등)은 AI가 임의로 '1년내 검사' 등으로 오진하여 추가하지 말고 완전히 제외하십시오.
+2. **무조건 표기 대상:** 3개월 내원, 1년 검사/재검사, 5년내 입원, 수술/시술, 30일이상 투약 중 **단 하나라도 해당하면, 통원 일수가 7일 미만이더라도 절대 제외하지 말고 무조건 표기**하십시오.
+3. **경미한 과거 건만 제외하십시오.** (위 조건에 하나도 해당하지 않는 감기 등)
 
 🚨 **[수술/시술 누락 방지 및 자체 검증]**
-1. **수술명 강제 기재 및 횟수별 분리:** `[🚨시스템 감지: 수술/시술]`에 있는 항목(예: 척추신경차단술 등)은 AI 임의로 합치거나 누락하지 말고, **날짜가 다르면 반드시 각각 독립된 하부 행(Detail)으로 분리하여 모두 표기**하고 구체적 명칭을 기재하십시오. (빈칸 금지)
-2. **[매우 중요] 수술/시술 중복 기재 절대 금지:** 환자가 같은 날 같은 병원에서 진단 코드를 여러 개 받았더라도, 1개의 수술 내역을 양쪽 질병 모두에 중복 복사해서 적지 마십시오. 가장 연관성이 높은 **1개의 주상병 하부 행에만 딱 1회 표기**하십시오.
-3. **치과 보존치료 기재 금지:** 레진, 충전, 아말감, 인레이, 온레이, 크라운, 신경치료, 근관치료 등 보존적 치료는 수술이 아니므로 절대 수술로 기재하지 마십시오. (발치, 치조골성형, 임플란트 식립술 등 잇몸 절개 시술만 인정)
-4. **약물 유추 병명:** 장기 투약 데이터를 바탕으로 고지혈증, 통풍 등을 파악하여 주상병 아래에 `<br>(유추) 병명` 형태로 반드시 병기하십시오.
-5. **최종 검증:** 표 출력 전, 시스템이 감지한 수술 내역과 30일 투약 내역이 표에 100% 반영되었는지 교차 검증(Cross-check) 하십시오.
-6. 간편심사는 입원/수술 이력만 기재하십시오. (단순 통원 제외)
+1. **수술명 강제 기재 및 횟수별 분리:** \`[🚨시스템 감지: 수술/시술]\`에 있는 항목(예: 척추신경차단술 등)은 AI 임의로 합치거나 누락하지 말고, **날짜가 다르면 반드시 각각 독립된 하부 행(Detail)으로 분리하여 모두 표기**하고 구체적 명칭을 기재하십시오. (빈칸 금지)
+2. **약물 유추 병명:** 장기 투약 데이터를 바탕으로 고지혈증, 통풍 등을 파악하여 주상병 아래에 \`<br>(유추) 병명\` 형태로 반드시 병기하십시오.
+3. **최종 검증:** 표 출력 전, 시스템이 감지한 수술 내역과 30일 투약 내역이 표에 100% 반영되었는지, 약국 이력이 없는지 교차 검증(Cross-check) 하십시오.
+4. 간편심사는 입원/수술 이력만 기재하십시오. (단순 통원 제외)
 
 ---
 **[파이썬 집계 데이터]**
@@ -2349,7 +2371,6 @@ ${rawText.slice(0, 60000)}
 `;
             return prompt;
         }
-
         async function callGeminiApi(promptText, key) {
             const proxyUrl = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
             const maxRetries = 3;
@@ -2397,8 +2418,7 @@ ${rawText.slice(0, 60000)}
             }
         }
 
-       async function executeDutyAnalysis() {
-            // (이전과 동일한 시작 부분 유지...)
+        async function executeDutyAnalysis() {
             const inputKey = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value.trim() : "";
             const apiKey = inputKey || "AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg";
             const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
@@ -2407,6 +2427,8 @@ ${rawText.slice(0, 60000)}
                 alert('진료기록 PDF 파일을 먼저 드래그하거나 [Browse files]로 선택해주세요.');
                 return;
             }
+            
+            const fileNamesStr = selectedPdfFiles.map(f => f.name).join(', ');
 
             const progressArea = document.getElementById('dutyProgressArea');
             const progressText = document.getElementById('dutyProgressText');
@@ -2446,8 +2468,7 @@ ${rawText.slice(0, 60000)}
                 progressText.innerText = "⚙️ [v5.0 Rule Engine] 수술/시술, 장기투약 및 입원/통원 집계 중...";
                 startFakeProgress(25, 50, 100); 
 
-                // ⭐️ testDetails 가 추가로 받아집니다!
-                const { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails } = analyzeMedicalRecords(fullText);
+                const { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails } = analyzeMedicalRecords(fullText);
 
                 debugContent.innerHTML = `
                     <div class="text-amber-400 font-bold">📊 [파이썬 Rule Engine 집계 결과]</div>
@@ -2480,25 +2501,27 @@ ${rawText.slice(0, 60000)}
                 progressText.innerText = "🤖 AI 엔진이 표준 알릴의무 보고서를 작성 중입니다. (가장 오래 걸립니다)";
                 startFakeProgress(50, 85, 600); 
 
-                // ⭐️ testDetails 가 추가로 전달됩니다!
-                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails);
+                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails, fileNamesStr);
                 const aiMarkdown1 = await callGeminiApi(promptTab1, apiKey);
                 currentTab1Markdown = aiMarkdown1;
 
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
                     let fullOldMarkdown = "";
+                    let contractDatesStrList = [];
+
                     for (let c = 0; c < contractCount; c++) {
                         const dateInput = document.getElementById(`contractDate_${c}`);
                         const dVal = dateInput ? dateInput.value : "";
                         if (dVal) {
+                            contractDatesStrList.push(dVal);
                             const parts = dVal.split('-');
                             const targetDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            
                             progressText.innerText = `⏳ 계약 #${c + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
                             startFakeProgress(currentP, 95, 800); 
                             
-                            // ⭐️ testDetails 가 추가로 전달됩니다!
-                            const promptTab2 = buildViolationCheckPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, targetDateObj);
+                            const promptTab2 = buildViolationCheckPrompt(fullText, detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails, targetDateObj, fileNamesStr);
                             const aiRespOld = await callGeminiApi(promptTab2, apiKey);
                             
                             fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
@@ -2545,7 +2568,6 @@ ${rawText.slice(0, 60000)}
             const now = new Date();
             const timeStr = now.toISOString().replace(/[-:T]/g, '').slice(0, 12);
 
-            // --- 🎨 엑셀 스타일 정의 (과거 Python xlsxwriter 양식 완벽 재현) ---
             const styleTitle = { font: { bold: true, sz: 14 }, fill: { fgColor: { rgb: "E7E6E6" } }, alignment: { vertical: "center" } };
             const styleText = { alignment: { wrapText: true, vertical: "top" } };
             const styleHeader = {
@@ -2561,7 +2583,7 @@ ${rawText.slice(0, 60000)}
 
             const processSection = (lines, sheetName, isOld) => {
                 const rows = [];
-                const rowStyles = []; // 각 셀의 디자인 속성을 저장하는 배열
+                const rowStyles = []; 
 
                 if (isOld) {
                     rows.push(["분석 기준일: 기계약 점검"]);
@@ -2573,7 +2595,6 @@ ${rawText.slice(0, 60000)}
                     rows.push(["--------------------------------------------------"]);
                 }
                 
-                // 첫 3줄 텍스트 스타일 적용
                 rowStyles.push([{...styleText}]);
                 rowStyles.push([{...styleText}]);
                 rowStyles.push([{...styleText}]);
@@ -2594,7 +2615,6 @@ ${rawText.slice(0, 60000)}
                                 let styleR = [];
                                 for (let cIdx = 0; cIdx < colsCount; cIdx++) {
                                     safeR.push(r[cIdx] || "");
-                                    // 첫 줄은 파란색 헤더, 나머지는 일반 테두리 셀
                                     styleR.push(rIdx === 0 ? {...styleHeader} : {...styleCell});
                                 }
                                 rows.push(safeR);
@@ -2633,13 +2653,11 @@ ${rawText.slice(0, 60000)}
 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
 
-                // 📏 열 너비(칸 너비) 강제 지정 (과거 파이썬 25, 20, 12, 12, 10... 과 동일하게 적용)
                 ws['!cols'] = [
                     {wch: 25}, {wch: 20}, {wch: 12}, {wch: 12}, {wch: 10}, 
                     {wch: 10}, {wch: 10}, {wch: 30}, {wch: 40}
                 ];
 
-                // 추출한 디자인(스타일)을 실제 워크시트에 주입
                 for (let r = 0; r < rows.length; r++) {
                     for (let c = 0; c < (rows[r] ? rows[r].length : 0); c++) {
                         const cellRef = XLSX.utils.encode_cell({c: c, r: r});
@@ -2667,13 +2685,6 @@ ${rawText.slice(0, 60000)}
                 XLSX.writeFile(wb, `고지위반점검_통합_${timeStr}.xlsx`);
             }
         }
-        // --- 🔒 회원가입/승인 제어 로직 ---
-        let isAuthorized = false; 
-
-        // ⭐️ 1단계에서 새로 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
-
-        let currentUser = { isLoggedIn: false, name: '', status: '' };
 
         function checkAuthAndOpen(modalId) {
             if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
@@ -2802,7 +2813,6 @@ ${rawText.slice(0, 60000)}
                 document.getElementById('loggedInUI').classList.remove('hidden');
                 document.getElementById('displayUserName').innerText = currentUser.name + " 님";
                 
-                // ⭐️ 새로 추가된 부분: 2페이지 타이틀에 로그인한 유저 이름 적용
                 const greetingEl = document.getElementById('workspaceGreeting');
                 if (greetingEl) {
                     greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
@@ -2823,7 +2833,6 @@ ${rawText.slice(0, 60000)}
                 document.getElementById('loggedOutUI').classList.remove('hidden');
                 document.getElementById('loggedInUI').classList.add('hidden');
                 
-                // ⭐️ 새로 추가된 부분: 로그아웃 시 원래 기본 문구로 되돌리기
                 const greetingEl = document.getElementById('workspaceGreeting');
                 if (greetingEl) {
                     greetingEl.innerText = "팀장님의 주요 업무 기능 & 실적 분석";
