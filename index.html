@@ -81,41 +81,50 @@
         <div id="viewIntro" class="block transition-all duration-300">
             <!-- 1-1. 히어로 슬라이더 섹션 -->
             <section id="introHero" class="relative bg-slate-950 text-white overflow-hidden min-h-[460px] md:min-h-[500px] flex items-center">
-                <!-- Slide 1 -->
+                
+                <!-- Slide 1 (첫번째 페이지 - 중간배너2.jpg 적용) -->
                 <div id="slide1" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-100">
-                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1600&q=80');"></div>
-                    <div class="absolute inset-0 bg-slate-950/80 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-900/60"></div>
+                    <!-- 배경 이미지 -->
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('images/중간배너2.jpg');"></div>
+                    <!-- 왼쪽 텍스트가 돋보이도록 어두운 그라데이션 추가 -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/70 to-transparent"></div>
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
-                        <div class="max-w-2xl">
-                            <span class="inline-block bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">보험 설계사 전용 스마트 영업지원 시스템</span>
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">차원이 다른 영업 생산성,<br/>잇츠리온 플랫폼 안내</h1>
-                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">고객관리부터 스케줄 연동까지, 보장/약관 분석, 알릴의무 자동분석, 실비계산기, 업무효율분석까지 원스톱으로 지원합니다.</p>
+                        <!-- 텍스트 영역 (좌측 정렬) -->
+                        <div class="max-w-xl">
+                            <span class="inline-block bg-blue-600/30 text-blue-300 border border-blue-500/40 text-[11px] font-bold px-3 py-1 rounded-full mb-4 tracking-wide">보험 설계사 전용 스마트 영업지원 시스템</span>
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">차원이 다른 영업 생산성,<br/>잇츠리온 플랫폼 안내</h1>
+                            <p class="mt-4 text-slate-300 text-sm sm:text-base font-medium leading-relaxed drop-shadow">고객관리부터 스케줄 연동까지, 보장/약관 분석, 알릴의무 자동분석, 실비계산기, 업무효율분석까지 원스톱으로 지원합니다.</p>
                             <div class="mt-8 flex flex-wrap gap-3">
-                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2"><span>업무지원 바로가기→</span></button>
-                                <a href="#whyUs" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm transition">왜 잇츠리온인가?→</a>
+                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-7 py-3 rounded-lg font-bold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2"><span>업무지원 바로가기→</span></button>
+                                <a href="#whyUs" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600 px-6 py-3 rounded-lg font-bold text-sm transition shadow-lg">왜 잇츠리온인가?→</a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Slide 2 -->
+                
+                <!-- Slide 2 (두번째 페이지 - 중간배너1.jpg 적용) -->
                 <div id="slide2" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-0 pointer-events-none">
-                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80');"></div>
-                    <div class="absolute inset-0 bg-slate-950/80 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-900/60"></div>
+                    <!-- 배경 이미지 -->
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('images/중간배너1.jpg');"></div>
+                    <!-- 왼쪽 텍스트가 돋보이도록 어두운 그라데이션 추가 -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/70 to-transparent"></div>
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
-                        <div class="max-w-2xl">
-                            <span class="inline-block bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full mb-4">올인원 영업 비즈니스 플랫폼</span>
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">영업 성과를 최상으로 높이는<br/>스마트 워크스페이스</h1>
-                            <p class="mt-4 text-slate-300 text-base sm:text-lg font-medium leading-relaxed">체계적인 고객관리 및 계약 업무 효율성 분석으로 성공적인 영업 활동을 이어가세요.</p>
+                        <!-- 텍스트 영역 (좌측 정렬) -->
+                        <div class="max-w-xl">
+                            <span class="inline-block bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold px-3 py-1 rounded-full mb-4 tracking-wide">올인원 스마트 워크스페이스 플랫폼</span>
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">영업 성과를 최상으로 높이는<br/>스마트 워크스페이스</h1>
+                            <p class="mt-4 text-slate-300 text-sm sm:text-base font-medium leading-relaxed drop-shadow">체계적인 고객관리 및 계약 업무 효율성 분석으로 성공적인 영업 활동을 이어가세요.</p>
                             <div class="mt-8 flex flex-wrap gap-3">
-                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-xl transition transform hover:-translate-y-0.5">업무지원 바로가기→</button>
+                                <button onclick="switchView('workspace')" class="bg-blue-600 hover:bg-blue-500 text-white px-7 py-3 rounded-lg font-bold text-sm shadow-xl transition transform hover:-translate-y-0.5">업무지원 바로가기→</button>
                             </div>
                         </div>
                     </div>
                 </div>
+                
                 <!-- Carousel Pagination Dots -->
                 <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3">
-                    <button id="dot1" onclick="switchSlide(1)" class="w-3 h-3 rounded-full bg-white transition-all duration-300" aria-label="Slide 1"></button>
-                    <button id="dot2" onclick="switchSlide(2)" class="w-3 h-3 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 2"></button>
+                    <button id="dot1" onclick="switchSlide(1)" class="w-2.5 h-2.5 rounded-full bg-white shadow-md transition-all duration-300" aria-label="Slide 1"></button>
+                    <button id="dot2" onclick="switchSlide(2)" class="w-2.5 h-2.5 rounded-full bg-white/40 hover:bg-white/60 transition-all duration-300" aria-label="Slide 2"></button>
                 </div>
             </section>
 
