@@ -1011,6 +1011,10 @@
         let selectedPdfFiles = [];
         let currentSilbiTab = 0;
 
+        // [오류 수정] 선언되지 않아 참조 오류(ReferenceError)를 발생시키는 전역 변수 추가
+        let currentUser = { isLoggedIn: false, name: '', status: '' };
+        const USER_DB_URL = ""; // 실제 연동하실 백엔드 API URL(예: Google Apps Script Web App URL 등)을 입력하세요.
+
         function switchResultTab(tabName) {
             activeResultTab = tabName;
             const btn1 = document.getElementById('tabBtn1');
@@ -1699,18 +1703,6 @@
             });
         }
 
-        function toggleInfoAccordion(idx) {
-            const body = document.getElementById(`infoBody${idx}`);
-            const arrow = document.getElementById(`infoArrow${idx}`);
-            if (body.classList.contains('hidden')) {
-                body.classList.remove('hidden');
-                arrow.innerText = '▲';
-            } else {
-                body.classList.add('hidden');
-                arrow.innerText = '▼';
-            }
-        }
-
         function calculateCurrentAge() {
             const birthInput = document.getElementById('prembirthDate').value.trim();
             if (birthInput.length === 8) {
@@ -2330,7 +2322,7 @@ ${truncatedText}
             let hintText = "\n[✅ 파이썬 집계 데이터 (엄격 필터링됨)]\n" + sortedHints.map(s => s.lineText).join('\n');
             
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 판단/요약하지 말고, 표의 '하부 행'에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임 임의로 판단/요약하지 말고, 표의 '하부 행'에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
                 hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 투약 정보는 반드시 부상병(통풍, 고지혈증 등)으로 유추하여 주상병 아래에 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
@@ -2781,7 +2773,7 @@ ${rawText.slice(0, 60000)}
                 alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
             }
 
-            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 권한이 상실됩니다.`)) return;
+            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 복구할 수 없습니다.`)) return;
 
             const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
             btn.innerText = "탈퇴 처리 중...";
@@ -2848,5 +2840,4 @@ ${rawText.slice(0, 60000)}
     </script>
 </body>
 </html>
-    
                 
