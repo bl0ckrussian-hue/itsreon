@@ -1678,7 +1678,7 @@
 
         function copySilbiResult() {
             if (!lastSilbiResult) return;
-            const text = `[BMS 보험 청구 예상]\n기간: ${lastSilbiResult.period}\n예상 지급액: ${lastSilbiResult.money.toLocaleString()}원\n\n${lastSilbiResult.logs.join('\n')}`;
+            const text = `[보험 청구 예상]\n기간: ${lastSilbiResult.period}\n예상 지급액: ${lastSilbiResult.money.toLocaleString()}원\n\n${lastSilbiResult.logs.join('\n')}`;
             navigator.clipboard.writeText(text).then(() => {
                 alert("📋 복사 준비 완료: 클립보드에 복사되었습니다.");
             }).catch(() => {
