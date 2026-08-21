@@ -2714,17 +2714,29 @@ ${rawText.slice(0, 60000)}
             try {
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    // ⭐️ 수정: charset 속성을 제거하여 브라우저의 엄격한 CORS 사전 검열 방지
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: "signup", userId, name, empId, birth6, gender1, phone, email })
                 });
-                const data = await res.json();
+                
+                // ⭐️ 수정: 서버가 에러 HTML을 뱉었을 때를 대비한 안전한 파싱 로직
+                const responseText = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error("구글 서버 응답 에러 원문:", responseText);
+                    throw new Error("구글 스크립트 권한 에러(HTML 반환)가 발생했습니다.");
+                }
+
                 alert(data.message);
                 if (data.success) {
                     closeModal('signupModal');
                     openModal('loginModal');
                 }
             } catch (e) {
-                alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
+                console.error(e);
+                alert("통신 오류: 구글 스크립트 배포 권한이 '모든 사용자'인지 확인해주세요.");
             } finally {
                 btn.innerText = "가입 신청 완료하기";
             }
@@ -2744,10 +2756,20 @@ ${rawText.slice(0, 60000)}
             try {
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    // ⭐️ 수정: charset 속성을 제거하여 브라우저의 엄격한 CORS 사전 검열 방지
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
                 });
-                const data = await res.json();
+                
+                // ⭐️ 수정: 에러 HTML 파싱 방어
+                const responseText = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error("구글 서버 응답 에러 원문:", responseText);
+                    throw new Error("구글 스크립트 권한 에러(HTML 반환)가 발생했습니다.");
+                }
                 
                 if (data.success) {
                     currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
@@ -2759,7 +2781,8 @@ ${rawText.slice(0, 60000)}
                     alert(data.message);
                 }
             } catch (e) {
-                alert("로그인 통신 오류가 발생했습니다.");
+                console.error(e);
+                alert("로그인 통신 오류: 구글 스크립트 배포 설정에서 접근 권한이 '모든 사용자(Anyone)'로 되어 있는지 반드시 확인하세요!");
             } finally {
                 btn.innerText = "로그인 하기";
             }
@@ -2781,10 +2804,21 @@ ${rawText.slice(0, 60000)}
             try {
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    // ⭐️ 수정: charset 속성 제거
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: "withdraw", userId: userId, password: loginPw })
                 });
-                const data = await res.json();
+                
+                // ⭐️ 수정: 에러 HTML 파싱 방어
+                const responseText = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error("구글 서버 응답 에러 원문:", responseText);
+                    throw new Error("구글 스크립트 권한 에러(HTML 반환)가 발생했습니다.");
+                }
+
                 alert(data.message);
                 if (data.success) {
                     closeModal('withdrawModal');
@@ -2793,7 +2827,8 @@ ${rawText.slice(0, 60000)}
                     }
                 }
             } catch (e) {
-                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                console.error(e);
+                alert("통신 오류: 구글 스크립트 배포 권한을 확인해주세요.");
             } finally {
                 btn.innerText = "영구 탈퇴하기";
             }
