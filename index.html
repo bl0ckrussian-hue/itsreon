@@ -2678,201 +2678,347 @@ ${rawText.slice(0, 60000)}
             }
         }
 
+                // --- 🔒 회원가입/승인 제어 로직 ---
+
+        let isAuthorized = false; 
+
+
+
+        // ⭐️ 1단계에서 새로 만든 회원관리용 구글 스크립트 주소를 붙여넣으세요!
+
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
+
+
+
+        let currentUser = { isLoggedIn: false, name: '', status: '' };
+
+
+
         function checkAuthAndOpen(modalId) {
+
             if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
+
                 openModal(modalId);
+
                 return;
+
             }
+
             if (!currentUser.isLoggedIn) {
+
                 alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
+
                 openModal('loginModal');
+
             } else if (currentUser.status !== '승인') {
+
                 alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
+
             } else {
+
                 openModal(modalId); 
+
             }
+
         }
+
+
 
         async function submitSignup() {
+
             const name = document.getElementById('regName').value.trim();
+
             const empId = document.getElementById('regEmpId').value.trim();
+
             const birth6 = document.getElementById('regBirth6').value.trim();
+
             const gender1 = document.getElementById('regGender1').value.trim();
+
             const phone8 = document.getElementById('regPhone8').value.trim();
+
             const email = document.getElementById('regEmail').value.trim();
 
+
+
             if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
+
                 alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
+
             }
+
+
 
             const userId = name; 
+
             const phone = `010${phone8}`; 
 
+
+
             const btn = document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]');
+
             btn.innerText = "신청 중...";
 
+
+
             try {
+
                 const res = await fetch(USER_DB_URL, {
+
                     method: 'POST',
-                    // ⭐️ 수정: charset 속성을 제거하여 브라우저의 엄격한 CORS 사전 검열 방지
-                    headers: { 'Content-Type': 'text/plain' },
+
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+
                     body: JSON.stringify({ action: "signup", userId, name, empId, birth6, gender1, phone, email })
+
                 });
-                
-                // ⭐️ 수정: 서버가 에러 HTML을 뱉었을 때를 대비한 안전한 파싱 로직
-                const responseText = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error("구글 서버 응답 에러 원문:", responseText);
-                    throw new Error("구글 스크립트 권한 에러(HTML 반환)가 발생했습니다.");
-                }
+
+                const data = await res.json();
 
                 alert(data.message);
+
                 if (data.success) {
+
                     closeModal('signupModal');
+
                     openModal('loginModal');
+
                 }
+
             } catch (e) {
-                console.error(e);
-                alert("통신 오류: 구글 스크립트 배포 권한이 '모든 사용자'인지 확인해주세요.");
+
+                alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
+
             } finally {
+
                 btn.innerText = "가입 신청 완료하기";
+
             }
+
         }
+
+
 
         async function submitLogin() {
+
             const userId = document.getElementById('loginId').value.trim(); 
+
             const loginPw = document.getElementById('loginPw').value.trim();
 
+
+
             if (!userId || !loginPw) {
+
                 alert("이름과 사번을 입력해주세요."); return;
+
             }
+
+
 
             const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
+
             btn.innerText = "로그인 중...";
 
+
+
             try {
+
                 const res = await fetch(USER_DB_URL, {
+
                     method: 'POST',
-                    // ⭐️ 수정: charset 속성을 제거하여 브라우저의 엄격한 CORS 사전 검열 방지
-                    headers: { 'Content-Type': 'text/plain' },
+
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+
                     body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
+
                 });
+
+                const data = await res.json();
+
                 
-                // ⭐️ 수정: 에러 HTML 파싱 방어
-                const responseText = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error("구글 서버 응답 에러 원문:", responseText);
-                    throw new Error("구글 스크립트 권한 에러(HTML 반환)가 발생했습니다.");
-                }
-                
+
                 if (data.success) {
+
                     currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+
                     updateLoginUI();
+
                     closeModal('loginModal');
+
                     if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
+
                     else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+
                 } else {
+
                     alert(data.message);
+
                 }
+
             } catch (e) {
-                console.error(e);
-                alert("로그인 통신 오류: 구글 스크립트 배포 설정에서 접근 권한이 '모든 사용자(Anyone)'로 되어 있는지 반드시 확인하세요!");
+
+                alert("로그인 통신 오류가 발생했습니다.");
+
             } finally {
+
                 btn.innerText = "로그인 하기";
+
             }
+
         }
+
+
 
         async function submitWithdraw() {
+
             const userId = document.getElementById('withdrawId').value.trim();
+
             const loginPw = document.getElementById('withdrawPw').value.trim();
 
+
+
             if (!userId || !loginPw) {
+
                 alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
+
             }
 
-            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 복구할 수 없습니다.`)) return;
+
+
+            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 권한이 상실됩니다.`)) return;
+
+
 
             const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
+
             btn.innerText = "탈퇴 처리 중...";
 
+
+
             try {
+
                 const res = await fetch(USER_DB_URL, {
+
                     method: 'POST',
-                    // ⭐️ 수정: charset 속성 제거
-                    headers: { 'Content-Type': 'text/plain' },
+
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+
                     body: JSON.stringify({ action: "withdraw", userId: userId, password: loginPw })
+
                 });
-                
-                // ⭐️ 수정: 에러 HTML 파싱 방어
-                const responseText = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error("구글 서버 응답 에러 원문:", responseText);
-                    throw new Error("구글 스크립트 권한 에러(HTML 반환)가 발생했습니다.");
-                }
+
+                const data = await res.json();
 
                 alert(data.message);
+
                 if (data.success) {
+
                     closeModal('withdrawModal');
+
                     if(currentUser.isLoggedIn && currentUser.name === userId) {
+
                         logoutUser();
+
                     }
+
                 }
+
             } catch (e) {
-                console.error(e);
-                alert("통신 오류: 구글 스크립트 배포 권한을 확인해주세요.");
+
+                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+
             } finally {
+
                 btn.innerText = "영구 탈퇴하기";
+
             }
+
         }
+
+
 
         function updateLoginUI() {
+
             if (currentUser.isLoggedIn) {
+
                 document.getElementById('loggedOutUI').classList.add('hidden');
+
                 document.getElementById('loggedInUI').classList.remove('hidden');
+
                 document.getElementById('displayUserName').innerText = currentUser.name + " 님";
+
                 
+
+                // ⭐️ 새로 추가된 부분: 2페이지 타이틀에 로그인한 유저 이름 적용
+
                 const greetingEl = document.getElementById('workspaceGreeting');
+
                 if (greetingEl) {
+
                     greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
+
                 }
+
                 
+
                 const statusEl = document.getElementById('displayUserStatus');
+
                 const dotEl = document.getElementById('statusDot');
+
                 if (currentUser.status === '승인') {
+
                     statusEl.innerText = "(승인완료)";
+
                     statusEl.className = "text-emerald-400 font-semibold";
+
                     dotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+
                 } else {
+
                     statusEl.innerText = "(승인대기)";
+
                     statusEl.className = "text-amber-400 font-semibold";
+
                     dotEl.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+
                 }
+
             } else {
+
                 document.getElementById('loggedOutUI').classList.remove('hidden');
+
                 document.getElementById('loggedInUI').classList.add('hidden');
+
                 
+
+                // ⭐️ 새로 추가된 부분: 로그아웃 시 원래 기본 문구로 되돌리기
+
                 const greetingEl = document.getElementById('workspaceGreeting');
+
                 if (greetingEl) {
+
                     greetingEl.innerText = "팀장님의 주요 업무 기능 & 실적 분석";
+
                 }
+
             }
+
         }
 
+
+
         function logoutUser() {
+
             currentUser = { isLoggedIn: false, name: '', status: '' };
+
             updateLoginUI();
+
             alert('로그아웃 되었습니다.');
+
         }
+
     </script>
+
 </body>
+
 </html>
                 
