@@ -2357,10 +2357,10 @@
             });
 
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 사소하다고 판단/요약하지 말고, 표의 하부 행(Detail)에 1건도 빠짐없이 전부 세부진료정보 데이터의'코드명'그대로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 사소하다고 판단/요약하지 말고, 표의 하부 행(Detail)에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
-                hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 약물(처방조제정보 데이터) 기록을 바탕으로 부상병(통풍, 고지혈증, 당뇨 등)을 유추하여 표의 질병명(진단코드) 아래줄에 반드시 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
+                hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 약물 기록을 바탕으로 부상병(통풍, 고지혈증, 당뇨 등)을 유추하여 진단명 아래에 반드시 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
             }
 
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
