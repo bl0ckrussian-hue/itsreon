@@ -718,11 +718,11 @@
 
                     <div class="space-y-3">
                         <label class="block font-bold text-slate-700 text-xs">기본진료정보 / 세부진료정보 / 처방조제정보 / 교통사고기본·세부 (PDF)</label>
-                        <label id="pdfDropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-400 bg-white rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 group shadow-sm">
+                        <label id="pdfDropZone" for="pdfFileInput" class="border-2 border-dashed border-slate-300 hover:border-blue-400 bg-white rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 group shadow-sm w-full block" ondragover="event.preventDefault(); this.classList.add('border-blue-500', 'bg-slate-50');" ondragleave="event.preventDefault(); this.classList.remove('border-blue-500', 'bg-slate-50');" ondrop="event.preventDefault(); this.classList.remove('border-blue-500', 'bg-slate-50'); handlePdfDrop(event);">
                             <div class="w-12 h-12 rounded-full bg-slate-50 group-hover:bg-blue-50 text-slate-400 group-hover:text-blue-500 flex items-center justify-center text-xl transition pointer-events-none">☁️</div>
-                            <div class="text-xs font-bold text-slate-600 group-hover:text-blue-600 transition pointer-events-none" id="pdfFileNameDisplay">파일을 찾아 이곳에 두세요</div>
+                            <div class="text-xs font-bold text-slate-600 group-hover:text-blue-600 transition pointer-events-none" id="pdfFileNameDisplay">Drag and drop files here</div>
                             <div class="text-[10px] text-slate-400 pointer-events-none">Limit 200MB per file • PDF</div>
-                            <button type="button" onclick="document.getElementById('pdfFileInput').click()" class="mt-2 bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold shadow-sm transition">파일찾기</button>
+                            <div class="mt-2 inline-block bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold shadow-sm transition pointer-events-none">Browse files</div>
                             <input id="pdfFileInput" type="file" accept=".pdf" multiple class="hidden" onchange="handlePdfSelect(event)">
                         </label>
                     </div>
