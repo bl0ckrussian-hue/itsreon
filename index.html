@@ -1371,7 +1371,7 @@
             }
         }
 
-        // 5. ⭐️ 파일 검증 및 화면에 파일명 표시 (문제 해결의 핵심)
+       // 5. ⭐️ 파일 검증 및 화면에 파일명 표시 (문제 해결의 핵심)
         function processFiles(files) {
             const pdfOnly = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
             if (pdfOnly.length === 0) {
