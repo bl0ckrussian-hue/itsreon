@@ -1357,9 +1357,10 @@
             // 3. 파일을 드래그해서 놓았을 때 (Drop 업로드)
             dropZone.addEventListener('drop', function(e) {
                 this.classList.remove('border-blue-500', 'bg-slate-50');
-                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    fileInput.files = e.dataTransfer.files; // 숨겨진 input과 파일 동기화
-                    processFiles(e.dataTransfer.files);
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    processFiles(dt.files);
+                    fileInput.files = dt.files; // 내부 input과 파일 동기화
                 }
             });
         }
@@ -1371,7 +1372,7 @@
             }
         }
 
-       // 5. ⭐️ 파일 검증 및 화면에 파일명 표시 (문제 해결의 핵심)
+        // 5. ⭐️ 파일 검증 및 화면에 모든 파일명 나열하기 (수정 완료!)
         function processFiles(files) {
             const pdfOnly = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
             if (pdfOnly.length === 0) {
@@ -1380,19 +1381,15 @@
             }
             selectedPdfFiles = pdfOnly; // AI 분석기에 넘길 전역 변수에 저장
 
-            // 화면에 파일명 즉시 업데이트
+            // ⭐️ 화면에 파일명 즉시 업데이트 (여러 개일 경우 전부 줄바꿈으로 나열)
             const nameDisplay = document.getElementById('pdfFileNameDisplay');
             if (nameDisplay) {
-                if (selectedPdfFiles.length === 1) {
-                    nameDisplay.innerText = `📄 ${selectedPdfFiles[0].name}`;
-                } else {
-                    nameDisplay.innerText = `📄 ${selectedPdfFiles.length}개의 PDF 파일 선택됨`;
-                }
+                nameDisplay.innerHTML = selectedPdfFiles.map(f => `📄 ${f.name}`).join('<br>');
                 nameDisplay.classList.add('text-blue-600'); // 파란색으로 업로드 완료 강조
             }
         }
 
-        // 6. ⭐️ PDF 텍스트 추출 함수 (extractTextFromPdfFiles 오류 방지)
+        // 6. ⭐️ PDF 텍스트 추출 함수 (분석 실행 에러 방지)
         async function extractTextFromPdfFiles(fileList, password) {
             let combinedText = "";
             for (let i = 0; i < fileList.length; i++) {
@@ -1420,7 +1417,6 @@
             return combinedText;
         }
         // ----------------------------------------------------
-
         // 파일 처리 공통 함수
         function handleFiles(files) {
             const pdfOnly = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
