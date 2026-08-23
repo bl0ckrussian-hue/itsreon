@@ -2497,108 +2497,6 @@
             const surgeryDetails = {}; 
             const longMedDetails = {}; 
             
-            const testKeywords = ["검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray", "조직"];
-            
-            const lines = rawText.split('\n');
-            const dateRegex = /(20\d{2}[-./]?\d{2}[-./]?\d{2})/;
-
-            lines.forEach(line => {
-                const rowText = line.trim();
-                if (!rowText) return;
-                const normalizedText = rowText.replace(/\s+/g, '');
-                if (normalizedText.includes('약국')) return; 
-
-                const dateMatch = rowText.match(dateRegex);
-                const rowDate = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : "";
-                
-                // ⭐️ 향상된 입원 감지: 헤더("입원/외래", "입원/")를 제외하고 진짜 입원인지 파악
-                const isAdmissionRow = (rowText.includes("입원") && !rowText.includes("입원/외래") && !rowText.includes("입원/")) || rowText.includes("입원료");
-
-                let isSurgeryCandidate = false;
-                if (MedicalRuleKeywords.dentalExcludeKeywords.some(k => rowText.includes(k))) {
-                    isSurgeryCandidate = false;
-                } else if (MedicalRuleKeywords.surgeryKeywords.some(k => rowText.includes(k))) {
-                    isSurgeryCandidate = true;
-                } else if (rowText.includes("술") && !rowText.includes("처치")) {
-                    if (!MedicalRuleKeywords.excludeKeywords.some(k => rowText.includes(k))) {
-                        isSurgeryCandidate = true;
-                    }
-                }
-
-                if (MedicalRuleKeywords.excludeKeywords.some(k => rowText.includes(k))) {
-                    isSurgeryCandidate = false;
-                }
-                if (MedicalRuleKeywords.forceInclude.some(k => rowText.includes(k))) {
-                    isSurgeryCandidate = true;
-                }
-
-                let longMedDays = 0;
-                if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방")) {
-                    const numMatches = rowText.match(/\b\d{2,3}\b/g);
-                    if (numMatches) {
-                        const numbers = numMatches.map(n => parseNum(n)).filter(n => n >= 30 && n <= 365);
-                        if (numbers.length > 0 && !isAdmissionRow) {
-                            longMedDays = Math.max(...numbers);
-                        }
-                    }
-                }
-
-                const hospitalMatch = rowText.match(/([가-힣A-Za-z0-9]+(?:병원|의원|의료원|클리닉|내과|정형외과|이비인후과|치과|안과|피부과|비뇨기과|외과|한의원))/);
-                const hospital = hospitalMatch ? hospitalMatch[1] : "의료기관";
-                const diseaseMatch = rowText.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|[A-Z]\d{2}))/);
-                const disease = diseaseMatch ? diseaseMatch[1].trim() : "질병미상";
-
-                if (rowDate && rowDate.length >= 8) {
-                    const key = `${hospital}|${disease}`;
-                    
-                    if (testKeywords.some(k => rowText.includes(k))) {
-                        if (!testDetails[key]) testDetails[key] = new Set();
-                        testDetails[key].add(rowDate);
-                    }
-
-                    if (isSurgeryCandidate) {
-                        detectedInfo.surgeries.push(`[${rowDate}] ${rowText.slice(0, 60)}`);
-                        if (!surgeryDetails[key]) surgeryDetails[key] = new Set();
-                        surgeryDetails[key].add(rowDate);
-                    }
-
-                    if (longMedDays >= 30) {
-                        detectedInfo.long_term_meds.push(`(${longMedDays}일 처방) ${rowText.slice(0, 50)}...`);
-                        if (!longMedDetails[key]) longMedDetails[key] = new Set();
-                        longMedDetails[key].add(rowDate);
-                    }
-
-                    if (isAdmissionRow) {
-                        const numMatches = rowText.match(/\d+/g);
-                        let days = 1;
-                        if (numMatches) {
-                            const nums = numMatches.map(n => parseNum(n)).filter(n => n > 0 && n <= 365);
-                            if (nums.length > 0) days = Math.max(...nums);
-                        }
-                        admissionCounter[key] = (admissionCounter[key] || 0) + days;
-                        if (!admissionDetails[key]) admissionDetails[key] = new Set();
-                        admissionDetails[key].add(`${rowDate}(${days}일)`);
-                        detectedInfo.admissions.push(`입원 ${days}일: ${rowText.slice(0, 50)}`);
-                    } else {
-                        if (!visitCounter[key]) visitCounter[key] = new Set();
-                        visitCounter[key].add(rowDate);
-                    }
-                }
-            });
-
-            return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails };
-        }
-
-        // ⭐️ 알릴의무 분석 엔진 (입원 강제 추출, 수술 누락 방지 및 합산 로직 강화)
-        function analyzeMedicalRecords(rawText) {
-            const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
-            const visitCounter = {};
-            const admissionCounter = {};
-            const admissionDetails = {};
-            const testDetails = {}; 
-            const surgeryDetails = {}; 
-            const longMedDetails = {}; 
-            
             const testKeywords = ["검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray", "조직", "검체"];
             
             const lines = rawText.split('\n');
@@ -2611,18 +2509,18 @@
                 const rowText = line.trim();
                 if (!rowText) return;
                 
-                if (rowText.includes("기본진료정보")) currentSection = "기본";
-                else if (rowText.includes("세부진료정보")) currentSection = "세부";
-                else if (rowText.includes("처방조제정보")) currentSection = "처방";
+                if (rowText.includes("기본진료정보")) { currentSection = "기본"; return; }
+                else if (rowText.includes("세부진료정보")) { currentSection = "세부"; return; }
+                else if (rowText.includes("처방조제정보")) { currentSection = "처방"; return; }
 
                 const normalizedText = rowText.replace(/\s+/g, '');
-                // ⭐️ 약국 필터링 보완: 통원/입원 횟수 카운팅에서만 배제하고 약물 데이터는 수집해야 하므로 여기서 return 하지 않음
+                // ⭐️ 약국 필터링: 통원/입원 횟수 카운팅에서는 완전히 배제. (약물 데이터 수집시에만 활용)
                 const isPharmacy = normalizedText.includes('약국') || rowText.includes('약국');
 
                 const dateMatch = rowText.match(dateRegex);
                 const rowDate = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : "";
                 
-                // ⭐️ 입원 감지
+                // 입원 감지
                 const isAdmissionRow = (rowText.includes("입원") && !rowText.includes("입원/외래") && !rowText.includes("입원/")) || rowText.includes("입원료");
 
                 // 수술/시술 감지
@@ -2633,14 +2531,14 @@
                     }
                 }
 
-                // 투약 일수 감지
+                // 투약 일수 감지 (1일 이상 모든 처방 기록 수집)
                 let longMedDays = 0;
                 if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방") || rowText.includes("일분") || currentSection === "처방") {
                     const match = rowText.match(/(\d+)\s*일분/);
                     if (match) {
                         longMedDays = parseInt(match[1]);
                     } else {
-                        const numMatches = rowText.match(/\b\d{2,3}\b/g);
+                        const numMatches = rowText.match(/\b\d{1,3}\b/g);
                         if (numMatches) {
                             const numbers = numMatches.map(Number).filter(n => n >= 1 && n <= 365);
                             if (numbers.length > 0 && !isAdmissionRow) {
@@ -2650,8 +2548,8 @@
                     }
                 }
 
-                const hospitalMatch = rowText.match(/([가-힣A-Za-z0-9]+(?:병원|의원|의료원|클리닉|내과|정형외과|이비인후과|치과|안과|피부과|비뇨기과|외과|한의원))/);
-                const hospital = hospitalMatch ? hospitalMatch[1] : "의료기관";
+                const hospitalMatch = rowText.match(/([가-힣A-Za-z0-9]+(?:병원|의원|의료원|클리닉|내과|정형외과|이비인후과|치과|안과|피부과|비뇨기과|외과|한의원|약국))/);
+                let hospital = hospitalMatch ? hospitalMatch[1] : "의료기관";
                 
                 let disease = "질병미상";
                 const diseaseMatch = rowText.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|[A-Z]\d{2,3}))/);
@@ -2660,40 +2558,43 @@
                 }
 
                 if (rowDate) {
+                    // 병원 키를 생성할 때 약국 이름은 제거하여 실제 진단받은 병원과 매칭되도록 유도
+                    const cleanHosp = hospital.replace('약국', '');
+                    const dateHospKey = `${rowDate}|${cleanHosp}`; 
+                    
                     // 기본진료에서 질병명 저장, 세부/처방에서 불러오기
-                    if (currentSection === "기본" && disease !== "질병미상") {
-                        diseaseDateMap[rowDate] = disease;
+                    if (currentSection === "기본" && disease !== "질병미상" && !isPharmacy) {
+                        diseaseDateMap[rowDate] = disease; // 날짜로 1차 매핑
                     } else if (disease === "질병미상" && diseaseDateMap[rowDate]) {
                         disease = diseaseDateMap[rowDate];
                     }
 
                     const key = `${hospital}|${disease}`;
                     
-                    // ⭐️ 검사 수집 (약국 제외)
+                    // ⭐️ 검사 수집 (약국은 무조건 제외)
                     if (!isPharmacy && testKeywords.some(k => rowText.includes(k))) {
                         if (!testDetails[key]) testDetails[key] = new Set();
-                        testDetails[key].add(`[${rowDate}] ${rowText.slice(0,30).replace(/\|/g, '')}`);
+                        testDetails[key].add(`[${rowDate}] ${rowText.slice(0,50).replace(/\|/g, '')}`);
                     }
 
-                    // ⭐️ 수술/시술 수집 (약국 제외)
+                    // ⭐️ 수술/시술 수집 (약국은 무조건 제외)
                     if (!isPharmacy && isSurgeryCandidate) {
-                        detectedInfo.surgeries.push(`[${rowDate}] ${rowText.slice(0, 60).replace(/\|/g, '')}`);
+                        detectedInfo.surgeries.push(`[${rowDate}] ${hospital} : ${rowText.replace(/\|/g, ' ')}`);
                         if (!surgeryDetails[key]) surgeryDetails[key] = new Set();
-                        surgeryDetails[key].add(`[${rowDate}] ${rowText.split(' ').slice(0,4).join(' ').replace(/\|/g, '')}`);
+                        // 원문을 길게 추출하여 어떤 시술인지 명확히 알 수 있게 함
+                        surgeryDetails[key].add(`[${rowDate}] ${rowText.replace(/\|/g, ' ')}`);
                     }
 
-                    // ⭐️ 투약 수집 (약국 포함)
+                    // ⭐️ 투약 수집 (약물 유추를 위해 약국 데이터도 수집)
                     if (longMedDays > 0) {
                         if (!longMedDetails[key]) longMedDetails[key] = {};
                         longMedDetails[key][rowDate] = Math.max(longMedDetails[key][rowDate] || 0, longMedDays);
                         
                         const meds = rowText.match(/([가-힣a-zA-Z0-9]+(?:정|캡슐|크림|연고|주|시럽|액|로션|현탁액|점안액))/g);
-                        if (longMedDays >= 30) {
-                            detectedInfo.long_term_meds.push(`[${rowDate}] 질병:${disease} | ${longMedDays}일 처방 | 약품:${meds ? meds.join(', ') : '기재없음'}`);
-                        }
+                        detectedInfo.long_term_meds.push(`[${rowDate}] 질병:${disease} | ${longMedDays}일 처방 | 약품:${meds ? meds.join(', ') : rowText.split('|').pop().trim()}`);
                     }
 
-                    // ⭐️ 입원/통원 횟수 수집 (약국은 절대 제외)
+                    // ⭐️ 입원/통원 횟수 수집 (약국은 병원이 아니므로 방문/입원 횟수에서 완벽하게 제외)
                     if (!isPharmacy && currentSection === "기본") {
                         if (isAdmissionRow) {
                             const numMatches = rowText.match(/\d+/g);
@@ -2714,7 +2615,6 @@
                 }
             });
 
-            // 투약일수 합산 정리
             const medSumDetails = {};
             for (let k in longMedDetails) {
                 let total = 0;
@@ -2725,22 +2625,23 @@
             return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails: medSumDetails };
         }
 
-       // ⭐️ 프롬프트 강화: 핑계 차단, 유추 병명, 질병별 합산 강제 처리
+        // ⭐️ 프롬프트 강화: 핑계 차단, 약국 배제, 유추 병명, 질병별 합산 강제 처리
         function buildOriginalAnalysisPrompt(rawText, analysisData, fileNames) {
             const { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails } = analysisData;
             const today = new Date();
             const allKeys = new Set([...Object.keys(visitCounter || {}), ...Object.keys(admissionCounter || {}), ...Object.keys(surgeryDetails || {})]);
             
-            // ⭐️ 질병 단위로 전체 합산 (병원이 달라도 합산)
+            // ⭐️ 질병 단위로 전체 합산 (약국 포함, 병원이 달라도 합산)
             const diseaseAgg = {};
             allKeys.forEach(k => {
                 const parts = k.split('|');
                 if(parts.length < 2) return;
+                const hosp = parts[0];
                 const dis = parts[1].split('(')[0].trim();
+                
                 if (!diseaseAgg[dis]) diseaseAgg[dis] = { visits: 0, meds: 0, admits: 0, surgs: 0, in3M: false, tests1Y: 0 };
                 
                 diseaseAgg[dis].visits += (visitCounter[k] ? visitCounter[k].size : 0);
-                diseaseAgg[dis].meds += (longMedDetails[k] || 0);
                 diseaseAgg[dis].admits += (admissionCounter[k] || 0);
                 diseaseAgg[dis].surgs += (surgeryDetails[k] ? surgeryDetails[k].size : 0);
 
@@ -2765,6 +2666,13 @@
                 });
             });
 
+            // ⭐️ 약국 투약일수도 질병 단위로 합산
+            for (let k in longMedDetails) {
+                const dis = k.split('|')[1].split('(')[0].trim();
+                if (!diseaseAgg[dis]) diseaseAgg[dis] = { visits: 0, meds: 0, admits: 0, surgs: 0, in3M: false, tests1Y: 0 };
+                diseaseAgg[dis].meds += longMedDetails[k];
+            }
+
             const sortedHints = [];
             
             allKeys.forEach(k => {
@@ -2775,7 +2683,8 @@
                 const cleanDis = dis.split('(')[0].trim();
                 const agg = diseaseAgg[cleanDis];
                 
-                if(hosp.includes("약국") || hosp === "의료기관") return; // 약국 제외
+                // ⭐️ 약국은 통원 이력 병원으로 절대 출력하지 않음
+                if(hosp.includes("약국") || hosp === "의료기관") return;
 
                 const visitDates = Array.from(visitCounter[k] || []).sort();
                 const visitCnt = visitDates.length;
@@ -2783,7 +2692,8 @@
                 const admitEvents = Array.from(admissionDetails[k] || []).sort();
                 const testEvents = Array.from(testDetails[k] || []).sort();
                 const surgeryEvents = Array.from(surgeryDetails[k] || []).sort();
-                const medDaysTotal = longMedDetails[k] || 0;
+                // 해당 병원 뿐만 아니라 약국 포함 전체 질병 투약일수 확인
+                const medDaysTotal = agg ? agg.meds : 0;
 
                 let isTarget = false;
                 const reason = [];
@@ -2791,22 +2701,19 @@
                 if (admitDaysTotal > 0) { isTarget = true; reason.push("5년내 입원"); }
                 if (surgeryEvents.length > 0) { isTarget = true; reason.push("수술/시술 시행"); }
                 
-                if (agg && agg.meds >= 30) { isTarget = true; reason.push("5년내 계속하여 30일이상 투약"); }
-                if (agg && agg.visits >= 7) { isTarget = true; reason.push("5년내 계속하여 7일이상 치료"); }
+                // 합산 30일 / 7일 적용
+                if (agg && agg.meds >= 30) { isTarget = true; reason.push("5년내 30일이상 투약"); }
+                if (agg && agg.visits >= 7) { isTarget = true; reason.push("5년내 7일이상 치료"); }
                 if (agg && agg.in3M) { isTarget = true; reason.push("3개월내 내원"); }
-                if (agg && agg.tests1Y > 0) { isTarget = true; reason.push("1년내 검사 소견"); }
+                if (agg && agg.tests1Y > 0) { isTarget = true; reason.push("1년내 추가검사/재검사"); }
 
-                // 7일 미만, 30일 미만, 3개월 아님, 수술/입원/1년내검사 아님 -> 완벽히 배제
-                if (!isTarget && admitDaysTotal === 0 && surgeryEvents.length === 0 && visitCnt === 0) {
-                    isTarget = true; reason.push("날짜확인필요");
-                }
-
+                // ⭐️ 7일 미만, 30일 미만, 3개월 아님, 수술/입원/1년내검사 아님 -> 완벽히 배제
                 if (!isTarget) return;
 
                 const reasonStr = reason.join(', ');
                 let admitDetailStr = admitEvents.length > 0 ? ` / [입원상세: ${admitEvents.join(', ')}]` : "";
-                let surgStr = surgeryEvents.length > 0 ? ` / [수술명: ${surgeryEvents.join(', ')}]` : "";
-                let testStr = testEvents.length > 0 ? ` / [검사명: ${testEvents.join(', ')}]` : "";
+                let surgStr = surgeryEvents.length > 0 ? ` / [수술명: ${surgeryEvents.join(' | ')}]` : "";
+                let testStr = testEvents.length > 0 ? ` / [검사명: ${testEvents.join(' | ')}]` : "";
                 
                 const lineText = `- [${hosp}] | [${dis}] -> 외래:${visitCnt}회 / 입원:${admitDaysTotal}일${admitDetailStr} / 투약:${medDaysTotal}일${surgStr}${testStr} -> [사유: ${reasonStr}]`;
                 sortedHints.push(lineText);
@@ -2816,27 +2723,28 @@
             sortedHints.forEach(item => { hintText += item + "\n"; });
 
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 아래 목록의 수술/시술(신경차단술, 천자 등)은 횟수가 아무리 많아도 임의로 묶거나 요약하지 말고, 표의 '하부 행(Detail)'에 날짜별로 1건도 빠짐없이 전부 별도 기재할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 목록 (필수 기재)]\n- ⚠️경고: 이 목록의 시술(예: 척수신경말초지차단술, 관절천자 등)은 횟수가 수십 번이더라도 임의로 묶어서 요약하지 말고, 표의 '하부 행(Detail)'에 날짜별로 1건도 빠짐없이 전부 별도로 나열할 것!\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
-                hintText += `\n[💊시스템 감지: 30일 이상 장기투약 내역 - ⚠️경고: 이 목록의 처방 약물 성분/이름을 기반으로 고혈압, 통풍, 당뇨, 고지혈증 등 연관 질병을 유추하여, 반드시 표의 메인 질병명 아래에 '(유추) 질환명' 형식으로 추가 기재할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
+                hintText += `\n[💊시스템 감지: 처방 약품 목록 (유추 병기용)]\n- ⚠️경고: 이 목록의 약품명(트윈스타, 디오반, 페브릭, 립스타플러스 등)을 검색하여 해당 약이 치료하는 기저질환(예: 고혈압, 통풍, 고지혈증, 당뇨 등)을 파악하고, 반드시 표의 메인 질병명 아래에 '(유추) 질환명' 형식으로 추가 기재할 것!\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
             }
 
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-            const truncatedText = rawText.slice(0, 60000);
+            // 원문을 넉넉히 제공하여 검사 기록 등을 놓치지 않게 함
+            const truncatedText = rawText.slice(0, 80000);
 
-            const prompt = `당신은 고객이 보험 가입을 위해 제출한 병원 기록을 검토하는 전문 보험 심사역입니다.
+            const prompt = `당신은 전문 보험 심사역입니다. 파이썬이 완벽하게 전처리하여 제공한 [파이썬 집계 데이터]를 100% 신뢰하여, 아래 [절대 준수 규칙]에 맞추어 심사 보고서를 작성하십시오.
 
-🕒 **분석 기준일(역산 기준):** ${todayDate}
+🕒 **분석 기준일:** ${todayDate} (이 날짜를 기준으로 과거 3개월, 1년, 5년을 역산함)
 
-🚨 **[데이터 분석 및 표 작성 절대 준수 규칙 (위반시 페널티)]**
-1. **변명 및 임의 판단 절대 금지:** 서두나 끝에 "원문이 없어 추정했다", "시스템 감지 데이터가 없다"는 식의 변명이나 코멘트를 단 1글자도 적지 마십시오. 파이썬 데이터를 100% 사실로 간주하고, 처치/시술 명칭은 파이썬 데이터에 있는 그대로만 기재하되 모르면 추정하지 마십시오.
-2. **배제 원칙 철저:** 5년 내 통원 7회 미만, 투약 30일 미만이면서, 수술/입원/1년내추가검사/3개월내내원 중 어느 하나에도 속하지 않는 단순 감기/타박상 등의 경미한 기록은 **절대 표에 포함시키지 말고 배제**하십시오.
-3. **약국 제외:** 표의 병원명에 '약국'을 적지 마십시오. 약국은 통원횟수에 포함되지 않으며 오직 투약일수와 유추 병명 파악에만 사용됩니다.
-4. **유추 질환 병기 (필수):** 질병명(진단코드)은 데이터 그대로 표기하십시오. 단, 파이썬 집계 데이터의 <30일 이상 장기투약 내역> 약품을 참고하여 해당 약이 치료하는 기저질환(예: 통풍, 고지혈증, 고혈압, 당뇨 등)을 알아내고, 메인 질병명 바로 아랫줄에 반드시 \`<br>(유추) 질환명\` 형식으로 기재하십시오.
-5. **질환 기준 합산 및 병원 분리:** 질병명 기준으로 파이썬 데이터에 명시된 '사유'를 비고란에 적으십시오. (예: "5년내 계속하여 7일이상 치료") 병원이 다르더라도 질병이 같으면 합산 사유를 충족합니다. 질병명을 메인 행으로 두고, 병원이 다르면 아래 행(Detail)을 추가하여 병원별 내역을 표기하십시오.
-6. **수술/시술 100% 개별 병기:** 수술 및 시술(예: 신경차단술, 내시경 등)이 여러 번 반복되었더라도 절대 하나로 묶지 마십시오. 발생한 날짜별로 아래 행(Detail)에 계속 나열하여 전부 낱낱이 병기하십시오.
-7. **1년 내 재검사/추가검사 소견:** 같은 병원, 같은 질병으로 세부진료정보에 "검사" 단어가 포함된 코드명이 1년 이내에 반복 또는 추가되었다면 '추가/재검사'로 판단하여 비고란에 "1년내 검사 소견"이라고 적으십시오.
+🚨 **[절대 준수 규칙 (위반시 페널티)]**
+1. **변명 금지:** "세부진료나 처방정보 원문이 없어 추정했다"와 같은 코멘트를 절대 달지 마십시오. 당신에게 제공된 [파이썬 집계 데이터]에 수술명과 약품명이 모두 완벽하게 추출되어 있습니다. 있는 그대로 기재하십시오.
+2. **배제 원칙 철저:** 5년 내 통원 7회 미만, 투약 30일 미만이면서 수술/입원/1년내추가검사/3개월내내원 중 어느 것에도 해당하지 않는 단순 진료(타박상, 감기 등)는 **절대 표에 포함시키지 마십시오.**
+3. **약국 제외:** 표의 '병원명' 란에 'OO약국'을 기재하지 마십시오.
+4. **유추 질환 병기 (매우 중요):** 데이터의 진단명(예: 특발성 통풍)을 그대로 적되, [💊시스템 감지: 처방 약품 목록]의 약품을 검색하여 해당 약이 치료하는 기저질환(고혈압, 통풍, 고지혈증, 당뇨 등)이 있다면, **반드시 메인 진단명 아랫줄에 \`<br>(유추) 고혈압, 고지혈증\` 과 같이 기재**하십시오.
+5. **수술/시술 반복 시 개별 행 나열 (묶기 금지):** [🚨시스템 감지: 수술/시술 목록]에 기재된 신경차단술, 천자 등의 시술이 20회 이상 있더라도, '신경차단술 20회'로 묶어서 적지 마십시오. 반드시 날짜별로 하부 행(Detail)을 추가하여 모든 날짜와 시술명을 개별 기재하십시오.
+6. **질병 기준 합산 비고 기재:** 병원이 다르더라도 질병이 같으면 '5년내 30일이상 투약', '5년내 7일이상 치료' 조건이 합산 적용됩니다. 비고란에 이 합산 사유를 명확히 적고, 병원이 다르면 하부 행으로 분리하여 각각의 병원을 표기하십시오.
+7. **1년 내 재검사/추가검사:** 동일 질병으로 1년 이내에 '검사' 키워드가 들어간 항목이 여러 번 있거나 다른 검사(초음파, 세극등현미경, 당검사 등)가 추가되었다면, 비고란에 "1년내 검사 소견"이라고 명시하십시오.
 
 ---
 **[파이썬 집계 데이터]**
@@ -2847,18 +2755,17 @@ ${truncatedText}
 
 ---
 ### **[최종 심사 보고서]**
-(고객의 성명을 추출하여 "OOO님의 보험 가입을 위한 심사 보고서입니다." 로 시작하고 바로 표를 출력하십시오. 불필요한 주의사항 코멘트는 절대 적지 마십시오.)
+(고객 성명을 찾아 "OOO님의 보험 가입을 위한 심사 보고서입니다." 로 시작. 불필요한 주의사항, 변명 코멘트는 절대 작성 금지.)
 
 #### 1️⃣ [일반심사] 표준 알릴의무 (요약)
 *기준: 3개월(내원), 1년(검사), 5년(입원/수술/7일통원/30일투약)*
 
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-| **예: 특발성 통풍 (M10)**<br>(유추) 고지혈증, 고혈압 | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 15회 | 10일 | **예** | **인공관절치환술 외** | **5년내 계속하여 30일이상 투약, 5년내 수술** |
+| **예: 특발성 통풍 (M10)**<br>(유추) 고지혈증, 고혈압 | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 15회 | 10일 | **예** | **인공관절치환술 외** | **5년내 30일이상 투약, 5년내 수술** |
 | ↳ | | 2021.07.11 | 2021.07.15 | - | 5일 | 아니오 | - | 1차 입원 |
-| ↳ | | 2023.07.20 | 2023.07.20 | - | - | 예 | **척추신경차단술** | 시술 (개별표기) |
-| ↳ | | 2023.07.21 | 2023.07.21 | - | - | 예 | **척추신경차단술** | 시술 (개별표기) |
-| ↳ | 다른내과의원 | 2023.08.01 | 2023.08.10 | 2회 | - | 아니오 | - | 병원이 다를 경우 분리 표기 |
+| ↳ | | 2023.07.20 | 2023.07.20 | - | - | 예 | **[20230720] 척추신경차단술** | 시술 (개별표기) |
+| ↳ | | 2023.07.21 | 2023.07.21 | - | - | 예 | **[20230721] 척추신경차단술** | 시술 (개별표기) |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
 *(입원 및 수술 이력만 기재 / 3개월내 내원력 및 투약 정보는 일반심사 참고)*
