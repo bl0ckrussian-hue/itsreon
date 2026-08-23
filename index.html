@@ -3190,7 +3190,8 @@ ${rawText.slice(0, 60000)}
                 progressText.innerText = "🤖 AI 엔진이 표준 알릴의무 보고서를 작성 중입니다. (가장 오래 걸립니다)";
                 startFakeProgress(50, 85, 600); 
 
-                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, detectedInfo, visitCounter, admissionCounter, analysisData.admissionDetails, analysisData.testDetails, analysisData.surgeryDetails, analysisData.longMedDetails, fileNamesStr);
+                // ⭐️ 오류 원인 수정 1: 전달하는 파라미터를 analysisData 하나로 깔끔하게 통합
+                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, analysisData, fileNamesStr);
                 const aiMarkdown1 = await callGeminiApi(promptTab1, apiKey);
                 currentTab1Markdown = aiMarkdown1;
 
@@ -3208,7 +3209,8 @@ ${rawText.slice(0, 60000)}
                             progressText.innerText = `⏳ 계약 #${c + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
                             startFakeProgress(currentP, 95, 800); 
                             
-                            const promptTab2 = buildViolationCheckPrompt(fullText, detectedInfo, visitCounter, admissionCounter, analysisData.admissionDetails, analysisData.testDetails, analysisData.surgeryDetails, analysisData.longMedDetails, targetDateObj, fileNamesStr);
+                            // ⭐️ 오류 원인 수정 2: 전달하는 파라미터를 analysisData 하나로 깔끔하게 통합
+                            const promptTab2 = buildViolationCheckPrompt(fullText, analysisData, targetDateObj, fileNamesStr);
                             const aiRespOld = await callGeminiApi(promptTab2, apiKey);
                             
                             fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
@@ -3241,7 +3243,6 @@ ${rawText.slice(0, 60000)}
                 alert(`❌ 오류 발생: ${error.message}`);
             }
         }
-
         function exportDutyToExcel() {
             const isTab1 = (activeResultTab === 'tab1');
             const mdText = isTab1 ? currentTab1Markdown : currentTab2Markdown;
