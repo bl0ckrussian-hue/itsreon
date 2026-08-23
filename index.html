@@ -1323,7 +1323,8 @@
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
 
-       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      // --- 📂 PDF 파일 업로드 (드래그 & 클릭) 완벽 통합 로직 ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             window.addEventListener(eventName, function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1334,48 +1335,63 @@
             }, false);
         });
 
-        // ⭐️ 드래그 앤 드롭 시 파일을 인식하고 화면에 띄워주는 핵심 로직 추가
         const dropZone = document.getElementById('pdfDropZone');
         const fileInput = document.getElementById('pdfFileInput');
 
-        if (dropZone) {
-            // 영역 빈 공간 클릭 시 파일 찾기 창 열기
+        if (dropZone && fileInput) {
+            // 1. 영역 빈 공간 클릭 시 파일 찾기 창 열기
             dropZone.addEventListener('click', function(e) {
                 if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
-                    if(fileInput) fileInput.click();
+                    fileInput.click();
                 }
             });
 
+            // 2. 드래그 효과 처리
             dropZone.addEventListener('dragover', function(e) {
                 this.classList.add('border-blue-500', 'bg-slate-50');
             });
-
             dropZone.addEventListener('dragleave', function(e) {
                 this.classList.remove('border-blue-500', 'bg-slate-50');
             });
 
-            // ⭐️ 파일을 놓았을 때(Drop) 데이터를 배열에 저장하는 부분
+            // 3. 파일을 드래그해서 놓았을 때 (Drop 업로드)
             dropZone.addEventListener('drop', function(e) {
                 this.classList.remove('border-blue-500', 'bg-slate-50');
-                const dt = e.dataTransfer;
-                if (dt && dt.files && dt.files.length > 0) {
-                    const pdfOnly = Array.from(dt.files).filter(f => f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
-                    if (pdfOnly.length === 0) {
-                        alert('PDF 파일만 업로드할 수 있습니다.');
-                        return;
-                    }
-                    selectedPdfFiles = pdfOnly;
-                    
-                    // 숨겨진 input 태그와 드래그된 파일 동기화
-                    if(fileInput) fileInput.files = dt.files;
-                    
-                    // 파일명 화면 표시 함수 호출 (기존에 정의된 함수 실행)
-                    if(typeof updatePdfDisplay === 'function') {
-                        updatePdfDisplay();
-                    }
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    processFiles(e.dataTransfer.files);
+                    fileInput.files = e.dataTransfer.files; // 내부 input과 파일 동기화
                 }
             });
         }
+
+        // 4. 찾아보기 버튼이나 클릭으로 파일을 선택했을 때 (Click 업로드)
+        function handlePdfSelect(event) {
+            if (event.target.files && event.target.files.length > 0) {
+                processFiles(event.target.files);
+            }
+        }
+
+        // 5. ⭐️ 파일 검증 및 화면에 파일명 표시 (문제 해결의 핵심)
+        function processFiles(files) {
+            const pdfOnly = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+            if (pdfOnly.length === 0) {
+                alert('PDF 파일만 업로드할 수 있습니다.');
+                return;
+            }
+            selectedPdfFiles = pdfOnly; // AI 분석기에 넘길 전역 변수에 저장
+
+            // 화면에 파일명 즉시 업데이트
+            const nameDisplay = document.getElementById('pdfFileNameDisplay');
+            if (nameDisplay) {
+                if (selectedPdfFiles.length === 1) {
+                    nameDisplay.innerText = `📄 ${selectedPdfFiles[0].name}`;
+                } else {
+                    nameDisplay.innerText = `📄 ${selectedPdfFiles.length}개의 PDF 파일 선택됨`;
+                }
+                nameDisplay.classList.add('text-blue-600'); // 파란색으로 업로드 완료 강조
+            }
+        }
+        // ----------------------------------------------------}
 
         // 파일 처리 공통 함수
         function handleFiles(files) {
