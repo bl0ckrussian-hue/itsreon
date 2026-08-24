@@ -2385,7 +2385,7 @@
             }
         }
 
-        // ⭐️ 알릴의무 분석 엔진 (입원 직관적 감지, 수술/시술 코드명 정확한 매핑 강화)
+        // ⭐️ 알릴의무 분석 엔진 (입원, 수술/처치, 약품 추출 및 완벽 필터링 강화)
         function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
             const visitCounter = {};
@@ -2395,14 +2395,15 @@
             const surgeryDetails = {}; 
             const longMedDetails = {}; 
             
-            const testKeywords = ["검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray", "조직", "검체"];
+            // ⭐️ 검사료, 자체검사 등 키워드 대폭 확장
+            const testKeywords = ["검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray", "조직", "검체", "자체검사", "검사료"];
             
             const lines = rawText.split('\n');
             const dateRegex = /(20\d{2}[-./]?\d{2}[-./]?\d{2})/;
             
             let currentSection = "기본";
-            const diseaseDateMap = {}; // 날짜별 질병 매핑
-            const hospitalDateMap = {}; // ⭐️ 날짜별 병원 매핑 (세부진료정보에서 수술 누락 방지용 핵심!)
+            const diseaseDateMap = {}; 
+            const hospitalDateMap = {}; 
 
             lines.forEach(line => {
                 const rowText = line.trim();
@@ -2413,28 +2414,30 @@
                 else if (rowText.includes("처방조제정보")) { currentSection = "처방"; return; }
 
                 const normalizedText = rowText.replace(/\s+/g, '');
+                // ⭐️ 약국은 통원/입원 등 병원 통계에서 완전 배제 (약물만 추출)
                 const isPharmacy = normalizedText.includes('약국') || rowText.includes('약국');
 
                 const dateMatch = rowText.match(dateRegex);
                 const rowDate = dateMatch ? dateMatch[1].replace(/[-./]/g, '') : "";
                 
-                // ⭐️ 수정 1: 입원 직관적 감지 (입원 단어가 있고 외래가 아니면 무조건 입원 확정)
+                // ⭐️ 입원 직관적 감지: '입원'이 있고 '외래'가 아니면 무조건 입원으로 확정
                 const isAdmissionRow = rowText.includes("입원") && !rowText.includes("외래") && !rowText.includes("입원/");
 
-                // ⭐️ 수정 2: 수술/시술 감지 필터 강화
+                // ⭐️ 수술/시술 감지 강화: "술"이나 "처치"가 포함되면 무조건 포함시킴
                 let isSurgeryCandidate = false;
-                if (MedicalRuleKeywords.dentalExcludeKeywords.some(k => normalizedText.includes(k))) {
-                    isSurgeryCandidate = false;
-                } else if (MedicalRuleKeywords.surgeryKeywords.some(k => normalizedText.includes(k))) {
-                    isSurgeryCandidate = true;
-                } else if (normalizedText.includes("술") && !normalizedText.includes("처치")) {
-                    if (!MedicalRuleKeywords.excludeKeywords.some(k => normalizedText.includes(k))) {
-                        isSurgeryCandidate = true;
+                if (!MedicalRuleKeywords.dentalExcludeKeywords.some(k => normalizedText.includes(k))) {
+                    if (MedicalRuleKeywords.surgeryKeywords.some(k => normalizedText.includes(k)) || 
+                        MedicalRuleKeywords.forceInclude.some(k => normalizedText.includes(k)) || 
+                        normalizedText.includes("술") || 
+                        normalizedText.includes("처치")) {
+                        // 명백한 검사나 단순처치가 아니면 수술/시술로 간주
+                        if (!normalizedText.includes("단순처치") && !normalizedText.includes("수술후처치") && !normalizedText.includes("초음파")) {
+                            isSurgeryCandidate = true;
+                        }
                     }
                 }
-                if (MedicalRuleKeywords.excludeKeywords.some(k => normalizedText.includes(k))) isSurgeryCandidate = false;
-                if (MedicalRuleKeywords.forceInclude.some(k => normalizedText.includes(k))) isSurgeryCandidate = true;
 
+                // 투약 일수 감지
                 let longMedDays = 0;
                 if (rowText.includes("투약") || rowText.includes("일수") || rowText.includes("처방") || rowText.includes("일분") || currentSection === "처방") {
                     const match = rowText.match(/(\d+)\s*일분/);
@@ -2459,7 +2462,6 @@
                 if (rowDate) {
                     const cleanHospTemp = hospital.replace('약국', '');
                     
-                    // ⭐️ 수정 2: 병원명 상태 유지 (세부진료정보에 병원명이 없어도 날짜 기준으로 매핑)
                     if (currentSection === "기본") {
                         if (disease !== "질병미상" && !isPharmacy) diseaseDateMap[rowDate] = disease;
                         if (cleanHospTemp !== "" && cleanHospTemp !== "의료기관" && !isPharmacy) hospitalDateMap[rowDate] = cleanHospTemp;
@@ -2471,36 +2473,36 @@
                     const cleanHosp = hospital.replace('약국', '');
                     const key = `${cleanHosp || '의료기관'}|${disease}`;
                     
+                    // 검사/자체검사 수집
                     if (!isPharmacy && testKeywords.some(k => rowText.includes(k))) {
                         if (!testDetails[key]) testDetails[key] = new Set();
                         testDetails[key].add(`[${rowDate}] ${rowText.slice(0,50).replace(/\|/g, '')}`);
                     }
 
-                    // ⭐️ 수정 2: 수술 코드명 정확히 추출해서 담기
+                    // 수술/시술명 정확히 추출 (원문 그대로 유지)
                     if (!isPharmacy && isSurgeryCandidate) {
                         let codeName = rowText;
                         if (rowText.includes('|')) {
                             const parts = rowText.split('|').map(p => p.trim());
-                            const matchedPart = parts.find(p => MedicalRuleKeywords.surgeryKeywords.some(k => p.includes(k)) || p.includes("술") || MedicalRuleKeywords.forceInclude.some(k => p.includes(k)));
+                            const matchedPart = parts.find(p => p.includes("술") || p.includes("처치") || MedicalRuleKeywords.surgeryKeywords.some(k => p.includes(k)));
                             if (matchedPart) codeName = matchedPart;
                         } else {
                             codeName = rowText.replace(/\|/g, ' ').trim().substring(0, 40);
                         }
-                        
                         detectedInfo.surgeries.push(`[${rowDate}] ${cleanHosp || '의료기관'} : ${codeName}`);
                         if (!surgeryDetails[key]) surgeryDetails[key] = new Set();
                         surgeryDetails[key].add(`[${rowDate}] ${codeName}`);
                     }
 
+                    // 약물명 유추용 데이터 수집 (정, 캡슐, 액, 약 등 포함)
                     if (longMedDays > 0) {
                         if (!longMedDetails[key]) longMedDetails[key] = {};
                         longMedDetails[key][rowDate] = Math.max(longMedDetails[key][rowDate] || 0, longMedDays);
-                        const meds = rowText.match(/([가-힣a-zA-Z0-9]+(?:정|캡슐|크림|연고|주|시럽|액|로션|현탁액|점안액))/g);
-                        detectedInfo.long_term_meds.push(`[${rowDate}] 질병:${disease} | ${longMedDays}일 처방 | 약품:${meds ? meds.join(', ') : rowText.split('|').pop().trim()}`);
+                        const meds = rowText.match(/([가-힣a-zA-Z0-9]+(?:정|캡슐|크림|연고|주|시럽|액|로션|현탁액|점안액|필름|패취|주사|약))/g);
+                        detectedInfo.long_term_meds.push(`[${rowDate}] 질병:${disease} | ${longMedDays}일 처방 | 약품명:${meds ? meds.join(', ') : rowText.split('|').pop().trim()}`);
                     }
 
                     if (!isPharmacy && currentSection === "기본") {
-                        // ⭐️ 수정 1: 입원일 경우 무조건 입원 횟수로 일수 합산
                         if (isAdmissionRow) {
                             const numMatches = rowText.match(/\d+/g);
                             let days = 1;
@@ -2530,7 +2532,7 @@
             return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails: medSumDetails };
         }
 
-        // ⭐️ 일반심사용 프롬프트 함수
+        // ⭐️ 일반심사용 프롬프트 함수 (경미한 이력 완전 배제 및 1년 내 2회 이상 검사 강화)
         function buildOriginalAnalysisPrompt(rawText, analysisData, fileNames) {
             const { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails } = analysisData;
             const today = new Date();
@@ -2540,10 +2542,9 @@
             allKeys.forEach(k => {
                 const parts = k.split('|');
                 if(parts.length < 2) return;
-                const hosp = parts[0];
                 const dis = parts[1].split('(')[0].trim();
                 
-                if (!diseaseAgg[dis]) diseaseAgg[dis] = { visits: 0, meds: 0, admits: 0, surgs: 0, in3M: false, tests1Y: 0 };
+                if (!diseaseAgg[dis]) diseaseAgg[dis] = { visits: 0, meds: 0, admits: 0, surgs: 0, in3M: false, tests1Y_retest: false };
                 
                 diseaseAgg[dis].visits += (visitCounter[k] ? visitCounter[k].size : 0);
                 diseaseAgg[dis].admits += (admissionCounter[k] || 0);
@@ -2558,21 +2559,27 @@
                     }
                 }
                 
+                // ⭐️ 1년 내 2회 이상 검사 로직 (동일 질병으로 방문일 기준 유니크 2일 이상 검사 진행 시)
                 const testDates = Array.from(testDetails[k] || []);
+                const uniqueTestDays1Y = new Set();
                 testDates.forEach(evt => {
                     const match = evt.match(/\[(\d{8})\]/);
                     if(match) {
-                        const dt = new Date(parseInt(match[1].substring(0, 4)), parseInt(match[1].substring(4, 6)) - 1, parseInt(match[1].substring(6, 8)));
+                        const dtStr = match[1];
+                        const dt = new Date(parseInt(dtStr.substring(0, 4)), parseInt(dtStr.substring(4, 6)) - 1, parseInt(dtStr.substring(6, 8)));
                         if (Math.floor((today - dt) / (1000 * 60 * 60 * 24)) <= 365) {
-                            diseaseAgg[dis].tests1Y++;
+                            uniqueTestDays1Y.add(dtStr);
                         }
                     }
                 });
+                if (uniqueTestDays1Y.size >= 2) {
+                    diseaseAgg[dis].tests1Y_retest = true;
+                }
             });
 
             for (let k in longMedDetails) {
                 const dis = k.split('|')[1].split('(')[0].trim();
-                if (!diseaseAgg[dis]) diseaseAgg[dis] = { visits: 0, meds: 0, admits: 0, surgs: 0, in3M: false, tests1Y: 0 };
+                if (!diseaseAgg[dis]) diseaseAgg[dis] = { visits: 0, meds: 0, admits: 0, surgs: 0, in3M: false, tests1Y_retest: false };
                 diseaseAgg[dis].meds += longMedDetails[k];
             }
 
@@ -2600,31 +2607,32 @@
 
                 if (admitDaysTotal > 0) { isTarget = true; reason.push("5년내 입원"); }
                 if (surgeryEvents.length > 0) { isTarget = true; reason.push("수술/시술 시행"); }
-                
                 if (agg && agg.meds >= 30) { isTarget = true; reason.push("5년내 30일이상 투약"); }
                 if (agg && agg.visits >= 7) { isTarget = true; reason.push("5년내 7일이상 치료"); }
                 if (agg && agg.in3M) { isTarget = true; reason.push("3개월내 내원"); }
-                if (agg && agg.tests1Y > 0) { isTarget = true; reason.push("1년내 추가검사/재검사"); }
+                if (agg && agg.tests1Y_retest) { isTarget = true; reason.push("1년내 추가검사/재검사(2회이상)"); }
 
+                // ⭐️ 알릴의무 배제 원칙: 위 조건 중 단 하나도 해당하지 않는 건은 목록에서 완벽히 삭제합니다.
                 if (!isTarget) return;
 
                 const reasonStr = reason.join(', ');
                 let admitDetailStr = admitEvents.length > 0 ? ` / [입원상세: ${admitEvents.join(', ')}]` : "";
                 let surgStr = surgeryEvents.length > 0 ? ` / [수술명: ${surgeryEvents.join(' | ')}]` : "";
-                let testStr = testEvents.length > 0 ? ` / [검사명: ${testEvents.join(' | ')}]` : "";
+                let testStr = testEvents.length > 0 ? ` / [검사내역: ${testEvents.join(' | ')}]` : "";
                 
                 const lineText = `- [${hosp}] | [${dis}] -> 외래:${visitCnt}회 / 입원:${admitDaysTotal}일${admitDetailStr} / 투약:${medDaysTotal}일${surgStr}${testStr} -> [사유: ${reasonStr}]`;
                 sortedHints.push(lineText);
             });
 
             let hintText = "\n[✅ 파이썬 집계 데이터 (알릴의무 대상만 엄격히 필터링됨)]\n";
+            if (sortedHints.length === 0) hintText += "고지 대상 진료 이력 없음.\n";
             sortedHints.forEach(item => { hintText += item + "\n"; });
 
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 목록 (필수 기재)]\n- ⚠️경고: 이 목록의 시술(예: 척수신경말초지차단술, 관절천자 등)은 횟수가 수십 번이더라도 임의로 묶어서 요약하지 말고, 표의 '하부 행(Detail)'에 날짜별로 1건도 빠짐없이 전부 별도로 나열할 것!\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 목록]\n- ⚠️경고: 이 목록의 시술(예: 척수신경말초지차단술, 천자 등)은 횟수가 수십 번이더라도 임의로 축약하지 말고, 표의 '하부 행(Detail)'에 날짜별로 전부 분리 기재할 것!\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
-                hintText += `\n[💊시스템 감지: 처방 약품 목록 (유추 병기용)]\n- ⚠️경고: 이 목록의 약품명을 검색하여 해당 약이 치료하는 기저질환(예: 고혈압, 통풍, 고지혈증, 당뇨 등)을 파악하고, 표의 메인 질병명 아래에 '(유추) 질환명' 형식으로 기재할 것!\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
+                hintText += `\n[💊시스템 감지: 처방 약품 목록]\n- ⚠️경고: 이 목록의 약품명(트윈스타, 디오반, 페브릭, 아모디핀 등)을 자체 검색하여 해당 약이 치료하는 기저질환(고혈압, 통풍, 고지혈증, 당뇨 등)을 파악하고, 반드시 표의 주진단명 아래에 '(유추) 질환명'으로 병기할 것!\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
             }
 
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -2635,13 +2643,13 @@
 🕒 **분석 기준일:** ${todayDate} (이 날짜를 기준으로 과거 3개월, 1년, 5년을 역산함)
 
 🚨 **[절대 준수 규칙 (위반시 페널티)]**
-1. **변명 금지:** "세부진료나 처방정보 원문이 없어 추정했다"와 같은 코멘트를 절대 달지 마십시오. 당신에게 제공된 [파이썬 집계 데이터]에 수술명과 약품명이 모두 완벽하게 추출되어 있습니다. 있는 그대로 기재하십시오.
-2. **배제 원칙 철저:** 5년 내 통원 7회 미만, 투약 30일 미만이면서 수술/입원/1년내추가검사/3개월내내원 중 어느 것에도 해당하지 않는 단순 진료(타박상, 감기 등)는 **절대 표에 포함시키지 마십시오.**
+1. **변명 금지:** "자료가 없어 추정했다", "세부진료 원문이 없다" 등의 코멘트를 절대 달지 마십시오. 파이썬 데이터의 명칭들을 있는 그대로 기재하십시오.
+2. **비대상 건 완벽 배제:** 파이썬 집계 데이터에 없는 건(1년 초과, 7회 미만, 30일 미만, 1년내 1회 단순검사 등)은 고지의무가 없는 완벽한 무사고 건입니다. **절대 표에 포함시키지 마십시오.**
 3. **약국 제외:** 표의 '병원명' 란에 'OO약국'을 기재하지 마십시오.
-4. **유추 질환 병기 (매우 중요):** 데이터의 진단명(예: 특발성 통풍)을 그대로 적되, [💊시스템 감지: 처방 약품 목록]의 약품을 검색하여 기저질환이 확인되면, **반드시 메인 진단명 아랫줄에 \`<br>(유추) 질환명\` 과 같이 기재**하십시오.
-5. **수술/시술 반복 시 개별 행 나열 (묶기 금지):** [🚨시스템 감지: 수술/시술 목록]에 기재된 신경차단술, 천자 등의 시술은 반드시 날짜별로 하부 행(Detail)을 추가하여 정확한 시술명을 개별 기재하십시오.
-6. **질병 기준 합산 비고 기재:** 병원이 다르더라도 질병이 같으면 '5년내 30일이상 투약', '5년내 7일이상 치료' 조건이 합산 적용됩니다. 비고란에 이 합산 사유를 명확히 적고, 병원이 다르면 하부 행으로 분리하여 각각의 병원을 표기하십시오.
-7. **1년 내 재검사/추가검사:** 동일 질병으로 1년 이내에 '검사' 키워드가 들어간 항목이 반복되거나 추가되었다면, 비고란에 "1년내 검사 소견"이라고 명시하십시오.
+4. **유추 질환 병기 (강제사항):** 데이터의 진단명을 그대로 적되, [💊처방 약품 목록]의 약품명을 보고 해당 약이 치료하는 기저질환(고혈압, 통풍, 고지혈증, 당뇨 등)이 유추되면, **반드시 메인 진단명 아랫줄에 \`<br>(유추) 질환명\` 을 100% 기재**하십시오.
+5. **수술/시술 개별 나열 (묶기 절대 금지):** [🚨수술/시술 목록]에 기재된 '신경차단술', '내시경', '처치' 등의 시술은 횟수가 여러 번이더라도 절대 하나로 묶지 말고, 반드시 날짜별로 하부 행(Detail)을 각각 추가하여 개별 기재하십시오.
+6. **질병 기준 합산:** 병원이 달라도 질병이 같으면 '5년내 30일이상 투약', '5년내 7일이상 치료' 조건을 합산합니다. 병원명은 하부 행으로 나누되 비고란에 통합 사유를 명확히 적으십시오.
+7. **1년 내 재검사/추가검사 (2회 이상):** 파이썬 데이터의 사유가 "1년내 추가검사/재검사(2회이상)"로 표기된 경우 비고란에 "1년내 추가/재검사 소견"이라고 명시하십시오.
 
 ---
 **[파이썬 집계 데이터]**
@@ -2655,17 +2663,16 @@ ${truncatedText}
 (고객 성명을 찾아 "OOO님의 보험 가입을 위한 심사 보고서입니다." 로 시작. 불필요한 주의사항, 변명 코멘트는 절대 작성 금지.)
 
 #### 1️⃣ [일반심사] 표준 알릴의무 (요약)
-*기준: 3개월(내원), 1년(검사), 5년(입원/수술/7일통원/30일투약)*
+*기준: 3개월(내원), 1년(추가검사), 5년(입원/수술/7일통원/30일투약)*
 
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
 | **예: 특발성 통풍 (M10)**<br>(유추) 고지혈증, 고혈압 | 인제대학교병원 | 2021.07.11 | 2023.07.21 | 15회 | 10일 | **예** | **인공관절치환술 외** | **5년내 30일이상 투약, 5년내 수술** |
-| ↳ | | 2021.07.11 | 2021.07.15 | - | 5일 | 아니오 | - | 1차 입원 |
 | ↳ | | 2023.07.20 | 2023.07.20 | - | - | 예 | **[20230720] 척추신경차단술** | 시술 (개별표기) |
 | ↳ | | 2023.07.21 | 2023.07.21 | - | - | 예 | **[20230721] 척추신경차단술** | 시술 (개별표기) |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(입원 및 수술 이력만 기재 / 3개월내 내원력 및 투약 정보는 일반심사 참고)*
+*(입원 및 수술 이력만 기재)*
 `;
             return { prompt, hintText, sortedHints };
         }
@@ -2758,21 +2765,25 @@ ${truncatedText}
                     }
                 }
 
-                if (validTestDates.length > 0) {
-                    const lastTestStr = validTestDates[validTestDates.length - 1];
-                    const clnTest = lastTestStr.replace(/\[|\]/g, '').split(' ')[0];
+                const uniqueTestDays1Y = new Set();
+                validTestDates.forEach(evt => {
+                    const clnTest = evt.replace(/\[|\]/g, '').split(' ')[0];
                     if (clnTest.length >= 8) {
                         const lastTestDt = new Date(parseInt(clnTest.substring(0, 4)), parseInt(clnTest.substring(4, 6)) - 1, parseInt(clnTest.substring(6, 8)));
                         const diffTestDays = Math.floor((targetDate - lastTestDt) / (1000 * 60 * 60 * 24));
-                        
                         if (diffTestDays > 90 && diffTestDays <= 365) {
-                            isTarget = true;
-                            reason.push("1년내 검사 소견");
-                            priority = Math.min(priority, 4);
+                            uniqueTestDays1Y.add(clnTest);
                         }
                     }
+                });
+                
+                if (uniqueTestDays1Y.size >= 2) {
+                    isTarget = true;
+                    reason.push("1년내 재검사/추가검사");
+                    priority = Math.min(priority, 4);
                 }
 
+                // 고지위반 미해당 건 100% 스텔스 삭제
                 if (!isTarget) return;
 
                 const reasonStr = reason.join(', ');
@@ -2790,7 +2801,7 @@ ${truncatedText}
                 hintText += `\n[🚨시스템 감지: 수술/시술 (날짜 포함) - ⚠️경고: 이 목록의 항목은 네가 임의로 판단/요약하지 말고, 표의 '하부 행'에 단 1건도 빠짐없이 전부 '수술(예)'로 개별 작성할 것!]\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
-                hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 목록의 투약 정보는 반드시 부상병(통풍, 고지혈증 등)으로 유추하여 주상병 아래에 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
+                hintText += `\n[💊시스템 감지: 30일 이상 투약 - ⚠️경고: 이 약품 정보를 바탕으로 반드시 부상병(통풍, 고지혈증 등)을 유추하여 주상병 아래에 병기할 것!]\n` + Array.from(new Set(detectedInfo.long_term_meds)).join('\n');
             }
 
             const targetDateStr = targetDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
