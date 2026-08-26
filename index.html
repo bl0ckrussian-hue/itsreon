@@ -2389,6 +2389,7 @@
         function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [], admissions: [], long_term_treatments: [] };
             const visitCounter = {};
+            const visitDetails = {}; 
             const admissionCounter = {};
             const admissionDetails = {};
             const testDetails = {}; 
@@ -2470,7 +2471,7 @@
                         if (!admissionDetails[key]) admissionDetails[key] = new Set();
                         admissionDetails[key].add(`${rowDate}(${days}일)`);
                     } else if (isOutpatientRow) {
-                        // ⭐️ 규칙 15: '외래' 항목의 '내원일수'만 정확하게 통원 횟수로 합산! (처방일수와 섞임 방지)
+                        // ⭐️ 규칙 15: '외래' 항목의 '내원일수'만 정확하게 통원 횟수로 합산
                         if (!visitCounter[key]) visitCounter[key] = {};
                         visitCounter[key][rowDate] = Math.max(visitCounter[key][rowDate] || 0, days);
                     }
@@ -2483,13 +2484,13 @@
                     let codeName = parts[dateIdx + 3] || "";   // 코드명칸
                     if (!codeName && parts.length > dateIdx + 4) codeName = parts[dateIdx + 4];
 
-                    // 규칙 14: 검사명 원문 추출
+                    // ⭐️ 규칙 14: 검사명 원문 추출
                     if (category.includes("검사") || category.includes("영상") || category.includes("초음파") || testKeywords.some(k => codeName.includes(k))) {
                         if (!testDetails[key]) testDetails[key] = new Set();
                         testDetails[key].add(`[${rowDate}] ${codeName}`);
                     }
 
-                    // ⭐️ 규칙 9: 수술명 긴 텍스트 원문 100% 추출 (제공된 제외/포함 키워드 적용)
+                    // ⭐️ 규칙 9: 수술명 긴 텍스트 원문 100% 핀셋 추출 (제공된 제외/포함 키워드 완벽 적용)
                     let isSurgeryCandidate = false;
                     if (forceInclude.some(k => codeName.includes(k))) {
                         isSurgeryCandidate = true;
@@ -2518,7 +2519,7 @@
                     
                     if (medDays > 0) {
                         if (!longMedDetails[key]) longMedDetails[key] = {};
-                        // ⭐️ 규칙 16: 진료시작일 기준 같은 날 처방된 여러 약은 최대 1번만 합산(뻥튀기 방지)
+                        // ⭐️ 규칙 16: 진료시작일 기준 같은 날 처방된 여러 약은 최대 1번만 합산(투약 뻥튀기 방지)
                         longMedDetails[key][rowDate] = Math.max(longMedDetails[key][rowDate] || 0, medDays);
                         
                         if (medName) {
@@ -2553,7 +2554,6 @@
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const today = new Date(utc + (9 * 60 * 60 * 1000)); 
 
-            // 수학적으로 정확한 과거 역산 로직 (미래 시간 마이너스 오류 제거)
             const diffDaysFn = (dateStr) => {
                 if (!dateStr || dateStr.length < 8) return 9999;
                 const dt = new Date(parseInt(dateStr.substring(0, 4)), parseInt(dateStr.substring(4, 6)) - 1, parseInt(dateStr.substring(6, 8)));
@@ -2565,7 +2565,7 @@
             const allKeys = new Set([...Object.keys(visitCounter || {}), ...Object.keys(admissionCounter || {}), ...Object.keys(surgeryDetails || {}), ...Object.keys(medSumDetails || {})]);
             const diseaseAgg = {};
             
-            // 주상병명 기준으로 데이터를 하나로 완벽히 묶습니다.
+            // ⭐️ 주상병명 기준으로 데이터를 하나로 완벽히 묶습니다.
             allKeys.forEach(k => {
                 const parts = k.split('|');
                 if(parts.length < 2) return;
@@ -2584,7 +2584,7 @@
                 if (admissionDetails[k]) admissionDetails[k].forEach(e => diseaseAgg[dis].admits.push(`[${hosp}] ${e}`));
                 if (surgeryDetails[k]) surgeryDetails[k].forEach(e => diseaseAgg[dis].surgs.push(`[${hosp}] ${e}`));
                 if (testDetails[k]) testDetails[k].forEach(e => diseaseAgg[dis].tests.push(e));
-                if (medSumDetails[k]) diseaseAgg[dis].meds = (diseaseAgg[dis].meds || 0) + medSumDetails[k];
+                if (medSumDetails[k]) diseaseAgg[dis].meds += medSumDetails[k];
             });
 
             const sortedHints = [];
@@ -2680,7 +2680,7 @@
             else sortedHints.forEach(item => { hintText += item.lineText + "\n"; });
 
             if (detectedInfo.surgeries && detectedInfo.surgeries.length > 0) {
-                hintText += `\n[🚨시스템 감지: 수술/시술 목록]\n- ⚠️경고: 이 목록의 시술은 단 1개라도 누락시키지 말고, 내용을 절대 자르거나 축약하지 말고 '원문 명칭 100%' 그대로 유지하여 날짜별로 하부행에 전부 표기할 것!\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
+                hintText += `\n[🚨시스템 감지: 수술/시술 목록]\n- ⚠️경고: 이 목록의 시술은 원문 명칭을 100% 유지해야 하며, 진료시작일이 다르면 절대 병합하지 말고 날짜별로 각각 아래 행(하부 행)에 분리하여 기재할 것!\n` + Array.from(new Set(detectedInfo.surgeries)).sort().join('\n');
             }
             if (detectedInfo.long_term_meds && detectedInfo.long_term_meds.length > 0) {
                 hintText += `\n[💊시스템 감지: 병의원 처방 약품 목록 (유추용)]\n` + Array.from(new Set(detectedInfo.long_term_meds)).sort().join('\n');
@@ -2695,20 +2695,20 @@
 
 [내부 분석 프로세스 - 텍스트 출력 금지, 내부적으로만 수행]
 1. AI 심사자 1: [자바스크립트 집계 원문 데이터]를 분석하여 초안 작성.
-2. AI 심사자 2: 초안을 검토. 누락된 긴 수술 명칭(예: 신경차단술 포함 텍스트 전체)이 없는지, 통원 횟수가 자바스크립트 원문과 동일한지 팩트체크.
-3. AI 감독관: [비고사유]에 지정되지 않은 단어를 창작하지 않았는지, 주상병과 무관한 약물이 "(유추) 질병명"으로 잘 병기되었는지 최종 승인.
+2. AI 심사자 2: 초안을 검토. 누락된 긴 수술 명칭(원문 그대로)이 없는지, 통원 횟수가 임의로 조작되지 않았는지 팩트체크.
+3. AI 감독관: 수술/시술이 진료시작일별로 각각의 하부 행으로 기재되었는지, 주상병과 무관한 약물이 "(유추) 질병명"으로 잘 병기되었는지 최종 승인.
 4. 감독관 승인 후 아래의 [최종 심사 보고서] 양식 표만 출력.
 
 🕒 **분석 요청 시점(기준일):** ${todayDate} (이 대한민국 날짜를 기준으로 과거 3개월, 1년, 5년 역산)
 
 🚨 **[절대원칙 22가지 기반 작성 규칙]**
 1. **데이터 추출:** 원문 그대로 추출하며, 임의로 내용을 추가/수정하지 마십시오.
-2. **배제 원칙:** 알릴의무 면제 대상인 경미한 과거 건은 표에서 완전히 삭제하십시오. 데이터가 없으면 표에 그리지 말고 "해당사항 없음" 기재.
-3. **수술/시술 원문 그대로 분리 기재:** [🚨수술/시술 목록]에 기재된 명칭은 1번만 적지 말고 여러 번 시행되었으면 날짜별로 하부 행(Detail)에 나누어 '모두' 추가 기재하십시오. 명칭은 절대 축약하지 마십시오.
+2. **배제 원칙:** 알릴의무 면제 대상인 과거 경미한 건은 표에서 완전히 삭제하십시오. (데이터에 없으면 "해당사항 없음" 기재)
+3. **수술/시술 원문 그대로 분리 기재:** [🚨수술/시술 목록]에 기재된 명칭은 임의로 요약하지 마십시오. 진료시작일이 다르면 하나로 합치지 말고 **반드시 각각 별도의 아래 행(하부 행)으로 나누어 모두 기재**하십시오.
 4. **질병 및 병원 정렬:** 병원이 달라도 주상병이 같으면 통원 횟수는 합산합니다. 병원명은 첫 번째 열, 횟수와 상세 내역은 하부 행으로 추가하여 분리 기재하십시오.
-5. **(유추) 질병명 표기 (매우 중요):** 처방 약물을 검색하여, 주상병과 연관 없는 약물(예: 주상병은 감기인데, 처방약은 고혈압약인 경우)이 있다면, **반드시 주상병명 아랫줄에 \`<br>(유추) 질환명\` 형태로 기재**하십시오.
-6. **비고란 6개 단어 엄격 통제:** 비고란에는 오직 **"3개월내내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약"** 이 6가지 문구만 기입하십시오. 다른 표현은 금지합니다.
-7. **연도별 횟수 표기:** 7일 이상 치료 시, 해가 바뀐다면 2026년(몇 회), 2025년(몇 회) 식으로 아랫줄에 나열해서 표현하십시오.
+5. **(유추) 질병명 표기 (매우 중요):** 처방 약물을 검색하여, 주상병과 연관 없는 다른 질환의 약물(예: 주상병은 감기인데, 처방약은 고혈압약인 경우)이 있다면, **반드시 주상병명 아랫줄에 \`<br>(유추) 질환명\` 형태로 기재**하십시오.
+6. **비고란 6개 단어 엄격 통제:** 비고란에는 오직 **"3개월내내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약"** 이 6가지 문구만 기입하십시오. 다른 임의의 표현은 금지합니다.
+7. **연도별 횟수 표기:** 7일 이상 치료 시, 2026년(몇 회), 2025년(몇 회) 식으로 아랫줄에 나열해서 표현하십시오.
 
 ---
 **[자바스크립트 집계 원문 데이터]**
@@ -2867,179 +2867,10 @@ ${truncatedText}
 
 🚨 **[데이터 분석 및 표 작성 절대 준수 규칙]**
 1. **데이터 추출:** 자바스크립트 집계 데이터 원문 그대로 기입하십시오.
-2. **배제 원칙:** 알릴의무 고지 대상(최근 3개월/1년/5년 조건)이 아닌 경미한 진료기록은 표에서 아예 삭제하십시오. 파이썬 데이터에 없는 병원이나 질병은 절대 적지 마십시오.
-3. **약국 데이터 배제:** 병원명이 '약국'인 데이터는 표에 기재하지 마십시오.
-4. **통원 합산:** 주상병명이 같으면 통원 횟수는 전체 합산하되, 입원/수술은 무조건 날짜별로 하부 행을 추가하십시오.
-5. **수술/시술 개별 나열:** 수술명은 절대 축약하지 말고 데이터에 명시된 긴 원문(예: 신경차단술) 그대로 100% 모두 기재하십시오.
-6. **(유추) 질병명 표기:** 처방 약물을 검색하여 주상병명과 명확히 연관없는 약물이 발견될 경우, 표의 주상병명 아래에 반드시 \`<br>(유추) 질병명\` 형태로 명확히 표기하십시오.
-7. **비고란 엄격 통제:** 비고란에는 반드시 **"3개월내내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약"** 문구만 사용하십시오. AI 임의 추가 금지.
-8. 간편심사는 입원/수술 이력만 기재하십시오.
-
----
-**[자바스크립트 집계 데이터]**
-${hintText}
-
-**[진료기록 원문]**
-${rawText.slice(0, 60000)}
-
----
-### **[최종 심사 보고서]**
-#### 1️⃣ [일반심사] 표준 알릴의무 (요약)
-| 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
-| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-`;
-            return prompt;
-        }
-
-        // ⭐️ 3. 간편심사용 프롬프트 함수 (대한민국 시간 고정)
-        function buildViolationCheckPrompt(rawText, analysisData, targetDate, fileNames) {
-            const { visitCounter = {}, admissionCounter = {}, admissionDetails = {}, testDetails = {}, surgeryDetails = {}, longMedDetails = {}, medSumDetails = {} } = analysisData || {};
-            
-            const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const targetKST = targetDate ? targetDate : new Date(utc + (9 * 60 * 60 * 1000)); 
-
-            const diffDaysFn = (dateStr) => {
-                if (!dateStr || dateStr.length < 8) return 9999;
-                const dt = new Date(parseInt(dateStr.substring(0, 4)), parseInt(dateStr.substring(4, 6)) - 1, parseInt(dateStr.substring(6, 8)));
-                const diffTime = targetKST.getTime() - dt.getTime();
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                return diffDays >= 0 ? diffDays : 9999;
-            };
-
-            const diseaseAgg = {};
-            const allKeys = new Set([...Object.keys(visitCounter || {}), ...Object.keys(admissionCounter || {}), ...Object.keys(surgeryDetails || {}), ...Object.keys(medSumDetails || {})]);
-            
-            allKeys.forEach(k => {
-                const [hosp, dis] = k.split('|');
-                if (!diseaseAgg[dis]) diseaseAgg[dis] = { hospitals: new Set(), visitDict: {}, admits: [], surgs: [], tests: [], medDict: {} };
-                
-                diseaseAgg[dis].hospitals.add(hosp);
-                
-                if (visitCounter[k]) {
-                    for (let d in visitCounter[k]) {
-                        diseaseAgg[dis].visitDict[d] = Math.max(diseaseAgg[dis].visitDict[d] || 0, visitCounter[k][d]);
-                    }
-                }
-                if (admissionDetails[k]) admissionDetails[k].forEach(e => diseaseAgg[dis].admits.push(`[${hosp}] ${e}`));
-                if (surgeryDetails[k]) surgeryDetails[k].forEach(e => diseaseAgg[dis].surgs.push(`[${hosp}] ${e}`));
-                if (testDetails[k]) testDetails[k].forEach(e => diseaseAgg[dis].tests.push(e));
-                
-                if (longMedDetails[k]) {
-                    for (let d in longMedDetails[k]) {
-                        diseaseAgg[dis].medDict[d] = Math.max(diseaseAgg[dis].medDict[d] || 0, longMedDetails[k][d]);
-                    }
-                }
-            });
-
-            const sortedHints = [];
-            
-            for (let dis in diseaseAgg) {
-                const agg = diseaseAgg[dis];
-                const hospitals = Array.from(agg.hospitals).join(', ');
-                const allVisitDates = Object.keys(agg.visitDict).sort();
-                
-                let totalVisitCnt = 0;
-                allVisitDates.forEach(d => totalVisitCnt += agg.visitDict[d]);
-                
-                let validVisitCnt = 0;
-                const yearlyVisits = {};
-                
-                allVisitDates.forEach(d => {
-                    const diff = diffDaysFn(d);
-                    if (diff >= 0 && diff <= 365 * 5) {
-                        const days = agg.visitDict[d];
-                        validVisitCnt += days;
-                        const y = d.substring(0, 4);
-                        yearlyVisits[y] = (yearlyVisits[y] || 0) + days;
-                    }
-                });
-                
-                let visitStr = `${totalVisitCnt}회`;
-                if (validVisitCnt >= 7 && Object.keys(yearlyVisits).length > 0) {
-                    const yearList = Object.keys(yearlyVisits).sort().reverse().map(y => `${y}년(${yearlyVisits[y]}회)`).join(', ');
-                    visitStr = `${totalVisitCnt}회<br>(${yearList})`;
-                }
-
-                const validAdmits = agg.admits.filter(e => {
-                    const m = e.match(/\[(\d{8})\]/);
-                    if(m) { const diff=diffDaysFn(m[1]); return diff>=0 && diff<=365*5; }
-                    const m2 = e.match(/(\d{8})\(/);
-                    if(m2) { const diff=diffDaysFn(m2[1]); return diff>=0 && diff<=365*5; }
-                    return false;
-                });
-
-                const validSurgs = agg.surgs.filter(e => {
-                    const m = e.match(/\[(\d{8})\]/);
-                    return m && diffDaysFn(m[1]) >= 0 && diffDaysFn(m[1]) <= 365 * 5;
-                });
-
-                let medDaysTotal = 0;
-                for (let d in agg.medDict) {
-                    const diff = diffDaysFn(d);
-                    if (diff >= 0 && diff <= 365 * 5) medDaysTotal += agg.medDict[d];
-                }
-
-                let isTarget = false;
-                let priority = 99;
-                const reason = [];
-
-                if (validAdmits.length > 0) { isTarget = true; reason.push("입원"); priority = Math.min(priority, 1); }
-                if (validSurgs.length > 0) { isTarget = true; reason.push("수술"); priority = Math.min(priority, 1); }
-                if (medDaysTotal >= 30) { isTarget = true; reason.push("30일이상투약"); priority = Math.min(priority, 2); }
-
-                if (allVisitDates.length > 0) {
-                    const lastDtStr = allVisitDates[allVisitDates.length - 1];
-                    const diff = diffDaysFn(lastDtStr);
-                    if (diff >= 0 && diff <= 90) { isTarget = true; reason.push("3개월내내원"); priority = Math.min(priority, 5); } 
-                    if (diff >= 0 && diff <= 365 * 5 && validVisitCnt >= 7) { isTarget = true; reason.push("7일이상치료"); priority = Math.min(priority, 3); }
-                }
-
-                const uniqueTestDays1Y = new Set();
-                agg.tests.forEach(evt => {
-                    const match = evt.match(/\[(\d{8})\]/);
-                    if (match) {
-                        const diff = diffDaysFn(match[1]);
-                        if (diff >= 0 && diff <= 365) uniqueTestDays1Y.add(match[1]);
-                    }
-                });
-                
-                if (uniqueTestDays1Y.size > 0) { isTarget = true; reason.push("1년내 검사"); priority = Math.min(priority, 4); }
-
-                if (!isTarget) continue;
-
-                const reasonStr = reason.join(', ');
-                let admitDetailStr = validAdmits.length > 0 ? ` [입원상세: ${validAdmits.join(', ')}]` : "";
-                let surgStr = validSurgs.length > 0 ? ` [수술명: ${validSurgs.join(', ')}]` : "";
-                
-                const lineText = `- [${dis}] (관련병원: ${hospitals}) -> 외래:${visitStr} / 입원:${validAdmits.length}건${admitDetailStr} / 투약:${medDaysTotal}일${surgStr} -> [비고사유: ${reasonStr}]`;
-                sortedHints.push({ priority, lineText });
-            }
-
-            sortedHints.sort((a, b) => a.priority - b.priority || a.lineText.localeCompare(b.lineText));
-            let hintText = "\n[✅ 자바스크립트 집계 원문 데이터 (AI 필터링용)]\n";
-            if (sortedHints.length === 0) hintText += "해당사항 없음\n";
-            else hintText += sortedHints.map(s => s.lineText).join('\n');
-
-            const targetDateStr = targetKST.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            const prompt = `[시스템 설정]
-당신은 최고 수준의 보험 심사 시스템이며, 내부적으로 3명의 에이전트(AI 심사자 1, AI 심사자 2, AI 감독관)가 협력하여 완벽한 보고서를 도출합니다.
-
-[내부 분석 프로세스 - 텍스트 출력 금지, 내부적으로만 수행]
-1. AI 심사자 1: [자바스크립트 집계 원문 데이터]를 분석하여 초안 작성.
-2. AI 심사자 2: 초안을 검토. 누락된 긴 수술 명칭(예: 신경차단술 포함 긴 텍스트)이 없는지, 통원 횟수가 임의로 조작되지 않았는지 팩트체크.
-3. AI 감독관: [비고사유]에 지정되지 않은 단어를 창작하지 않았는지, 주상병과 무관한 약물이 "(유추) 질병명"으로 잘 병기되었는지, 오류나 누락이 없는지 최종 승인.
-4. 감독관 승인 후 아래의 [최종 심사 보고서] 양식 표만 출력.
-
-🕒 **분석 요청 시점(기준일):** ${targetDateStr} (이 대한민국 날짜를 기준으로 과거 3개월, 1년, 5년 역산)
-
-🚨 **[데이터 분석 및 표 작성 필수 절대 규칙]**
-1. **데이터 추출:** 자바스크립트 집계 데이터 원문 그대로 기입하십시오.
 2. **배제 원칙:** 알릴의무 고지 대상(최근 3개월/1년/5년 조건)이 아닌 경미한 진료기록은 표에서 아예 삭제하십시오.
 3. **약국 데이터 배제:** 병원명이 '약국'인 데이터는 표에 기재하지 마십시오.
 4. **통원 합산:** 주상병명이 같으면 통원 횟수는 전체 합산하되, 입원/수술은 무조건 날짜별로 하부 행을 추가하십시오.
-5. **수술/시술 개별 나열:** 수술명은 절대 축약하지 말고 데이터에 명시된 긴 원문 그대로 기재하십시오.
+5. **수술/시술 개별 나열:** 수술명은 절대 축약하지 말고 데이터에 명시된 긴 원문 그대로 기재하며, 진료시작일이 다르면 병합하지 말고 아래 행에 분리 기재하십시오.
 6. **(유추) 질병명 표기:** 처방 약물을 검색하여 주상병명과 명확히 연관없는 약물이 발견될 경우, 표의 주상병명 아래에 반드시 \`<br>(유추) 질병명\` 형태로 명확히 표기하십시오.
 7. **비고란 엄격 통제:** 비고란에는 반드시 **"3개월내내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약"** 문구만 사용하십시오. AI 임의 추가 금지.
 8. 간편심사는 입원/수술 이력만 기재하십시오.
