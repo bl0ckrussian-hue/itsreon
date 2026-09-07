@@ -133,12 +133,13 @@
                         <p>📝 <span class="font-medium">${db.memo}</span></p>
                     </div>
 
-                    <!-- ⭐️ 구글 드라이브 녹취 파일 플레이어 (m4a, mp3, wav 모두 지원) -->
+                    <!-- ⭐️ 구글 드라이브 전용 플레이어 (포맷 충돌 없이 무조건 재생) -->
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-slate-500 mb-1">🎧 기존 통화 녹취 듣기</label>
-                        <audio controls controlsList="nodownload" class="w-full h-8" src="${db.audioUrl}">
-                            브라우저가 오디오를 지원하지 않습니다.
-                        </audio>
+                        ${db.audioUrl ? 
+                          `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-14 rounded-lg border border-slate-200"></iframe>` 
+                          : `<div class="text-sm text-slate-400 bg-slate-50 p-2 rounded-lg">녹취 파일이 없습니다.</div>`
+                        }
                     </div>
 
                     <!-- 상태 액션 버튼 -->
