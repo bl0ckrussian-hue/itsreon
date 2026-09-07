@@ -133,11 +133,10 @@
                         <p>📝 <span class="font-medium">${db.memo}</span></p>
                     </div>
 
-                    <!-- ⭐️ 구글 드라이브 녹취 파일 플레이어 (controlsList="nodownload" 로 다운로드 버튼 삭제) -->
+                    <!-- ⭐️ 구글 드라이브 녹취 파일 플레이어 (m4a, mp3, wav 모두 지원) -->
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-slate-500 mb-1">🎧 기존 통화 녹취 듣기</label>
-                        <audio controls controlsList="nodownload" class="w-full h-8">
-                            <source src="${db.audioUrl}" type="audio/mpeg">
+                        <audio controls controlsList="nodownload" class="w-full h-8" src="${db.audioUrl}">
                             브라우저가 오디오를 지원하지 않습니다.
                         </audio>
                     </div>
