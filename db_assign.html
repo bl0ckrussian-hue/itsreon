@@ -3,117 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DB 배정 및 영업 관리 시스템</title>
+    <title>원탑그룹 DB 배정 시스템 (보안 뷰어)</title>
+    <!-- Tailwind CSS (메인 홈페이지와 동일한 디자인 적용) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* [절대원칙 5] 보안 설정: 드래그, 텍스트 선택, 복사 원천 차단 */
+        /* [보안 절대 원칙] 드래그, 복사, 텍스트 선택 원천 차단 */
         body {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+            font-family: 'Malgun Gothic', sans-serif;
             background-color: #f8fafc;
-            margin: 0; padding: 20px;
         }
         /* 화면 이탈 시 블러 처리 (스크린샷 방해) */
         body.blurred { filter: blur(15px); transition: filter 0.2s ease; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 4px solid #2563eb; }
-        .hidden { display: none; }
-        
-        .btn-group button { margin-right: 5px; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-success { background: #2563eb; color: white; }
-        .btn-absence { background: #f59e0b; color: white; }
-        .btn-reject { background: #ef4444; color: white; }
-        
-        /* 팝업 스타일 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col custom-scrollbar">
 
-    <div class="header">
-        <h2>나의 배정 DB 리스트</h2>
-        <span id="agentNameDisplay" style="font-weight: bold; color: #1e3a8a;">설계사 로그인 중...</span>
-    </div>
+    <!-- 상단 헤더 -->
+    <header class="bg-slate-900 text-white p-5 shadow-md flex justify-between items-center sticky top-0 z-40">
+        <div>
+            <h1 class="text-xl font-black tracking-tight">나의 배정 DB 리스트</h1>
+            <p class="text-xs text-slate-400 mt-1">고객 정보 보호를 위해 화면 캡처 및 복사가 금지됩니다.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="agentNameDisplay" class="font-bold text-lg text-emerald-400">로딩 중...</span>
+        </div>
+    </header>
 
-    <!-- DB 리스트가 렌더링 될 영역 -->
-    <div id="dbContainer">
-        <p style="color: #64748b;">배정된 DB를 불러오는 중입니다...</p>
-    </div>
+    <!-- DB 리스트 렌더링 영역 -->
+    <main class="max-w-7xl mx-auto w-full p-6 flex-grow">
+        <div id="dbContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-20 text-slate-500 font-bold">
+                데이터를 불러오는 중입니다...
+            </div>
+        </div>
+    </main>
 
-    <!-- 1차/2차 면담 등록 팝업 (네이버 캘린더 연동) -->
-    <div id="meetingModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 id="modalTitle" style="margin-top: 0;">면담 일정 등록</h3>
+    <!-- 1차/2차 면담 등록 모달 (기본적으로 hidden 상태여야 함) -->
+    <div id="meetingModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold">✕</button>
+            <h3 id="modalTitle" class="text-xl font-bold text-slate-900 mb-1">면담 일정 등록</h3>
+            <p class="text-xs text-slate-500 mb-5">등록 시 네이버 캘린더에 자동 연동됩니다.</p>
+            
             <input type="hidden" id="targetCustomerName">
             <input type="hidden" id="targetMeetingType">
             
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 14px; margin-bottom: 5px;">미팅 날짜 및 시간:</label>
-                <input type="datetime-local" id="meetingDateTime" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            
-            <div style="display: flex; gap: 10px;">
-                <button onclick="submitMeeting()" style="flex: 1; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">달력 연동 및 저장</button>
-                <button onclick="closeModal()" style="flex: 1; padding: 10px; background: #e2e8f0; color: #333; border: none; border-radius: 4px; cursor: pointer;">취소</button>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">미팅 날짜 및 시간</label>
+                    <input type="datetime-local" id="meetingDateTime" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-lg transition">취소</button>
+                    <button onclick="submitMeeting()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-md">달력 연동 및 저장</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- [보안 및 제어 로직] ---
-        document.addEventListener('contextmenu', e => e.preventDefault()); // 우클릭 금지
-        document.addEventListener('copy', e => { e.preventDefault(); alert('개인정보 보호를 위해 복사는 금지되어 있습니다.'); }); // 복사 금지
+        // --- [보안 제어 로직] ---
+        document.addEventListener('contextmenu', e => e.preventDefault()); 
+        document.addEventListener('copy', e => { e.preventDefault(); alert('개인정보 보호를 위해 복사는 금지되어 있습니다.'); }); 
         document.addEventListener('keydown', e => {
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'c')) {
-                e.preventDefault(); // 인쇄, 저장, 복사 단축키 차단
-            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'c')) e.preventDefault(); 
         });
-        // 화면 이탈 시 블러 (스크린샷 방지)
         window.addEventListener('blur', () => document.body.classList.add('blurred'));
         window.addEventListener('focus', () => document.body.classList.remove('blurred'));
 
-        // --- [통신 로직] ---
-        const GAS_WEBAPP_URL = "여기에_구글_앱스크립트_URL_입력"; 
-        const currentAgent = "테스트설계사"; // 추후 로그인 세션과 연동
-        document.getElementById('agentNameDisplay').innerText = `${currentAgent} 님`;
+        // --- [데이터 연동 핵심 로직] ---
+        // ⭐️ 아래 URL을 구글 앱스크립트 배포 후 얻은 웹앱 URL로 반드시 교체해야 합니다!
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/여기에_실제_코드를_넣으세요/exec"; 
+        
+        // 메인 index.html에서 로그인할 때 저장한 이름 가져오기
+        const currentAgent = localStorage.getItem('rion_logged_user');
+
+        if (!currentAgent) {
+            alert('보안 접근입니다. 메인 홈페이지에서 로그인을 먼저 진행해주세요.');
+            window.close(); // 로그인 정보가 없으면 창 닫기
+        } else {
+            document.getElementById('agentNameDisplay').innerText = `${currentAgent} 팀장님`;
+            loadAssignedDBs();
+        }
 
         async function loadAssignedDBs() {
             try {
-                // 백엔드(GAS)로 내 DB 요청
+                // 백엔드에 내 이름(agent)을 보내서 데이터 요청
                 const response = await fetch(`${GAS_WEBAPP_URL}?agent=${encodeURIComponent(currentAgent)}`);
                 const data = await response.json();
                 renderDBList(data);
             } catch (error) {
-                document.getElementById('dbContainer').innerHTML = "<p>데이터를 불러오는데 실패했습니다.</p>";
+                document.getElementById('dbContainer').innerHTML = `
+                    <div class="col-span-full text-center py-20 text-rose-500 font-bold">
+                        데이터 서버와 연결할 수 없습니다. URL을 확인해주세요.<br><span class="text-xs text-slate-400 mt-2 block">오류 내용: ${error.message}</span>
+                    </div>`;
             }
         }
 
         function renderDBList(dbs) {
             const container = document.getElementById('dbContainer');
-            if(dbs.length === 0) { container.innerHTML = "<p>현재 배정된 대기 DB가 없습니다.</p>"; return; }
+            if(!dbs || dbs.length === 0) { 
+                container.innerHTML = "<div class='col-span-full text-center py-20 text-slate-500 font-bold'>현재 배정된 대기 DB가 없습니다.</div>"; 
+                return; 
+            }
             
             let html = '';
             dbs.forEach(db => {
                 html += `
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between;">
-                        <h4 style="margin: 0;">${db.customerName} 고객님</h4>
-                        <span style="font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">TM시간: ${db.tmTime}</span>
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${db.region}</span>
+                            <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">TM: ${db.tmTime}</span>
+                            <h4 class="text-lg font-black text-slate-800 mt-1">${db.customerName} 고객님</h4>
+                        </div>
+                        <span class="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">${db.taStep} (제한: ${db.timeLimit})</span>
                     </div>
-                    <p style="font-size: 14px; color: #475569; margin: 10px 0;">
-                        📞 010-****-**** (웹 발신 클릭 시 연결)<br>
-                        📍 지역: ${db.region}<br>
-                        📝 메모: ${db.memo}
-                    </p>
-                    <div class="btn-group">
-                        <span style="font-size: 12px; font-weight: bold; margin-right: 10px;">${db.taStep} (제한시간: ${db.timeLimit})</span>
-                        <button class="btn-success" onclick="openModal('${db.customerName}', '1차면담')">성공(미팅등록)</button>
-                        <button class="btn-absence" onclick="updateStatus('${db.customerName}', '부재')">부재</button>
-                        <button class="btn-reject" onclick="updateStatus('${db.customerName}', '거절')">거절</button>
+                    
+                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 mb-4 space-y-1 border border-slate-100">
+                        <p>📞 <span class="font-bold text-slate-800">${db.phone}</span> (웹발신 클릭 시 연결)</p>
+                        <p>📝 <span class="font-medium">${db.memo}</span></p>
+                    </div>
+
+                    <!-- ⭐️ 구글 드라이브 녹취 파일 플레이어 (controlsList="nodownload" 로 다운로드 버튼 삭제) -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">🎧 기존 통화 녹취 듣기</label>
+                        <audio controls controlsList="nodownload" class="w-full h-8">
+                            <source src="${db.audioUrl}" type="audio/mpeg">
+                            브라우저가 오디오를 지원하지 않습니다.
+                        </audio>
+                    </div>
+
+                    <!-- 상태 액션 버튼 -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="openModal('${db.customerName}', '1차면담')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs transition">성공(미팅)</button>
+                        <button onclick="updateStatus('${db.customerName}', '부재')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-xs transition">부재</button>
+                        <button onclick="updateStatus('${db.customerName}', '거절')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 rounded-lg text-xs transition">거절</button>
                     </div>
                 </div>`;
             });
@@ -124,19 +157,22 @@
             document.getElementById('targetCustomerName').value = customerName;
             document.getElementById('targetMeetingType').value = meetingType;
             document.getElementById('modalTitle').innerText = `${meetingType} 일정 등록`;
+            // hidden 클래스를 지워서 화면에 보이게 함
             document.getElementById('meetingModal').classList.remove('hidden');
         }
 
-        function closeModal() { document.getElementById('meetingModal').classList.add('hidden'); }
+        function closeModal() { 
+            // hidden 클래스를 추가해서 화면에서 숨김
+            document.getElementById('meetingModal').classList.add('hidden'); 
+        }
 
         async function submitMeeting() {
             const customerName = document.getElementById('targetCustomerName').value;
             const meetingType = document.getElementById('targetMeetingType').value;
             const dateTime = document.getElementById('meetingDateTime').value;
 
-            if(!dateTime) { alert("일시를 지정해주세요."); return; }
+            if(!dateTime) { alert("날짜와 시간을 입력해주세요."); return; }
 
-            // 네이버 캘린더 연동을 위해 GAS로 데이터 POST 전송
             const payload = {
                 action: "registerCalendar",
                 agentName: currentAgent,
@@ -145,6 +181,9 @@
                 dateTime: dateTime
             };
 
+            const btn = document.querySelector('#meetingModal button.bg-blue-600');
+            btn.innerText = "저장 중...";
+
             try {
                 await fetch(GAS_WEBAPP_URL, {
                     method: 'POST',
@@ -152,23 +191,26 @@
                 });
                 alert("네이버 캘린더에 성공적으로 일정이 등록되었습니다.");
                 closeModal();
-                loadAssignedDBs(); // 목록 새로고침
+                loadAssignedDBs(); // 새로고침
             } catch (e) {
                 alert("등록 중 오류가 발생했습니다.");
+            } finally {
+                btn.innerText = "달력 연동 및 저장";
             }
         }
 
         async function updateStatus(customerName, status) {
-            if(!confirm(`${status} 처리 하시겠습니까?`)) return;
-            // 부재/거절 시 상태 업데이트 전송
-            const payload = { action: "updateStatus", customerName: customerName, status: status };
-            await fetch(GAS_WEBAPP_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert("처리되었습니다.");
-            loadAssignedDBs();
+            if(!confirm(`${customerName} 고객님을 '${status}' 처리 하시겠습니까?`)) return;
+            const payload = { action: "updateStatus", agentName: currentAgent, customerName: customerName, status: status };
+            
+            try {
+                await fetch(GAS_WEBAPP_URL, { method: 'POST', body: JSON.stringify(payload) });
+                alert("처리되었습니다.");
+                loadAssignedDBs();
+            } catch(e) {
+                alert("통신 에러가 발생했습니다.");
+            }
         }
-
-        // 초기 데이터 로드
-        loadAssignedDBs();
     </script>
 </body>
 </html>
