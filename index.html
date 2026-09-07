@@ -231,8 +231,7 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
-                        <div onclick="window.open('db_assign.html', '_blank')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                      
+                        <div onclick="checkAuthAndOpen('dbAssignPage')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-blue-100 border border-blue-200 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-full">v1.0</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📋</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition">스케줄관리(DB배정)</h3>
@@ -2173,17 +2172,30 @@
         let currentUser = { isLoggedIn: false, name: '', status: '' };
 
         function checkAuthAndOpen(modalId) {
+            // 1. 비회원도 접근 가능한 메뉴
             if (modalId === 'claimModal' || modalId === 'indemnityCalcModal' || modalId === 'comingSoonModal') {
                 openModal(modalId);
                 return;
             }
+            
+            // 2. 로그인 및 승인 상태 체크
             if (!currentUser.isLoggedIn) {
                 alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
                 openModal('loginModal');
             } else if (currentUser.status !== '승인') {
                 alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
             } else {
-                openModal(modalId); 
+                // 3. 승인 완료된 사용자 접근 허용 처리
+                
+                // ⭐️ [추가된 부분] 만약 클릭한 메뉴가 'dbAssignPage' 라면 새 창 열기
+                if (modalId === 'dbAssignPage') {
+                    localStorage.setItem('rion_logged_user', currentUser.name); // 사용자 이름 저장
+                    window.open('db_assign.html', '_blank'); // 보안 뷰어 새 창으로 띄우기
+                } 
+                // 기존 메뉴들(AI알릴의무분석 등)은 모달 띄우기
+                else {
+                    openModal(modalId); 
+                }
             }
         }
 
