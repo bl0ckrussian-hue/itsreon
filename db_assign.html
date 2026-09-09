@@ -52,7 +52,7 @@
         window.addEventListener('focus', () => document.body.classList.remove('blurred'));
 
         // --- [데이터 연동 핵심 로직] ---
-        // ⭐️ 주의: 아까 새 배포를 통해 얻은 새로운 웹앱 URL로 교체해 주세요!
+        // ⭐️ 기존 웹앱 URL 유지
         const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxqvmasH-avzis8xuxC2gGTbB2RW4ji1bjIqugDUvUH-ckY4_NVBxLFsM4XkJ_9-Q/exec"; 
         
         const currentAgent = localStorage.getItem('rion_logged_user');
@@ -78,7 +78,7 @@
             }
         }
 
-        // ⭐️ db관리 엑셀 양식 완벽 구현 테이블
+        // ⭐️ db관리 엑셀 양식 완벽 동기화 렌더링 (순서 재배치 및 폭 조정 완료)
         function renderDBList(dbs) {
             const container = document.getElementById('dbContainer');
             if(!dbs || dbs.length === 0) { 
@@ -91,18 +91,21 @@
                 <table class="w-full text-xs text-center border-collapse whitespace-nowrap">
                     <thead class="bg-slate-800 text-white">
                         <tr>
+                            <th class="p-2 border-r border-slate-700 font-medium w-10">No.</th>
                             <th class="p-2 border-r border-slate-700 font-medium">배분날짜</th>
+                            <th class="p-2 border-r border-slate-700 font-medium">전화번호</th>
                             <th class="p-2 border-r border-slate-700 font-medium">지역</th>
                             <th class="p-2 border-r border-slate-700 font-medium text-amber-300">고객명</th>
-                            <th class="p-2 border-r border-slate-700 font-medium">생년월일</th>
-                            <th class="p-2 border-r border-slate-700 font-medium">성별</th>
-                            <th class="p-2 border-r border-slate-700 font-medium">전화번호</th>
                             <th class="p-2 border-r border-slate-700 font-medium">시도</th>
                             <th class="p-2 border-r border-slate-700 font-medium">구군</th>
                             <th class="p-2 border-r border-slate-700 font-medium">읍면동</th>
+                            <th class="p-2 border-r border-slate-700 font-medium">생년월일</th>
+                            <th class="p-2 border-r border-slate-700 font-medium">성별</th>
+                            <th class="p-2 border-r border-slate-700 font-medium whitespace-normal w-40">메모</th>
+                            <th class="p-2 border-r border-slate-700 font-medium">담당설계사</th>
+                            <th class="p-2 border-r border-slate-700 font-medium text-emerald-300">진행상태</th>
+                            <th class="p-2 border-r border-slate-700 font-medium">배정일시</th>
                             <th class="p-2 border-r border-slate-700 font-medium">TM시간</th>
-                            <th class="p-2 border-r border-slate-700 font-medium whitespace-normal w-48">메모</th>
-                            <th class="p-2 font-medium w-40">녹취듣기</th>
                         </tr>
                     </thead>
                     <tbody class="text-slate-700">
@@ -110,46 +113,51 @@
 
             dbs.forEach((db, index) => {
                 html += `
-                    <!-- 1. [db관리] 원본 데이터 줄 -->
+                    <!-- 1. [db관리] 원본 데이터 줄 (순서 및 넘버링 추가) -->
                     <tr class="bg-slate-50 font-medium border-b border-slate-200 hover:bg-slate-100 transition">
-                        <td class="p-2 border-r border-slate-200">${db.assignDate}</td>
-                        <td class="p-2 border-r border-slate-200"><span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${db.region}</span></td>
-                        <td class="p-2 border-r border-slate-200 font-bold text-sm text-slate-900">${db.customerName}</td>
-                        <td class="p-2 border-r border-slate-200">${db.birth}</td>
-                        <td class="p-2 border-r border-slate-200">${db.gender}</td>
-                        <td class="p-2 border-r border-slate-200 font-bold text-blue-600">${db.phone}</td>
-                        <td class="p-2 border-r border-slate-200">${db.sido}</td>
-                        <td class="p-2 border-r border-slate-200">${db.gugun}</td>
-                        <td class="p-2 border-r border-slate-200">${db.dong}</td>
-                        <td class="p-2 border-r border-slate-200"><span class="bg-slate-200 px-1.5 py-0.5 rounded text-[10px]">${db.tmTime}</span></td>
-                        <td class="p-2 border-r border-slate-200 text-left whitespace-normal break-keep text-[11px] leading-snug">${db.memo}</td>
-                        <td class="p-1">
-                            ${db.audioUrl ? 
-                              `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300"></iframe>` 
-                              : `<span class="text-[10px] text-slate-400">녹취 없음</span>`
-                            }
-                        </td>
+                        <td class="p-2 border-r border-slate-200 font-bold text-slate-500">${index + 1}</td>
+                        <td class="p-2 border-r border-slate-200">${db.assignDate || '-'}</td>
+                        <td class="p-2 border-r border-slate-200 font-bold text-blue-600">${db.phone || '-'}</td>
+                        <td class="p-2 border-r border-slate-200"><span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${db.region || '-'}</span></td>
+                        <td class="p-2 border-r border-slate-200 font-bold text-sm text-slate-900">${db.customerName || '-'}</td>
+                        <td class="p-2 border-r border-slate-200">${db.sido || '-'}</td>
+                        <td class="p-2 border-r border-slate-200">${db.gugun || '-'}</td>
+                        <td class="p-2 border-r border-slate-200">${db.dong || '-'}</td>
+                        <td class="p-2 border-r border-slate-200">${db.birth || '-'}</td>
+                        <td class="p-2 border-r border-slate-200">${db.gender || '-'}</td>
+                        <td class="p-2 border-r border-slate-200 text-left whitespace-normal break-keep text-[11px] leading-snug">${db.memo || '-'}</td>
+                        <td class="p-2 border-r border-slate-200 font-bold">${currentAgent}</td>
+                        <td class="p-2 border-r border-slate-200 font-bold text-emerald-600">${db.taStep || '-'}</td>
+                        <td class="p-2 border-r border-slate-200 text-[10px]">${db.assignDate || '-'}</td>
+                        <td class="p-2 border-r border-slate-200"><span class="bg-slate-200 px-1.5 py-0.5 rounded text-[10px]">${db.tmTime || '-'}</span></td>
                     </tr>
-                    <!-- 2. [현황] 실시간 입력 폼 줄 -->
+                    
+                    <!-- 2. [현황] 실시간 입력 폼 줄 (녹취 앞으로 이동, TA 넓이 축소, 저장 버튼 강조) -->
                     <tr class="border-b-4 border-slate-400">
-                        <td colspan="12" class="p-0 bg-white">
+                        <td colspan="15" class="p-0 bg-white">
                             <div class="flex items-center w-full bg-amber-50">
-                                <!-- 현황 입력 영역 테이블 -->
                                 <table class="w-full text-[11px] text-center">
                                     <thead class="text-slate-500 border-b border-amber-100">
                                         <tr>
-                                            <th class="p-1.5 border-r border-amber-100 w-[10%]">1차 TA(1일)</th>
-                                            <th class="p-1.5 border-r border-amber-100 w-[10%]">2차 TA(2일)</th>
-                                            <th class="p-1.5 border-r border-amber-100 w-[10%]">3차 TA(3일)</th>
-                                            <th class="p-1.5 border-r border-amber-100 w-[10%]">4차 이상 TA</th>
+                                            <th class="p-1.5 border-r border-amber-100 w-48">녹취듣기</th>
+                                            <th class="p-1.5 border-r border-amber-100 w-[7%]">1차 TA(1일)</th>
+                                            <th class="p-1.5 border-r border-amber-100 w-[7%]">2차 TA(2일)</th>
+                                            <th class="p-1.5 border-r border-amber-100 w-[7%]">3차 TA(3일)</th>
+                                            <th class="p-1.5 border-r border-amber-100 w-[7%]">4차 이상 TA</th>
                                             <th class="p-1.5 border-r border-amber-100 w-[15%]">일정(스케줄입력)</th>
                                             <th class="p-1.5 border-r border-amber-100 w-[12%]">진행현황</th>
-                                            <th class="p-1.5 border-r border-amber-100 w-[23%]">비고(특이사항)</th>
-                                            <th class="p-1.5 w-[10%]">저장</th>
+                                            <th class="p-1.5 border-r border-amber-100 w-[20%]">비고(특이사항)</th>
+                                            <th class="p-1.5 w-[15%]">저장</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
+                                            <td class="p-1 border-r border-amber-100">
+                                                ${db.audioUrl ? 
+                                                  `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300"></iframe>` 
+                                                  : `<span class="text-[10px] text-slate-400 block py-1.5">녹취 없음</span>`
+                                                }
+                                            </td>
                                             <td class="p-1.5 border-r border-amber-100">${generateTaSelect(`ta1_${index}`)}</td>
                                             <td class="p-1.5 border-r border-amber-100">${generateTaSelect(`ta2_${index}`)}</td>
                                             <td class="p-1.5 border-r border-amber-100">${generateTaSelect(`ta3_${index}`)}</td>
@@ -169,10 +177,10 @@
                                                 </select>
                                             </td>
                                             <td class="p-1.5 border-r border-amber-100">
-                                                <input type="text" id="note_${index}" placeholder="현황 특이사항 입력" class="w-full px-2 py-1 border border-slate-300 rounded focus:border-blue-500 focus:outline-none">
+                                                <input type="text" id="note_${index}" placeholder="특이사항 입력" class="w-full px-2 py-1 border border-slate-300 rounded focus:border-blue-500 focus:outline-none">
                                             </td>
                                             <td class="p-1.5">
-                                                <button onclick="saveStatus('${db.customerName}', ${index})" id="btn_save_${index}" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-1 rounded transition shadow-sm">연동 저장</button>
+                                                <button onclick="saveStatus('${db.customerName}', ${index})" id="btn_save_${index}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2 rounded transition shadow-md text-[13px] tracking-wide">✅ 연동 저장</button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -202,7 +210,7 @@
         async function saveStatus(customerName, index) {
             const btn = document.getElementById(`btn_save_${index}`);
             btn.innerText = "저장중..";
-            btn.classList.replace('bg-slate-800', 'bg-slate-400');
+            btn.classList.replace('bg-blue-600', 'bg-slate-400');
             btn.disabled = true;
 
             const payload = {
@@ -231,8 +239,8 @@
             } catch (error) {
                 alert("통신 에러가 발생했습니다. 잠시 후 다시 시도해주세요.");
             } finally {
-                btn.innerText = "연동 저장";
-                btn.classList.replace('bg-slate-400', 'bg-slate-800');
+                btn.innerText = "✅ 연동 저장";
+                btn.classList.replace('bg-slate-400', 'bg-blue-600');
                 btn.disabled = false;
             }
         }
