@@ -156,7 +156,7 @@
                             <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
                                 
                                 <!-- 녹취듣기 영역 (저장 버튼 공간만큼 넓어짐) -->
-                                <div class="w-[22%] shrink-0">
+                                <div class="w-[20%] shrink-0">
                                     ${db.audioUrl ? 
                                       `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300 bg-white shadow-sm"></iframe>` 
                                       : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 파일 없음</div>`
@@ -164,19 +164,19 @@
                                 </div>
 
                                 <!-- TA 선택 박스 -->
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA(1일)', valTa1, index)}</div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta2_${index}`, '2차 TA(2일)', valTa2, index)}</div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA(3일)', valTa3, index)}</div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상 TA', valTa4, index)}</div>
+                                <div class="w-[6%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA(1일)', valTa1, index)}</div>
+                                <div class="w-[6%] shrink-0">${generateTaSelect(`ta2_${index}`, '2차 TA(2일)', valTa2, index)}</div>
+                                <div class="w-[6%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA(3일)', valTa3, index)}</div>
+                                <div class="w-[6%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상 TA', valTa4, index)}</div>
 
                                 <!-- 스케줄 입력 -->
-                                <div class="w-[12%] shrink-0 flex gap-1">
+                                <div class="w-[14%] shrink-0 flex gap-1">
                                     <input type="text" id="schedule_${index}" value="${valSchedule}" onchange="markModified(${index})" placeholder="일정(스케줄입력)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                                     <a href="https://calendar.naver.com/" target="_blank" class="bg-emerald-500 text-white px-2 py-1.5 rounded font-bold hover:bg-emerald-600 transition flex items-center justify-center text-[10px] shrink-0" title="네이버 캘린더">N</a>
                                 </div>
 
                                 <!-- 진행현황 -->
-                                <div class="w-[10%] shrink-0">
+                                <div class="w-[6%] shrink-0">
                                     <select id="status_${index}" onchange="markModified(${index})" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
                                         <option value="" ${valStatus===''?'selected':''}>- 진행현황 -</option>
                                         <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
