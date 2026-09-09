@@ -142,6 +142,7 @@
                                 
                                 <!-- ⭐️ 녹취듣기 영역 (폭 대폭 확대: w-[22%]) -->
                                 <div class="w-[20%] shrink-0">
+                                    <span class="text-[10px] font-bold text-slate-600 whitespace-nowrap">🎧 녹취듣기</span>
                                     ${db.audioUrl ? 
                                       `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300 bg-white shadow-sm"></iframe>` 
                                       : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 파일 없음</div>`
