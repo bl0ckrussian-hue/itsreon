@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>itsrion DB 배정 시스템 (보안 뷰어)</title>
-    <!-- Tailwind CSS (메인 홈페이지와 동일한 디자인 적용) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* [보안 절대 원칙] 드래그, 복사, 텍스트 선택 원천 차단 */
@@ -36,38 +36,14 @@
         </div>
     </header>
 
-    <!-- DB 리스트 렌더링 영역 -->
-    <main class="max-w-7xl mx-auto w-full p-6 flex-grow">
-        <div id="dbContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full text-center py-20 text-slate-500 font-bold">
+    <!-- DB 리스트 표 렌더링 영역 -->
+    <main class="max-w-7xl mx-auto w-full p-6 flex-grow overflow-x-auto">
+        <div id="dbContainer" class="w-full">
+            <div class="text-center py-20 text-slate-500 font-bold">
                 데이터를 불러오는 중입니다...
             </div>
         </div>
     </main>
-
-    <!-- 1차/2차 면담 등록 모달 (기본적으로 hidden 상태여야 함) -->
-    <div id="meetingModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full relative">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold">✕</button>
-            <h3 id="modalTitle" class="text-xl font-bold text-slate-900 mb-1">면담 일정 등록</h3>
-            <p class="text-xs text-slate-500 mb-5">등록 시 네이버 캘린더에 자동 연동됩니다.</p>
-            
-            <input type="hidden" id="targetCustomerName">
-            <input type="hidden" id="targetMeetingType">
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">미팅 날짜 및 시간</label>
-                    <input type="datetime-local" id="meetingDateTime" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
-                </div>
-                
-                <div class="flex gap-2 pt-2">
-                    <button onclick="closeModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-lg transition">취소</button>
-                    <button onclick="submitMeeting()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-md">달력 연동 및 저장</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script>
         // --- [보안 제어 로직] ---
@@ -77,14 +53,14 @@
             if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'c')) e.preventDefault(); 
         });
         
-        // ⭐️ 수정됨: 오디오 플레이어(iframe)를 클릭해서 포커스를 잃은 경우는 블러 처리 예외
+        // 오디오 플레이어(iframe)를 클릭해서 포커스를 잃은 경우는 블러 처리 예외
         window.addEventListener('blur', () => {
             if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
             document.body.classList.add('blurred');
         });
         window.addEventListener('focus', () => document.body.classList.remove('blurred'));
+
         // --- [데이터 연동 핵심 로직] ---
-        // ⭐️ 아래 URL을 구글 앱스크립트 배포 후 얻은 웹앱 URL로 반드시 교체해야 합니다!
         const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxqvmasH-avzis8xuxC2gGTbB2RW4ji1bjIqugDUvUH-ckY4_NVBxLFsM4XkJ_9-Q/exec"; 
         
         // 메인 index.html에서 로그인할 때 저장한 이름 가져오기
@@ -92,7 +68,7 @@
 
         if (!currentAgent) {
             alert('보안 접근입니다. 메인 홈페이지에서 로그인을 먼저 진행해주세요.');
-            window.close(); // 로그인 정보가 없으면 창 닫기
+            window.close();
         } else {
             document.getElementById('agentNameDisplay').innerText = `${currentAgent} 팀장님`;
             loadAssignedDBs();
@@ -100,119 +76,160 @@
 
         async function loadAssignedDBs() {
             try {
-                // 백엔드에 내 이름(agent)을 보내서 데이터 요청
                 const response = await fetch(`${GAS_WEBAPP_URL}?agent=${encodeURIComponent(currentAgent)}`);
                 const data = await response.json();
                 renderDBList(data);
             } catch (error) {
                 document.getElementById('dbContainer').innerHTML = `
-                    <div class="col-span-full text-center py-20 text-rose-500 font-bold">
+                    <div class="text-center py-20 text-rose-500 font-bold">
                         데이터 서버와 연결할 수 없습니다. URL을 확인해주세요.<br><span class="text-xs text-slate-400 mt-2 block">오류 내용: ${error.message}</span>
                     </div>`;
             }
         }
 
+        // ⭐️ 엑셀 표(Table) 형식 렌더링 함수
         function renderDBList(dbs) {
             const container = document.getElementById('dbContainer');
             if(!dbs || dbs.length === 0) { 
-                container.innerHTML = "<div class='col-span-full text-center py-20 text-slate-500 font-bold'>현재 배정된 대기 DB가 없습니다.</div>"; 
+                container.innerHTML = "<div class='text-center py-20 text-slate-500 font-bold'>현재 배정된 대기 DB가 없습니다.</div>"; 
                 return; 
             }
             
-            let html = '';
-            dbs.forEach(db => {
+            let html = `
+            <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden min-w-[1000px]">
+                <table class="w-full text-sm text-center border-collapse whitespace-nowrap">
+                    <thead class="bg-slate-800 text-white">
+                        <tr>
+                            <th class="p-3 border-b border-slate-700 font-medium">제한시간</th>
+                            <th class="p-3 border-b border-slate-700 font-medium">지역</th>
+                            <th class="p-3 border-b border-slate-700 font-medium">고객명</th>
+                            <th class="p-3 border-b border-slate-700 font-medium">전화번호</th>
+                            <th class="p-3 border-b border-slate-700 font-medium w-1/4">메모 / 특이사항</th>
+                            <th class="p-3 border-b border-slate-700 font-medium">녹취듣기</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-700">
+            `;
+
+            dbs.forEach((db, index) => {
                 html += `
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${db.region}</span>
-                            <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">TM: ${db.tmTime}</span>
-                            <h4 class="text-lg font-black text-slate-800 mt-1">${db.customerName} 고객님</h4>
-                        </div>
-                        <span class="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">${db.taStep} (제한: ${db.timeLimit})</span>
-                    </div>
-                    
-                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 mb-4 space-y-1 border border-slate-100">
-                        <p>📞 <span class="font-bold text-slate-800">${db.phone}</span> (웹발신 클릭 시 연결)</p>
-                        <p>📝 <span class="font-medium">${db.memo}</span></p>
-                    </div>
-
-                    <!-- ⭐️ 구글 드라이브 전용 플레이어 (포맷 충돌 없이 무조건 재생) -->
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-500 mb-1">🎧 기존 통화 녹취 듣기</label>
-                        ${db.audioUrl ? 
-                          `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-14 rounded-lg border border-slate-200"></iframe>` 
-                          : `<div class="text-sm text-slate-400 bg-slate-50 p-2 rounded-lg">녹취 파일이 없습니다.</div>`
-                        }
-                    </div>
-
-                    <!-- 상태 액션 버튼 -->
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="openModal('${db.customerName}', '1차면담')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs transition">성공(미팅)</button>
-                        <button onclick="updateStatus('${db.customerName}', '부재')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-xs transition">부재</button>
-                        <button onclick="updateStatus('${db.customerName}', '거절')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 rounded-lg text-xs transition">거절</button>
-                    </div>
-                </div>`;
+                    <!-- 1. DB 기본 정보 줄 -->
+                    <tr class="bg-slate-50 font-medium">
+                        <td class="p-3 border-r border-slate-200"><span class="text-rose-500 font-bold text-xs">${db.timeLimit}</span></td>
+                        <td class="p-3 border-r border-slate-200"><span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2 py-1 rounded-full">${db.region}</span></td>
+                        <td class="p-3 border-r border-slate-200 font-bold text-base text-slate-900">${db.customerName}</td>
+                        <td class="p-3 border-r border-slate-200 font-bold tracking-wider">${db.phone}</td>
+                        <td class="p-3 border-r border-slate-200 text-left text-xs whitespace-normal break-keep text-slate-600">${db.memo}</td>
+                        <td class="p-2 border-slate-200">
+                            ${db.audioUrl ? 
+                              `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-10 rounded border border-slate-300"></iframe>` 
+                              : `<span class="text-xs text-slate-400">녹취 파일 없음</span>`
+                            }
+                        </td>
+                    </tr>
+                    <!-- 2. DB 현황 입력 줄 -->
+                    <tr class="border-b-4 border-slate-300">
+                        <td colspan="6" class="p-0">
+                            <table class="w-full text-xs text-center bg-white">
+                                <thead class="bg-slate-100 text-slate-500">
+                                    <tr>
+                                        <th class="p-2 border-r border-slate-200">1차 TA(1일)</th>
+                                        <th class="p-2 border-r border-slate-200">2차 TA(2일)</th>
+                                        <th class="p-2 border-r border-slate-200">3차 TA(3일)</th>
+                                        <th class="p-2 border-r border-slate-200">4차 이상 TA</th>
+                                        <th class="p-2 border-r border-slate-200">일정(스케줄입력)</th>
+                                        <th class="p-2 border-r border-slate-200">현황</th>
+                                        <th class="p-2 border-r border-slate-200 w-1/5">비고</th>
+                                        <th class="p-2 w-20">저장</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="p-2 border-r border-slate-200">${generateTaSelect(`ta1_${index}`)}</td>
+                                        <td class="p-2 border-r border-slate-200">${generateTaSelect(`ta2_${index}`)}</td>
+                                        <td class="p-2 border-r border-slate-200">${generateTaSelect(`ta3_${index}`)}</td>
+                                        <td class="p-2 border-r border-slate-200">${generateTaSelect(`ta4_${index}`)}</td>
+                                        <td class="p-2 border-r border-slate-200 flex items-center justify-center gap-1 h-full">
+                                            <input type="text" id="schedule_${index}" placeholder="예: 7/15 14시" class="w-20 px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none">
+                                            <a href="https://calendar.naver.com/" target="_blank" class="bg-emerald-500 text-white px-2 py-1.5 rounded font-bold hover:bg-emerald-600 transition" title="네이버 캘린더 열기">N캘린더</a>
+                                        </td>
+                                        <td class="p-2 border-r border-slate-200">
+                                            <select id="status_${index}" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none font-bold text-slate-700">
+                                                <option value="">선택</option>
+                                                <option value="상담 중">상담 중</option>
+                                                <option value="상담완료">상담완료</option>
+                                                <option value="계약">계약</option>
+                                                <option value="장기배양(심사)">장기배양(심사)</option>
+                                                <option value="거절">거절</option>
+                                            </select>
+                                        </td>
+                                        <td class="p-2 border-r border-slate-200">
+                                            <input type="text" id="note_${index}" placeholder="특이사항을 자유롭게 입력하세요" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none">
+                                        </td>
+                                        <td class="p-2">
+                                            <button onclick="saveStatus('${db.customerName}', ${index})" id="btn_save_${index}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded transition shadow-sm">저장</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                `;
             });
+            html += `</tbody></table></div>`;
             container.innerHTML = html;
         }
 
-        function openModal(customerName, meetingType) {
-            document.getElementById('targetCustomerName').value = customerName;
-            document.getElementById('targetMeetingType').value = meetingType;
-            document.getElementById('modalTitle').innerText = `${meetingType} 일정 등록`;
-            // hidden 클래스를 지워서 화면에 보이게 함
-            document.getElementById('meetingModal').classList.remove('hidden');
+        // TA 옵션 생성용 공통 함수
+        function generateTaSelect(id) {
+            return `
+            <select id="${id}" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-slate-600">
+                <option value="">선택</option>
+                <option value="부재">부재</option>
+                <option value="다시">다시</option>
+                <option value="거절">거절</option>
+                <option value="예정">예정</option>
+                <option value="본인설계사">본인설계사</option>
+            </select>
+            `;
         }
 
-        function closeModal() { 
-            // hidden 클래스를 추가해서 화면에서 숨김
-            document.getElementById('meetingModal').classList.add('hidden'); 
-        }
-
-        async function submitMeeting() {
-            const customerName = document.getElementById('targetCustomerName').value;
-            const meetingType = document.getElementById('targetMeetingType').value;
-            const dateTime = document.getElementById('meetingDateTime').value;
-
-            if(!dateTime) { alert("날짜와 시간을 입력해주세요."); return; }
+        // ⭐️ 앱스크립트로 데이터(현황, TA 등) 전송
+        async function saveStatus(customerName, index) {
+            const btn = document.getElementById(`btn_save_${index}`);
+            btn.innerText = "저장중..";
+            btn.classList.replace('bg-blue-600', 'bg-slate-400');
+            btn.disabled = true;
 
             const payload = {
-                action: "registerCalendar",
+                action: "updateHyunhwang",
                 agentName: currentAgent,
                 customerName: customerName,
-                meetingType: meetingType,
-                dateTime: dateTime
+                ta1: document.getElementById(`ta1_${index}`).value,
+                ta2: document.getElementById(`ta2_${index}`).value,
+                ta3: document.getElementById(`ta3_${index}`).value,
+                ta4: document.getElementById(`ta4_${index}`).value,
+                schedule: document.getElementById(`schedule_${index}`).value,
+                status: document.getElementById(`status_${index}`).value,
+                note: document.getElementById(`note_${index}`).value
             };
 
-            const btn = document.querySelector('#meetingModal button.bg-blue-600');
-            btn.innerText = "저장 중...";
-
             try {
-                await fetch(GAS_WEBAPP_URL, {
+                const response = await fetch(GAS_WEBAPP_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
-                alert("네이버 캘린더에 성공적으로 일정이 등록되었습니다.");
-                closeModal();
-                loadAssignedDBs(); // 새로고침
-            } catch (e) {
-                alert("등록 중 오류가 발생했습니다.");
+                const result = await response.json();
+                
+                if(result.success) {
+                    alert(`${customerName} 고객님의 관리 현황이 시트에 실시간으로 연동되었습니다.`);
+                }
+            } catch (error) {
+                alert("통신 에러가 발생했습니다. 잠시 후 다시 시도해주세요.");
             } finally {
-                btn.innerText = "달력 연동 및 저장";
-            }
-        }
-
-        async function updateStatus(customerName, status) {
-            if(!confirm(`${customerName} 고객님을 '${status}' 처리 하시겠습니까?`)) return;
-            const payload = { action: "updateStatus", agentName: currentAgent, customerName: customerName, status: status };
-            
-            try {
-                await fetch(GAS_WEBAPP_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert("처리되었습니다.");
-                loadAssignedDBs();
-            } catch(e) {
-                alert("통신 에러가 발생했습니다.");
+                btn.innerText = "저장";
+                btn.classList.replace('bg-slate-400', 'bg-blue-600');
+                btn.disabled = false;
             }
         }
     </script>
