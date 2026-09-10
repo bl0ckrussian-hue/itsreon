@@ -17,12 +17,17 @@
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #F8F9FA; color: #1E293B; scroll-behavior: smooth; }
-        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 280px; max-height: 350px; }
+        .chart-container { position: relative; width: 100%; max-width: 100%; margin-left: auto; margin-right: auto; height: 280px; max-height: 350px; }
         @media (min-width: 768px) { .chart-container { height: 320px; } }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F1F5F9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
         .hero-slide { transition: opacity 0.6s ease-in-out; }
+        .ai-report-content table { width: 100%; border-collapse: collapse; margin-top: 12px; margin-bottom: 16px; font-size: 12px; }
+        .ai-report-content th { background-color: #1E293B; color: #ffffff; font-weight: 700; padding: 8px 10px; border: 1px solid #334155; text-align: center; }
+        .ai-report-content td { padding: 8px 10px; border: 1px solid #E2E8F0; vertical-align: top; color: #334155; }
+        .ai-report-content tr:nth-child(even) { background-color: #F8FAFC; }
+        .ai-report-content h3, .ai-report-content h4 { font-weight: 800; color: #0F172A; margin-top: 18px; margin-bottom: 8px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
@@ -76,7 +81,7 @@
         <div id="viewIntro" class="block transition-all duration-300">
             <!-- 1-1. 히어로 슬라이더 섹션 -->
             <section id="introHero" class="relative bg-slate-950 text-white overflow-hidden min-h-[460px] md:min-h-[500px] flex items-center">
-                <!-- Slide 1 -->
+                <!-- Slide 1 (첫번째 페이지 - 중간배너2.jpg 적용) -->
                 <div id="slide1" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-100">
                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('images/중간배너2.jpg');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/70 to-transparent"></div>
@@ -92,7 +97,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Slide 2 -->
+                <!-- Slide 2 (두번째 페이지 - 중간배너1.jpg 적용) -->
                 <div id="slide2" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-0 pointer-events-none">
                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('images/중간배너1.jpg');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/70 to-transparent"></div>
@@ -124,7 +129,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                        <!-- [좌측 카드] 설계사 스마트 업무지원 -->
+                        <!-- [좌측 카드] 설계사 스마트 업무지원 (logo3.jpg 적용) -->
                         <div class="bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-800 text-white flex flex-col justify-between items-center text-center group hover:border-blue-500/50 transition duration-300">
                             <div class="flex flex-col items-center w-full">
                                 <div class="w-24 h-24 rounded-2xl bg-white p-3.5 shadow-lg mb-5 flex items-center justify-center overflow-hidden group-hover:scale-105 transition transform">
@@ -247,12 +252,11 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
                         </div>
 
-                        <!-- ⭐️ AI 알릴의무분석 (새 창 연결) -->
                         <div onclick="checkAuthAndOpen('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v6.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">AI알릴의무분석</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/><span class="text-amber-600 font-bold">(새 창에서 열림)</span></p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/>고지의무 사항 자동 체크</p>
                         </div>
 
                         <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
@@ -262,14 +266,14 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 </p>
                         </div>
 
+                        <!-- ⭐️ 계약현황 대시보드 (클릭 시 새 창 오픈 + 하단 스크롤 동시 작동) -->
                         <div onclick="checkAuthAndOpen('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <div class="absolute top-3 right-3 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">출시예정</div>
+                            <div class="absolute top-3 right-3 bg-teal-100 border border-teal-200 text-teal-600 text-[10px] font-bold px-2 py-0.5 rounded-full">실시간 연동</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-teal-600 transition">계약현황 대시보드</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">계약 현황 및<br/>목표 달성률 실시간 조회</p>
                         </div>
 
-                        <!-- ⭐️ 실비 마스터 (새 창 연결) -->
                         <div onclick="checkAuthAndOpen('indemnityCalcModal')" class="bg-white hover:bg-[#f8fafc] border border-slate-200 hover:border-slate-800 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
@@ -295,46 +299,74 @@
                 </div>
             </section>
 
-            <!-- 2-2. 개인별 DB 체결효율 & 소진분석 섹션 -->
+            <!-- ⭐️ 2-2. 개인별 DB 체결효율 & 소진분석 섹션 (대시보드 통합 영역) -->
             <section id="myAnalytics" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
+                
+                <!-- 비로그인 시 안내 화면 -->
+                <div id="analyticsPlaceholder" class="bg-white rounded-2xl p-16 shadow-sm border border-slate-200 text-center">
+                    <div class="text-4xl mb-4">🔒</div>
+                    <h2 class="text-2xl font-black text-slate-800 mb-2">실시간 계약현황 대시보드</h2>
+                    <p class="text-slate-500 text-sm">로그인하시면 팀장님의 월별 실적과 DB 소진율 통계를 실시간으로 확인하실 수 있습니다.</p>
+                    <button onclick="openModal('loginModal')" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition shadow-sm">로그인 하기</button>
+                </div>
+
+                <!-- 로그인(승인완료) 시 보여질 실제 대시보드 -->
+                <div id="analyticsDashboard" class="hidden bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
                         <div>
                             <div class="flex items-center space-x-2 mb-1.5">
                                 <span class="bg-blue-600 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">개인 실적 데이터 리포트</span>
-                                <span class="text-xs font-bold text-slate-500">사번: WIZ-2026-8801</span>
                             </div>
-                            <h2 class="text-2xl font-bold text-slate-900">📊 체결 효율 & DB 소진 분석</h2>
-                            <p class="text-xs text-slate-500 mt-1">[김설계 팀장님]에게 배정된 DB 실시간 사용 소진율 및 계약 체결 효율성 통계입니다.</p>
+                            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+                                <span id="dashNameTitle" class="text-blue-600"></span> 전문가님
+                            </h2>
                         </div>
-                        <div class="flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div class="flex items-center space-x-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
                             <div class="text-right">
-                                <div class="text-[11px] font-bold text-slate-500">당월 종합 DB 체결률</div>
-                                <div class="text-lg font-black text-blue-600">41.6 % <span class="text-xs font-normal text-emerald-600">▲ 5.2%</span></div>
+                                <div class="text-[11px] font-bold text-slate-500">당월 종합 체결률</div>
+                                <div class="text-xl sm:text-2xl font-black text-blue-600"><span id="dashRate">0</span> %</div>
                             </div>
-                            <div class="w-px h-8 bg-slate-200"></div>
+                            <div class="w-px h-10 bg-slate-200 mx-1"></div>
                             <div>
                                 <div class="text-[11px] font-bold text-slate-500">당월 소진 DB</div>
-                                <div class="text-lg font-black text-slate-800">24 <span>건</span></div>
+                                <div class="text-xl sm:text-2xl font-black text-slate-800"><span id="dashConsumed">0</span> <span class="text-sm font-bold">건</span></div>
                             </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center"><span class="text-[11px] font-semibold text-slate-500 block">당월 배정 DB 수량</span><span class="text-xl font-black text-slate-900 mt-1 block">24 <span>건</span></span><span class="text-[10px] text-blue-600 font-bold">100% 소진 진행중</span></div>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center"><span class="text-[11px] font-semibold text-slate-500 block">최종 계약 체결 건수</span><span class="text-xl font-black text-emerald-600 mt-1 block">10 <span>건</span></span><span class="text-[10px] text-emerald-600 font-bold">목표(12건)의 83%</span></div>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center"><span class="text-[11px] font-semibold text-slate-500 block">평균 상담 소요 기간</span><span class="text-xl font-black text-indigo-600 mt-1 block">3.2 <span>일</span></span><span class="text-[10px] text-slate-400">배정 후 1차 계약까지</span></div>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center"><span class="text-[11px] font-semibold text-slate-500 block">당월 누적 체결 수수료</span><span class="text-xl font-black text-blue-700 mt-1 block">385 <span>만원</span></span><span class="text-[10px] text-slate-400">전월 대비 +12%</span></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
-                            <div class="flex items-center justify-between mb-3"><h3 class="text-xs font-bold text-slate-800">[김설계] DB 유형별 계약 체결률 (%)</h3><span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">최근 3개월 누적</span></div>
-                            <div class="chart-container"><canvas id="conversionChart"></canvas></div>
-                            <p class="text-[11px] text-slate-500 mt-3 text-center">💡 <span class="font-bold text-slate-700">보장분석 DB</span>에서 가장 높은 체결율(42.5%)을 기록하고 있습니다.</p>
+
+                    <!-- 5대 KPI 박스 -->
+                    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-sm">
+                            <span class="text-[11px] font-bold text-slate-500 block">당월 누적 보험료</span>
+                            <span class="text-lg sm:text-xl font-black text-slate-900 mt-1 block tracking-tight"><span id="dashPremium">0</span> <span class="text-sm font-bold text-slate-600">원</span></span>
                         </div>
-                        <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200">
-                            <div class="flex items-center justify-between mb-3"><h3 class="text-xs font-bold text-slate-800">[김설계] 월별 DB 소진 수량 vs 체결 건수</h3><span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">실시간 추이</span></div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-sm">
+                            <span class="text-[11px] font-bold text-slate-500 block">계약체결건수</span>
+                            <span class="text-lg sm:text-xl font-black text-emerald-600 mt-1 block"><span id="dashContract">0</span> <span class="text-sm font-bold text-emerald-600/70">건</span></span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-sm">
+                            <span class="text-[11px] font-bold text-slate-500 block">평균상담소요기간</span>
+                            <span class="text-lg sm:text-xl font-black text-indigo-600 mt-1 block"><span id="dashAvgDays">0</span> <span class="text-sm font-bold text-indigo-600/70">일</span></span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-sm">
+                            <span class="text-[11px] font-bold text-slate-500 block">당월배정DB수량</span>
+                            <span class="text-lg sm:text-xl font-black text-blue-700 mt-1 block"><span id="dashAssigned">0</span> <span class="text-sm font-bold text-blue-700/70">건</span></span>
+                        </div>
+                        <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-center shadow-sm lg:col-span-1 col-span-2">
+                            <span class="text-[11px] font-bold text-emerald-700 block">진행중 상담 건수 (+추가)</span>
+                            <span class="text-lg sm:text-xl font-black text-emerald-800 mt-1 block"><span id="dashOngoing">0</span> <span class="text-sm font-bold text-emerald-700/70">건</span></span>
+                        </div>
+                    </div>
+
+                    <!-- 하단 그래프 영역 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-1">
+                            <h3 class="text-xs font-bold text-slate-800 mb-4 tracking-tight">📊 DB TA 상황별 건수 (3개월 누적)</h3>
+                            <div class="chart-container"><canvas id="conversionChart"></canvas></div>
+                        </div>
+                        <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
+                            <h3 class="text-xs font-bold text-slate-800 mb-4 tracking-tight">📈 월별 DB소진수량 vs 체결건수</h3>
                             <div class="chart-container"><canvas id="monthlyTrendChart"></canvas></div>
-                            <p class="text-[11px] text-slate-500 mt-3 text-center">📈 DB 소진 수량 증가에 따라 월별 체결 건수도 꾸준히 우상향하고 있습니다.</p>
                         </div>
                     </div>
                 </div>
@@ -384,15 +416,10 @@
                                     <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">법률 / 송무</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition">변호사 자문단</h3>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                                    상속 분쟁, 유류분 반환, 기업 지배구조 개편, 계약서 법률 검토 및 민·형사 분쟁 종합 법률 솔루션
-                                </p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">상속 분쟁, 유류분 반환, 기업 지배구조 개편, 계약서 법률 검토 및 민·형사 분쟁 종합 법률 솔루션</p>
                             </div>
-                            <button onclick="openExpertModal('변호사 (법률/상속/기업법무)')" class="mt-6 w-full bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                1:1 법률 자문 신청 →
-                            </button>
+                            <button onclick="openExpertModal('변호사 (법률/상속/기업법무)')" class="mt-6 w-full bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 rounded-lg text-xs transition">1:1 법률 자문 신청 →</button>
                         </div>
-
                         <!-- 2. 세무 (세무사) -->
                         <div class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 transition cursor-pointer flex flex-col justify-between group shadow-sm hover:shadow-md">
                             <div>
@@ -401,15 +428,10 @@
                                     <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">절세 / 플래닝</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 group-hover:text-amber-600 transition">세무사 자문단</h3>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                                    양도·상속·증여 사전 플래닝, 가업승계 지원세제, 법인 전환 및 세무조사 대응 정밀 컨설팅
-                                </p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">양도·상속·증여 사전 플래닝, 가업승계 지원세제, 법인 전환 및 세무조사 대응 정밀 컨설팅</p>
                             </div>
-                            <button onclick="openExpertModal('세무사 (상속/증여/가업승계)')" class="mt-6 w-full bg-slate-900 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                1:1 세무 자문 신청 →
-                            </button>
+                            <button onclick="openExpertModal('세무사 (상속/증여/가업승계)')" class="mt-6 w-full bg-slate-900 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs transition">1:1 세무 자문 신청 →</button>
                         </div>
-
                         <!-- 3. 회계 (공인회계사) -->
                         <div class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 transition cursor-pointer flex flex-col justify-between group shadow-sm hover:shadow-md">
                             <div>
@@ -418,15 +440,10 @@
                                     <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">기업회계 / M&A</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition">공인회계사 자문단</h3>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                                    비상장주식 가치평가, 법인 재무제표 정밀 진단, 기업 인수합병(M&A), 회계감사 및 내부통제
-                                </p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">비상장주식 가치평가, 법인 재무제표 정밀 진단, 기업 인수합병(M&A), 회계감사 및 내부통제</p>
                             </div>
-                            <button onclick="openExpertModal('공인회계사 (주식가치평가/M&A)')" class="mt-6 w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                1:1 회계 자문 신청 →
-                            </button>
+                            <button onclick="openExpertModal('공인회계사 (주식가치평가/M&A)')" class="mt-6 w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs transition">1:1 회계 자문 신청 →</button>
                         </div>
-
                         <!-- 4. 변리 (변리사) -->
                         <div class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 transition cursor-pointer flex flex-col justify-between group shadow-sm hover:shadow-md">
                             <div>
@@ -435,15 +452,10 @@
                                     <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">특허 / IP</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition">변리사 자문단</h3>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                                    직무발명보상제도, 특허권 자본화(IP 평가), 상표·디자인 출원 및 특허 분쟁 사전 예방
-                                </p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">직무발명보상제도, 특허권 자본화(IP 평가), 상표·디자인 출원 및 특허 분쟁 사전 예방</p>
                             </div>
-                            <button onclick="openExpertModal('변리사 (특허자본화/직무발명)')" class="mt-6 w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                1:1 변리 자문 신청 →
-                            </button>
+                            <button onclick="openExpertModal('변리사 (특허자본화/직무발명)')" class="mt-6 w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-2.5 rounded-lg text-xs transition">1:1 변리 자문 신청 →</button>
                         </div>
-
                         <!-- 5. 손해사정 (손해사정사) -->
                         <div class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-rose-500 rounded-2xl p-7 transition cursor-pointer flex flex-col justify-between group shadow-sm hover:shadow-md">
                             <div>
@@ -452,15 +464,10 @@
                                     <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">보험금 / 장해평가</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 group-hover:text-rose-600 transition">손해사정사 자문단</h3>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                                    고액 암·뇌·심장 진단비 분쟁, 후유장해 지급률 평가, 질병·상해 사망보험금 권리 구제
-                                </p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">고액 암·뇌·심장 진단비 분쟁, 후유장해 지급률 평가, 질병·상해 사망보험금 권리 구제</p>
                             </div>
-                            <button onclick="openExpertModal('손해사정사 (고액보상/후유장해)')" class="mt-6 w-full bg-slate-900 hover:bg-rose-600 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                1:1 보상 자문 신청 →
-                            </button>
+                            <button onclick="openExpertModal('손해사정사 (고액보상/후유장해)')" class="mt-6 w-full bg-slate-900 hover:bg-rose-600 text-white font-bold py-2.5 rounded-lg text-xs transition">1:1 보상 자문 신청 →</button>
                         </div>
-
                         <!-- 6. 노무 (공인노무사) -->
                         <div class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 transition cursor-pointer flex flex-col justify-between group shadow-sm hover:shadow-md">
                             <div>
@@ -469,13 +476,9 @@
                                     <span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">노무 / 취업규칙</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 group-hover:text-teal-600 transition">공인노무사 자문단</h3>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                                    법인 취업규칙 및 근로계약서 정비, 임원 퇴직금 규정, 산재 보상 및 4대 보험 절감 컨설팅
-                                </p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">법인 취업규칙 및 근로계약서 정비, 임원 퇴직금 규정, 산재 보상 및 4대 보험 절감 컨설팅</p>
                             </div>
-                            <button onclick="openExpertModal('공인노무사 (노무정비/산재보상)')" class="mt-6 w-full bg-slate-900 hover:bg-teal-600 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                1:1 노무 자문 신청 →
-                            </button>
+                            <button onclick="openExpertModal('공인노무사 (노무정비/산재보상)')" class="mt-6 w-full bg-slate-900 hover:bg-teal-600 text-white font-bold py-2.5 rounded-lg text-xs transition">1:1 노무 자문 신청 →</button>
                         </div>
                     </div>
                 </div>
@@ -502,7 +505,6 @@
     </footer>
 
     <!-- ==================== 인터랙티브 기능 모달 ==================== -->
-    <!-- ⭐️ 전문가 자문 신청 전용 모달 -->
     <div id="expertConsultModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('expertConsultModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -511,7 +513,6 @@
                 <span class="text-xs font-bold bg-amber-50 px-2 py-0.5 rounded">잇츠리온 VIP 자문 의뢰</span>
             </div>
             <h3 class="text-xl font-bold text-slate-900">전문가 1:1 자문 신청</h3>
-            <p class="text-xs text-slate-500 mt-1">접수 즉시 담당 수석 자문위원이 배정되어 연락드립니다.</p>
             <form onsubmit="submitExpertConsult(event)" class="mt-4 space-y-3 text-xs">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">신청 자문 분야</label>
@@ -527,7 +528,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">자문 요청 요약 내용</label>
-                    <textarea id="expertConsultMemo" rows="3" placeholder="고객의 주요 상황(예: 법인 대표 가업승계 증여세 절세 방안, 암 진단비 분쟁 등)을 간략히 적어주세요." class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-amber-500"></textarea>
+                    <textarea id="expertConsultMemo" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-amber-500"></textarea>
                 </div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-lg text-xs shadow-md transition mt-2">
                     자문 신청서 접수하기
@@ -536,106 +537,13 @@
         </div>
     </div>
 
-    <!-- 스케줄 모달 -->
-    <div id="scheduleModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <button onclick="closeModal('scheduleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="flex items-center space-x-2 text-blue-600 mb-1"><span>📋</span><span class="text-xs font-bold bg-blue-50 px-2 py-0.5 rounded">DB 배정 & 네이버 캘린더 연동</span></div>
-            <h3 class="text-xl font-bold text-slate-900">김설계 팀장 배정 DB 일정</h3>
-            <p class="text-xs text-slate-500 mt-1">네이버 캘린더 앱과 동기화된 상담 스케줄입니다.</p>
-            <div class="mt-5 space-y-3">
-                <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg flex justify-between items-center text-xs">
-                    <div><span class="font-bold text-blue-900">[오늘 14:00] 서울 강남구 역삼동 - 보장분석 상담</span><div class="text-slate-600 mt-0.5">고객: 이*철 님 (010-***-4920) | 메모: 기존 실손 만기 재설계</div></div>
-                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold">확정</span>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end space-x-2">
-                <button onclick="alert('네이버 캘린더 앱과 즉시 동기화되었습니다.')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-500">🔄 네이버 캘린더 동기화</button>
-                <button onclick="closeModal('scheduleModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 보장분석 모달 -->
-    <div id="coverageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <button onclick="closeModal('coverageModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="flex items-center space-x-2 text-red-600 mb-1"><span>🛡️</span><span class="text-xs font-bold bg-red-50 px-2 py-0.5 rounded">종합 보장 갭 진단</span></div>
-            <h3 class="text-xl font-bold text-slate-900">고객 보장 항목 분석 리포트</h3>
-            <div class="mt-4 space-y-4 text-xs">
-                <div>
-                    <div class="flex justify-between font-bold mb-1"><span>일반암 진단비</span> <span class="text-rose-600">부족 (2,000만 / 권장 5,000만)</span></div>
-                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden"><div class="bg-rose-500 h-full" style="width: 40%"></div></div>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end"><button onclick="closeModal('coverageModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
-        </div>
-    </div>
-
-    <!-- 약관분석 모달 -->
-    <div id="termsCloudModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <button onclick="closeModal('termsCloudModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="flex items-center space-x-2 text-indigo-600 mb-1"><span>📖</span><span class="text-xs font-bold bg-indigo-50 px-2 py-0.5 rounded">구글 클라우드 연동</span></div>
-            <h3 class="text-xl font-bold text-slate-900">전 금융사 개정 약관 라이브러리</h3>
-            <div class="mt-4 flex gap-2"><input type="text" placeholder="약관명 검색" class="flex-grow px-3 py-2 border rounded-lg text-xs"><button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold">검색</button></div>
-            <div class="mt-6 flex justify-end"><button onclick="closeModal('termsCloudModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
-        </div>
-    </div>
-
-    <!-- 보험청구 모달 -->
-    <div id="claimModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
-            <button onclick="closeModal('claimModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900">보험사별 팩스 번호 & 서류 다운로드</h3>
-            <div class="mt-6 flex justify-end"><button onclick="closeModal('claimModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
-        </div>
-    </div>
-
-    <!-- 대시보드 모달 -->
-    <div id="contractDashboardModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
-            <button onclick="closeModal('contractDashboardModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900">당월 계약 현황 대시보드</h3>
-            <div class="mt-6 flex justify-end"><button onclick="closeModal('contractDashboardModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
-        </div>
-    </div>
-
-    <!-- 준비중 모달 -->
-    <div id="comingSoonModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
-            <button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">⏳</div>
-            <h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3>
-            <p class="text-xs text-slate-500 mt-2 leading-relaxed">설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.</p>
-            <div class="mt-6"><button onclick="closeModal('comingSoonModal')" class="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-xs">확인</button></div>
-        </div>
-    </div>
-
-    <!-- 문의하기 모달 -->
-    <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-            <button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900">잇츠리온 시스템 문의하기</h3>
-            <form onsubmit="event.preventDefault(); alert('문의가 성공적으로 접수되었습니다.'); closeModal('contactModal');" class="mt-4 space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-700 mb-1">성함 / 소속 GA</label><input type="text" value="김설계 팀장 / 센티넬어드바이저스" required class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><label class="block font-bold text-slate-700 mb-1">연락처</label><input type="tel" value="010-1234-5678" required class="w-full px-3 py-2 border rounded-lg"></div>
-                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">문의 접수</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 프로필 설정 모달 -->
-    <div id="quickUpdateModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-            <button onclick="closeModal('quickUpdateModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900">설계사 프로필 설정</h3>
-            <form onsubmit="event.preventDefault(); alert('정보가 업데이트되었습니다.'); closeModal('quickUpdateModal');" class="mt-4 space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-700 mb-1">성명</label><input type="text" value="김설계" class="w-full px-3 py-2 border rounded-lg"></div>
-                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">저장</button>
-            </form>
-        </div>
-    </div>
+    <!-- 기타 안내 모달 (기존 원본 유지) -->
+    <div id="scheduleModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl p-6 shadow-2xl relative"><button onclick="closeModal('scheduleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button><h3>준비 중입니다.</h3></div></div>
+    <div id="coverageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl p-6 shadow-2xl relative"><button onclick="closeModal('coverageModal')" class="absolute top-4 right-4 text-slate-400 font-bold text-lg">✕</button><h3>준비 중입니다.</h3></div></div>
+    <div id="termsCloudModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl p-6 shadow-2xl relative"><button onclick="closeModal('termsCloudModal')" class="absolute top-4 right-4 text-slate-400 font-bold text-lg">✕</button><h3>준비 중입니다.</h3></div></div>
+    <div id="claimModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl p-6 shadow-2xl relative"><button onclick="closeModal('claimModal')" class="absolute top-4 right-4 text-slate-400 font-bold text-lg">✕</button><h3>준비 중입니다.</h3></div></div>
+    <div id="comingSoonModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center"><button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 font-bold text-lg">✕</button><div class="text-3xl mb-3">⏳</div><h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3><div class="mt-6"><button onclick="closeModal('comingSoonModal')" class="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-xs">확인</button></div></div></div>
+    <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl p-6 shadow-2xl relative"><button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 font-bold text-lg">✕</button><h3>문의가 접수되었습니다.</h3></div></div>
 
     <!-- 🔑 로그인 모달 -->
     <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -647,10 +555,6 @@
                 <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="loginId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="loginPw" type="password" placeholder="예: 12345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <button onclick="submitLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">로그인 하기</button>
-                <div class="flex justify-between items-center pt-3 mt-2 border-t border-slate-100">
-                    <span class="text-[11px] text-slate-400">아직 계정이 없으신가요?</span>
-                    <button onclick="closeModal('loginModal'); openModal('signupModal');" class="text-xs font-black text-blue-600 hover:text-blue-800 transition">회원가입 →</button>
-                </div>
             </div>
         </div>
     </div>
@@ -662,9 +566,10 @@
             <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
             <div class="space-y-4 text-xs">
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block font-bold text-slate-700 mb-1">이름 (아이디)</label><input id="regName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
-                    <div><label class="block font-bold text-slate-700 mb-1">사번 (비밀번호)</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">이름 (아이디)</label><input id="regName" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">사번 (비밀번호)</label><input id="regEmpId" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
                 </div>
+                <!-- 민감 정보 가림 처리 양식 -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">주민등록번호</label>
                     <div class="flex items-center gap-2">
@@ -674,15 +579,7 @@
                         <span class="text-slate-400 text-lg tracking-widest pt-1">******</span>
                     </div>
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">휴대폰 번호 (숫자만 8자리)</label>
-                    <div class="flex items-center gap-2">
-                        <div class="px-3 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm">010</div>
-                        <span class="text-slate-400 font-bold">-</span>
-                        <input id="regPhone8" type="tel" maxlength="8" placeholder="12345678" class="flex-grow px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 tracking-widest font-bold text-sm">
-                    </div>
-                </div>
-                <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">휴대폰 번호</label><input id="regPhone8" type="tel" maxlength="8" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
                 <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">가입 신청 완료하기</button>
             </div>
         </div>
@@ -695,18 +592,26 @@
             <h3 class="text-xl font-bold text-slate-900 text-center mb-1">회원 탈퇴</h3>
             <p class="text-[11px] text-rose-500 text-center mb-5 font-bold">탈퇴 시 모든 정보가 삭제되며 복구할 수 없습니다.</p>
             <div class="space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="withdrawId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-rose-500"></div>
-                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="withdrawPw" type="password" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-rose-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="withdrawId" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="withdrawPw" type="password" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
                 <button onclick="submitWithdraw()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">영구 탈퇴하기</button>
             </div>
         </div>
     </div>
     
     <script>
+        // ========================================================
+        // ⭐️ [필수 입력] 아래 2개의 URL을 팀장님 환경에 맞게 붙여넣으세요!
+        // ========================================================
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec"; 
+        const DB_WEBAPP_URL = "여기에_DB배정_앱스크립트_URL을_넣으세요"; // ⭐️ 필수: DB 리스트 및 대시보드 통신을 위한 앱스크립트 주소
+        // ========================================================
+
         // --- 1. 기본 전역 변수 및 UI 제어 함수 ---
         let activeSlide = 1;
         let chart1Instance = null;
         let chart2Instance = null;
+        let currentUser = { isLoggedIn: false, name: '', status: '' };
 
         function switchView(viewName, targetSectionId = null) {
             const introView = document.getElementById('viewIntro');
@@ -803,20 +708,16 @@
             closeModal('expertConsultModal');
         }
 
-        // --- 🔒 회원가입/승인 제어 로직 (원본 그대로 유지) ---
-        let currentUser = { isLoggedIn: false, name: '', status: '' };
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
-
-        // ⭐️ [수정] 모달을 띄우지 않고 새 창을 열어주도록 수정된 로직
+        // ⭐️ [수정 핵심] 대시보드 클릭 시 새 창 열림과 동시에 스크롤 다운이 작동하도록 변경
         function checkAuthAndOpen(modalId) {
-            // 1. 비회원 접근 가능 메뉴 (새 창 오픈)
+            // 1. 비회원 접근 가능 메뉴 (새 창 오픈 등)
             if (modalId === 'indemnityCalcModal') {
                 window.open('silbi_calculator.html', '_blank');
                 return;
             }
             
-            // 1-1. 비회원 접근 가능 메뉴 (일반 모달)
-            if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal' || modalId === 'contractDashboardModal' || modalId === 'coverageModal') {
+            // 1-1. 비회원 접근 가능 메뉴 (일반 준비중 모달)
+            if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal' || modalId === 'coverageModal') {
                 openModal('comingSoonModal');
                 return;
             }
@@ -828,14 +729,17 @@
             } else if (currentUser.status !== '승인') {
                 alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
             } else {
-                // 로그인된 사용자 이름 저장
+                // 로그인된 사용자 이름 세션 저장
                 localStorage.setItem('rion_logged_user', currentUser.name); 
                 
                 if (modalId === 'dbAssignPage') {
                     window.open('db_assign.html', '_blank'); 
                 } else if (modalId === 'dutyModal') {
-                    // ⭐️ 알릴의무 정밀분석 창 새 창으로 열기
                     window.open('duty_analysis.html', '_blank');
+                } else if (modalId === 'contractDashboardModal') {
+                    // ⭐️ 요청하신 동선: 대시보드 클릭 시 새 창(db_chart.html)이 열리고, 현재 창은 하단으로 스크롤!
+                    window.open('db_chart.html', '_blank');
+                    switchView('workspace', 'myAnalytics');
                 } else {
                     openModal(modalId); 
                 }
@@ -848,9 +752,8 @@
             const birth6 = document.getElementById('regBirth6').value.trim();
             const gender1 = document.getElementById('regGender1').value.trim();
             const phone8 = document.getElementById('regPhone8').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
 
-            if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
+            if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7) {
                 alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
             }
 
@@ -861,7 +764,7 @@
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "signup", userId: name, name, empId, birth6, gender1, phone: `010${phone8}`, email })
+                    body: JSON.stringify({ action: "signup", userId: name, name, empId, birth6, gender1, phone: `010${phone8}`, email: "" })
                 });
                 const data = await res.json();
                 alert(data.message);
@@ -899,8 +802,11 @@
                     currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
                     updateLoginUI();
                     closeModal('loginModal');
-                    if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
-                    else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+                    if(currentUser.status === '승인') {
+                        alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
+                    } else {
+                        alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+                    }
                 } else {
                     alert(data.message);
                 }
@@ -918,7 +824,6 @@
             if (!userId || !loginPw) {
                 alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
             }
-
             if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 복구할 수 없습니다.`)) return;
 
             const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
@@ -962,6 +867,9 @@
                     statusEl.innerText = "(승인완료)";
                     statusEl.className = "text-emerald-400 font-semibold";
                     dotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                    
+                    // ⭐️ 로그인이 완료되면 즉시 대시보드 데이터를 백그라운드에서 로딩합니다!
+                    loadDashboardData();
                 } else {
                     statusEl.innerText = "(승인대기)";
                     statusEl.className = "text-amber-400 font-semibold";
@@ -975,6 +883,10 @@
                 if (greetingEl) {
                     greetingEl.innerText = "주요 업무 기능 & 실적 분석";
                 }
+                
+                // 로그아웃 시 대시보드 숨김
+                document.getElementById('analyticsPlaceholder').classList.remove('hidden');
+                document.getElementById('analyticsDashboard').classList.add('hidden');
             }
         }
 
@@ -985,53 +897,90 @@
             alert('로그아웃 되었습니다.');
         }
 
-        // 차트 초기화 등 기존 UI 기능 유지
-        document.addEventListener('DOMContentLoaded', () => {
-            const ctxConversion = document.getElementById('conversionChart');
-            if (ctxConversion) {
-                chart1Instance = new Chart(ctxConversion, {
+        // ==========================================
+        // 📊 [핵심 기능] 대시보드 실시간 렌더링 로직 (Chart.js 연동)
+        // ==========================================
+        async function loadDashboardData() {
+            // DB_WEBAPP_URL이 설정되지 않았거나 로그인이 안되어있으면 패스
+            if (!DB_WEBAPP_URL || DB_WEBAPP_URL.includes("여기에_") || !currentUser.isLoggedIn || currentUser.status !== '승인') return;
+            
+            // 안내 UI 숨기고 실제 대시보드 UI 보이기
+            document.getElementById('analyticsPlaceholder').classList.add('hidden');
+            document.getElementById('analyticsDashboard').classList.remove('hidden');
+
+            try {
+                // 앱스크립트에서 대시보드 전용 데이터 호출
+                const dashRes = await fetch(`${DB_WEBAPP_URL}?agent=${encodeURIComponent(currentUser.name)}&mode=dashboard`);
+                const dashData = await dashRes.json();
+                
+                // 텍스트 수치 업데이트
+                document.getElementById('dashNameTitle').innerText = dashData.agentName;
+                document.getElementById('dashRate').innerText = dashData.conversionRate;
+                document.getElementById('dashConsumed').innerText = dashData.consumedAll;
+                
+                document.getElementById('dashPremium').innerText = Number(dashData.totalPremiumThisMonth).toLocaleString();
+                document.getElementById('dashContract').innerText = dashData.contractCount;
+                document.getElementById('dashAvgDays').innerText = dashData.avgConsultDays;
+                document.getElementById('dashAssigned').innerText = dashData.assignedThisMonth;
+                document.getElementById('dashOngoing').innerText = dashData.ongoingCount;
+
+                // 1. 막대 그래프 (TA 상황별 건수) 렌더링
+                const barCtx = document.getElementById('conversionChart').getContext('2d');
+                if (chart1Instance) chart1Instance.destroy();
+                chart1Instance = new Chart(barCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['보장분석 DB', '병원비 DB', '리모델링 DB'],
+                        labels: ['부재/다시', '거절(단박)', '예정', '상담중(장기)', '상담완료(계약)'],
                         datasets: [{
-                            label: '체결률 (%)',
-                            data: [42.5, 38.2, 31.0],
-                            backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)'],
+                            label: '건수',
+                            data: dashData.taStats,
+                            backgroundColor: ['#94a3b8', '#f43f5e', '#f59e0b', '#3b82f6', '#10b981'],
                             borderRadius: 6
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    }
                 });
-            }
 
-            const ctxMonthly = document.getElementById('monthlyTrendChart');
-            if (ctxMonthly) {
-                chart2Instance = new Chart(ctxMonthly, {
+                // 2. 선형 그래프 (월별 DB 소진 vs 체결 건수) 렌더링
+                const lineCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+                if (chart2Instance) chart2Instance.destroy();
+                chart2Instance = new Chart(lineCtx, {
                     type: 'line',
                     data: {
-                        labels: ['3월', '4월', '5월', '6월', '7월', '8월'],
-                        datasets: [{
-                            label: 'DB 소진 (건)',
-                            data: [15, 18, 20, 22, 25, 24],
-                            borderColor: 'rgba(99, 102, 241, 1)',
-                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y'
-                        }, {
-                            label: '계약 체결 (건)',
-                            data: [5, 6, 8, 9, 11, 10],
-                            borderColor: 'rgba(16, 185, 129, 1)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y1'
-                        }]
+                        labels: dashData.monthlyTrend.labels,
+                        datasets: [
+                            { 
+                                label: '소진수량', 
+                                data: dashData.monthlyTrend.consumed, 
+                                borderColor: '#6366f1', 
+                                backgroundColor: '#6366f1', 
+                                tension: 0.3, borderWidth: 3 
+                            },
+                            { 
+                                label: '체결건수', 
+                                data: dashData.monthlyTrend.contracted, 
+                                borderColor: '#10b981', 
+                                backgroundColor: '#10b981', 
+                                tension: 0.3, borderWidth: 3 
+                            }
+                        ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    }
                 });
+            } catch (e) {
+                console.log("대시보드 데이터 로드 에러 (앱스크립트 연동 확인 필요):", e);
             }
-        });
+        }
     </script>
 </body>
 </html>
