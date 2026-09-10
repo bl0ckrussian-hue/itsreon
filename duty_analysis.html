@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PDF.js for client-side PDF text extraction -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- SheetJS (XLSX) for Excel Export (Style 지원 버전) -->
+    <!-- SheetJS (XLSX) for Excel Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <!-- Marked.js for rendering AI Markdown responses -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -37,14 +37,15 @@
                         <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v7.0 AI 엔진</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
-                    <p class="text-xs text-slate-500 mt-2">정확하고 빠른 데이터 분석을 지원합니다.</p>
+                    <!-- ⭐️ 이름 + 팀장님 복원 완료 -->
+                    <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
                 </div>
 
                 <div class="space-y-4 pt-4 border-t border-slate-200">
                     <h4 class="text-sm font-extrabold text-slate-800 flex items-center gap-2"><span>⚙️</span> <span>시스템 설정</span></h4>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 mb-1">Gemini API Key</label>
-                        <input id="geminiApiKeyInput" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" placeholder="새 API Key 붙여넣기" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 font-mono transition">
+                        <input id="geminiApiKeyInput" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" placeholder="새 API Key 붙여넣기" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 font-mono">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 mb-1">PDF 비밀번호 (생년월일 앞자리 등)</label>
@@ -74,6 +75,10 @@
                 <button onclick="executeDutyAnalysis()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-xl text-sm shadow-md transition">
                     🚀 분석 실행
                 </button>
+                <!-- ⭐️ 창닫기 버튼 복원 완료 -->
+                <button onclick="window.close()" class="w-full mt-2 bg-white hover:bg-slate-100 text-slate-700 font-bold py-3 rounded-xl border border-slate-300 text-sm transition">
+                    창 닫기
+                </button>
             </div>
         </aside>
 
@@ -90,10 +95,16 @@
                 </ol>
             </div>
 
+            <!-- ⭐️ 건강보험심사평가원 버튼 강조 스타일 적용 -->
+            <div class="mb-4">
+                <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold px-8 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <span>🌐 건강보험심사평가원 '내 진료정보 열람' 바로가기</span><span>↗</span>
+                </a>
+            </div>
+
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center">
                     <label class="font-bold text-slate-700 text-sm">📄 진료기록 PDF 업로드</label>
-                    <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" class="text-[11px] font-bold text-blue-600 underline">건강보험심사평가원 바로가기</a>
                 </div>
                 <div id="pdfDropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50 rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 group shadow-sm">
                     <div class="w-12 h-12 rounded-full bg-white group-hover:bg-blue-50 text-slate-400 group-hover:text-blue-500 flex items-center justify-center text-xl transition shadow-sm pointer-events-none">☁️</div>
@@ -160,6 +171,8 @@
         let currentTab2Markdown = "";
         
         document.addEventListener('DOMContentLoaded', () => {
+            const userName = localStorage.getItem('rion_logged_user') || '게스트';
+            document.getElementById('loggedUserName').innerText = userName;
             if (window.pdfjsLib) window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         });
 
@@ -298,7 +311,7 @@
             return combinedText;
         }
 
-        // ⭐️ 완벽하게 반영된 MedicalRuleKeywords 사전 (제공된 내용 그대로)
+        // ⭐️ 완벽하게 반영된 MedicalRuleKeywords 사전 (절대원칙 키워드 + 천자 추가 등)
         const MedicalRuleKeywords = {
             surgeryKeywords: [
                 "수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", 
@@ -339,7 +352,7 @@
             const longMedDetails = {}; 
             const diseaseMedsMap = {}; 
             
-            // 검사 키워드 (제공 룰에 맞춰 적용)
+            // 검사 키워드: 광범위한 단순 검사 제외 (1년내 검사 판단용)
             const testKeywords = ["검사료", "자체검사", "검사", "초음파", "MRI", "M.R.I", "CT", "내시경", "촬영", "생검", "엑스레이", "X-RAY", "X-ray", "조직", "검체"];
             
             const lines = (rawText || "").split('\n');
@@ -370,7 +383,7 @@
                 const rowText = record.text;
                 currentSection = record.section;
                 
-                // 절대원칙 6. 약국 배제
+                // 절대원칙 1. 약국 배제
                 if (rowText.includes("약국")) return; 
 
                 const parts = rowText.split(/[\t|]/).map(p => p.trim());
@@ -470,7 +483,7 @@
             return { detectedInfo, visitCounter, admissionCounter, admissionDetails, testDetails, surgeryDetails, longMedDetails, medSumDetails };
         }
 
-        // ⭐️ 2. 일반심사 프롬프트 함수 (통원 횟수 통합, 비고란 용어 6종 엄격 통제 적용)
+        // ⭐️ 2. 일반심사 프롬프트 함수 (통합 합산 및 대시보드 리포팅 반환 기능 탑재)
         function buildOriginalAnalysisPrompt(rawText, analysisData, fileNames) {
             const { detectedInfo = {}, visitCounter = {}, admissionCounter = {}, admissionDetails = {}, testDetails = {}, surgeryDetails = {}, medSumDetails = {} } = analysisData || {};
             
@@ -507,6 +520,8 @@
             });
 
             const sortedHints = [];
+            // UI에 표시할 대시보드 통계 카운트 객체
+            let summaryCounts = { surg: 0, admit: 0, med30: 0, visit7: 0 };
             
             for (let dis in diseaseAgg) {
                 const agg = diseaseAgg[dis];
@@ -545,15 +560,20 @@
                 });
 
                 let isTarget = false;
-                let priority = 99;
                 const reason = []; // ⭐️ 6개 지정 키워드로만 기입
 
-                if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); priority = Math.min(priority, 5); }
-                if (uniqueTestDays1Y.size > 0) { isTarget = true; reason.push("1년내 검사 및 추가검사"); priority = Math.min(priority, 4); }
-                if (validAdmits.length > 0) { isTarget = true; reason.push("입원"); priority = Math.min(priority, 1); }
-                if (validSurgs.length > 0) { isTarget = true; reason.push("수술"); priority = Math.min(priority, 1); }
-                if (validVisitCnt >= 7) { isTarget = true; reason.push("7일 이상치료"); priority = Math.min(priority, 3); }
-                if (agg.meds >= 30) { isTarget = true; reason.push("30일 이상투약"); priority = Math.min(priority, 2); }
+                // 합산 데이터 수집
+                summaryCounts.admit += validAdmits.length;
+                summaryCounts.surg += validSurgs.length;
+                if (agg.meds >= 30) summaryCounts.med30 += 1;
+                if (validVisitCnt >= 7) summaryCounts.visit7 += 1;
+
+                if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
+                if (uniqueTestDays1Y.size > 0) { isTarget = true; reason.push("1년내 검사"); }
+                if (validAdmits.length > 0) { isTarget = true; reason.push("입원"); }
+                if (validSurgs.length > 0) { isTarget = true; reason.push("수술"); }
+                if (validVisitCnt >= 7) { isTarget = true; reason.push("7일이상치료"); }
+                if (agg.meds >= 30) { isTarget = true; reason.push("30일이상투약"); }
 
                 if (!isTarget) continue;
 
@@ -568,10 +588,9 @@
                 let surgStr = validSurgs.length > 0 ? ` [수술명: ${validSurgs.join(', ')}]` : "";
                 
                 const lineText = `- [${dis}] (관련병원: ${hospitals}) -> 외래:${visitStr} / 입원:${validAdmits.length}건${admitDetailStr} / 투약:${agg.meds}일${surgStr} -> [비고사유: ${reasonStr}]`;
-                sortedHints.push({ priority, lineText });
+                sortedHints.push({ priority: 1, lineText });
             }
 
-            sortedHints.sort((a, b) => a.priority - b.priority || a.lineText.localeCompare(b.lineText));
             let hintText = "\n[✅ 자바스크립트 집계 원문 데이터 (AI 필터링용)]\n";
             if (sortedHints.length === 0) hintText += "해당사항 없음\n";
             else sortedHints.forEach(item => { hintText += item.lineText + "\n"; });
@@ -586,7 +605,7 @@
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
             const truncatedText = rawText.slice(0, 15000); 
 
-            // ⭐️ 프롬프트 전체 교체 (요청하신 절대원칙 100% 적용)
+            // ⭐️ 프롬프트 전체 교체 (요청하신 22가지 절대원칙 완벽 적용)
             const prompt = `당신은 알릴의무 분석기를 만들어서 홈페이지에 탑재하는 전문 데이터 분석과 통계 전문가입니다. 당신은 보험 회사의 알릴의무 사항에 대해 완벽히 학습한 전문가로서 다음 역할을 수행합니다. 내부적으로 3명의 에이전트(AI 심사자 1, 2, 감독관)가 협력하여 완벽한 보고서를 도출합니다.
 
 [내부 분석 프로세스]
@@ -608,7 +627,7 @@
 🚨 **[데이터 표기/제외 최우선 원칙 (⭐️절대 엄수)]**
 1. **약국 기재 절대 금지:** 약국 방문 이력은 표에 절대 기재하지 마십시오.
 2. **무조건 표기 대상:** 알릴의무(3개월내 내원, 1년내 검사, 5년내 입원/수술/30일 이상투약) 중 하나라도 해당하면 7일 미만 통원이더라도 절대 제외하지 말고 기재하십시오. (같은 질병이라도 검사일/방법이 다르면 모두 하부행으로 기재)
-3. **비고란 작성 원칙 (⭐️누락 절대 금지):** 파이썬 집계 데이터의 \`[비고사유: ...]\` 안의 내용(예: 7일 이상치료, 30일 이상투약, 1년내 검사 등)을 **단 하나도 누락하지 말고 '비고'란에 그대로 복사**하여 적으십시오. 절대 AI 임의로 요약하거나 생략하지 마십시오. 오직 허용된 6가지 용어("3개월내 내원", "1년내 검사 및 추가검사", "입원", "수술", "7일 이상치료", "30일 이상투약")만 표기하십시오.
+3. **비고란 작성 원칙 (⭐️누락 절대 금지):** 파이썬 집계 데이터의 \`[비고사유: ...]\` 안의 내용(예: 7일이상치료, 30일이상투약, 1년내 검사 등)을 **단 하나도 누락하지 말고 '비고'란에 그대로 복사**하여 적으십시오. 절대 AI 임의로 요약하거나 생략하지 마십시오. 오직 허용된 6가지 용어("3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약")만 표기하십시오.
 4. **과잉 진단 금지:** 집계 데이터 [비고사유]에 명시되지 않은 경미한 과거 건(단순 피부건조증, 감기 등)은 AI가 임의로 '1년내 검사' 등으로 오진하여 추가하지 말고 완전히 제외하십시오.
 
 🚨 **[수술/시술 누락 방지 및 자체 검증]**
@@ -635,7 +654,7 @@ ${truncatedText}
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
 *(입원 및 수술 이력만 기재 / 단순 통원 제외)*
 `;
-            return { prompt, hintText, sortedHints };
+            return { prompt, hintText, sortedHints, summaryCounts };
         }
 
         // ⭐️ 3. 고지위반 점검 프롬프트
@@ -724,11 +743,11 @@ ${truncatedText}
                 const reason = [];
 
                 if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
-                if (uniqueTestDays1Y.size > 0) { isTarget = true; reason.push("1년내 검사 및 추가검사"); }
+                if (uniqueTestDays1Y.size > 0) { isTarget = true; reason.push("1년내 검사"); }
                 if (validAdmits.length > 0) { isTarget = true; reason.push("입원"); }
                 if (validSurgs.length > 0) { isTarget = true; reason.push("수술"); }
-                if (validVisitCnt >= 7) { isTarget = true; reason.push("7일 이상치료"); }
-                if (medDaysTotal >= 30) { isTarget = true; reason.push("30일 이상투약"); }
+                if (validVisitCnt >= 7) { isTarget = true; reason.push("7일이상치료"); }
+                if (medDaysTotal >= 30) { isTarget = true; reason.push("30일이상투약"); }
 
                 if (!isTarget) continue;
 
@@ -752,8 +771,7 @@ ${truncatedText}
 
             const targetDateStr = targetKST.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            const prompt = `[시스템 설정]
-당신은 알릴의무 분석기를 만들어서 홈페이지에 탑재하는 전문 데이터 분석과 통계 전문가입니다. 당신은 보험 회사의 알릴의무 사항에 대해 완벽히 학습한 전문가로서 다음 역할을 수행합니다. 내부적으로 3명의 에이전트(AI 심사자 1, 2, 감독관)가 협력하여 완벽한 보고서를 도출합니다.
+            const prompt = `당신은 알릴의무 분석기를 만들어서 홈페이지에 탑재하는 전문 데이터 분석과 통계 전문가입니다. 당신은 보험 회사의 알릴의무 사항에 대해 완벽히 학습한 전문가로서 다음 역할을 수행합니다. 내부적으로 3명의 에이전트(AI 심사자 1, 2, 감독관)가 협력하여 완벽한 보고서를 도출합니다.
 
 [내부 분석 프로세스]
 1. AI 심사자 1: [자바스크립트 집계 원문 데이터]를 분석하여 초안 작성.
@@ -774,7 +792,7 @@ ${truncatedText}
 🚨 **[데이터 표기/제외 최우선 원칙 (⭐️절대 엄수)]**
 1. **약국 기재 절대 금지:** 약국 방문 이력은 표에 절대 기재하지 마십시오.
 2. **무조건 표기 대상:** 알릴의무(3개월내 내원, 1년내 검사, 5년내 입원/수술/30일 이상투약) 중 하나라도 해당하면 7일 미만 통원이더라도 절대 제외하지 말고 기재하십시오. (같은 질병이라도 검사일/방법이 다르면 모두 하부행으로 기재)
-3. **비고란 작성 원칙 (⭐️누락 절대 금지):** 파이썬 집계 데이터의 \`[비고사유: ...]\` 안의 내용(예: 7일 이상치료, 30일 이상투약, 1년내 검사 등)을 **단 하나도 누락하지 말고 '비고'란에 그대로 복사**하여 적으십시오. 절대 AI 임의로 요약하거나 생략하지 마십시오. 오직 허용된 6가지 용어("3개월내 내원", "1년내 검사 및 추가검사", "입원", "수술", "7일 이상치료", "30일 이상투약")만 표기하십시오.
+3. **비고란 작성 원칙 (⭐️누락 절대 금지):** 파이썬 집계 데이터의 \`[비고사유: ...]\` 안의 내용(예: 7일이상치료, 30일이상투약, 1년내 검사 등)을 **단 하나도 누락하지 말고 '비고'란에 그대로 복사**하여 적으십시오. 절대 AI 임의로 요약하거나 생략하지 마십시오. 오직 허용된 6가지 용어("3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약")만 표기하십시오.
 4. **과잉 진단 금지:** 집계 데이터 [비고사유]에 명시되지 않은 경미한 과거 건(단순 피부건조증, 감기 등)은 AI가 임의로 '1년내 검사' 등으로 오진하여 추가하지 말고 완전히 제외하십시오.
 
 🚨 **[수술/시술 누락 방지 및 자체 검증]**
@@ -873,30 +891,32 @@ ${rawText.slice(0, 15000)}
                     <div class="text-amber-200 pl-3">${Array.from(new Set(detectedInfo.surgeries)).join('<br>') || '없음'}</div>
                 `;
 
+                // ⭐️ 대시보드 리포팅 카드 연동 처리
+                const fileNames = selectedPdfFiles.map(f => f.name).join(', ');
+                const { prompt: promptTab1, summaryCounts } = buildOriginalAnalysisPrompt(fullText, analysisData, fileNames);
+                
                 document.getElementById('dutySummaryCards').innerHTML = `
                     <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
-                        <span class="text-[10px] font-bold text-rose-600 block">수술/시술 감지</span>
-                        <span class="text-lg font-black text-rose-700 mt-0.5 block">${detectedInfo.surgeries.length} 건</span>
-                    </div>
-                    <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 text-center shadow-sm">
-                        <span class="text-[10px] font-bold text-emerald-600 block">30일 이상 장기투약</span>
-                        <span class="text-lg font-black text-emerald-700 mt-0.5 block">${detectedInfo.long_term_meds.length} 건</span>
+                        <span class="text-[10px] font-bold text-rose-600 block">수술/시술</span>
+                        <span class="text-lg font-black text-rose-700 mt-0.5 block">${summaryCounts.surg} 건</span>
                     </div>
                     <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100 text-center shadow-sm">
-                        <span class="text-[10px] font-bold text-blue-600 block">입원 이력 집계</span>
-                        <span class="text-lg font-black text-blue-700 mt-0.5 block">${Object.keys(admissionCounter).length} 상병</span>
+                        <span class="text-[10px] font-bold text-blue-600 block">입원</span>
+                        <span class="text-lg font-black text-blue-700 mt-0.5 block">${summaryCounts.admit} 건</span>
+                    </div>
+                    <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-emerald-600 block">30일 이상 투약</span>
+                        <span class="text-lg font-black text-emerald-700 mt-0.5 block">${summaryCounts.med30} 건</span>
                     </div>
                     <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 text-center shadow-sm">
-                        <span class="text-[10px] font-bold text-indigo-600 block">외래 통원 기록</span>
-                        <span class="text-lg font-black text-indigo-700 mt-0.5 block">${Object.keys(visitCounter).length} 상병</span>
+                        <span class="text-[10px] font-bold text-indigo-600 block">7일 이상 치료</span>
+                        <span class="text-lg font-black text-indigo-700 mt-0.5 block">${summaryCounts.visit7} 건</span>
                     </div>
                 `;
 
                 progressText.innerText = "🤖 AI 엔진이 표준 알릴의무 보고서를 작성 중입니다...";
                 startFakeProgress(70, 95, 800); 
 
-                const fileNames = selectedPdfFiles.map(f => f.name).join(', ');
-                const { prompt: promptTab1 } = buildOriginalAnalysisPrompt(fullText, analysisData, fileNames);
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
                 currentTab1Markdown = aiMarkdown1;
 
@@ -1037,7 +1057,6 @@ ${rawText.slice(0, 15000)}
                 XLSX.writeFile(wb, `고지위반점검_통합_${timeStr}.xlsx`);
             }
         }
-
     </script>
 </body>
 </html>
