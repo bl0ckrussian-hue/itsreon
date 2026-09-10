@@ -24,13 +24,13 @@
 
     <div class="max-w-7xl mx-auto w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[90vh]">
         
-        <!-- 좌측 패널 (설정 및 파일 업로드) -->
+        <!-- 좌측 패널 -->
         <aside class="w-full md:w-1/3 lg:w-1/4 bg-slate-50 border-r border-slate-200 p-6 space-y-6 flex flex-col justify-between">
             <div class="space-y-6">
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v9.0 AI 엔진</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v9.1 AI 엔진 (디버그 강화)</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -76,15 +76,15 @@
             </div>
         </aside>
 
-        <!-- 우측 패널 (결과 화면) -->
+        <!-- 우측 패널 -->
         <main class="w-full md:w-2/3 lg:w-3/4 p-6 sm:p-8 flex flex-col bg-white">
             
             <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2 text-xs shadow-sm mb-6">
-                <h4 class="font-bold text-blue-700 text-xs">📌 [절대원칙 22가지 기반 v9.0 핵심]</h4>
+                <h4 class="font-bold text-blue-700 text-xs">📌 [절대원칙 22가지 기반 v9.1 핵심]</h4>
                 <ol class="list-decimal pl-4 space-y-1 text-slate-600 text-[11px] leading-relaxed font-medium">
                     <li><strong class="text-slate-800">일반의/약국 전면 배제:</strong> 기본진료에서 '일반의' 및 '약국' 데이터를 완전히 버리고 시작합니다.</li>
                     <li><strong class="text-slate-800">주상병명 대통합:</strong> 병원이 달라도 주상병이 같으면 통원 횟수와 투약일이 100% 통합 합산됩니다.</li>
-                    <li><strong class="text-slate-800">수술 하부행 개별 분리:</strong> 신경차단술 29번 등 다회 시술은 자바스크립트가 직접 날짜별로 29줄의 하부행(↳)을 생성합니다.</li>
+                    <li><strong class="text-slate-800">수술 하부행 개별 분리:</strong> 신경차단술 다회 시술은 자바스크립트가 직접 날짜별로 하부행(↳)을 생성합니다.</li>
                     <li><strong class="text-slate-800">스마트 유추 질병명:</strong> 주상병과 관계없는 처방약(예: 페브릭정, 립스타플러스)만 골라내어 (유추) 질환명을 자동 병기합니다.</li>
                 </ol>
             </div>
@@ -333,21 +333,17 @@
             ]
         };
 
-        // ⭐️ 분석 로직 (병원이 달라도 주상병명 같으면 100% 통합 합산)
+        // ⭐️ 분석 로직 (일반의/약국 완벽 배제, 날짜+병원명 종속 매핑, 중복 일수 방지)
         function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [] };
             
-            // 검사 과잉진단 방지 (중대 검사만 포함)
             const testKeywords = ["초음파", "MRI", "M.R.I", "CT", "내시경", "생검"];
             
             const lines = (rawText || "").split('\n');
             let currentSection = "기본";
             const dateRegex = /(20\d{2})[-./]?(\d{2})[-./]?(\d{2})/;
 
-            // 핵심: '주상병명' 하나를 키로 모든 병원의 기록을 합산!
             const diseaseAgg = {}; 
-            
-            // 세부와 처방을 매핑하기 위한 Date+Hospital = Disease Lookup Table
             const validEncounters = {}; 
 
             const records = [];
@@ -371,16 +367,18 @@
             // 1단계: 기본진료정보 파싱 (일반의/약국 완벽 배제)
             records.filter(r => r.section === "기본").forEach(record => {
                 const rowText = record.text;
+                
                 // 절대원칙 1: 진단과가 '일반의'이거나 이름에 '약국'이 있으면 완전히 버림.
-                if (rowText.includes("약국") || rowText.includes("일반의")) return; 
-
                 const parts = rowText.split(/[\t|]/).map(p => p.trim());
                 const dateIdx = parts.findIndex(p => dateRegex.test(p));
                 if (dateIdx === -1) return;
 
+                const dept = parts[dateIdx + 2] || "";
+                const hospital = parts[dateIdx + 1] || "";
+                if (hospital.includes("약국") || rowText.includes("약국") || dept.includes("일반의")) return; 
+
                 const dateMatch = parts[dateIdx].match(dateRegex);
                 const rowDate = `${dateMatch[1]}${dateMatch[2]}${dateMatch[3]}`;
-                const hospital = parts[dateIdx + 1] || "";
                 
                 let disease = "질병미상";
                 const diseaseMatch = rowText.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|감염|병|[A-Z]\d{2,3}))/);
@@ -390,10 +388,8 @@
                     disease = (parts[dateIdx + 5] || "").replace(/^\((?:양방|한방)\)/, '').trim();
                 }
 
-                // 매핑용 키 저장
                 validEncounters[`${rowDate}|${hospital}`] = disease;
 
-                // 주상병명 기준으로 그룹핑 (병원이 달라도 상병명이 같으면 같은 그룹으로 들어감)
                 if (!diseaseAgg[disease]) {
                     diseaseAgg[disease] = { hospitals: new Set(), visitDates: new Set(), admits: [], surgs: [], tests: [], meds: {}, medNames: new Set() };
                 }
@@ -412,10 +408,9 @@
                 }
             });
 
-            // 2단계: 세부 및 처방 분석 (기본진료에서 인정된 기록과 1:1 종속 매핑)
+            // 2단계: 세부 및 처방 분석
             records.filter(r => r.section !== "기본").forEach(record => {
                 const rowText = record.text;
-                // 세부/처방에서도 일반의/약국 배제
                 if (rowText.includes("약국") || rowText.includes("일반의")) return; 
 
                 const parts = rowText.split(/[\t|]/).map(p => p.trim());
@@ -428,7 +423,6 @@
                 
                 let disease = validEncounters[`${rowDate}|${hospital}`];
                 if (!disease) {
-                    // Fuzzy match (부분일치 검색)
                     for (let k in validEncounters) {
                         if (k.startsWith(rowDate) && (k.includes(hospital) || hospital.includes(k.split('|')[1]))) {
                             disease = validEncounters[k];
@@ -437,7 +431,6 @@
                     }
                 }
                 
-                // 기본진료에 없으면 철저히 무시
                 if (!disease || !diseaseAgg[disease]) return;
 
                 if (record.section === "세부") {
@@ -522,7 +515,7 @@
             };
         }
 
-        // ⭐️ 2. 일반심사 프롬프트 생성 (자바스크립트가 마크다운 표 전체를 완벽히 구축)
+        // ⭐️ 2. 일반심사 프롬프트 생성 (JS가 마크다운 엑셀 표를 완벽히 구축하여 리턴)
         function buildOriginalAnalysisPrompt(analysisData, fileNames) {
             const { diseaseAgg, detectedInfo, summaryCounts } = analysisData;
             
@@ -648,7 +641,7 @@ ${markdownRows}
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
 *(위 1번 표에서 입원 및 수술 이력이 있는 행(↳ 포함)만 그대로 복사하여 기재. 통원만 있는 건은 제외)*
 `;
-            return { prompt, summaryCounts };
+            return { prompt, summaryCounts, markdownRows };
         }
 
         // ⭐️ 3. 기계약 점검 프롬프트
@@ -824,18 +817,23 @@ ${markdownRows}
 
                 const fullText = await extractTextFromPdfFiles(selectedPdfFiles, pdfPassword);
 
-                progressText.innerText = "⚙️ [v9.0 Rule Engine] 데이터 필터링 및 교차 집계 중...";
+                progressText.innerText = "⚙️ [v9.1 Rule Engine] 데이터 필터링 및 교차 집계 중...";
                 startFakeProgress(40, 70, 150); 
 
                 const analysisData = analyzeMedicalRecords(fullText);
-
-                document.getElementById('dutyDebugContent').innerHTML = `
-                    <div class="text-amber-400 font-bold">📊 [자바스크립트 Rule Engine 교차 집계 완료]</div>
-                    <div class="mt-1 text-slate-300">내부 집계 로직이 완벽하게 정리되었습니다. (AI는 유추 질병명만 판단하여 출력합니다)</div>
-                `;
-
                 const fileNames = selectedPdfFiles.map(f => f.name).join(', ');
-                const { prompt: promptTab1, summaryCounts } = buildOriginalAnalysisPrompt(analysisData, fileNames);
+                const { prompt: promptTab1, summaryCounts, markdownRows } = buildOriginalAnalysisPrompt(analysisData, fileNames);
+
+                // ⭐️ 디버그 창에 실제 집계 데이터 시각화 강화
+                document.getElementById('dutyDebugContent').innerHTML = `
+                    <div class="text-amber-400 font-bold mb-2">📊 [자바스크립트 Rule Engine 교차 집계 완료 데이터]</div>
+                    <div class="text-[10px] text-emerald-300 mb-1">▶ 통원/입원/수술/투약 통합 엑셀 행 (AI에 전달되는 최종 데이터)</div>
+                    <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 overflow-x-auto text-[10px]">\n${markdownRows}</pre>
+                    <div class="text-[10px] text-rose-300 mt-3 mb-1">▶ 시스템 감지 수술/시술 목록</div>
+                    <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${Array.from(new Set(analysisData.detectedInfo.surgeries)).join('\n') || '없음'}</pre>
+                    <div class="text-[10px] text-blue-300 mt-3 mb-1">▶ 시스템 감지 장기 투약 목록</div>
+                    <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${Array.from(new Set(analysisData.detectedInfo.long_term_meds)).join('\n') || '없음'}</pre>
+                `;
                 
                 document.getElementById('dutySummaryCards').innerHTML = `
                     <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
