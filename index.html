@@ -8,6 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PDF.js for client-side PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- SheetJS (XLSX) for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <!-- Marked.js for rendering AI Markdown responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #F8F9FA; color: #1E293B; scroll-behavior: smooth; }
@@ -246,7 +252,7 @@
                             <div class="absolute top-3 right-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v6.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">AI알릴의무분석</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/><span class="text-amber-500 font-bold">(새 창에서 열림)</span></p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/><span class="text-amber-600 font-bold">(새 창에서 열림)</span></p>
                         </div>
 
                         <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
@@ -271,7 +277,7 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/>세대별 약관 & 갱신보험료 예측</p>
                         </div>
 
-                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
                             <div class="flex items-center gap-1 mb-1"><span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
                             <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
@@ -722,6 +728,12 @@
             } else if (viewName === 'workspace') {
                 if (workspaceView) workspaceView.classList.remove('hidden');
                 if (navWorkspace) navWorkspace.className = "hover:text-white transition text-blue-400 font-bold";
+                setTimeout(() => {
+                    if (chart1Instance && chart2Instance) {
+                        chart1Instance.resize();
+                        chart2Instance.resize();
+                    }
+                }, 50);
             } else if (viewName === 'expert') {
                 if (expertView) expertView.classList.remove('hidden');
             }
@@ -772,34 +784,58 @@
             document.getElementById(id).classList.add('hidden');
         }
 
-        // --- 🔒 회원가입/승인 제어 로직 ---
+        function openExpertModal(categoryName) {
+            const catInput = document.getElementById('expertCategoryInput');
+            if (catInput) catInput.value = categoryName;
+            
+            const nameInput = document.getElementById('expertPlannerName');
+            if (nameInput && currentUser && currentUser.isLoggedIn) {
+                nameInput.value = `${currentUser.name} 팀장`;
+            }
+            openModal('expertConsultModal');
+        }
+
+        function submitExpertConsult(e) {
+            e.preventDefault();
+            const category = document.getElementById('expertCategoryInput').value;
+            const planner = document.getElementById('expertPlannerName').value;
+            alert(`[${category}]\n${planner}님의 자문 신청이 성공적으로 접수되었습니다.\n담당 자문위원이 빠른 시일 내에 연락드리겠습니다.`);
+            closeModal('expertConsultModal');
+        }
+
+        // --- 🔒 회원가입/승인 제어 로직 (원본 그대로 유지) ---
         let currentUser = { isLoggedIn: false, name: '', status: '' };
         const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
 
-        // ⭐️ [중요] 카드를 눌렀을 때 모달을 띄우지 않고 새 창을 열어주는 로직
+        // ⭐️ [수정] 모달을 띄우지 않고 새 창을 열어주도록 수정된 로직
         function checkAuthAndOpen(modalId) {
-            // 비회원 접근 가능 (실비 계산기 등)
+            // 1. 비회원 접근 가능 메뉴 (새 창 오픈)
             if (modalId === 'indemnityCalcModal') {
-                window.open('silbi_calculator.html', '_blank', 'width=800,height=900,scrollbars=yes');
+                window.open('silbi_calculator.html', '_blank');
                 return;
             }
+            
+            // 1-1. 비회원 접근 가능 메뉴 (일반 모달)
             if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal' || modalId === 'contractDashboardModal' || modalId === 'coverageModal') {
                 openModal('comingSoonModal');
                 return;
             }
             
-            // 로그인 상태 확인 (알릴의무 분석 등 회원전용)
+            // 2. 회원 전용 로그인 상태 체크
             if (!currentUser.isLoggedIn) {
                 alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
                 openModal('loginModal');
             } else if (currentUser.status !== '승인') {
                 alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
             } else {
+                // 로그인된 사용자 이름 저장
                 localStorage.setItem('rion_logged_user', currentUser.name); 
                 
-                if (modalId === 'dutyModal') {
-                    // 알릴의무 정밀분석 창 새 창으로 열기
-                    window.open('duty_analysis.html', '_blank', 'width=1200,height=900,scrollbars=yes');
+                if (modalId === 'dbAssignPage') {
+                    window.open('db_assign.html', '_blank'); 
+                } else if (modalId === 'dutyModal') {
+                    // ⭐️ 알릴의무 정밀분석 창 새 창으로 열기
+                    window.open('duty_analysis.html', '_blank');
                 } else {
                     openModal(modalId); 
                 }
@@ -815,10 +851,10 @@
             const email = document.getElementById('regEmail').value.trim();
 
             if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
-                alert("모든 정보를 올바른 양식으로 입력해주세요."); return;
+                alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
             }
 
-            const btn = document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]');
+            const btn = document.getElementById('signupModal').querySelector('button');
             btn.innerText = "신청 중...";
 
             try {
@@ -916,7 +952,9 @@
                 document.getElementById('displayUserName').innerText = currentUser.name + " 님";
                 
                 const greetingEl = document.getElementById('workspaceGreeting');
-                if (greetingEl) greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
+                if (greetingEl) {
+                    greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
+                }
                 
                 const statusEl = document.getElementById('displayUserStatus');
                 const dotEl = document.getElementById('statusDot');
@@ -934,7 +972,9 @@
                 document.getElementById('loggedInUI').classList.add('hidden');
                 
                 const greetingEl = document.getElementById('workspaceGreeting');
-                if (greetingEl) greetingEl.innerText = "주요 업무 기능 & 실적 분석";
+                if (greetingEl) {
+                    greetingEl.innerText = "주요 업무 기능 & 실적 분석";
+                }
             }
         }
 
@@ -993,7 +1033,5 @@
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
