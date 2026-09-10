@@ -35,7 +35,6 @@
             실시간 대시보드 데이터를 불러오는 중입니다...
         </div>
 
-        <!-- ⭐️ 대시보드 전용 영역 -->
         <div id="dashboardSection" class="hidden">
             <div class="flex justify-between items-end mb-6">
                 <h2 class="text-2xl xl:text-3xl font-black text-slate-800"><span id="dashName" class="text-blue-600"></span> 전문가님</h2>
@@ -57,8 +56,8 @@
                     <div class="text-xl xl:text-2xl font-black text-slate-800"><span id="dashPremium">0</span><span class="text-sm font-bold text-slate-600 ml-0.5">원</span></div>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 text-center">
-                    <span class="text-xs text-slate-500 font-bold tracking-tight block mb-1">계약체결건수</span>
-                    <div class="text-xl xl:text-2xl font-black text-emerald-600"><span id="dashContract">0</span><span class="text-sm font-bold text-emerald-600/70 ml-0.5">건</span></div>
+                    <span class="text-xs text-slate-500 font-bold tracking-tight block mb-1">계약 체결 건수(고객수)</span>
+                    <div class="text-xl xl:text-2xl font-black text-emerald-600"><span id="dashContract">0</span><span class="text-sm font-bold text-emerald-600/70 ml-0.5">명</span></div>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 text-center">
                     <span class="text-xs text-slate-500 font-bold tracking-tight block mb-1">평균상담소요기간</span>
@@ -80,7 +79,7 @@
                     <div class="h-64 relative w-full"><canvas id="barChart"></canvas></div>
                 </div>
                 <div class="bg-white p-5 xl:p-6 rounded-xl shadow-sm border border-slate-200 xl:col-span-2">
-                    <h3 class="text-sm font-bold text-slate-700 mb-5 tracking-tight">📈 월별 DB소진수량 vs 체결건수</h3>
+                    <h3 class="text-sm font-bold text-slate-700 mb-5 tracking-tight">📈 배정(소진)수량 vs 미팅예정 vs 체결고객 추이</h3>
                     <div class="h-64 relative w-full"><canvas id="lineChart"></canvas></div>
                 </div>
             </div>
@@ -92,12 +91,9 @@
         document.addEventListener('copy', e => { e.preventDefault(); alert('개인정보 보호를 위해 복사는 금지되어 있습니다.'); }); 
         document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'c')) e.preventDefault(); });
         
-        // ========================================================
-        // ⭐️ 기존 웹앱 URL로 반드시 교체해 주세요!
-        // ========================================================
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby8H2zf48p-i0w2HGy1psPnPWogNut3HplO_dv_QvWJTmx7n185N8msP1-ezfVNTkw0/exec"; 
+        // ⭐️ 기존 웹앱 URL로 교체해 주세요!
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxn21-o8u5iOZz1pxd7gQF3qfPiiW-I5AJ6dtLURYMKkS9NPoCCXgnDkc71WTkYpXxl/exec"; 
         
-        // 메인 페이지에서 로그인한 사용자 정보를 가져옵니다.
         const currentAgent = localStorage.getItem('rion_logged_user');
         
         let barChartInst = null;
@@ -112,7 +108,6 @@
 
         async function loadDashboardData() {
             try {
-                // 오직 대시보드 통계 데이터만 요청합니다. (DB 리스트는 불러오지 않음)
                 const dashRes = await fetch(`${GAS_WEBAPP_URL}?agent=${encodeURIComponent(currentAgent)}&mode=dashboard`);
                 const dashData = await dashRes.json();
                 
@@ -130,7 +125,6 @@
             document.getElementById('dashName').innerText = data.agentName;
             document.getElementById('dashRate').innerText = data.conversionRate;
             document.getElementById('dashConsumed').innerText = data.consumedAll;
-            
             document.getElementById('dashPremium').innerText = Number(data.totalPremiumThisMonth).toLocaleString();
             document.getElementById('dashContract').innerText = data.contractCount;
             document.getElementById('dashAvgDays').innerText = data.avgConsultDays;
@@ -158,6 +152,7 @@
                 }
             });
 
+            // ⭐️ 3개의 라인으로 구성된 차트
             const lineCtx = document.getElementById('lineChart').getContext('2d');
             if(lineChartInst) lineChartInst.destroy();
             lineChartInst = new Chart(lineCtx, {
@@ -173,7 +168,14 @@
                             tension: 0.3, borderWidth: 3 
                         },
                         { 
-                            label: '체결건수 (건)', 
+                            label: '미팅예정 (건)', 
+                            data: data.monthlyTrend.meeting, 
+                            borderColor: '#f59e0b', 
+                            backgroundColor: '#f59e0b', 
+                            tension: 0.3, borderWidth: 3 
+                        },
+                        { 
+                            label: '체결고객 (명)', 
                             data: data.monthlyTrend.contracted, 
                             borderColor: '#10b981', 
                             backgroundColor: '#10b981', 
