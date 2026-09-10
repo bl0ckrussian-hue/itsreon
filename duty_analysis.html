@@ -30,7 +30,7 @@
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v8.0 AI 엔진</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v9.0 AI 엔진</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -80,12 +80,12 @@
         <main class="w-full md:w-2/3 lg:w-3/4 p-6 sm:p-8 flex flex-col bg-white">
             
             <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2 text-xs shadow-sm mb-6">
-                <h4 class="font-bold text-blue-700 text-xs">📌 [절대원칙 22가지 기반 v8.0 핵심]</h4>
+                <h4 class="font-bold text-blue-700 text-xs">📌 [절대원칙 22가지 기반 v9.0 핵심]</h4>
                 <ol class="list-decimal pl-4 space-y-1 text-slate-600 text-[11px] leading-relaxed font-medium">
-                    <li><strong class="text-slate-800">약국/일반의 배제:</strong> 진단과가 '일반의'이거나 병원명이 '약국'인 데이터는 기본진료에서 완벽히 배제됩니다.</li>
-                    <li><strong class="text-slate-800">날짜 기반 매핑:</strong> 기본진료의 '진료일자+병원'을 기준으로 세부수술과 처방을 1:1 종속 결합합니다.</li>
-                    <li><strong class="text-slate-800">수술 하부행 강제 분리:</strong> 동일 질병이라도 시술(예: 차단술) 날짜가 다르면 무조건 각각 별도의 행(↳)으로 출력됩니다.</li>
-                    <li><strong class="text-slate-800">유추 질병명 스마트 판단:</strong> 주상병과 관계없는 처방약(예: 페브릭정)이 발견될 때만 (유추)질병명이 병기됩니다.</li>
+                    <li><strong class="text-slate-800">일반의/약국 전면 배제:</strong> 기본진료에서 '일반의' 및 '약국' 데이터를 완전히 버리고 시작합니다.</li>
+                    <li><strong class="text-slate-800">주상병명 대통합:</strong> 병원이 달라도 주상병이 같으면 통원 횟수와 투약일이 100% 통합 합산됩니다.</li>
+                    <li><strong class="text-slate-800">수술 하부행 개별 분리:</strong> 신경차단술 29번 등 다회 시술은 자바스크립트가 직접 날짜별로 29줄의 하부행(↳)을 생성합니다.</li>
+                    <li><strong class="text-slate-800">스마트 유추 질병명:</strong> 주상병과 관계없는 처방약(예: 페브릭정, 립스타플러스)만 골라내어 (유추) 질환명을 자동 병기합니다.</li>
                 </ol>
             </div>
 
@@ -157,7 +157,6 @@
     </div>
 
     <script>
-        // --- 기본 환경 설정 ---
         let activeResultTab = 'tab1';
         let selectedPdfFiles = [];
         let currentTab1Markdown = "";
@@ -235,7 +234,6 @@
             }
         }
 
-        // --- PDF 파일 처리 로직 ---
         const dropZone = document.getElementById('pdfDropZone');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false)
@@ -305,6 +303,7 @@
             return combinedText;
         }
 
+        // ⭐️ 완벽하게 반영된 MedicalRuleKeywords 사전
         const MedicalRuleKeywords = {
             surgeryKeywords: [
                 "수술", "절제", "적출", "봉합", "성형", "이식", "관혈", "비관혈", "시술", "내시경", 
@@ -334,23 +333,25 @@
             ]
         };
 
-        // ⭐️ 분석 로직: 일반의/약국 완벽 배제, 날짜기반 종속 매핑
+        // ⭐️ 분석 로직 (병원이 달라도 주상병명 같으면 100% 통합 합산)
         function analyzeMedicalRecords(rawText) {
             const detectedInfo = { surgeries: [], long_term_meds: [] };
             
-            // 중대 검사 키워드 (과잉진단 방지)
-            const testKeywords = ["초음파", "MRI", "M.R.I", "CT", "내시경", "생검", "혈관조영", "촬영", "엑스레이", "X-RAY", "X-ray"];
+            // 검사 과잉진단 방지 (중대 검사만 포함)
+            const testKeywords = ["초음파", "MRI", "M.R.I", "CT", "내시경", "생검"];
             
             const lines = (rawText || "").split('\n');
             let currentSection = "기본";
             const dateRegex = /(20\d{2})[-./]?(\d{2})[-./]?(\d{2})/;
 
+            // 핵심: '주상병명' 하나를 키로 모든 병원의 기록을 합산!
             const diseaseAgg = {}; 
-            // diseaseAgg[diseaseName] = { hospitals: Set, visits: Set, admits: [], surgs: [], tests: [], medDict: {} }
             
-            // 1단계: 기본진료정보 파싱하여 질병의 뼈대(날짜 기준) 만들기
-            const dateHospToDisease = {}; 
+            // 세부와 처방을 매핑하기 위한 Date+Hospital = Disease Lookup Table
+            const validEncounters = {}; 
 
+            const records = [];
+            let tempRecord = "";
             lines.forEach(line => {
                 const norm = line.replace(/\s+/g, '');
                 if (norm.includes("기본진료정보")) { currentSection = "기본"; return; }
@@ -358,114 +359,131 @@
                 if (norm.includes("처방조제정보")) { currentSection = "처방"; return; }
                 if (norm.includes("교통사고기본")) { currentSection = "교통"; return; }
                 
-                if (!dateRegex.test(line)) return;
+                if (dateRegex.test(line)) {
+                    if (tempRecord) records.push({ section: currentSection, text: tempRecord });
+                    tempRecord = line.trim();
+                } else {
+                    tempRecord += " " + line.trim();
+                }
+            });
+            if (tempRecord) records.push({ section: currentSection, text: tempRecord });
 
-                const parts = line.split(/[\t|]/).map(p => p.trim());
+            // 1단계: 기본진료정보 파싱 (일반의/약국 완벽 배제)
+            records.filter(r => r.section === "기본").forEach(record => {
+                const rowText = record.text;
+                // 절대원칙 1: 진단과가 '일반의'이거나 이름에 '약국'이 있으면 완전히 버림.
+                if (rowText.includes("약국") || rowText.includes("일반의")) return; 
+
+                const parts = rowText.split(/[\t|]/).map(p => p.trim());
                 const dateIdx = parts.findIndex(p => dateRegex.test(p));
                 if (dateIdx === -1) return;
 
                 const dateMatch = parts[dateIdx].match(dateRegex);
                 const rowDate = `${dateMatch[1]}${dateMatch[2]}${dateMatch[3]}`;
                 const hospital = parts[dateIdx + 1] || "";
-                const dept = parts[dateIdx + 2] || ""; 
                 
-                // ⭐️ 절대원칙: 약국이거나, 일반의(처방목적)인 경우 100% 무시
-                if (hospital.includes("약국") || line.includes("약국") || dept.includes("일반의")) return;
+                let disease = "질병미상";
+                const diseaseMatch = rowText.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|감염|병|[A-Z]\d{2,3}))/);
+                if (diseaseMatch) {
+                    disease = diseaseMatch[1].replace(/^\((?:양방|한방)\)/, '').trim();
+                } else {
+                    disease = (parts[dateIdx + 5] || "").replace(/^\((?:양방|한방)\)/, '').trim();
+                }
 
-                if (currentSection === "기본") {
-                    let disease = "질병미상";
-                    const inOut = parts[dateIdx + 3] || ""; 
-                    const rawDisease = parts[dateIdx + 5] || ""; 
-                    const diseaseMatch = rawDisease.match(/([가-힣A-Za-z0-9\s]+(?:염|증|통|암|골절|질환|장애|증후군|혈압|당뇨|감염|병|[A-Z]\d{2,3}))/);
-                    if (diseaseMatch) {
-                        disease = diseaseMatch[1].replace(/^\((?:양방|한방)\)/, '').trim();
-                    } else if (rawDisease) {
-                        disease = rawDisease.replace(/^\((?:양방|한방)\)/, '').trim();
-                    }
+                // 매핑용 키 저장
+                validEncounters[`${rowDate}|${hospital}`] = disease;
 
-                    // 날짜+병원명 키로 질병을 저장해둠 (세부/처방에서 끌어다 쓰기 위해)
-                    dateHospToDisease[`${rowDate}|${hospital}`] = disease;
+                // 주상병명 기준으로 그룹핑 (병원이 달라도 상병명이 같으면 같은 그룹으로 들어감)
+                if (!diseaseAgg[disease]) {
+                    diseaseAgg[disease] = { hospitals: new Set(), visitDates: new Set(), admits: [], surgs: [], tests: [], meds: {}, medNames: new Set() };
+                }
+                
+                diseaseAgg[disease].hospitals.add(hospital);
 
-                    if (!diseaseAgg[disease]) diseaseAgg[disease] = { hospitals: new Set(), visitDates: new Set(), admits: [], surgs: [], tests: [], meds: {}, medNames: new Set() };
-                    diseaseAgg[disease].hospitals.add(hospital);
+                const inOut = parts[dateIdx + 3] || "";
+                const isAdmissionRow = inOut.includes("입원") && !inOut.includes("외래");
+                const daysMatch = rowText.match(/(?:입원|외래)\s+(\d+)\s/);
+                let days = daysMatch ? parseInt(daysMatch[1]) : 1;
 
-                    const isAdmissionRow = inOut.includes("입원") && !inOut.includes("외래");
-                    const daysMatch = line.match(/(?:입원|외래)\s+(\d+)\s/);
-                    let days = daysMatch ? parseInt(daysMatch[1]) : 1;
+                if (isAdmissionRow) {
+                    diseaseAgg[disease].admits.push({ date: rowDate, days: days, hosp: hospital });
+                } else {
+                    diseaseAgg[disease].visitDates.add(rowDate);
+                }
+            });
 
-                    if (isAdmissionRow) {
-                        diseaseAgg[disease].admits.push({ date: rowDate, days: days, hosp: hospital });
-                    } else {
-                        diseaseAgg[disease].visitDates.add(rowDate);
-                    }
-                } 
-                else if (currentSection === "세부") {
-                    let disease = dateHospToDisease[`${rowDate}|${hospital}`];
-                    
-                    // 정확히 일치하지 않으면 병원명 포함여부로 찾기
-                    if (!disease) {
-                        for (let k in dateHospToDisease) {
-                            if (k.startsWith(rowDate) && (k.includes(hospital) || hospital.includes(k.split('|')[1]))) {
-                                disease = dateHospToDisease[k];
-                                break;
-                            }
+            // 2단계: 세부 및 처방 분석 (기본진료에서 인정된 기록과 1:1 종속 매핑)
+            records.filter(r => r.section !== "기본").forEach(record => {
+                const rowText = record.text;
+                // 세부/처방에서도 일반의/약국 배제
+                if (rowText.includes("약국") || rowText.includes("일반의")) return; 
+
+                const parts = rowText.split(/[\t|]/).map(p => p.trim());
+                const dateIdx = parts.findIndex(p => dateRegex.test(p));
+                if (dateIdx === -1) return;
+
+                const dateMatch = parts[dateIdx].match(dateRegex);
+                const rowDate = `${dateMatch[1]}${dateMatch[2]}${dateMatch[3]}`;
+                const hospital = parts[dateIdx + 1] || "";
+                
+                let disease = validEncounters[`${rowDate}|${hospital}`];
+                if (!disease) {
+                    // Fuzzy match (부분일치 검색)
+                    for (let k in validEncounters) {
+                        if (k.startsWith(rowDate) && (k.includes(hospital) || hospital.includes(k.split('|')[1]))) {
+                            disease = validEncounters[k];
+                            break;
                         }
                     }
-                    if (!disease || !diseaseAgg[disease]) return; // 기본에 없으면 무시
+                }
+                
+                // 기본진료에 없으면 철저히 무시
+                if (!disease || !diseaseAgg[disease]) return;
 
-                    const category = parts[dateIdx + 2] || line; 
+                if (record.section === "세부") {
+                    const category = parts[dateIdx + 2] || rowText; 
                     let codeName = parts[dateIdx + 3] || parts[dateIdx + 4] || "";   
 
-                    if (category.includes("초음파") || testKeywords.some(k => line.includes(k))) {
-                        diseaseAgg[disease].tests.push({ date: rowDate, name: codeName });
+                    if (category.includes("초음파") || testKeywords.some(k => rowText.includes(k))) {
+                        diseaseAgg[disease].tests.push({ date: rowDate, name: codeName || '검사' });
                     }
 
                     let isSurgeryCandidate = false;
                     let foundName = "";
 
-                    if (MedicalRuleKeywords.forceInclude.some(k => { if(line.includes(k)) { foundName=k; return true; } return false;})) {
+                    if (MedicalRuleKeywords.forceInclude.some(k => { if(rowText.includes(k)) { foundName=k; return true; } return false;})) {
                         isSurgeryCandidate = true;
-                    } else if (MedicalRuleKeywords.surgeryKeywords.some(k => { if(line.includes(k)) { foundName=k; return true; } return false;})) {
-                        if (!MedicalRuleKeywords.excludeKeywords.some(k => line.includes(k)) && 
-                            !MedicalRuleKeywords.dentalExcludeKeywords.some(k => line.includes(k))) {
+                    } else if (MedicalRuleKeywords.surgeryKeywords.some(k => { if(rowText.includes(k)) { foundName=k; return true; } return false;})) {
+                        if (!MedicalRuleKeywords.excludeKeywords.some(k => rowText.includes(k)) && 
+                            !MedicalRuleKeywords.dentalExcludeKeywords.some(k => rowText.includes(k))) {
                             isSurgeryCandidate = true;
                         }
                     }
 
                     if (isSurgeryCandidate) {
-                        const nameMatch = line.match(/[가-힣A-Za-z0-9\s()]+(?:술|제거|절제|성형|적출|이식|차단|조영|발치|임플란트|천자)/);
+                        const nameMatch = rowText.match(/[가-힣A-Za-z0-9\s()]+(?:술|제거|절제|성형|적출|이식|차단|조영|발치|임플란트|천자)/);
                         let surgName = nameMatch ? nameMatch[0].trim() : foundName;
                         diseaseAgg[disease].surgs.push({ date: rowDate, name: surgName, hosp: hospital });
                         detectedInfo.surgeries.push(`[${rowDate}] ${hospital} : ${surgName}`);
                     }
                 } 
-                else if (currentSection === "처방") {
-                    let disease = dateHospToDisease[`${rowDate}|${hospital}`];
-                    if (!disease) {
-                        for (let k in dateHospToDisease) {
-                            if (k.startsWith(rowDate) && (k.includes(hospital) || hospital.includes(k.split('|')[1]))) {
-                                disease = dateHospToDisease[k];
-                                break;
-                            }
-                        }
-                    }
-                    if (!disease || !diseaseAgg[disease]) return;
-
-                    const medNameMatch = line.match(/([가-힣A-Za-z0-9]+(?:정|캡슐|연고|액|시럽|주사|패취|밀리그램|미세조립))/);
+                else if (record.section === "처방") {
+                    const medNameMatch = rowText.match(/([가-힣A-Za-z0-9]+(?:정|캡슐|연고|액|시럽|주사|패취|밀리그램|미세조립))/);
                     const medName = medNameMatch ? medNameMatch[0].trim() : "약품";
 
-                    const daysMatch = line.match(/\b(\d{1,3})\b\s*$/); 
-                    const medDays = daysMatch ? parseInt(daysMatch[1]) : 0;
+                    const daysMatch = rowText.match(/\b(\d{1,3})\b\s*$/); 
+                    const medDaysStr = parts[dateIdx + 7] || (daysMatch ? daysMatch[1] : "0"); 
+                    const medDays = parseInt(medDaysStr.replace(/[^0-9]/g, '')) || 0;
                     
                     if (medDays > 0) {
-                        // ⭐️ 진료시작일 기준 중복투약일수 방지 (가장 긴 처방일수 1개만 적용)
+                        // ⭐️ 진료시작일이 같으면 가장 긴 처방일수 딱 1개만 적용 (180일 뻥튀기 방지)
                         diseaseAgg[disease].meds[rowDate] = Math.max(diseaseAgg[disease].meds[rowDate] || 0, medDays);
                         if (medName) diseaseAgg[disease].medNames.add(medName);
                     }
                 }
             });
 
-            // 결과 정제
+            // 결과 정제 (대시보드 통계 계산)
             let finalDiseaseAgg = {};
             let globalAdmitCount = 0;
             let globalSurgCount = 0;
@@ -504,7 +522,7 @@
             };
         }
 
-        // ⭐️ 2. 일반심사 프롬프트 (미리 엑셀 행을 자바스크립트가 완성하여 제공)
+        // ⭐️ 2. 일반심사 프롬프트 생성 (자바스크립트가 마크다운 표 전체를 완벽히 구축)
         function buildOriginalAnalysisPrompt(analysisData, fileNames) {
             const { diseaseAgg, detectedInfo, summaryCounts } = analysisData;
             
@@ -562,59 +580,59 @@
                 const firstDate = agg.visits.length > 0 ? agg.visits[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
                 const lastDate = agg.visits.length > 0 ? agg.visits[agg.visits.length - 1] : "";
                 
-                const fDateFmt = firstDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-                const lDateFmt = lastDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                const fDateFmt = firstDate ? firstDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
+                const lDateFmt = lastDate ? lastDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
 
                 const hospitalsStr = agg.hospitals.join(', ');
                 const reasonStr = reason.join(', ');
 
-                // ⭐️ 자바스크립트가 직접 메인 행 생성
                 let mainRowSurg = validSurgs.length > 0 ? "예" : "아니오";
                 let mainRowSurgName = validSurgs.length > 0 ? validSurgs[0].name + (validSurgs.length > 1 ? " 외" : "") : "-";
                 
                 let totalAdmitDays = validAdmits.reduce((acc, curr) => acc + curr.days, 0);
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
 
-                // 약품명 목록 전달하여 AI가 판단하게 함
-                const medNamesStr = agg.medNames.length > 0 ? ` [처방약: ${agg.medNames.join(', ')}]` : "";
+                // 약품명 목록 전달 (AI 유추 판단용)
+                const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
+                // 메인 행 출력
                 markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** |\n`;
 
-                // ⭐️ 자바스크립트가 직접 하부 행 생성 (AI 조작 방지)
-                validAdmits.forEach((ad, idx) => {
+                // ⭐️ 자바스크립트가 직접 하부 행 생성 (신경차단술 29번 등 모두 쪼개서 출력)
+                validAdmits.forEach(ad => {
                     let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
                     markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 |\n`;
                 });
 
-                validSurgs.forEach((sg, idx) => {
+                validSurgs.forEach(sg => {
                     let dFmt = sg.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
                     markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 |\n`;
                 });
             }
 
-            if(markdownRows === "") markdownRows = "| 해당사항 없음 | - | - | - | - | - | - | - | - |\n";
+            if(markdownRows === "") markdownRows = "| 기고지 위반 의심내역 없음 | - | - | - | - | - | - | - | - |\n";
 
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
             const prompt = `[시스템 설정 및 역할]
 당신은 최고 수준의 보험 심사 시스템 내 '최종 엑셀 검수 및 출력 감독관'입니다.
-이미 하위 시스템(자바스크립트)이 복잡한 날짜 합산, 약국 배제, 비고란 키워드 할당, 수술 하부행 분리를 완벽하게 끝마쳤습니다.
-당신은 이 데이터를 기반으로 **[약물 유추 질환명]**만 똑똑하게 판단하여 마크다운 표를 최종 출력하는 역할만 수행합니다.
+이미 하위 시스템(자바스크립트)이 복잡한 날짜 합산, 약국 완벽 배제, 비고란 키워드 할당, 수술 하부행 분리를 **오차율 0%로 완벽하게 끝마쳤습니다.**
+당신은 이 데이터를 기반으로 **[약물 유추 질환명]**만 똑똑하게 판단하여 마크다운 표를 그대로 출력하는 역할만 수행합니다.
 
 🕒 **분석 요청 시점(기준일):** ${todayDate}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
-1. 아래 [사전 완성된 마크다운 데이터]의 **행 개수, 횟수, 날짜, 비고란(사유)은 100% 동일하게 복사**해서 출력하십시오. 절대 요약하거나 통합하지 마십시오.
-2. 하부 행(↳) 기호도 그대로 유지하십시오.
+1. 아래 [사전 완성된 마크다운 데이터]의 **행 개수, 횟수, 날짜, 비고란은 단 1글자도 변경하지 말고 100% 똑같이 출력**하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+2. 수술 내역을 나타내는 하부 행(↳) 기호도 그대로 유지하십시오. (자바스크립트가 날짜별로 완벽하게 다 분리해 두었습니다)
 
-🚨 **[유일한 AI 추가 임무: 약물 유추 병명 판단]**
-- 첫 번째 열인 '질병명' 칸에 제공된 \`[처방약: 약이름]\` 정보를 보고, 해당 약이 **주상병(원래 질병)과 명백히 다른 질환의 약일 경우에만** 주상병 아랫줄에 \`<br>(유추) 질환명\`을 적어주십시오.
-- 예시: 주상병이 "고혈압"인데 약이 "페브릭정(통풍약), 립스타플러스(고지혈약)" 라면 -> \`원발성 고혈압<br>(유추) 통풍, 고지혈증\`
-- 주의: 주상병과 일치하는 약(예: 고혈압에 디오반 처방)은 병기하지 마십시오.
-- 처방약 텍스트 \`[처방약: ...]\` 기호 자체는 최종 출력에서 지워주십시오.
+🚨 **[유일한 AI 추가 임무: 약물 유추 병명 스마트 판단]**
+- 표의 첫 번째 열인 '질병명' 칸에 \`[처방: 약이름...]\` 정보가 있습니다. 해당 약들을 분석하여, **주상병(원래 질병)과 명백히 무관한 다른 질환의 약일 경우에만** 주상병 아랫줄에 \`<br>(유추) 질환명\`을 적어주십시오.
+- 예시: 주상병이 "원발성 고혈압"인데 약이 "페브릭정(통풍약), 립스타플러스(고지혈약), 디오반(고혈압약)" 라면 -> \`원발성 고혈압<br>(유추) 통풍, 고지혈증\` 으로 표기하십시오. (디오반은 고혈압과 연관되므로 표기하지 않음)
+- 주의: 주상병과 일치하거나 관계있는 약물은 절대 유추 병명으로 추가하지 마십시오. 오직 명백히 다른 질병일 때만 추가합니다.
+- 처방약 텍스트인 \`[처방: ...]\` 글자 자체는 AI의 최종 출력 표에서 깔끔하게 지워주십시오.
 
 ---
-**[사전 완성된 마크다운 데이터]**
+**[사전 완성된 마크다운 데이터 (이 표를 조작없이 그대로 가져다 쓸 것)]**
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
 ${markdownRows}
@@ -628,12 +646,12 @@ ${markdownRows}
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(위 1번 표에서 입원 및 수술 이력이 있는 행만 복사하여 기재. 통원만 있는 건은 제외)*
+*(위 1번 표에서 입원 및 수술 이력이 있는 행(↳ 포함)만 그대로 복사하여 기재. 통원만 있는 건은 제외)*
 `;
             return { prompt, summaryCounts };
         }
 
-        // ⭐️ 3. 고지위반 점검 프롬프트
+        // ⭐️ 3. 기계약 점검 프롬프트
         function buildViolationCheckPrompt(analysisData, targetDate, fileNames) {
             const { diseaseAgg } = analysisData || {};
             
@@ -703,16 +721,16 @@ ${markdownRows}
                 let totalAdmitDays = validAdmits.reduce((acc, curr) => acc + curr.days, 0);
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
 
-                const medNamesStr = agg.medNames.length > 0 ? ` [처방약: ${agg.medNames.join(', ')}]` : "";
+                const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
                 markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** |\n`;
 
-                validAdmits.forEach((ad, idx) => {
+                validAdmits.forEach(ad => {
                     let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
                     markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 |\n`;
                 });
 
-                validSurgs.forEach((sg, idx) => {
+                validSurgs.forEach(sg => {
                     let dFmt = sg.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
                     markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 |\n`;
                 });
@@ -728,8 +746,8 @@ ${markdownRows}
 🕒 **분석 요청 시점(청약일 기준):** ${targetDateStr}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
-1. 아래 [사전 완성된 마크다운 데이터]의 행 개수, 데이터, 비고란은 100% 동일하게 복사해서 출력하십시오.
-2. 유일하게 해야 할 일은 질병명 옆의 \`[처방약: ...]\` 정보를 바탕으로 주상병과 다른 질환의 약일 경우에만 \`<br>(유추) 질환명\`을 추가하고, 원본 \`[처방약: ...]\` 글씨는 지우는 것뿐입니다.
+1. 아래 [사전 완성된 마크다운 데이터]의 행 개수, 횟수, 비고란은 자바스크립트가 정확히 계산한 것입니다. 100% 동일하게 복사해서 출력하십시오.
+2. 유일하게 해야 할 일은 질병명 옆의 \`[처방: ...]\` 정보를 바탕으로 주상병과 명백히 무관한 질환의 약일 경우에만 \`<br>(유추) 질환명\`을 추가하고, 원본 \`[처방: ...]\` 글씨는 지우는 것뿐입니다.
 
 ---
 **[사전 완성된 마크다운 데이터]**
@@ -806,14 +824,14 @@ ${markdownRows}
 
                 const fullText = await extractTextFromPdfFiles(selectedPdfFiles, pdfPassword);
 
-                progressText.innerText = "⚙️ [v8.0 Rule Engine] 데이터 필터링 및 교차 집계 중...";
+                progressText.innerText = "⚙️ [v9.0 Rule Engine] 데이터 필터링 및 교차 집계 중...";
                 startFakeProgress(40, 70, 150); 
 
                 const analysisData = analyzeMedicalRecords(fullText);
 
                 document.getElementById('dutyDebugContent').innerHTML = `
                     <div class="text-amber-400 font-bold">📊 [자바스크립트 Rule Engine 교차 집계 완료]</div>
-                    <div class="mt-1 text-slate-300">내부 집계 로직이 완벽하게 정리되었습니다. (AI는 이 데이터를 마크다운으로 출력만 합니다)</div>
+                    <div class="mt-1 text-slate-300">내부 집계 로직이 완벽하게 정리되었습니다. (AI는 유추 질병명만 판단하여 출력합니다)</div>
                 `;
 
                 const fileNames = selectedPdfFiles.map(f => f.name).join(', ');
@@ -980,14 +998,6 @@ ${markdownRows}
                 });
                 XLSX.writeFile(wb, `고지위반점검_통합_${timeStr}.xlsx`);
             }
-        }
-
-        // --- 🔒 로그인 관련 로직 생략 부분 (기존 유지) ---
-        function logoutUser() {
-            localStorage.removeItem('rion_logged_user');
-            const nameEl = document.getElementById('loggedUserName');
-            if(nameEl) nameEl.innerText = '게스트';
-            alert('로그아웃 되었습니다.');
         }
     </script>
 </body>
