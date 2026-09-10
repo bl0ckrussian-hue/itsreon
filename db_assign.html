@@ -120,14 +120,13 @@
                 const valTa4 = db.ta4 || '';
                 const valStatus = db.status || '';
                 
-                // ⭐️ 건수와 보험료 분리 매핑 (보험료는 보기 좋게 콤마 표시)
                 const valCount = db.contractCount ? db.contractCount + '건' : '';
                 const valPremium = db.contractPremium ? Number(db.contractPremium).toLocaleString() + '원' : '';
                 const valNote = db.note || '';
                 const valSchedule = db.schedule || '';
 
                 // ==========================================
-                // 💻 1. 데스크톱 뷰 (계약건수 / 보험료 칸 분리 완료)
+                // 💻 1. 데스크톱 뷰
                 // ==========================================
                 desktopHtml += `
                     <tr class="bg-slate-50 font-medium border-b border-slate-200 hover:bg-slate-100 transition">
@@ -151,7 +150,7 @@
                         <td colspan="15" class="p-0 bg-white">
                             <input type="hidden" id="custName_${index}" value="${db.customerName}">
                             <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
-                                <div class="w-[22%] shrink-0 flex items-center gap-1.5 pl-1">
+                                <div class="w-[20%] shrink-0 flex items-center gap-1.5 pl-1">
                                     <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight">🎧 녹취듣기</span>
                                     <div class="flex-grow w-full">
                                         ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300 bg-white shadow-sm"></iframe>` : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 없음</div>`}
@@ -162,10 +161,10 @@
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
                                 
-                                <div class="w-[10%] shrink-0">
+                                <div class="w-[12%] shrink-0">
                                     <input type="text" id="schedule_${index}" value="${valSchedule}" onchange="markModified(${index})" placeholder="일정입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                                 </div>
-                                <div class="w-[5%] shrink-0">
+                                <div class="w-[6%] shrink-0">
                                     <select id="status_${index}" onchange="handleStatusChange(${index}, '')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
                                         <option value="" ${valStatus===''?'selected':''}>- 진행현황 -</option>
                                         <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
@@ -176,15 +175,14 @@
                                     </select>
                                 </div>
                                 
-                                <!-- ⭐️ 분리된 계약 정보 입력란 (건수 / 보험료) -->
-                                <div class="w-[5%] shrink-0">
+                                <div class="w-[3%] shrink-0">
                                     <input type="text" id="cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-1.5 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-center focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
                                 </div>
                                 <div class="w-[8%] shrink-0">
                                     <input type="text" id="prm_${index}" value="${valPremium}" readonly placeholder="보험료" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-2 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-right focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
                                 </div>
 
-                                <div class="w-[25%] shrink-0">
+                                <div class="w-[26%] shrink-0">
                                     <input type="text" id="note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                                 </div>
                             </div>
@@ -193,7 +191,7 @@
                 `;
 
                 // ==========================================
-                // 📱 2. 모바일 뷰 (세로형 카드 양식)
+                // 📱 2. 모바일 뷰
                 // ==========================================
                 mobileHtml += `
                     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden relative">
@@ -242,7 +240,6 @@
                                     </div>
                                 </div>
 
-                                <!-- ⭐️ 모바일 분리된 계약 정보 입력란 -->
                                 <div class="flex gap-2 pt-1">
                                     <input type="text" id="m_cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[30%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-center">
                                     <input type="text" id="m_prm_${index}" value="${valPremium}" readonly placeholder="보험료 입력 (터치)" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[70%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-right">
@@ -336,6 +333,18 @@
             document.getElementById('contractModal').classList.add('hidden');
         }
 
+        // ⭐️ 입력 시 실시간으로 숫자에 콤마를 찍어주는 함수
+        function formatPremiumInput(input) {
+            // 숫자가 아닌 모든 문자 제거
+            let val = input.value.replace(/[^0-9]/g, '');
+            if(val === '') {
+                input.value = '';
+            } else {
+                // 3자리마다 콤마 추가
+                input.value = Number(val).toLocaleString();
+            }
+        }
+
         function addContractRow() {
             const container = document.getElementById('contractRowsContainer');
             const rowDiv = document.createElement('div');
@@ -350,7 +359,8 @@
                     <option value="일반">일반</option>
                 </select>
                 <div class="w-[55%] relative">
-                    <input type="number" placeholder="보험료 입력" class="contract-premium w-full p-2 border border-slate-300 rounded font-bold text-sm text-slate-700 text-right pr-6 focus:outline-none focus:border-blue-500">
+                    <!-- ⭐️ 입력창에 oninput 이벤트를 걸어서 실시간 콤마 적용 -->
+                    <input type="text" placeholder="보험료 입력" oninput="formatPremiumInput(this)" class="contract-premium w-full p-2 border border-slate-300 rounded font-bold text-sm text-slate-700 text-right pr-6 focus:outline-none focus:border-blue-500">
                     <span class="absolute right-2 top-2.5 text-xs font-bold text-slate-400">원</span>
                 </div>
             `;
@@ -373,11 +383,13 @@
 
             rows.forEach(row => {
                 const category = row.querySelector('select').value;
-                const premiumVal = row.querySelector('.contract-premium').value;
+                const premiumFormatted = row.querySelector('.contract-premium').value;
+                // ⭐️ 계산을 위해 콤마 제거
+                const premiumRaw = premiumFormatted.replace(/,/g, ''); 
                 
-                if (category && premiumVal && !isNaN(premiumVal)) {
+                if (category && premiumRaw && !isNaN(premiumRaw)) {
                     totalCount++;
-                    totalPremium += parseInt(premiumVal, 10);
+                    totalPremium += parseInt(premiumRaw, 10);
                 }
             });
 
@@ -386,9 +398,10 @@
                 return;
             }
 
-            // 분리된 칸에 각각 입력
             document.getElementById(`${currentModalPrefix}cnt_${currentModalIndex}`).value = totalCount + "건";
             document.getElementById(`${currentModalPrefix}prm_${currentModalIndex}`).value = totalPremium.toLocaleString() + "원";
+            
+            markModified(currentModalIndex);
             
             closeContractModal();
         }
@@ -430,7 +443,6 @@
                 const idx = indexes[i];
                 textSpan.innerText = `⏳ 저장 중... (${i+1}/${total})`;
 
-                // 숫자(건수, 보험료)만 순수하게 추출하여 서버로 전송
                 let rawCount = document.getElementById(`${pfx}cnt_${idx}`).value.replace(/[^0-9]/g, '');
                 let rawPremium = document.getElementById(`${pfx}prm_${idx}`).value.replace(/[^0-9]/g, '');
 
@@ -444,8 +456,8 @@
                     ta4: document.getElementById(`${pfx}ta4_${idx}`).value,
                     schedule: document.getElementById(`${pfx}schedule_${idx}`).value,
                     status: document.getElementById(`${pfx}status_${idx}`).value,
-                    contractCount: rawCount,    // ⭐️ 순수 숫자값만 전송
-                    contractPremium: rawPremium, // ⭐️ 순수 숫자값만 전송
+                    contractCount: rawCount,
+                    contractPremium: rawPremium,
                     note: document.getElementById(`${pfx}note_${idx}`).value
                 };
 
