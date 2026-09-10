@@ -8,12 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- PDF.js for client-side PDF text extraction -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- SheetJS (XLSX) for Excel Export -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <!-- Marked.js for rendering AI Markdown responses -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #F8F9FA; color: #1E293B; scroll-behavior: smooth; }
@@ -247,12 +241,12 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
                         </div>
 
-                        <!-- ⭐️ 알릴의무 분석기 (수정: 클릭 시 새 창 열림) -->
+                        <!-- ⭐️ AI 알릴의무분석 (새 창 연결) -->
                         <div onclick="checkAuthAndOpen('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v6.0 AI</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">AI알릴의무분석</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/><span class="text-amber-600 font-bold">(새 창에서 열림)</span></p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/><span class="text-amber-500 font-bold">(새 창에서 열림)</span></p>
                         </div>
 
                         <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
@@ -269,15 +263,15 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">계약 현황 및<br/>목표 달성률 실시간 조회</p>
                         </div>
 
-                        <!-- ⭐️ 실비 계산기 (수정: 클릭 시 새 창 열림) -->
+                        <!-- ⭐️ 실비 마스터 (새 창 연결) -->
                         <div onclick="checkAuthAndOpen('indemnityCalcModal')" class="bg-white hover:bg-[#f8fafc] border border-slate-200 hover:border-slate-800 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-slate-100 border border-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 transition">실비 마스터</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/><span class="text-slate-600 font-bold">(새 창에서 열림)</span></p>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 transition">실비 마스터<br/>(비회원 가능)</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/>세대별 약관 & 갱신보험료 예측</p>
                         </div>
 
-                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
                             <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
                             <div class="flex items-center gap-1 mb-1"><span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">COMING SOON</span></div>
                             <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
@@ -501,8 +495,8 @@
         </div>
     </footer>
 
-    <!-- ==================== 인터랙티브 기능 모달 (알릴의무, 실비 제외) ==================== -->
-    <!-- 전문가 자문 신청 전용 모달 -->
+    <!-- ==================== 인터랙티브 기능 모달 ==================== -->
+    <!-- ⭐️ 전문가 자문 신청 전용 모달 -->
     <div id="expertConsultModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('expertConsultModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -527,7 +521,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">자문 요청 요약 내용</label>
-                    <textarea id="expertConsultMemo" rows="3" placeholder="고객의 주요 상황을 간략히 적어주세요." class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-amber-500"></textarea>
+                    <textarea id="expertConsultMemo" rows="3" placeholder="고객의 주요 상황(예: 법인 대표 가업승계 증여세 절세 방안, 암 진단비 분쟁 등)을 간략히 적어주세요." class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-amber-500"></textarea>
                 </div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-lg text-xs shadow-md transition mt-2">
                     자문 신청서 접수하기
@@ -542,13 +536,17 @@
             <button onclick="closeModal('scheduleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <div class="flex items-center space-x-2 text-blue-600 mb-1"><span>📋</span><span class="text-xs font-bold bg-blue-50 px-2 py-0.5 rounded">DB 배정 & 네이버 캘린더 연동</span></div>
             <h3 class="text-xl font-bold text-slate-900">김설계 팀장 배정 DB 일정</h3>
+            <p class="text-xs text-slate-500 mt-1">네이버 캘린더 앱과 동기화된 상담 스케줄입니다.</p>
             <div class="mt-5 space-y-3">
                 <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg flex justify-between items-center text-xs">
-                    <div><span class="font-bold text-blue-900">[오늘 14:00] 서울 강남구 역삼동 - 보장분석 상담</span></div>
+                    <div><span class="font-bold text-blue-900">[오늘 14:00] 서울 강남구 역삼동 - 보장분석 상담</span><div class="text-slate-600 mt-0.5">고객: 이*철 님 (010-***-4920) | 메모: 기존 실손 만기 재설계</div></div>
                     <span class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold">확정</span>
                 </div>
             </div>
-            <div class="mt-6 flex justify-end"><button onclick="closeModal('scheduleModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
+            <div class="mt-6 flex justify-end space-x-2">
+                <button onclick="alert('네이버 캘린더 앱과 즉시 동기화되었습니다.')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-500">🔄 네이버 캘린더 동기화</button>
+                <button onclick="closeModal('scheduleModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button>
+            </div>
         </div>
     </div>
 
@@ -558,6 +556,12 @@
             <button onclick="closeModal('coverageModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <div class="flex items-center space-x-2 text-red-600 mb-1"><span>🛡️</span><span class="text-xs font-bold bg-red-50 px-2 py-0.5 rounded">종합 보장 갭 진단</span></div>
             <h3 class="text-xl font-bold text-slate-900">고객 보장 항목 분석 리포트</h3>
+            <div class="mt-4 space-y-4 text-xs">
+                <div>
+                    <div class="flex justify-between font-bold mb-1"><span>일반암 진단비</span> <span class="text-rose-600">부족 (2,000만 / 권장 5,000만)</span></div>
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden"><div class="bg-rose-500 h-full" style="width: 40%"></div></div>
+                </div>
+            </div>
             <div class="mt-6 flex justify-end"><button onclick="closeModal('coverageModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
         </div>
     </div>
@@ -568,6 +572,7 @@
             <button onclick="closeModal('termsCloudModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <div class="flex items-center space-x-2 text-indigo-600 mb-1"><span>📖</span><span class="text-xs font-bold bg-indigo-50 px-2 py-0.5 rounded">구글 클라우드 연동</span></div>
             <h3 class="text-xl font-bold text-slate-900">전 금융사 개정 약관 라이브러리</h3>
+            <div class="mt-4 flex gap-2"><input type="text" placeholder="약관명 검색" class="flex-grow px-3 py-2 border rounded-lg text-xs"><button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold">검색</button></div>
             <div class="mt-6 flex justify-end"><button onclick="closeModal('termsCloudModal')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold">닫기</button></div>
         </div>
     </div>
@@ -596,6 +601,7 @@
             <button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">⏳</div>
             <h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.</p>
             <div class="mt-6"><button onclick="closeModal('comingSoonModal')" class="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-xs">확인</button></div>
         </div>
     </div>
@@ -605,6 +611,11 @@
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900">잇츠리온 시스템 문의하기</h3>
+            <form onsubmit="event.preventDefault(); alert('문의가 성공적으로 접수되었습니다.'); closeModal('contactModal');" class="mt-4 space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">성함 / 소속 GA</label><input type="text" value="김설계 팀장 / 센티넬어드바이저스" required class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">연락처</label><input type="tel" value="010-1234-5678" required class="w-full px-3 py-2 border rounded-lg"></div>
+                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">문의 접수</button>
+            </form>
         </div>
     </div>
 
@@ -613,42 +624,80 @@
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('quickUpdateModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900">설계사 프로필 설정</h3>
+            <form onsubmit="event.preventDefault(); alert('정보가 업데이트되었습니다.'); closeModal('quickUpdateModal');" class="mt-4 space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">성명</label><input type="text" value="김설계" class="w-full px-3 py-2 border rounded-lg"></div>
+                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">저장</button>
+            </form>
         </div>
     </div>
 
-    <!-- 로그인 모달 -->
+    <!-- 🔑 로그인 모달 -->
     <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 text-center mb-1">잇츠리온 로그인</h3>
             <p class="text-[11px] text-slate-500 text-center mb-5">등록된 이름과 사번으로 로그인하세요.</p>
             <div class="space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="loginId" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
-                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="loginPw" type="password" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
-                <button onclick="submitLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2">로그인 하기</button>
+                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="loginId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="loginPw" type="password" placeholder="예: 12345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <button onclick="submitLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">로그인 하기</button>
+                <div class="flex justify-between items-center pt-3 mt-2 border-t border-slate-100">
+                    <span class="text-[11px] text-slate-400">아직 계정이 없으신가요?</span>
+                    <button onclick="closeModal('loginModal'); openModal('signupModal');" class="text-xs font-black text-blue-600 hover:text-blue-800 transition">회원가입 →</button>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- 회원가입 모달 -->
+    <!-- 📝 회원가입 모달 -->
     <div id="signupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('signupModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
-            <button onclick="submitSignup()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-sm mt-2">가입 신청 완료하기</button>
+            <div class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-bold text-slate-700 mb-1">이름 (아이디)</label><input id="regName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">사번 (비밀번호)</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">주민등록번호</label>
+                    <div class="flex items-center gap-2">
+                        <input id="regBirth6" type="text" maxlength="6" placeholder="YYMMDD" class="w-1/2 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center tracking-widest font-mono text-sm">
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input id="regGender1" type="text" maxlength="1" placeholder="1" class="w-10 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center font-bold text-sm">
+                        <span class="text-slate-400 text-lg tracking-widest pt-1">******</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">휴대폰 번호 (숫자만 8자리)</label>
+                    <div class="flex items-center gap-2">
+                        <div class="px-3 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm">010</div>
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input id="regPhone8" type="tel" maxlength="8" placeholder="12345678" class="flex-grow px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 tracking-widest font-bold text-sm">
+                    </div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">가입 신청 완료하기</button>
+            </div>
         </div>
     </div>
 
-    <!-- 회원탈퇴 모달 -->
+    <!-- 🗑️ 회원탈퇴 모달 -->
     <div id="withdrawModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('withdrawModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 text-center mb-1">회원 탈퇴</h3>
-            <button onclick="submitWithdraw()" class="w-full bg-rose-600 text-white font-bold py-2.5 rounded-lg text-sm mt-2">영구 탈퇴하기</button>
+            <p class="text-[11px] text-rose-500 text-center mb-5 font-bold">탈퇴 시 모든 정보가 삭제되며 복구할 수 없습니다.</p>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">아이디 (이름)</label><input id="withdrawId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-rose-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="withdrawPw" type="password" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-rose-500"></div>
+                <button onclick="submitWithdraw()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">영구 탈퇴하기</button>
+            </div>
         </div>
     </div>
     
     <script>
+        // --- 1. 기본 전역 변수 및 UI 제어 함수 ---
         let activeSlide = 1;
         let chart1Instance = null;
         let chart2Instance = null;
@@ -723,41 +772,23 @@
             document.getElementById(id).classList.add('hidden');
         }
 
-        function openExpertModal(categoryName) {
-            const catInput = document.getElementById('expertCategoryInput');
-            if (catInput) catInput.value = categoryName;
-            
-            const nameInput = document.getElementById('expertPlannerName');
-            if (nameInput && currentUser && currentUser.isLoggedIn) {
-                nameInput.value = `${currentUser.name} 팀장`;
-            }
-            openModal('expertConsultModal');
-        }
-
-        function submitExpertConsult(e) {
-            e.preventDefault();
-            const category = document.getElementById('expertCategoryInput').value;
-            const planner = document.getElementById('expertPlannerName').value;
-            alert(`[${category}]\n${planner}님의 자문 신청이 성공적으로 접수되었습니다.\n담당 자문위원이 빠른 시일 내에 연락드리겠습니다.`);
-            closeModal('expertConsultModal');
-        }
-
+        // --- 🔒 회원가입/승인 제어 로직 ---
         let currentUser = { isLoggedIn: false, name: '', status: '' };
         const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
 
-        // ⭐️ 카드 클릭 시 새 창 연결되도록 수정한 라우팅 로직
+        // ⭐️ [중요] 카드를 눌렀을 때 모달을 띄우지 않고 새 창을 열어주는 로직
         function checkAuthAndOpen(modalId) {
+            // 비회원 접근 가능 (실비 계산기 등)
+            if (modalId === 'indemnityCalcModal') {
+                window.open('silbi_calculator.html', '_blank', 'width=800,height=900,scrollbars=yes');
+                return;
+            }
             if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal' || modalId === 'contractDashboardModal' || modalId === 'coverageModal') {
                 openModal('comingSoonModal');
                 return;
             }
             
-            if (modalId === 'indemnityCalcModal') {
-                // 실비 마스터는 바로 새 창 오픈
-                window.open('silbi_calculator.html', '_blank', 'width=800,height=900,scrollbars=yes');
-                return;
-            }
-            
+            // 로그인 상태 확인 (알릴의무 분석 등 회원전용)
             if (!currentUser.isLoggedIn) {
                 alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
                 openModal('loginModal');
@@ -766,42 +797,203 @@
             } else {
                 localStorage.setItem('rion_logged_user', currentUser.name); 
                 
-                if (modalId === 'dbAssignPage') {
-                    window.open('db_assign.html', '_blank'); 
-                } else if (modalId === 'dutyModal') {
-                    // 알릴의무 분석기를 새 창 오픈
-                    window.open('duty_analysis.html', '_blank');
+                if (modalId === 'dutyModal') {
+                    // 알릴의무 정밀분석 창 새 창으로 열기
+                    window.open('duty_analysis.html', '_blank', 'width=1200,height=900,scrollbars=yes');
                 } else {
                     openModal(modalId); 
                 }
             }
         }
 
-        async function submitSignup() { alert("가입 신청이 처리되었습니다."); closeModal('signupModal'); }
-        async function submitLogin() { alert("로그인 되었습니다."); currentUser = { isLoggedIn: true, name: '김설계', status: '승인' }; updateLoginUI(); closeModal('loginModal'); }
-        async function submitWithdraw() { alert("탈퇴 처리되었습니다."); closeModal('withdrawModal'); }
+        async function submitSignup() {
+            const name = document.getElementById('regName').value.trim();
+            const empId = document.getElementById('regEmpId').value.trim();
+            const birth6 = document.getElementById('regBirth6').value.trim();
+            const gender1 = document.getElementById('regGender1').value.trim();
+            const phone8 = document.getElementById('regPhone8').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+
+            if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
+                alert("모든 정보를 올바른 양식으로 입력해주세요."); return;
+            }
+
+            const btn = document.getElementById('signupModal').querySelector('button[onclick="submitSignup()"]');
+            btn.innerText = "신청 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "signup", userId: name, name, empId, birth6, gender1, phone: `010${phone8}`, email })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('signupModal');
+                    openModal('loginModal');
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "가입 신청 완료하기";
+            }
+        }
+
+        async function submitLogin() {
+            const userId = document.getElementById('loginId').value.trim(); 
+            const loginPw = document.getElementById('loginPw').value.trim();
+
+            if (!userId || !loginPw) {
+                alert("이름과 사번을 입력해주세요."); return;
+            }
+
+            const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
+            btn.innerText = "로그인 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+                    updateLoginUI();
+                    closeModal('loginModal');
+                    if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
+                    else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert("로그인 통신 오류가 발생했습니다.");
+            } finally {
+                btn.innerText = "로그인 하기";
+            }
+        }
+
+        async function submitWithdraw() {
+            const userId = document.getElementById('withdrawId').value.trim();
+            const loginPw = document.getElementById('withdrawPw').value.trim();
+
+            if (!userId || !loginPw) {
+                alert("탈퇴를 위해 이름과 사번을 정확히 입력해주세요."); return;
+            }
+
+            if (!confirm(`정말로 잇츠리온에서 탈퇴하시겠습니까?\n모든 데이터가 즉시 삭제되며 복구할 수 없습니다.`)) return;
+
+            const btn = document.getElementById('withdrawModal').querySelector('button[onclick="submitWithdraw()"]');
+            btn.innerText = "탈퇴 처리 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "withdraw", userId: userId, password: loginPw })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('withdrawModal');
+                    if(currentUser.isLoggedIn && currentUser.name === userId) {
+                        logoutUser();
+                    }
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "영구 탈퇴하기";
+            }
+        }
 
         function updateLoginUI() {
             if (currentUser.isLoggedIn) {
                 document.getElementById('loggedOutUI').classList.add('hidden');
                 document.getElementById('loggedInUI').classList.remove('hidden');
                 document.getElementById('displayUserName').innerText = currentUser.name + " 님";
-                document.getElementById('displayUserStatus').innerText = "(승인완료)";
+                
+                const greetingEl = document.getElementById('workspaceGreeting');
+                if (greetingEl) greetingEl.innerText = currentUser.name + " 팀장님의 주요 업무 기능 & 실적 분석";
+                
+                const statusEl = document.getElementById('displayUserStatus');
+                const dotEl = document.getElementById('statusDot');
+                if (currentUser.status === '승인') {
+                    statusEl.innerText = "(승인완료)";
+                    statusEl.className = "text-emerald-400 font-semibold";
+                    dotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                } else {
+                    statusEl.innerText = "(승인대기)";
+                    statusEl.className = "text-amber-400 font-semibold";
+                    dotEl.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                }
             } else {
                 document.getElementById('loggedOutUI').classList.remove('hidden');
                 document.getElementById('loggedInUI').classList.add('hidden');
+                
+                const greetingEl = document.getElementById('workspaceGreeting');
+                if (greetingEl) greetingEl.innerText = "주요 업무 기능 & 실적 분석";
             }
         }
+
         function logoutUser() {
             currentUser = { isLoggedIn: false, name: '', status: '' };
             updateLoginUI();
+            localStorage.removeItem('rion_logged_user');
             alert('로그아웃 되었습니다.');
         }
-        
-        // 테스트를 위해 바로 로그인 처리
-        currentUser = { isLoggedIn: true, name: '김설계', status: '승인' };
-        updateLoginUI();
 
+        // 차트 초기화 등 기존 UI 기능 유지
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctxConversion = document.getElementById('conversionChart');
+            if (ctxConversion) {
+                chart1Instance = new Chart(ctxConversion, {
+                    type: 'bar',
+                    data: {
+                        labels: ['보장분석 DB', '병원비 DB', '리모델링 DB'],
+                        datasets: [{
+                            label: '체결률 (%)',
+                            data: [42.5, 38.2, 31.0],
+                            backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxMonthly = document.getElementById('monthlyTrendChart');
+            if (ctxMonthly) {
+                chart2Instance = new Chart(ctxMonthly, {
+                    type: 'line',
+                    data: {
+                        labels: ['3월', '4월', '5월', '6월', '7월', '8월'],
+                        datasets: [{
+                            label: 'DB 소진 (건)',
+                            data: [15, 18, 20, 22, 25, 24],
+                            borderColor: 'rgba(99, 102, 241, 1)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        }, {
+                            label: '계약 체결 (건)',
+                            data: [5, 6, 8, 9, 11, 10],
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        });
     </script>
+</body>
+</html>
 </body>
 </html>
