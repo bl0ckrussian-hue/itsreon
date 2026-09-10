@@ -151,21 +151,21 @@
                         <td colspan="15" class="p-0 bg-white">
                             <input type="hidden" id="custName_${index}" value="${db.customerName}">
                             <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
-                                <div class="w-[20%] shrink-0 flex items-center gap-1.5 pl-1">
+                                <div class="w-[22%] shrink-0 flex items-center gap-1.5 pl-1">
                                     <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight">🎧 녹취듣기</span>
                                     <div class="flex-grow w-full">
                                         ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300 bg-white shadow-sm"></iframe>` : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 없음</div>`}
                                     </div>
                                 </div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA', valTa1, index, '')}</div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta2_${index}`, '2차 TA', valTa2, index, '')}</div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
-                                <div class="w-[8%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
+                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA', valTa1, index, '')}</div>
+                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta2_${index}`, '2차 TA', valTa2, index, '')}</div>
+                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
+                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
                                 
                                 <div class="w-[10%] shrink-0">
                                     <input type="text" id="schedule_${index}" value="${valSchedule}" onchange="markModified(${index})" placeholder="일정입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                                 </div>
-                                <div class="w-[10%] shrink-0">
+                                <div class="w-[5%] shrink-0">
                                     <select id="status_${index}" onchange="handleStatusChange(${index}, '')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
                                         <option value="" ${valStatus===''?'selected':''}>- 진행현황 -</option>
                                         <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
@@ -180,11 +180,11 @@
                                 <div class="w-[5%] shrink-0">
                                     <input type="text" id="cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-1.5 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-center focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
                                 </div>
-                                <div class="w-[9%] shrink-0">
+                                <div class="w-[8%] shrink-0">
                                     <input type="text" id="prm_${index}" value="${valPremium}" readonly placeholder="보험료" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-2 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-right focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
                                 </div>
 
-                                <div class="w-[14%] shrink-0">
+                                <div class="w-[25%] shrink-0">
                                     <input type="text" id="note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                                 </div>
                             </div>
