@@ -23,13 +23,13 @@
 
     <div class="max-w-7xl mx-auto w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[90vh]">
         
-        <!-- 좌측 패널 (기존 소스 완벽 유지) -->
+        <!-- 좌측 패널 -->
         <aside class="w-full md:w-1/3 lg:w-1/4 bg-slate-50 border-r border-slate-200 p-6 space-y-6 flex flex-col justify-between">
             <div class="space-y-6">
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v13.0 클라우드 원본 변환 엔진</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v15.0 클라우드 원본 변환 엔진</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -41,7 +41,6 @@
                         <label class="block text-[11px] font-bold text-slate-500 mb-1">Gemini API Key</label>
                         <input id="geminiApiKeyInput" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" placeholder="새 API Key 붙여넣기" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 font-mono transition">
                     </div>
-                    <!-- ⭐️ 요청하신 비밀번호 입력란 기존 그대로 유지 -->
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 mb-1">PDF 비밀번호 (생년월일 앞자리 등)</label>
                         <div class="relative">
@@ -83,7 +82,6 @@
                 <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
                     <span>🌐 건강보험심사평가원 바로가기</span><span>↗</span>
                 </a>
-                <!-- ⭐️ 원본 엑셀 다운로드 버튼 (추가 요청 기능) -->
                 <button onclick="downloadParsedRawExcel()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
                     <span>📊 심평원 데이터 원본 엑셀로 다운로드</span>
                 </button>
@@ -123,6 +121,15 @@
                 
                 <div id="tab1Content" class="space-y-4 flex-grow flex flex-col">
                     <div id="dutySummaryCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs flex-shrink-0"></div>
+                    
+                    <div class="border border-slate-200 rounded-xl overflow-hidden text-xs shadow-sm bg-white flex-shrink-0">
+                        <button onclick="toggleDebugVisibility()" class="w-full bg-slate-50 hover:bg-slate-100 p-3.5 text-left font-bold text-slate-700 flex justify-between items-center transition">
+                            <span class="flex items-center gap-2"><span>⚡</span> <span>[클라우드 서버 엔진 추출 데이터 확인 (디버그)]</span></span>
+                            <span id="debugToggleIcon">▼</span>
+                        </button>
+                        <div id="dutyDebugContent" class="hidden p-4 bg-slate-800 text-slate-300 font-mono text-[11px] space-y-2 border-t border-slate-200 custom-scrollbar max-h-64 overflow-y-auto"></div>
+                    </div>
+                    
                     <div id="dutyAiReportBox1" class="ai-report-content p-6 bg-white rounded-xl border border-slate-200 text-slate-800 custom-scrollbar overflow-x-auto overflow-y-auto shadow-sm flex-grow"></div>
                 </div>
                 
@@ -147,7 +154,7 @@
         let selectedPdfFiles = [];
         let currentTab1Markdown = "";
         let currentTab2Markdown = "";
-        let globalRawExcelData = {}; // 다운로드용 원본 엑셀 데이터
+        let globalRawExcelData = {}; 
         
         document.addEventListener('DOMContentLoaded', () => {
             const userName = localStorage.getItem('rion_logged_user') || '게스트';
@@ -158,6 +165,18 @@
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById('pdfPasswordInput');
             pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function toggleDebugVisibility() {
+            const content = document.getElementById('dutyDebugContent');
+            const icon = document.getElementById('debugToggleIcon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.innerText = '▲';
+            } else {
+                content.classList.add('hidden');
+                icon.innerText = '▼';
+            }
         }
 
         function switchResultTab(tabName) {
@@ -248,7 +267,6 @@
             });
         }
 
-        // ⭐️ 원본 엑셀 데이터 다운로드 실행
         function downloadParsedRawExcel() {
             if (!globalRawExcelData || Object.keys(globalRawExcelData).length === 0 || globalRawExcelData['기본진료정보'].length === 0) {
                 alert('우선 PDF를 업로드하고 [분석 실행]을 눌러 데이터를 추출해 주세요.');
@@ -359,7 +377,6 @@
             const prompt = `[시스템 설정 및 역할]
 당신은 최고 수준의 보험 심사 시스템 내 '최종 엑셀 검수 및 출력 감독관'입니다.
 이미 하위 시스템(클라우드 서버)이 복잡한 날짜 합산, 약국 완벽 배제, 비고란 키워드 할당, 수술 하부행 분리를 **오차율 0%로 완벽하게 끝마쳤습니다.**
-당신은 이 데이터를 기반으로 **[약물 유추 질환명]**만 똑똑하게 판단하여 마크다운 표를 그대로 출력하는 역할만 수행합니다.
 
 🕒 **분석 요청 시점(기준일):** ${todayDate}
 
@@ -367,10 +384,11 @@
 1. 아래 [사전 완성된 마크다운 데이터]의 **행 개수, 횟수, 날짜, 비고란은 단 1글자도 변경하지 말고 100% 똑같이 출력**하십시오. 절대 요약하거나 임의로 묶지 마십시오.
 2. 수술 내역을 나타내는 하부 행(↳) 기호도 그대로 유지하십시오.
 
-🚨 **[유일한 AI 추가 임무: 약물 유추 병명 스마트 판단]**
-- 표의 첫 번째 열인 '질병명' 칸에 \`[처방: 약이름...]\` 정보가 있습니다. 해당 약들을 분석하여, **주상병과 명백히 무관한 다른 질환의 약일 경우에만** 주상병 아랫줄에 \`<br>**(유추) 질환명**\`을 적어주십시오.
-- 예시: 주상병이 "원발성 고혈압"인데 약이 "페브릭정(통풍약), 디오반(고혈압약)" 라면 -> \`원발성 고혈압<br>**(유추) 통풍**\` 으로 표기하십시오.
-- 처방약 텍스트인 \`[처방: ...]\` 글자 자체는 AI의 최종 출력 표에서 깔끔하게 지워주십시오.
+🚨 **[유일한 AI 추가 임무: 약물 유추 병명 스마트 판단 (필수)]**
+- 표의 첫 번째 열인 '질병명' 칸에 \`[처방: 약품명...]\` 정보가 전달됩니다. 
+- 해당 약들의 성분과 적응증을 분석하여, **주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만** 주상병 아랫줄에 \`<br>**(유추) 질환명**\`을 반드시 적어주십시오.
+- 예시: 주상병이 "원발성 고혈압"인데 처방약에 "페브릭정(통풍약), 디오반(고혈압약)"이 있다면 -> \`원발성 고혈압<br>**(유추) 통풍**\` 으로 표기하십시오.
+- 처방약 텍스트인 \`[처방: ...]\` 글자 자체는 AI의 최종 출력 표에서 지워주십시오.
 
 ---
 **[사전 완성된 마크다운 데이터]**
@@ -525,7 +543,6 @@ ${markdownRows}
         }
 
         async function executeCloudAnalysis() {
-            // ⭐️ 기존의 비밀번호 입력 기능 완벽히 부활
             const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
 
             if (!selectedPdfFiles || selectedPdfFiles.length === 0) {
@@ -566,7 +583,6 @@ ${markdownRows}
                 progressText.innerText = "⚙️ [클라우드] 암호 해제 및 엑셀 데이터 추출 중...";
                 startFakeProgress(30, 60, 300); 
 
-                // ⭐️ 파일과 함께 입력한 비밀번호를 클라우드로 전송
                 const response = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -583,11 +599,20 @@ ${markdownRows}
                     throw new Error(analysisData.error);
                 }
 
-                // ⭐️ 클라우드에서 넘겨받은 원본 엑셀 데이터를 전역 변수에 저장 (다운로드 버튼용)
                 globalRawExcelData = analysisData.rawExcelData;
 
                 const fileNames = selectedPdfFiles.map(f => f.name).join(', ');
                 const { prompt: promptTab1, summaryCounts, markdownRows } = buildOriginalAnalysisPrompt(analysisData, fileNames);
+
+                document.getElementById('dutyDebugContent').innerHTML = `
+                    <div class="text-amber-400 font-bold mb-2">📊 [클라우드 파이썬 엔진 추출 완료 데이터]</div>
+                    <div class="text-[10px] text-emerald-300 mb-1">▶ 통원/입원/수술/투약 통합 엑셀 행 (AI에 전달되는 최종 데이터)</div>
+                    <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 overflow-x-auto text-[10px]">\n${markdownRows}</pre>
+                    <div class="text-[10px] text-rose-300 mt-3 mb-1">▶ 시스템 감지 수술/시술 목록</div>
+                    <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${analysisData.detectedInfo.surgeries.join('\n') || '없음'}</pre>
+                    <div class="text-[10px] text-blue-300 mt-3 mb-1">▶ 시스템 감지 처방 목록 (AI가 이걸 보고 유추 상병을 만듭니다)</div>
+                    <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${analysisData.detectedInfo.long_term_meds.join('\n') || '없음'}</pre>
+                `;
 
                 document.getElementById('dutySummaryCards').innerHTML = `
                     <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
@@ -608,7 +633,7 @@ ${markdownRows}
                     </div>
                 `;
 
-                progressText.innerText = "🤖 AI 감독관이 최종 심사 보고서를 작성 중입니다...";
+                progressText.innerText = "🤖 AI 감독관이 유추 상병 및 최종 심사 보고서를 작성 중입니다...";
                 startFakeProgress(60, 95, 800); 
 
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
@@ -738,7 +763,7 @@ ${markdownRows}
 
             if (isTab1) {
                 processSection(mdText.split('\n'), "심사보고서", false);
-                XLSX.writeFile(wb, `신규심사_${timeStr}.xlsx`);
+                XLSX.writeFile(wb, `AI_신규심사_${timeStr}.xlsx`);
             } else {
                 const contractSections = mdText.split(/### 📑 계약/);
                 let sheetCount = 0;
@@ -748,10 +773,11 @@ ${markdownRows}
                     const lines = section.split('\n');
                     processSection(lines, `계약_${sheetCount}`, true);
                 });
-                XLSX.writeFile(wb, `고지위반점검_통합_${timeStr}.xlsx`);
+                XLSX.writeFile(wb, `AI_고지위반점검_통합_${timeStr}.xlsx`);
             }
         }
     </script>
 </body>
+</html>
 </html>
 </html>
