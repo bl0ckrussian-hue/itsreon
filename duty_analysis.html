@@ -28,7 +28,7 @@
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v20.0 수술명칭 완벽복원 엔진</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v21.0 사용자 친화 UI 완성판</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -41,7 +41,8 @@
                         <input id="geminiApiKeyInput" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" placeholder="새 API Key 붙여넣기" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 font-mono transition">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">PDF 비밀번호 (생년월일 앞자리 등)</label>
+                        <!-- ⭐️ 생년월일 8자리로 텍스트 수정 -->
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">PDF 비밀번호 (생년월일 8자리)</label>
                         <div class="relative">
                             <input id="pdfPasswordInput" type="password" placeholder="비밀번호 입력" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 pr-8 transition">
                             <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-1.5 text-slate-400 hover:text-slate-600 text-xs">👁️</button>
@@ -83,6 +84,27 @@
                 <button onclick="downloadParsedRawExcel()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
                     <span>📊 심평원 데이터 원본 엑셀로 다운로드</span>
                 </button>
+            </div>
+
+            <!-- ⭐️ 사용자 안내 배너 (팀장님 지시사항 3가지 반영) -->
+            <div class="mb-6 bg-indigo-50 border border-indigo-100 rounded-xl p-5 shadow-sm text-sm text-indigo-900 leading-relaxed">
+                <h3 class="font-extrabold flex items-center gap-2 mb-3 text-indigo-700">
+                    <span class="text-lg">💡</span> 알릴의무 분석 전 참고사항
+                </h3>
+                <ul class="space-y-2 font-medium">
+                    <li class="flex items-start gap-2">
+                        <span class="text-indigo-400 mt-0.5">1.</span>
+                        <span>심사보고서에 <strong>'내가 낸 의료비'가 0원(또는 없는) 경우</strong>는 자동차보험으로 처리된 건으로 <strong class="text-indigo-700">교통상해</strong> 내역입니다.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-indigo-400 mt-0.5">2.</span>
+                        <span>치과 치료는 치아 충전치료 등도 심평원 기준상 '수술'로 표기될 수 있습니다. <strong>알릴의무 고지 시 전부 고지할 필요는 없습니다.</strong></span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-indigo-400 mt-0.5">3.</span>
+                        <span>같은 날 여러 부위에 <strong>다른 수술이나 시술</strong>이 시행되었다면 연속으로 각각 표기됩니다.</span>
+                    </li>
+                </ul>
             </div>
 
             <div class="space-y-3 mb-6">
@@ -355,18 +377,20 @@
                 
                 let totalAdmitDays = validAdmits.reduce((acc, curr) => acc + curr.days, 0);
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
-
                 let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
+
                 const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
-                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${firstDate || "-"} | ${lastDate || "-"} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** | **${costStr}** |\n`;
+                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** | **${costStr}** |\n`;
 
                 validAdmits.forEach(ad => {
-                    markdownRows += `| ↳ | | ${ad.date} | ${ad.date} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
+                    let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
                 });
 
                 validSurgs.forEach(sg => {
-                    markdownRows += `| ↳ | | ${sg.date} | ${sg.date} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
+                    let dFmt = sg.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
                 });
             }
 
@@ -382,7 +406,7 @@
    - 심사자 A와 B가 제공된 데이터를 분석하여 병명과 약물([처방: 약품명...])의 연관성을 교차로 검증합니다.
    - 당신(AI 감독관)은 A와 B의 의견을 취합하여, 주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
    - 유추 기록을 마친 후 처방약 텍스트 \`[처방: ...]\` 원문은 표에서 지웁니다.
-2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기, 하이픈 포함)"**, 횟수, 날짜, 금액, 하부행(↳) 등 모든 데이터는 단 1글자도 요약하거나 잘라내지 말고 100% 토씨 하나 틀리지 않고 똑같이 복사해서 출력하십시오.
+2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
 3. [비고란 출력 원칙]: 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 🕒 **분석 요청 시점(대한민국 서울 기준):** ${todayDate}
@@ -501,7 +525,7 @@ ${markdownRows}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
 1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다.
-2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+2. 아래 [사전 완성된 마크다운 데이터]의 행 개수, 횟수, 금액, 비고란은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
 3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 ---
@@ -592,13 +616,25 @@ ${markdownRows}
                     body: JSON.stringify({ files_data: fileDataArray, password: pdfPassword })
                 });
 
-                if (!response.ok) {
-                    throw new Error("클라우드 서버 통신 에러가 발생했습니다.");
+                let analysisData = null;
+                try {
+                    analysisData = await response.json();
+                } catch(e) {
+                    // 서버 응답 파싱 실패시 통신오류로 처리
                 }
 
-                const analysisData = await response.json();
+                // ⭐️ 통신 에러 및 비밀번호 에러 분리 처리 로직 적용
+                if (!response.ok) {
+                    if (analysisData && analysisData.error && analysisData.error.includes("비밀번호")) {
+                        throw new Error("PWD_ERROR");
+                    }
+                    throw new Error("클라우드 서버 통신 에러가 발생했습니다.");
+                }
                 
-                if(analysisData.error) {
+                if (analysisData && analysisData.error) {
+                    if (analysisData.error.includes("비밀번호")) {
+                        throw new Error("PWD_ERROR");
+                    }
                     throw new Error(analysisData.error);
                 }
 
@@ -683,7 +719,14 @@ ${markdownRows}
             } catch (error) {
                 if(progressTimer) clearInterval(progressTimer);
                 progressArea.classList.add('hidden');
-                alert(`❌ 오류 발생: ${error.message}`);
+                document.getElementById('emptyState').classList.remove('hidden'); // 에러시 기본 화면으로 복구
+                
+                // ⭐️ 비밀번호 에러 시 명확한 팝업창 출력
+                if (error.message === "PWD_ERROR") {
+                    alert("❌ PDF 비밀번호를 다시 확인해주세요.\n(비밀번호가 틀렸거나 파일이 손상되었습니다.)");
+                } else {
+                    alert(`❌ 통신 및 시스템 오류 발생: ${error.message}`);
+                }
             }
         }
 
