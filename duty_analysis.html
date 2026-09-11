@@ -28,7 +28,7 @@
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v21.0 사용자 친화 UI 완성판</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v21.1 오류수정 최종판</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -41,7 +41,6 @@
                         <input id="geminiApiKeyInput" type="password" value="AIzaSyAWK6Tl4sbtP1pESTqKTEw4rWwoVClgGeg" placeholder="새 API Key 붙여넣기" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 font-mono transition">
                     </div>
                     <div>
-                        <!-- ⭐️ 생년월일 8자리로 텍스트 수정 -->
                         <label class="block text-[11px] font-bold text-slate-500 mb-1">PDF 비밀번호 (생년월일 8자리)</label>
                         <div class="relative">
                             <input id="pdfPasswordInput" type="password" placeholder="비밀번호 입력" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:border-blue-500 pr-8 transition">
@@ -86,7 +85,7 @@
                 </button>
             </div>
 
-            <!-- ⭐️ 사용자 안내 배너 (팀장님 지시사항 3가지 반영) -->
+            <!-- ⭐️ 사용자 안내 배너 -->
             <div class="mb-6 bg-indigo-50 border border-indigo-100 rounded-xl p-5 shadow-sm text-sm text-indigo-900 leading-relaxed">
                 <h3 class="font-extrabold flex items-center gap-2 mb-3 text-indigo-700">
                     <span class="text-lg">💡</span> 알릴의무 분석 전 참고사항
@@ -366,9 +365,14 @@
                     visitStr = `${validVisitCnt}회<br>(${yearList})`;
                 }
 
+                // ⭐️ [에러 수정 완료] 빠져있던 fDateFmt / lDateFmt 변수를 추가했습니다!
                 const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
                 const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
                 
+                const fDateFmt = firstDate ? firstDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
+                const lDateFmt = lastDate ? lastDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
+                // ---------------------------------------------------------------------------------
+
                 const hospitalsStr = agg.hospitals.join(', ');
                 const reasonStr = reason.join(', ');
 
@@ -377,8 +381,8 @@
                 
                 let totalAdmitDays = validAdmits.reduce((acc, curr) => acc + curr.days, 0);
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
-                let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
 
+                let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
                 const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
                 markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** | **${costStr}** |\n`;
@@ -406,7 +410,7 @@
    - 심사자 A와 B가 제공된 데이터를 분석하여 병명과 약물([처방: 약품명...])의 연관성을 교차로 검증합니다.
    - 당신(AI 감독관)은 A와 B의 의견을 취합하여, 주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
    - 유추 기록을 마친 후 처방약 텍스트 \`[처방: ...]\` 원문은 표에서 지웁니다.
-2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 날짜, 금액, 하부행(↳) 등 모든 데이터는 단 1글자도 변경하지 말고 100% 똑같이 복사해서 출력하십시오.
 3. [비고란 출력 원칙]: 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 🕒 **분석 요청 시점(대한민국 서울 기준):** ${todayDate}
@@ -525,7 +529,7 @@ ${markdownRows}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
 1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다.
-2. 아래 [사전 완성된 마크다운 데이터]의 행 개수, 횟수, 금액, 비고란은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
 3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 ---
@@ -623,7 +627,6 @@ ${markdownRows}
                     // 서버 응답 파싱 실패시 통신오류로 처리
                 }
 
-                // ⭐️ 통신 에러 및 비밀번호 에러 분리 처리 로직 적용
                 if (!response.ok) {
                     if (analysisData && analysisData.error && analysisData.error.includes("비밀번호")) {
                         throw new Error("PWD_ERROR");
@@ -719,9 +722,8 @@ ${markdownRows}
             } catch (error) {
                 if(progressTimer) clearInterval(progressTimer);
                 progressArea.classList.add('hidden');
-                document.getElementById('emptyState').classList.remove('hidden'); // 에러시 기본 화면으로 복구
+                document.getElementById('emptyState').classList.remove('hidden'); 
                 
-                // ⭐️ 비밀번호 에러 시 명확한 팝업창 출력
                 if (error.message === "PWD_ERROR") {
                     alert("❌ PDF 비밀번호를 다시 확인해주세요.\n(비밀번호가 틀렸거나 파일이 손상되었습니다.)");
                 } else {
