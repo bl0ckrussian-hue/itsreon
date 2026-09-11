@@ -23,13 +23,12 @@
 
     <div class="max-w-7xl mx-auto w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[90vh]">
         
-        <!-- 좌측 패널 -->
         <aside class="w-full md:w-1/3 lg:w-1/4 bg-slate-50 border-r border-slate-200 p-6 space-y-6 flex flex-col justify-between">
             <div class="space-y-6">
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v15.0 클라우드 원본 변환 엔진</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v16.0 멀티파일 병합 클라우드 엔진</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -75,7 +74,6 @@
             </div>
         </aside>
 
-        <!-- 우측 패널 -->
         <main class="w-full md:w-2/3 lg:w-3/4 p-6 sm:p-8 flex flex-col bg-white">
             
             <div class="mb-4 flex flex-col sm:flex-row gap-2">
@@ -141,13 +139,12 @@
             
             <div id="emptyState" class="flex-grow flex flex-col items-center justify-center text-slate-400">
                 <span class="text-5xl mb-4">🩺</span>
-                <p class="font-medium text-sm">좌측에서 심평원 PDF를 업로드하고 분석을 실행해주세요.</p>
+                <p class="font-medium text-sm">좌측에서 여러 개의 심평원 PDF를 한 번에 업로드하고 분석을 실행해주세요.</p>
             </div>
         </main>
     </div>
 
     <script>
-        // ⭐️ 팀장님의 클라우드 주소
         const CLOUD_FUNCTION_URL = "https://pdf-analyxer-225817792244.asia-northeast3.run.app"; 
         
         let activeResultTab = 'tab1';
@@ -575,18 +572,22 @@ ${markdownRows}
             }
 
             try {
-                progressText.innerText = `☁️ 클라우드로 파일 및 암호를 안전하게 전송 중입니다...`;
+                progressText.innerText = `☁️ 클라우드로 여러 개의 파일을 안전하게 병합 전송 중입니다...`;
                 startFakeProgress(0, 30, 200); 
 
-                const base64Data = await getBase64(selectedPdfFiles[0]);
+                // ⭐️ [가장 치명적인 버그 해결] 업로드된 "모든 파일"을 배열에 담아서 서버로 쏩니다!!
+                const fileDataArray = [];
+                for (let i = 0; i < selectedPdfFiles.length; i++) {
+                    fileDataArray.push(await getBase64(selectedPdfFiles[i]));
+                }
 
-                progressText.innerText = "⚙️ [클라우드] 암호 해제 및 엑셀 데이터 추출 중...";
+                progressText.innerText = "⚙️ [클라우드] 암호 해제 및 멀티 엑셀 파일 병합 중...";
                 startFakeProgress(30, 60, 300); 
 
                 const response = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file_data: base64Data, password: pdfPassword })
+                    body: JSON.stringify({ files_data: fileDataArray, password: pdfPassword }) // files_data 배열 통째로 전송
                 });
 
                 if (!response.ok) {
@@ -778,6 +779,4 @@ ${markdownRows}
         }
     </script>
 </body>
-</html>
-</html>
 </html>
