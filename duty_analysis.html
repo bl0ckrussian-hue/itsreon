@@ -28,7 +28,7 @@
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v19.0 최종 완성판 (의료비 총액 탑재)</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v20.0 수술명칭 완벽복원 엔진</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -303,7 +303,6 @@
                 return Math.floor(diffTime / (1000 * 60 * 60 * 24));
             };
 
-            // ⭐️ 절대 총합 의료비 포맷팅
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
 
@@ -357,7 +356,6 @@
                 let totalAdmitDays = validAdmits.reduce((acc, curr) => acc + curr.days, 0);
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
 
-                // ⭐️ 질병별 누적 결제 의료비
                 let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
                 const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
@@ -375,7 +373,6 @@
             if(markdownRows === "") markdownRows = "| 기고지 위반 의심내역 없음 | - | - | - | - | - | - | - | - | - |\n";
             const todayDate = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-            // ⭐️ 상단 타이틀에 총 내가 낸 의료비 출력 명령 절대 고정
             const prompt = `[시스템 설정 및 역할]
 당신은 최고 수준의 보험 심사 시스템 내 'AI 감독관' 입니다.
 당신 내부에는 두 명의 독립적인 'AI 심사자 A'와 'AI 심사자 B'가 존재합니다.
@@ -385,7 +382,7 @@
    - 심사자 A와 B가 제공된 데이터를 분석하여 병명과 약물([처방: 약품명...])의 연관성을 교차로 검증합니다.
    - 당신(AI 감독관)은 A와 B의 의견을 취합하여, 주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
    - 유추 기록을 마친 후 처방약 텍스트 \`[처방: ...]\` 원문은 표에서 지웁니다.
-2. [원문 조작 금지]: 추출된 횟수, 날짜, 하부행(↳), 그리고 마지막의 금액(내가 낸 의료비) 등 숫자 데이터는 단 1글자도 변경하지 말고 100% 똑같이 복사해서 출력하십시오.
+2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기, 하이픈 포함)"**, 횟수, 날짜, 금액, 하부행(↳) 등 모든 데이터는 단 1글자도 요약하거나 잘라내지 말고 100% 토씨 하나 틀리지 않고 똑같이 복사해서 출력하십시오.
 3. [비고란 출력 원칙]: 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 🕒 **분석 요청 시점(대한민국 서울 기준):** ${todayDate}
@@ -398,7 +395,7 @@ ${markdownRows}
 
 ---
 ### **[최종 심사 보고서]**
-(🚨 반드시 고객 성명을 파일명(${fileNames})에서 찾아 "**OOO님의 보험 가입을 위한 정밀 심사 보고서입니다. (총 내가 낸 의료비: ${totalCostStr})**" 로 시작하십시오. AI 교차 검증 과정은 노출하지 말고 표만 출력하십시오.)
+(🚨 반드시 고객 성명을 파일명(${fileNames})에서 찾아 "**OOO님의 보험 가입을 위한 정밀 심사 보고서입니다. (총 내가 낸 의료비: ${totalCostStr})**" 로 시작하십시오. AI 교차 검증 과정은 노출하지 말고 오직 최종 표 2개만 출력하십시오.)
 
 #### 1️⃣ [일반심사] 표준 알릴의무 (요약)
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 | 내가 낸 의료비 |
@@ -467,6 +464,9 @@ ${markdownRows}
                 const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
                 const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
                 
+                const fDateFmt = firstDate ? firstDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
+                const lDateFmt = lastDate ? lastDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
+
                 const hospitalsStr = agg.hospitals.join(', ');
                 const reasonStr = reason.join(', ');
 
@@ -501,7 +501,7 @@ ${markdownRows}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
 1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다.
-2. 아래 [사전 완성된 마크다운 데이터]의 행 개수, 횟수, 금액, 비고란은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
 3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 ---
