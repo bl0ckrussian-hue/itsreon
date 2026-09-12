@@ -48,7 +48,7 @@
     <!-- 상단 컨트롤러 -->
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
-            <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진(테스트 중)</h1>
+            <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터만 정밀 스캔하여 표출합니다. (모의 데이터 삭제 완료)</p>
         </div>
         
@@ -288,11 +288,11 @@
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
-                    <td colspan="2" id="prem1" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem2" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem3" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem4" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem5" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem1" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem2" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem3" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem4" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem5" class="editable-cell text-blue-700 font-bold">-</td>
                     <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
                     <td rowspan="2" id="totalPremiumCell" class="editable-cell font-black text-blue-800 bg-blue-50 text-right pr-3 text-lg">-</td>
                 </tr>
@@ -363,7 +363,7 @@
             else return "4세대 (5세대)";
         }
 
-        // 보험료 파싱 함수 (규칙 10)
+        // 보험료 파싱 함수: 오직 '미제공', '납입완료', '-' 인 경우에만 0 처리
         function parsePremium(premStr) {
             if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("납입완료")) return 0;
             return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
@@ -380,31 +380,20 @@
             let rawContracts = [];
             
             // 1. 보유 계약 리스트 추출 로직 (정규식 기반)
-            // 형식: 숫자 | 회사명 상품명 | 계약일 | 납입기간 만기 | 월보험료
-            const contractPattern = /(\d{1,2})\s+\|\s+([가-힣\(\)]+)\s+([가-힣a-zA-Z0-9\(\)\s_\.]+)\s+\|\s+(\d{4}-\d{2}-\d{2})\s+\|\s+(?:월납|연납|일시납)?\s*(\d+년|월납|\d+세)\s+\|\s+(\d+세|종신)\s+\|\s+([\d,]+원|-|보험료미제공|납입완료\s*[\d,]*원?)/g;
+            // 매칭 순서: (순번) | (회사명) | (상품명) | (계약일) | (납입기간) | (만기) | (보험료)
+            // PDF 원문에 있는 텍스트의 형태를 최대한 폭넓게 허용하도록 정규식 고도화
+            const contractPattern = /(\d{1,2})\s+\|\s+([가-힣\(\)]+)\s+([가-힣a-zA-Z0-9\(\)\s_\.\-]+?)\s+\|\s+(\d{4}-\d{2}-\d{2})\s+(?:\|\s+)?(?:월납|연납|일시납)?\s*(\d+년|월납|\d+세)\s+\|\s+(\d+세|종신)\s+\|\s+([\d,]+원|-|보험료미제공|납입완료\s*[\d,]*원?)/g;
             
             let match;
             while ((match = contractPattern.exec(text)) !== null) {
                 let comp = match[2].trim();
-                let prod = match[3].trim();
+                let prod = match[3].trim().replace(/\n/g, ''); // 상품명의 줄바꿈 제거
                 let date = match[4].trim();
                 let payTerm = match[5].trim();
                 let maturity = match[6].trim();
                 let premium = match[7].trim();
                 
-                // 갱신형 판단
                 let hasRenewableRider = prod.includes("갱신형");
-                
-                // 납입완료 판단
-                let isPaidUp = false;
-                
-                // 여기서 상품별 담보상세 영역에 "납입완료" 키워드가 있는지 추가로 검색할 수 있으나,
-                // 스캔본 구조상 계약 리스트 보험료 칸이나 담보상세 상단에 표기된다고 가정하고 추출
-                
-                // 임시로 현재 추출된 텍스트 전체에 납입완료 문구가 해당 상품 주변에 있는지 검증하는 로직 대체
-                if(text.includes(prod) && text.indexOf("납입완료", text.indexOf(prod)) < text.indexOf(prod) + 200) {
-                    // isPaidUp = true; // 실제 정밀 OCR 시 활성화
-                }
                 
                 rawContracts.push({
                     comp: comp,
@@ -413,8 +402,7 @@
                     payTerm: payTerm,
                     maturity: maturity,
                     premium: premium,
-                    hasRenewableRider: hasRenewableRider,
-                    isPaidUp: isPaidUp
+                    hasRenewableRider: hasRenewableRider
                 });
             }
 
@@ -447,7 +435,7 @@
                 return;
             }
 
-            // [규칙 9] 데이터 병합 로직
+            // [규칙 9] 실비 병합 처리: 동일 회사/상품명이고 '보험료미제공'이 포함된 경우 합치기
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
@@ -455,6 +443,7 @@
                     if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
+                        // 중복된 것의 원래 보험료가 미제공이고 새로 들어온게 정상 보험료인 경우 교체
                         duplicate.premium = curr.premium; 
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     }
@@ -463,6 +452,7 @@
                 }
             });
 
+            // 페이지 계산
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             currentPage = 1;
@@ -488,10 +478,9 @@
                 document.getElementById(`term${i}`).innerText = "";
                 document.getElementById(`prem${i}`).innerText = "";
                 document.getElementById(`silbi${i}`).innerText = "";
-                document.getElementById(`d_life_${i}`).innerText = "";
-                document.getElementById(`d_dieD_${i}`).innerText = "";
-                document.getElementById(`d_dieS_${i}`).innerText = "";
-                document.getElementById(`d_cancer_${i}`).innerText = "";
+                // 특약란 초기화
+                const tds = document.querySelectorAll(`td[id$="_${i}"]`);
+                tds.forEach(td => td.innerText = "");
             }
             document.getElementById('totalPremiumCell').innerText = "";
 
@@ -559,15 +548,17 @@
                     }
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    // 규칙 10 
+                    // 규칙 10: 납입완료와 보험료미제공의 명확한 분리
                     if (contract.premium.includes("납입완료")) {
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
+                        // 정상 금액 또는 보험료미제공은 원문 그대로
                         document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
+                        // 합산
                         currentPageSum += parsePremium(contract.premium);
                     }
 
@@ -575,13 +566,6 @@
                     if (contract.silbiGen) {
                         document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     }
-                    
-                    if(contract.comp.includes("생명")) document.getElementById(`d_life_${idNum}`).innerText = "1억";
-                    else {
-                        document.getElementById(`d_dieD_${idNum}`).innerText = "1,000만";
-                        document.getElementById(`d_dieS_${idNum}`).innerText = "1,000만";
-                    }
-                    if(contract.prod.includes("암")) document.getElementById(`d_cancer_${idNum}`).innerText = "3,000만";
                 });
 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
