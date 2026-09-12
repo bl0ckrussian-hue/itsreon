@@ -49,7 +49,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진(테스트 중)</h1>
-            <p class="text-xs text-slate-500 mt-1">업로드된 원본 PDF 파일의 텍스트를 실시간으로 스캔하고 파싱하여 데이터를 표출합니다.</p>
+            <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터만 정밀 스캔하여 표출합니다. (모의 데이터 삭제 완료)</p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -288,11 +288,11 @@
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
-                    <td colspan="2" id="prem1" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem2" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem3" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem4" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem5" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem1" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem2" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem3" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem4" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem5" class="editable-cell font-bold">-</td>
                     <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
                     <td rowspan="2" id="totalPremiumCell" class="editable-cell font-black text-blue-800 bg-blue-50 text-right pr-3 text-lg">-</td>
                 </tr>
@@ -314,7 +314,8 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let processedContracts = []; // 전처리 완료된 계약 데이터
+        let processedContracts = []; // 파싱 완료된 계약 데이터
+        let sumData = {};            // 추출된 총합 담보 데이터
         let currentPage = 1;
         let totalPages = 1;
         const itemsPerPage = 5;
@@ -344,7 +345,7 @@
                 fullText += pageText + " ";
             }
 
-            extractAndMapData(fullText);
+            extractDataFromText(fullText);
             e.target.value = '';
         });
 
@@ -362,53 +363,95 @@
             else return "4세대 (5세대)";
         }
 
-        // [규칙 10] 숫자 파싱기 (납입완료 및 미제공 등 예외 처리 완벽 반영)
+        // 보험료 파싱 함수 (규칙 10)
         function parsePremium(premStr) {
             if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("납입완료")) return 0;
             return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
         }
 
+        // 금액 포맷터
         function formatPremium(num) {
             if (num === 0) return "-";
             return num.toLocaleString() + "원";
         }
 
-        function extractAndMapData(text) {
-            // [모의 데이터] 추출된 전체 20건 리스트.
-            // * 납입완료 조건: "상품별 가입담보상세"에서 "납입완료" 문자열 추출 시 적용 (예: 하나손보)
-            // * 미제공 조건: "보험료미제공" 또는 "-" (예: 예별손보 구MG)
-            let rawContracts = [
-                { comp: "메리츠화재", prod: "당뇨먼저받는 3대질병보장보험1902", date: "2019-02-27", payTerm: "10년", maturity: "100세", premium: "16,570원", hasRenewableRider: true },
-                { comp: "메리츠화재", prod: "속편한 소화계질환보장보험2210", date: "2022-10-31", payTerm: "30년", maturity: "100세", premium: "17,880원", hasRenewableRider: true },
-                { comp: "한화손보", prod: "하이브리드운전자보험1004", date: "2011-03-21", payTerm: "20년", maturity: "80세", premium: "20,030원", hasRenewableRider: false },
-                { comp: "한화손보", prod: "LIFEPLUS 3N5 간편건강보험", date: "2024-05-31", payTerm: "20년", maturity: "90세", premium: "41,027원", hasRenewableRider: false },
-                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "20년", maturity: "80세", premium: "50,271원", hasRenewableRider: false }, 
-                { comp: "예별손보(구MG)", prod: "건강명의 4대질병진단보험", date: "2020-06-25", payTerm: "20년", maturity: "80세", premium: "34,417원", hasRenewableRider: false },
-                // [규칙 9] 중복 및 보험료 미제공 (실비 판별용)
-                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "보험료미제공", hasRenewableRider: false },
-                { comp: "흥국화재", prod: "홍Good 든든한 3N5 간편종합", date: "2025-11-26", payTerm: "20년", maturity: "90세", premium: "138,099원", hasRenewableRider: false },
-                { comp: "삼성화재", prod: "간편보험 새로고침 100세", date: "2025-11-26", payTerm: "47년", maturity: "90세", premium: "269,000원", hasRenewableRider: true },
-                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2504", date: "2025-05-30", payTerm: "20년", maturity: "90세", premium: "109,152원", hasRenewableRider: false },
-                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2510", date: "2025-12-31", payTerm: "20년", maturity: "90세", premium: "114,836원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "뉴 건강하면 더 좋은 하나의 보험", date: "2024-09-24", payTerm: "20년", maturity: "100세", premium: "30,000원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나 가득담은 운전자상해종합(04)", date: "2025-05-29", payTerm: "20년", maturity: "62세", premium: "15,000원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나더넥스트 치매간병보험(04)", date: "2025-05-29", payTerm: "20년", maturity: "90세", premium: "50,983원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나 가득담은 운전자상해종합(06)", date: "2025-08-07", payTerm: "20년", maturity: "62세", premium: "15,077원", hasRenewableRider: false },
-                // [규칙 10] 납입완료 예외 처리 대상
-                { comp: "하나손보", prod: "하나더넥스트 치매간병보험(01)", date: "2026-03-11", payTerm: "20년", maturity: "100세", premium: "납입완료 10,378원", hasRenewableRider: false },
-                { comp: "AIA생명", prod: "원스톱 슈퍼 암보험(갱신형)", date: "2017-10-20", payTerm: "10년", maturity: "45세", premium: "23,550원", hasRenewableRider: true },
-                { comp: "동양생명", prod: "수호천사치매간병은동양생명보험", date: "2025-08-14", payTerm: "10년", maturity: "95세", premium: "21,347원", hasRenewableRider: false },
-                { comp: "처브라이프", prod: "Chubb뇌심 건강보험(갱신형)", date: "2021-05-13", payTerm: "20년", maturity: "100세", premium: "32,211원", hasRenewableRider: true },
-                { comp: "처브라이프", prod: "Chubb 스탠다드 정기보험", date: "2022-03-31", payTerm: "5년", maturity: "84세", premium: "30,500원", hasRenewableRider: false }
-            ];
+        // 정규식을 활용하여 텍스트에서 데이터를 추출하는 핵심 함수
+        function extractDataFromText(text) {
+            let rawContracts = [];
+            
+            // 1. 보유 계약 리스트 추출 로직 (정규식 기반)
+            // 형식: 숫자 | 회사명 상품명 | 계약일 | 납입기간 만기 | 월보험료
+            const contractPattern = /(\d{1,2})\s+\|\s+([가-힣\(\)]+)\s+([가-힣a-zA-Z0-9\(\)\s_\.]+)\s+\|\s+(\d{4}-\d{2}-\d{2})\s+\|\s+(?:월납|연납|일시납)?\s*(\d+년|월납|\d+세)\s+\|\s+(\d+세|종신)\s+\|\s+([\d,]+원|-|보험료미제공|납입완료\s*[\d,]*원?)/g;
+            
+            let match;
+            while ((match = contractPattern.exec(text)) !== null) {
+                let comp = match[2].trim();
+                let prod = match[3].trim();
+                let date = match[4].trim();
+                let payTerm = match[5].trim();
+                let maturity = match[6].trim();
+                let premium = match[7].trim();
+                
+                // 갱신형 판단
+                let hasRenewableRider = prod.includes("갱신형");
+                
+                // 납입완료 판단
+                let isPaidUp = false;
+                
+                // 여기서 상품별 담보상세 영역에 "납입완료" 키워드가 있는지 추가로 검색할 수 있으나,
+                // 스캔본 구조상 계약 리스트 보험료 칸이나 담보상세 상단에 표기된다고 가정하고 추출
+                
+                // 임시로 현재 추출된 텍스트 전체에 납입완료 문구가 해당 상품 주변에 있는지 검증하는 로직 대체
+                if(text.includes(prod) && text.indexOf("납입완료", text.indexOf(prod)) < text.indexOf(prod) + 200) {
+                    // isPaidUp = true; // 실제 정밀 OCR 시 활성화
+                }
+                
+                rawContracts.push({
+                    comp: comp,
+                    prod: prod,
+                    date: date,
+                    payTerm: payTerm,
+                    maturity: maturity,
+                    premium: premium,
+                    hasRenewableRider: hasRenewableRider,
+                    isPaidUp: isPaidUp
+                });
+            }
 
-            // [규칙 9] 데이터 병합 로직 (회사+상품명 동일 시 통합 후 실비 세대 추출)
+            // 2. 전체 보장 현황 (합계) 추출 로직
+            const sumPattern = {
+                "상해사망": /상해사망\s+\|\s+([\d억\s,]+만)/,
+                "질병사망": /질병사망\s+\|\s+([\d억\s,]+만)/,
+                "상해후유": /상해\s*80%미만후유장해\s+\|\s+([\d억\s,]+만)/,
+                "일반암진단": /일반암\s+\|\s+([\d억\s,]+만)/,
+                "유사암진단": /유사암\s+\|\s+([\d억\s,]+만)/,
+                "뇌혈관진단": /뇌혈관질환\s+\|\s+([\d억\s,]+만)/,
+                "급성심근경색": /급성심근경색증\s+\|\s+([\d억\s,]+만)/,
+                "일배책": /가족\/일상\/자녀배상\s+\|\s+([\d억\s,]+만?)/,
+                "골절진단": /골절진단비\s+\|\s+([\d억\s,]+만)/
+            };
+
+            sumData = {};
+            for (let key in sumPattern) {
+                let m = text.match(sumPattern[key]);
+                if (m && m[1]) {
+                    sumData[key] = m[1].trim();
+                } else {
+                    sumData[key] = "-";
+                }
+            }
+
+            // 추출 결과가 없을 경우 대비 폴백(안전 장치)
+            if(rawContracts.length === 0) {
+                alert("PDF에서 계약 정보를 추출하지 못했습니다. 표준 양식이 맞는지 확인해주세요.");
+                return;
+            }
+
+            // [규칙 9] 데이터 병합 로직
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
-                
                 if (duplicate) {
-                    // "보험료미제공"이 발견되면 동일계약으로 판별하고 실손세대 부여
                     if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
@@ -420,7 +463,6 @@
                 }
             });
 
-            // [규칙 8] 다페이지 계산
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             currentPage = 1;
@@ -432,7 +474,7 @@
             }
 
             renderPage();
-            alert(`[데이터 분석 완료]\n총 ${rawContracts.length}건 중 병합 처리하여 ${processedContracts.length}건이 등록되었습니다.\n(납입완료 건은 보험료 합산에서 제외됩니다.)`);
+            alert(`[데이터 추출 완료]\n총 ${rawContracts.length}건을 파싱하여 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 생성되었습니다.`);
         }
 
         function renderPage() {
@@ -483,16 +525,17 @@
                 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
                 
-                document.getElementById("d_life_1").innerText = "1억";
-                document.getElementById("d_dieD_1").innerText = "1.5억";
-                document.getElementById("d_dieS_1").innerText = "2.5억";
-                document.getElementById("d_cancer_1").innerText = "5,000만";
-
-                document.getElementById("d_life_2").innerText = "5,000만";
-                document.getElementById("d_dieD_2").innerText = "100만";
-                document.getElementById("d_dieS_2").innerText = "100만";
-                document.getElementById("d_cancer_2").innerText = "3,000만";
-                document.getElementById("d_cancer_3").innerText = "2,000만";
+                // 총합계 데이터 뿌리기
+                document.getElementById("res-종신일반").innerText = sumData["상해사망"] || "-";
+                document.getElementById("res-질병사망").innerText = sumData["질병사망"] || "-";
+                document.getElementById("res-상해사망").innerText = sumData["상해사망"] || "-";
+                document.getElementById("res-상해후유").innerText = sumData["상해후유"] || "-";
+                document.getElementById("res-일반암진단").innerText = sumData["일반암진단"] || "-";
+                document.getElementById("res-유사암진단").innerText = sumData["유사암진단"] || "-";
+                document.getElementById("res-뇌혈관진단").innerText = sumData["뇌혈관진단"] || "-";
+                document.getElementById("res-급성심근진단").innerText = sumData["급성심근경색"] || "-";
+                document.getElementById("res-골절진단").innerText = sumData["골절진단"] || "-";
+                document.getElementById("res-일배책").innerText = sumData["일배책"] || "-";
 
             } else {
                 // 일반 페이지
@@ -509,29 +552,26 @@
                     document.getElementById(`prod${idNum}`).innerText = contract.prod;
                     document.getElementById(`date${idNum}`).innerText = contract.date;
 
-                    // 규칙 5: 갱신형 변경 로직
+                    // 규칙 5
                     let termStr = `${contract.payTerm}/${contract.maturity}`;
                     if (contract.hasRenewableRider) {
                         termStr = `갱신형/${contract.maturity}`;
                     }
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    // [규칙 10] 명확한 분리 처리
+                    // 규칙 10 
                     if (contract.premium.includes("납입완료")) {
-                        // "납입완료" 포함 시: 텍스트를 "납입완료"로 고정 표기 (금액 출력 X), 합산에서 0 처리
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
-                        // 정상 금액 및 보험료미제공 등: 원문 유지
                         document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
-                        // 합산을 위한 숫자 파싱 (미제공은 parsePremium 함수에서 0으로 반환됨)
                         currentPageSum += parsePremium(contract.premium);
                     }
 
-                    // 규칙 9: 실비 병합건일 경우 세대 입력
+                    // 규칙 9
                     if (contract.silbiGen) {
                         document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     }
@@ -546,19 +586,6 @@
 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
             }
-
-            const sumData = {
-                "상해후유": "1억 5,400만", "일반암진단": "1억 3,310만", "일반암수술": "3,400만", "유사암진단": "1,360만", 
-                "뇌혈관진단": "3,000만", "허혈성진단": "3,000만", "급성심근경색": "3,800만", 
-                "질병간병일당": "32만", "상해간병일당": "32만", "골절진단": "90만", "일배책": "1억"
-            };
-
-            Object.keys(sumData).forEach(key => {
-                const cell = document.getElementById(`res-${key}`);
-                if (cell) {
-                    cell.innerText = sumData[key];
-                }
-            });
         }
 
         function changePage(step) {
