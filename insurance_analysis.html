@@ -20,20 +20,29 @@
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
-        /* 특정 헤더 색상 및 디자인 (스캔본 참조) */
+        /* 특정 헤더 색상 및 디자인 */
         .bg-main-green { background-color: #2ca02c !important; color: white; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
         .bg-light-gray { background-color: #f8f9fa; font-weight: bold; }
         .remark-yellow { background-color: #fff2cc; font-size: 10px; }
         .footer-note { text-align: left !important; font-size: 10px; color: #d32f2f; font-weight: bold; border: none !important; padding-top: 10px; }
 
-        /* A4 인쇄 최적화 (비고란 잘림 방지 및 가로 출력 자동 설정) */
+        /* 인쇄 최적화 (A4 세로 기준 한 장에 딱 맞도록, 사용자가 방향/용지 선택 가능) */
         @media print {
-            @page { size: A4 landscape; margin: 8mm; }
+            @page { size: auto; margin: 8mm; } /* auto로 설정하여 사용자가 인쇄창에서 세로/가로, A4/A3 선택 가능하게 함 */
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
             .engine-container { box-shadow: none; padding: 0; max-width: 100%; width: 100%; overflow: hidden; }
-            table.excel-table { min-width: 0 !important; width: 100% !important; font-size: 8.5pt !important; }
-            .excel-table th, .excel-table td { padding: 3px 1px !important; border: 1px solid #000 !important; }
+            
+            /* 세로(Portrait) 방향에서도 잘리지 않도록 폰트 및 여백 극적 축소 */
+            table.excel-table { min-width: 0 !important; width: 100% !important; font-size: 7.5pt !important; }
+            .excel-table th, .excel-table td { 
+                padding: 2.5px 1px !important; 
+                border: 1px solid #000 !important; 
+                word-break: normal !important; /* 세로 너비 부족 시 자연스럽게 줄바꿈되도록 수정 */
+                line-height: 1.1 !important;
+            }
+            .bg-main-green { font-size: 11pt !important; }
+            .remark-yellow, .footer-note, .text-[9px], .text-[10px] { font-size: 6pt !important; }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
@@ -44,7 +53,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">PDF를 업로드하면 엑셀 양식에 원문 데이터가 매핑됩니다. (인쇄 시 A4 용지에 맞춰 자동 축소됩니다.)</p>
+            <p class="text-xs text-slate-500 mt-1">PDF를 업로드하면 엑셀 양식에 데이터가 매핑됩니다. (인쇄 시 A4 세로 방향으로도 한 장에 맞춰 출력됩니다.)</p>
         </div>
         <div class="flex gap-2">
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
@@ -101,7 +110,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- 사망 / 수정 완료: 구분 행 아래에 손해와 사망(80세)가 같은 열에서 행으로 분리됨 -->
+                <!-- 사망 -->
                 <tr>
                     <td rowspan="4" class="bg-light-gray text-[9px]">사망<br>(장해지급률80%<br>이상시. 2008년<br>이전종신상품 약<br>관에따라 다름)</td>
                     <td rowspan="2" class="bg-light-gray">종신(생명)</td>
@@ -277,13 +286,13 @@
                 <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-일배책">-</td><td></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
 
-                <!-- 보험료 / 수정 완료: 총보험료 우측 비고란 2개 행 병합 -->
+                <!-- 보험료 -->
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
                     <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td>
                     <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest">총보험료</td>
-                    <td rowspan="2"></td> <!-- 비고란 2행 하나로 병합됨 -->
+                    <td rowspan="2"></td>
                 </tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray">총 납입보험료</td>
@@ -328,7 +337,8 @@
             const extractedData = {
                 "상해후유": "1억 5,400만", "일반암진단": "1억 3,310만", "일반암수술": "3,400만", "유사암진단": "1,360만", 
                 "뇌혈관진단": "3,000만", "허혈성진단": "3,000만", "급성심근진단": "3,800만", 
-                "질병간병일당": "32만", "상해간병일당": "32만", "골절진단": "90만", "일배책": "1억"
+                "질병간병일당": "32만", "상해간병일당": "32만", "골절진단": "90만", "일배책": "1억",
+                "상해사망": "6억 9,600만", "질병사망": "1억 5,100만"
             };
 
             Object.keys(extractedData).forEach(key => {
