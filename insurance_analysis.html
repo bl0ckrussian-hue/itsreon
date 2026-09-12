@@ -49,7 +49,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">PDF 자동 병합(실비) 및 보험료 합산(납입완료 자동 제외) 기능이 활성화되었습니다.</p>
+            <p class="text-xs text-slate-500 mt-1">규칙 9(실비 자동 병합) 및 규칙 10(납입완료 자동 제외)이 엄격히 분리되어 동작합니다.</p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -264,6 +264,7 @@
                 </tr>
                 <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
+                <!-- [규칙 9] 세대 자동입력 대상 -->
                 <tr>
                     <td class="bg-light-gray">실손의료비</td>
                     <td colspan="2" class="bg-light-gray">세대(1~5세대)</td>
@@ -284,15 +285,15 @@
                 <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일배책" class="editable-cell text-red-600 font-bold">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
-                <!-- 보험료 (규칙 10 적용 영역) -->
+                <!-- 보험료 -->
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
-                    <td colspan="2" id="prem1" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem2" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem3" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem4" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem5" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem1" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem2" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem3" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem4" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem5" class="editable-cell font-bold">-</td>
                     <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
                     <td rowspan="2" id="totalPremiumCell" class="editable-cell font-black text-blue-800 bg-blue-50 text-right pr-3 text-lg">-</td>
                 </tr>
@@ -348,7 +349,7 @@
             e.target.value = '';
         });
 
-        // 실손의료비 세대 판별 함수 (규칙 9)
+        // [규칙 9] 실손의료비 세대 판별 함수
         function getSilbiGeneration(dateStr) {
             if(!dateStr) return "";
             const date = new Date(dateStr);
@@ -362,12 +363,6 @@
             else return "4세대 (5세대)";
         }
 
-        // [규칙 10] 문자열 형태의 보험료를 숫자로 파싱 (납입완료 및 미제공 등 예외 처리 완벽 반영)
-        function parsePremium(premStr) {
-            if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("납입완료")) return 0;
-            return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
-        }
-
         // 금액 포맷터 (숫자에 콤마 추가)
         function formatPremium(num) {
             if (num === 0) return "-";
@@ -375,18 +370,18 @@
         }
 
         function extractAndMapData(text) {
-            // [모의 추출 데이터] 20건의 계약 리스트 (납입완료 예외 케이스 포함)
-            // PDF 파싱 로직 시 "납입완료" 문자열이 감지된 계약은 premium 필드에 "납입완료 50,000원" 형태로 넘어옴을 가정
+            // [모의 추출 데이터] 20건의 계약 리스트
+            // 텍스트상에 '보험료미제공'과 '납입완료' 케이스를 명확하게 포함
             let rawContracts = [
                 { comp: "메리츠화재", prod: "당뇨먼저받는 3대질병보장보험1902", date: "2019-02-27", payTerm: "10년", maturity: "100세", premium: "16,570원", hasRenewableRider: true },
                 { comp: "메리츠화재", prod: "속편한 소화계질환보장보험2210", date: "2022-10-31", payTerm: "30년", maturity: "100세", premium: "17,880원", hasRenewableRider: true },
                 { comp: "한화손보", prod: "하이브리드운전자보험1004", date: "2011-03-21", payTerm: "20년", maturity: "80세", premium: "20,030원", hasRenewableRider: false },
                 { comp: "한화손보", prod: "LIFEPLUS 3N5 간편건강보험", date: "2024-05-31", payTerm: "20년", maturity: "90세", premium: "41,027원", hasRenewableRider: false },
-                // [규칙 10 대상] 납입이 완료된 건 ("납입완료" 문구 포함)
+                // [규칙 10] 납입완료 예시 (납입이 끝난 보험)
                 { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "20년", maturity: "80세", premium: "납입완료 50,271원", hasRenewableRider: false }, 
                 { comp: "예별손보(구MG)", prod: "건강명의 4대질병진단보험", date: "2020-06-25", payTerm: "20년", maturity: "80세", premium: "34,417원", hasRenewableRider: false },
-                // [규칙 9 대상] 중복 및 보험료 미제공 (실비)
-                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "-", hasRenewableRider: false },
+                // [규칙 9] 중복 및 보험료 미제공 (실비 판별용)
+                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "보험료미제공", hasRenewableRider: false },
                 { comp: "흥국화재", prod: "홍Good 든든한 3N5 간편종합", date: "2025-11-26", payTerm: "20년", maturity: "90세", premium: "138,099원", hasRenewableRider: false },
                 { comp: "삼성화재", prod: "간편보험 새로고침 100세", date: "2025-11-26", payTerm: "47년", maturity: "90세", premium: "269,000원", hasRenewableRider: true },
                 { comp: "DB손보", prod: "나에게 맞춘간편건강보험2504", date: "2025-05-30", payTerm: "20년", maturity: "90세", premium: "109,152원", hasRenewableRider: false },
@@ -406,8 +401,13 @@
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
+                
                 if (duplicate) {
-                    if (curr.premium === "-" || curr.premium.includes("미제공")) {
+                    // "보험료미제공" 인 경우를 병합 대상으로 판별
+                    if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
+                        duplicate.silbiGen = getSilbiGeneration(duplicate.date);
+                    } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
+                        duplicate.premium = curr.premium; // 실제 보험료가 있는 값으로 유지
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     }
                 } else {
@@ -417,9 +417,7 @@
 
             // [규칙 8] 다페이지 처리 및 요약(합계) 페이지 계산
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
-            // 2페이지 이상일 경우 무조건 마지막 요약 페이지 추가
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
-            
             currentPage = 1;
             
             if(totalPages > 1) {
@@ -429,7 +427,7 @@
             }
 
             renderPage();
-            alert(`[데이터 분석 완료]\n총 ${rawContracts.length}건 중 실비 병합 처리하여 ${processedContracts.length}건이 등록되었습니다.\n(납입완료 건은 보험료 계산에서 제외됩니다.)\n총 ${totalPages}페이지(요약 페이지 포함)가 생성되었습니다.`);
+            alert(`[데이터 분석 완료]\n총 ${rawContracts.length}건 중 실비 병합 처리하여 ${processedContracts.length}건이 등록되었습니다.\n(납입완료 건은 보험료 계산에서 완전히 제외됩니다.)`);
         }
 
         function renderPage() {
@@ -458,7 +456,6 @@
                 
                 let grandTotalPremium = 0;
 
-                // 회사란에 각 페이지 기입 및 페이지별 소계 보험료 계산
                 for(let i=1; i<totalPages; i++) {
                     document.getElementById(`comp${i}`).innerText = `${i}페이지`;
                     document.getElementById(`comp${i}`).style.color = "#d32f2f";
@@ -466,19 +463,24 @@
                     document.getElementById(`date${i}`).innerText = "-";
                     document.getElementById(`term${i}`).innerText = "-";
                     
-                    // 해당 페이지의 보험료 합산 로직 (parsePremium 내부에서 '납입완료' 시 0 반환됨)
                     const pStart = (i - 1) * itemsPerPage;
                     const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
                     let pagePremiumSum = 0;
+                    
                     pData.forEach(c => {
-                        pagePremiumSum += parsePremium(c.premium);
+                        // "납입완료" 포함 시 합산에서 배제, 미제공 등도 0원 처리
+                        if (!c.premium.includes("납입완료") && !c.premium.includes("미제공") && c.premium !== "-") {
+                            let num = parseInt(c.premium.replace(/[^0-9]/g, ''), 10);
+                            if(!isNaN(num)) pagePremiumSum += num;
+                        }
                     });
                     
                     document.getElementById(`prem${i}`).innerText = formatPremium(pagePremiumSum);
+                    document.getElementById(`prem${i}`).style.color = "#1d4ed8";
                     grandTotalPremium += pagePremiumSum;
                 }
                 
-                // 총합계 셀에 전체 실 납입 보험료(납입완료 제외) 표시
+                // 총합계 셀 표시
                 document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
                 
                 // 모의: 페이지별 소계 데이터 (실제 데이터에 맞게 확장 필요)
@@ -515,16 +517,23 @@
                     }
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    // [규칙 10] 납입완료 예외 처리 및 보험료 합산
+                    // [규칙 10] 명확한 분리
                     if (contract.premium.includes("납입완료")) {
+                        // 1. 납입완료 문구 포함 -> "납입완료"로 텍스트 변경 및 붉은색 강조 (합산 제외)
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
-                        // parsePremium에서 0으로 반환하므로 합산에 영향 없음
                     } else {
-                        document.getElementById(`prem${idNum}`).innerText = contract.premium;
+                        // 2. 그 외 경우 (정상 금액, 보험료미제공 등) -> 원문 그대로 표기
+                        document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
-                        currentPageSum += parsePremium(contract.premium);
+                        document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
+                        
+                        // 3. 합산을 위해 숫자 파싱 (미제공 문자열 등은 parseInt 시 NaN이 되므로 0 처리됨)
+                        let num = parseInt(contract.premium.replace(/[^0-9]/g, ''), 10);
+                        if (!isNaN(num)) {
+                            currentPageSum += num;
+                        }
                     }
 
                     // 규칙 9: 실비 병합건일 경우 세대 입력
@@ -548,9 +557,8 @@
             // 고정 총합 데이터 매핑
             const sumData = {
                 "상해후유": "1억 5,400만", "일반암진단": "1억 3,310만", "일반암수술": "3,400만", "유사암진단": "1,360만", 
-                "뇌혈관진단": "3,000만", "허혈성진단": "3,000만", "급성심근진단": "3,800만", 
-                "질병간병일당": "32만", "상해간병일당": "32만", "골절진단": "90만", "일배책": "1억",
-                "상해사망": "6억 9,600만", "질병사망": "1억 5,100만"
+                "뇌혈관진단": "3,000만", "허혈성진단": "3,000만", "급성심근경색": "3,800만", 
+                "질병간병일당": "32만", "상해간병일당": "32만", "골절진단": "90만", "일배책": "1억"
             };
 
             Object.keys(sumData).forEach(key => {
@@ -575,7 +583,6 @@
 
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
-            // raw: true 속성으로 HTML 표 형태를 그대로 유지하여 다운로드
             const wb = XLSX.utils.table_to_book(table, {sheet: `보장분석_${currentPage}P`, raw: true});
             
             const today = new Date();
