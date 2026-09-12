@@ -49,7 +49,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">PDF를 업로드하면 분석표가 생성되며, 5건 초과 시 페이지가 분할됩니다.</p>
+            <p class="text-xs text-slate-500 mt-1">PDF 자동 병합(실비 포함) 및 페이징 처리가 지원됩니다. 수정할 셀을 클릭하세요.</p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -77,16 +77,14 @@
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
-                <col width="6%"><col width="6%"><col width="7%"> <!-- 대, 중, 소 분류 -->
-                <!-- 회사 1~5 (각 2칸: 질병/상해 10칸) -->
+                <col width="6%"><col width="6%"><col width="7%">
                 <col width="4.5%"><col width="4.5%">
                 <col width="4.5%"><col width="4.5%">
                 <col width="4.5%"><col width="4.5%">
                 <col width="4.5%"><col width="4.5%">
                 <col width="4.5%"><col width="4.5%">
-                <!-- 합계 (질병/상해 2칸) -->
                 <col width="5%"><col width="5%">
-                <col width="11%"> <!-- 비고 -->
+                <col width="11%">
             </colgroup>
             <thead>
                 <tr>
@@ -135,7 +133,7 @@
                     <td rowspan="4" class="bg-light-gray text-[9px]">사망<br>(장해지급률80%<br>이상시. 2008년<br>이전종신상품 약<br>관에따라 다름)</td>
                     <td rowspan="2" class="bg-light-gray">종신(생명)</td>
                     <td class="bg-light-gray">일반</td>
-                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td>
+                    <td colspan="2" id="d_life_1" class="editable-cell"></td><td colspan="2" id="d_life_2" class="editable-cell"></td><td colspan="2" id="d_life_3" class="editable-cell"></td><td colspan="2" id="d_life_4" class="editable-cell"></td><td colspan="2" id="d_life_5" class="editable-cell"></td>
                     <td colspan="2" id="res-종신일반" class="editable-cell font-bold text-red-600">-</td>
                     <td rowspan="4" class="remark-yellow">진단비 최초1회<br>만 수술비 반복<br>보장 최대보장금<br>액기재</td>
                 </tr>
@@ -150,7 +148,7 @@
                 <tr>
                     <td class="bg-light-gray">손해</td>
                     <td class="bg-light-gray">사망(80세)</td>
-                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td>
+                    <td id="d_dieD_1" class="editable-cell"></td><td id="d_dieS_1" class="editable-cell"></td><td id="d_dieD_2" class="editable-cell"></td><td id="d_dieS_2" class="editable-cell"></td><td id="d_dieD_3" class="editable-cell"></td><td id="d_dieS_3" class="editable-cell"></td><td id="d_dieD_4" class="editable-cell"></td><td id="d_dieS_4" class="editable-cell"></td><td id="d_dieD_5" class="editable-cell"></td><td id="d_dieS_5" class="editable-cell"></td>
                     <td id="res-질병사망" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해사망" class="editable-cell text-red-600 font-bold">-</td>
                 </tr>
                 
@@ -208,7 +206,7 @@
                     <td rowspan="7" class="bg-light-gray">암</td>
                     <td rowspan="2" class="bg-light-gray">일반암</td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일반암진단" class="editable-cell text-red-600 font-bold">-</td>
+                    <td colspan="2" id="d_cancer_1" class="editable-cell"></td><td colspan="2" id="d_cancer_2" class="editable-cell"></td><td colspan="2" id="d_cancer_3" class="editable-cell"></td><td colspan="2" id="d_cancer_4" class="editable-cell"></td><td colspan="2" id="d_cancer_5" class="editable-cell"></td><td colspan="2" id="res-일반암진단" class="editable-cell text-red-600 font-bold">-</td>
                     <td rowspan="2" class="text-[10px]">전이암포함여부</td>
                 </tr>
                 <tr><td class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일반암수술" class="editable-cell text-red-600 font-bold">-</td></tr>
@@ -240,7 +238,7 @@
                 <tr><td class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
                 <tr><td colspan="2" class="bg-light-gray">뇌/심(순환계)치료비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td></tr>
 
-                <!-- 장기요양 / 골절 / 기타 -->
+                <!-- 장기요양 / 실손의료비 (규칙9 반영 타겟) -->
                 <tr>
                     <td rowspan="3" class="bg-light-gray">장기요양(치매)<br><span class="text-[9px]">(5-인지지원등급)</span></td>
                     <td colspan="2" class="bg-light-gray">복지용품+주야간이용</td>
@@ -248,7 +246,9 @@
                 </tr>
                 <tr><td colspan="2" class="bg-light-gray">방문/재가/생활비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">표적치료제(치매비)</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                
                 <tr><td class="bg-light-gray">말기질환</td><td colspan="2" class="bg-light-gray">말기신부전증</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                
                 <tr>
                     <td rowspan="3" class="bg-light-gray">골절</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
@@ -256,13 +256,27 @@
                 </tr>
                 <tr><td colspan="2" class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">깁스</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
+
                 <tr>
                     <td rowspan="2" class="bg-light-gray">화상</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
                     <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
                 <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
-                <tr><td class="bg-light-gray">실손의료비</td><td colspan="2" class="bg-light-gray">세대(1~5세대)</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
+
+                <!-- [규칙 9] 세대 자동입력 대상 -->
+                <tr>
+                    <td class="bg-light-gray">실손의료비</td>
+                    <td colspan="2" class="bg-light-gray">세대(1~5세대)</td>
+                    <td colspan="2" id="silbi1" class="editable-cell text-blue-700 font-bold"></td>
+                    <td colspan="2" id="silbi2" class="editable-cell text-blue-700 font-bold"></td>
+                    <td colspan="2" id="silbi3" class="editable-cell text-blue-700 font-bold"></td>
+                    <td colspan="2" id="silbi4" class="editable-cell text-blue-700 font-bold"></td>
+                    <td colspan="2" id="silbi5" class="editable-cell text-blue-700 font-bold"></td>
+                    <td colspan="2" id="res-실손세대" class="editable-cell">-</td>
+                    <td class="editable-cell"></td>
+                </tr>
+
                 <tr>
                     <td rowspan="3" class="bg-light-gray">법률비용</td>
                     <td colspan="2" class="bg-light-gray">운전자(현황급부)</td>
@@ -301,11 +315,12 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let globalContracts = []; // 전체 계약 데이터를 저장하는 전역 변수
-        let currentPage = 1;      // 현재 페이지 번호
-        const itemsPerPage = 5;   // 페이지당 표시할 계약 개수 (최대 5건 고정)
+        let processedContracts = []; // 전처리 완료된 계약 데이터 (병합 처리 후)
+        let currentPage = 1;
+        let totalPages = 1;
+        const itemsPerPage = 5;
 
-        // 원칙 5: 수정 가능 셀 셋업
+        // 원칙 5: 셀 클릭 시 수정 가능토록 처리
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
             cell.addEventListener('paste', function(e) {
@@ -334,17 +349,31 @@
             e.target.value = '';
         });
 
+        // 실손의료비 세대 판별 함수 (규칙 9)
+        function getSilbiGeneration(dateStr) {
+            if(!dateStr) return "";
+            const date = new Date(dateStr);
+            const gen1_end = new Date('2009-10-01');
+            const gen2_end = new Date('2017-04-01');
+            const gen3_end = new Date('2021-07-01');
+
+            if(date < gen1_end) return "1세대 (입/통원)";
+            else if(date >= gen1_end && date < gen2_end) return "2세대 표준화";
+            else if(date >= gen2_end && date < gen3_end) return "3세대 착한실손";
+            else return "4세대 (5세대)";
+        }
+
         function extractAndMapData(text) {
-            // [모의 추출 데이터] 제시해주신 20건의 계약 리스트 (규칙 1)
-            // 납입기간에 "갱신형" 키워드가 있는지 여부를 hasRenewableRider 로 판단
-            globalContracts = [
+            // [모의 추출 데이터] 20건의 계약 + 규칙9(실손 통합) 테스트용 MG손보 중복 데이터 포함
+            let rawContracts = [
                 { comp: "메리츠화재", prod: "당뇨먼저받는 3대질병보장보험1902", date: "2019-02-27", payTerm: "10년", maturity: "100세", premium: "16,570원", hasRenewableRider: true },
                 { comp: "메리츠화재", prod: "속편한 소화계질환보장보험2210", date: "2022-10-31", payTerm: "30년", maturity: "100세", premium: "17,880원", hasRenewableRider: true },
                 { comp: "한화손보", prod: "하이브리드운전자보험1004", date: "2011-03-21", payTerm: "20년", maturity: "80세", premium: "20,030원", hasRenewableRider: false },
                 { comp: "한화손보", prod: "LIFEPLUS 3N5 간편건강보험", date: "2024-05-31", payTerm: "20년", maturity: "90세", premium: "41,027원", hasRenewableRider: false },
-                { comp: "MG손보", prod: "그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "20년", maturity: "80세", premium: "50,271원", hasRenewableRider: false },
-                { comp: "MG손보", prod: "건강명의 4대질병진단보험", date: "2020-06-25", payTerm: "20년", maturity: "80세", premium: "34,417원", hasRenewableRider: false },
-                { comp: "MG손보", prod: "그린라이프 원더풀보험(G4)_2", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "-", hasRenewableRider: false },
+                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "20년", maturity: "80세", premium: "50,271원", hasRenewableRider: false },
+                { comp: "예별손보(구MG)", prod: "건강명의 4대질병진단보험", date: "2020-06-25", payTerm: "20년", maturity: "80세", premium: "34,417원", hasRenewableRider: false },
+                // [규칙 9 대상] 회사명/상품명 같고 보험료가 미제공('-')
+                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "-", hasRenewableRider: false },
                 { comp: "흥국화재", prod: "홍Good 든든한 3N5 간편종합", date: "2025-11-26", payTerm: "20년", maturity: "90세", premium: "138,099원", hasRenewableRider: false },
                 { comp: "삼성화재", prod: "간편보험 새로고침 100세", date: "2025-11-26", payTerm: "47년", maturity: "90세", premium: "269,000원", hasRenewableRider: true },
                 { comp: "DB손보", prod: "나에게 맞춘간편건강보험2504", date: "2025-05-30", payTerm: "20년", maturity: "90세", premium: "109,152원", hasRenewableRider: false },
@@ -360,59 +389,117 @@
                 { comp: "처브라이프", prod: "Chubb 스탠다드 정기보험", date: "2022-03-31", payTerm: "5년", maturity: "84세", premium: "30,500원", hasRenewableRider: false }
             ];
 
-            // 페이지 초기화 및 렌더링
-            currentPage = 1;
-            renderPage();
+            // [규칙 9] 데이터 병합 로직 (회사+상품명 동일 시 통합 후 실비 세대 추출)
+            processedContracts = [];
+            rawContracts.forEach(curr => {
+                let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
+                if (duplicate) {
+                    if (curr.premium === "-" || curr.premium === "보험료미제공") {
+                        // 중복이고 보험료 미제공인 경우 실손 계약으로 판별, 세대 계산하여 저장
+                        duplicate.silbiGen = getSilbiGeneration(duplicate.date);
+                    }
+                } else {
+                    processedContracts.push({ ...curr, silbiGen: "" });
+                }
+            });
+
+            // [규칙 8] 다페이지 처리 및 요약(합계) 페이지 계산
+            const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
+            // 2페이지 이상일 경우 무조건 마지막 요약 페이지 추가
+            totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             
-            // [규칙 7] 계약 갯수가 5개를 초과하면 네비게이션 표시
-            if(globalContracts.length > 5) {
+            currentPage = 1;
+            
+            if(totalPages > 1) {
                 document.getElementById('pagination-container').classList.remove('hidden');
             } else {
                 document.getElementById('pagination-container').classList.add('hidden');
             }
 
-            alert(`총 ${globalContracts.length}건의 계약 분석이 완료되었습니다. 페이지를 이동하여 확인하세요.`);
+            renderPage();
+            alert(`[데이터 분석 완료]\n총 ${rawContracts.length}건 중 실비 병합 처리하여 ${processedContracts.length}건이 등록되었습니다.\n다수 계약건으로 총 ${totalPages}페이지(마지막 요약 페이지 포함)가 생성되었습니다.`);
         }
 
-        // [규칙 7 & 8] 페이지 렌더링 함수
         function renderPage() {
-            const totalPages = Math.ceil(globalContracts.length / itemsPerPage);
-            
-            // UI 업데이트
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
-            // 테이블 내용 초기화 (이전 데이터 지우기)
+            // 모든 값 초기화
             for(let i=1; i<=5; i++) {
-                document.getElementById(`comp${i}`).innerText = "-";
-                document.getElementById(`prod${i}`).innerText = "-";
-                document.getElementById(`date${i}`).innerText = "-";
-                document.getElementById(`term${i}`).innerText = "-";
-                document.getElementById(`prem${i}`).innerText = "-";
+                document.getElementById(`comp${i}`).innerText = "";
+                document.getElementById(`prod${i}`).innerText = "";
+                document.getElementById(`date${i}`).innerText = "";
+                document.getElementById(`term${i}`).innerText = "";
+                document.getElementById(`prem${i}`).innerText = "";
+                document.getElementById(`silbi${i}`).innerText = "";
+                document.getElementById(`d_life_${i}`).innerText = "";
+                document.getElementById(`d_dieD_${i}`).innerText = "";
+                document.getElementById(`d_dieS_${i}`).innerText = "";
+                document.getElementById(`d_cancer_${i}`).innerText = "";
             }
 
-            // 현재 페이지 데이터 매핑
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const pageData = globalContracts.slice(startIndex, startIndex + itemsPerPage);
+            const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
-            pageData.forEach((contract, index) => {
-                const idNum = index + 1;
+            if (isSummaryPage) {
+                // [규칙 8] 마지막 페이지(요약 페이지) 처리
+                document.getElementById('header-page-label').innerText = "총 합계";
                 
-                // 규칙 2, 3, 4, 6
-                document.getElementById(`comp${idNum}`).innerText = contract.comp;
-                document.getElementById(`prod${idNum}`).innerText = contract.prod;
-                document.getElementById(`date${idNum}`).innerText = contract.date;
-                document.getElementById(`prem${idNum}`).innerText = contract.premium;
-
-                // 규칙 5: 갱신형 특약 조건부 변경
-                let termStr = `${contract.payTerm}/${contract.maturity}`;
-                if (contract.hasRenewableRider) {
-                    termStr = `갱신형/${contract.maturity}`;
+                // 회사란에 1페이지, 2페이지... 기록
+                for(let i=1; i<totalPages; i++) {
+                    document.getElementById(`comp${i}`).innerText = `${i}페이지`;
+                    document.getElementById(`comp${i}`).style.color = "#d32f2f";
+                    document.getElementById(`prod${i}`).innerText = "-";
+                    document.getElementById(`date${i}`).innerText = "-";
+                    document.getElementById(`term${i}`).innerText = "-";
+                    document.getElementById(`prem${i}`).innerText = "소계산출";
                 }
-                document.getElementById(`term${idNum}`).innerText = termStr;
-            });
+                
+                // 모의: 페이지별 소계 데이터 (원래는 데이터 배열을 reduce로 더해야 함)
+                document.getElementById("d_life_1").innerText = "1억";
+                document.getElementById("d_dieD_1").innerText = "1.5억";
+                document.getElementById("d_dieS_1").innerText = "2.5억";
+                document.getElementById("d_cancer_1").innerText = "5,000만";
 
-            // 규칙 8: 합계 칼럼 상단에 "n페이지" 기입. (단, 마지막 페이지일 경우 합계 금액을 표시하기 위한 준비)
-            document.getElementById('header-page-label').innerText = `${currentPage}페이지`;
+                document.getElementById("d_life_2").innerText = "5,000만";
+                document.getElementById("d_dieD_2").innerText = "100만";
+                document.getElementById("d_dieS_2").innerText = "100만";
+                document.getElementById("d_cancer_2").innerText = "3,000만";
+
+                document.getElementById("d_cancer_3").innerText = "2,000만";
+            } else {
+                // 일반 페이지 렌더링
+                document.getElementById('header-page-label').innerText = "페이지 합계";
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
+
+                pageData.forEach((contract, index) => {
+                    const idNum = index + 1;
+                    document.getElementById(`comp${idNum}`).innerText = contract.comp;
+                    document.getElementById(`comp${idNum}`).style.color = "#1d4ed8";
+                    document.getElementById(`prod${idNum}`).innerText = contract.prod;
+                    document.getElementById(`date${idNum}`).innerText = contract.date;
+                    document.getElementById(`prem${idNum}`).innerText = contract.premium;
+
+                    // 규칙 5: 갱신형 변경 로직
+                    let termStr = `${contract.payTerm}/${contract.maturity}`;
+                    if (contract.hasRenewableRider) {
+                        termStr = `갱신형/${contract.maturity}`;
+                    }
+                    document.getElementById(`term${idNum}`).innerText = termStr;
+
+                    // 규칙 9: 실비 병합건일 경우 세대 입력
+                    if (contract.silbiGen) {
+                        document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
+                    }
+                    
+                    // 모의 데이터 일부 채워넣기
+                    if(contract.comp.includes("생명")) document.getElementById(`d_life_${idNum}`).innerText = "1억";
+                    else {
+                        document.getElementById(`d_dieD_${idNum}`).innerText = "1,000만";
+                        document.getElementById(`d_dieS_${idNum}`).innerText = "1,000만";
+                    }
+                    if(contract.prod.includes("암")) document.getElementById(`d_cancer_${idNum}`).innerText = "3,000만";
+                });
+            }
 
             // 고정 총합 데이터 매핑
             const sumData = {
@@ -432,9 +519,7 @@
 
         // 페이지 네비게이션 동작
         function changePage(step) {
-            const totalPages = Math.ceil(globalContracts.length / itemsPerPage);
             let newPage = currentPage + step;
-            
             if(newPage < 1) newPage = 1;
             if(newPage > totalPages) newPage = totalPages;
             
@@ -446,7 +531,8 @@
 
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
-            const wb = XLSX.utils.table_to_book(table, {sheet: `보장분석표_${currentPage}P`, raw: true});
+            // raw: true 속성으로 HTML 표 형태를 그대로 유지하여 다운로드
+            const wb = XLSX.utils.table_to_book(table, {sheet: `보장분석_${currentPage}P`, raw: true});
             
             const today = new Date();
             const dateStr = `${today.getFullYear()}${(today.getMonth()+1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
