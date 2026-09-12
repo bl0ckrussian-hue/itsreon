@@ -20,29 +20,25 @@
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
+        /* [원칙 5] 설계사 직접 수정 가능 셀 UI 효과 */
+        .editable-cell { cursor: text; transition: all 0.2s; }
+        .editable-cell:hover, .editable-cell:focus { background-color: #e0f2fe !important; outline: 1.5px dashed #3b82f6; box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.3); }
+
         /* 특정 헤더 색상 및 디자인 */
         .bg-main-green { background-color: #2ca02c !important; color: white; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
         .bg-light-gray { background-color: #f8f9fa; font-weight: bold; }
         .remark-yellow { background-color: #fff2cc; font-size: 10px; }
         .footer-note { text-align: left !important; font-size: 10px; color: #d32f2f; font-weight: bold; border: none !important; padding-top: 10px; }
 
-        /* 인쇄 최적화 (A4 세로 기준 한 장에 딱 맞도록, 사용자가 방향/용지 선택 가능) */
+        /* 인쇄 최적화 */
         @media print {
-            @page { size: auto; margin: 8mm; } /* auto로 설정하여 사용자가 인쇄창에서 세로/가로, A4/A3 선택 가능하게 함 */
+            @page { size: auto; margin: 8mm; } 
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
             .engine-container { box-shadow: none; padding: 0; max-width: 100%; width: 100%; overflow: hidden; }
-            
-            /* 세로(Portrait) 방향에서도 잘리지 않도록 폰트 및 여백 극적 축소 */
             table.excel-table { min-width: 0 !important; width: 100% !important; font-size: 7.5pt !important; }
-            .excel-table th, .excel-table td { 
-                padding: 2.5px 1px !important; 
-                border: 1px solid #000 !important; 
-                word-break: normal !important; /* 세로 너비 부족 시 자연스럽게 줄바꿈되도록 수정 */
-                line-height: 1.1 !important;
-            }
-            .bg-main-green { font-size: 11pt !important; }
-            .remark-yellow, .footer-note, .text-[9px], .text-[10px] { font-size: 6pt !important; }
+            .excel-table th, .excel-table td { padding: 2.5px 1px !important; border: 1px solid #000 !important; word-break: normal !important; line-height: 1.1 !important; }
+            .editable-cell { outline: none !important; box-shadow: none !important; } /* 인쇄 시 편집 윤곽선 제거 */
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
@@ -53,12 +49,12 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">PDF를 업로드하면 엑셀 양식에 데이터가 매핑됩니다. (인쇄 시 A4 세로 방향으로도 한 장에 맞춰 출력됩니다.)</p>
+            <p class="text-xs text-slate-500 mt-1">PDF 자동 입력 완료 후, <strong>셀을 클릭하면 설계사가 직접 내용을 수정</strong>할 수 있습니다.</p>
         </div>
         <div class="flex gap-2">
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow">
-                📄 PDF 업로드
+                📄 보장분석 PDF 업로드
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow">
                 📊 엑셀 다운로드
@@ -91,22 +87,38 @@
                 <tr>
                     <th colspan="2" rowspan="2" class="bg-light-gray">구분</th>
                     <th class="bg-light-gray">보험회사</th>
-                    <th colspan="2" id="comp1">-</th><th colspan="2" id="comp2">-</th><th colspan="2" id="comp3">-</th><th colspan="2" id="comp4">-</th><th colspan="2" id="comp5">-</th>
+                    <th colspan="2" id="comp1" class="editable-cell text-blue-700 font-bold">-</th>
+                    <th colspan="2" id="comp2" class="editable-cell text-blue-700 font-bold">-</th>
+                    <th colspan="2" id="comp3" class="editable-cell text-blue-700 font-bold">-</th>
+                    <th colspan="2" id="comp4" class="editable-cell text-blue-700 font-bold">-</th>
+                    <th colspan="2" id="comp5" class="editable-cell text-blue-700 font-bold">-</th>
                     <th colspan="2" rowspan="2" class="bg-light-gray border-b-0"></th>
                     <th rowspan="4" class="bg-light-gray">비고</th>
                 </tr>
                 <tr>
                     <th class="bg-light-gray">상품명</th>
-                    <th colspan="2" id="prod1">-</th><th colspan="2" id="prod2">-</th><th colspan="2" id="prod3">-</th><th colspan="2" id="prod4">-</th><th colspan="2" id="prod5">-</th>
+                    <th colspan="2" id="prod1" class="editable-cell">-</th>
+                    <th colspan="2" id="prod2" class="editable-cell">-</th>
+                    <th colspan="2" id="prod3" class="editable-cell">-</th>
+                    <th colspan="2" id="prod4" class="editable-cell">-</th>
+                    <th colspan="2" id="prod5" class="editable-cell">-</th>
                 </tr>
                 <tr>
                     <th colspan="3" class="bg-light-gray">계약일자</th>
-                    <th colspan="2">-</th><th colspan="2">-</th><th colspan="2">-</th><th colspan="2">-</th><th colspan="2">-</th>
+                    <th colspan="2" id="date1" class="editable-cell">-</th>
+                    <th colspan="2" id="date2" class="editable-cell">-</th>
+                    <th colspan="2" id="date3" class="editable-cell">-</th>
+                    <th colspan="2" id="date4" class="editable-cell">-</th>
+                    <th colspan="2" id="date5" class="editable-cell">-</th>
                     <th colspan="2" rowspan="2" class="bg-light-gray text-[10px] border-t-0">(단위 만원)</th>
                 </tr>
                 <tr>
                     <th colspan="3" class="bg-light-gray">납입기간/만기</th>
-                    <th colspan="2">-</th><th colspan="2">-</th><th colspan="2">-</th><th colspan="2">-</th><th colspan="2">-</th>
+                    <th colspan="2" id="term1" class="editable-cell">-</th>
+                    <th colspan="2" id="term2" class="editable-cell">-</th>
+                    <th colspan="2" id="term3" class="editable-cell">-</th>
+                    <th colspan="2" id="term4" class="editable-cell">-</th>
+                    <th colspan="2" id="term5" class="editable-cell">-</th>
                 </tr>
             </thead>
             <tbody>
@@ -115,13 +127,13 @@
                     <td rowspan="4" class="bg-light-gray text-[9px]">사망<br>(장해지급률80%<br>이상시. 2008년<br>이전종신상품 약<br>관에따라 다름)</td>
                     <td rowspan="2" class="bg-light-gray">종신(생명)</td>
                     <td class="bg-light-gray">일반</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td>
-                    <td colspan="2" id="res-종신일반" class="font-bold text-red-600">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td>
+                    <td colspan="2" id="res-종신일반" class="editable-cell font-bold text-red-600">-</td>
                     <td rowspan="4" class="remark-yellow">진단비 최초1회<br>만 수술비 반복<br>보장 최대보장금<br>액기재</td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">정기</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td>
                 </tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray tracking-widest">구 분</td>
@@ -130,8 +142,8 @@
                 <tr>
                     <td class="bg-light-gray">손해</td>
                     <td class="bg-light-gray">사망(80세)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                    <td id="res-질병사망">-</td><td id="res-상해사망">-</td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td>
+                    <td id="res-질병사망" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해사망" class="editable-cell text-red-600 font-bold">-</td>
                 </tr>
                 
                 <!-- 장애 -->
@@ -139,9 +151,9 @@
                     <td class="bg-light-gray">장애</td>
                     <td class="bg-light-gray">후유장애</td>
                     <td class="bg-light-gray">3%이상</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                    <td id="res-질병후유">-</td><td id="res-상해후유">-</td>
-                    <td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td>
+                    <td id="res-질병후유" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해후유" class="editable-cell text-red-600 font-bold">-</td>
+                    <td class="editable-cell"></td>
                 </tr>
 
                 <!-- 입원비 -->
@@ -149,53 +161,53 @@
                     <td rowspan="6" class="bg-light-gray">입원비</td>
                     <td rowspan="4" class="bg-light-gray">입원</td>
                     <td class="bg-light-gray">일반병원</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td>
-                    <td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td>
+                    <td class="editable-cell"></td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">상급1인실</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">수술입원</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">중환자실</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">간병</td>
                     <td class="bg-light-gray">지원/일당</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                    <td id="res-질병간병일당">-</td><td id="res-상해간병일당">-</td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td>
+                    <td id="res-질병간병일당" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해간병일당" class="editable-cell text-red-600 font-bold">-</td>
                     <td rowspan="2" class="text-[10px]">일반병원기준</td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">통합간호</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td>
                 </tr>
 
-                <!-- 일반 치료비 -->
+                <!-- 일반 치료비 (이하 구조 모두 contenteditable 적용) -->
                 <tr>
                     <td rowspan="12" class="bg-light-gray">일반 치료비</td>
                     <td rowspan="11" class="bg-light-gray">수술비</td>
                     <td class="bg-light-gray">수술 1종</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
-                <tr><td class="bg-light-gray">수술 2종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">수술 3종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">수술 4종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">수술 5종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">수술 6종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">수술 7종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">수술 8종</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">병원</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">종합병원</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
-                <tr><td class="bg-light-gray">상급병원</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td></tr>
+                <tr><td class="bg-light-gray">수술 2종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">수술 3종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">수술 4종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">수술 5종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">수술 6종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">수술 7종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">수술 8종</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">병원</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">종합병원</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td class="bg-light-gray">상급병원</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray">통합(입원/수술포함)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>-</td><td>-</td><td></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
 
                 <!-- 암 -->
@@ -203,35 +215,35 @@
                     <td rowspan="7" class="bg-light-gray">암</td>
                     <td rowspan="2" class="bg-light-gray">일반암</td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-일반암진단">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일반암진단" class="editable-cell text-red-600 font-bold">-</td>
                     <td rowspan="2" class="text-[10px]">전이암포함여부</td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">수술비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-일반암수술">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일반암수술" class="editable-cell text-red-600 font-bold">-</td>
                 </tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">기타실피<br><span class="text-[9px]">(갑/기/경/제)</span></td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-유사암진단">-</td><td rowspan="2"></td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-유사암진단" class="editable-cell text-red-600 font-bold">-</td><td rowspan="2" class="editable-cell"></td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">수술비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td>
                 </tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">항암치료</td>
                     <td class="bg-light-gray">항암방사선</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td>
                     <td rowspan="3" class="text-[10px]">암주요(비급여<br>포함) 치료비<br>치료별 1회 보장</td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">항암약물</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td>
                 </tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray"><span class="text-[9px]">(상급/종합)</span>암주요치료비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td>
                 </tr>
 
                 <!-- 뇌/심 -->
@@ -239,64 +251,68 @@
                     <td rowspan="6" class="bg-light-gray">뇌/심(순환계)</td>
                     <td rowspan="5" class="bg-light-gray">진단비</td>
                     <td class="bg-light-gray">뇌혈관</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-뇌혈관진단">-</td><td rowspan="4"></td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-뇌혈관진단" class="editable-cell text-red-600 font-bold">-</td><td rowspan="4" class="editable-cell"></td>
                 </tr>
-                <tr><td class="bg-light-gray">허혈성</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-허혈성진단">-</td></tr>
-                <tr><td class="bg-light-gray">뇌경색</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td></tr>
-                <tr><td class="bg-light-gray">급성심근경색</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-급성심근진단">-</td></tr>
-                <tr><td class="bg-light-gray">산정특례</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
+                <tr><td class="bg-light-gray">허혈성</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-허혈성진단" class="editable-cell text-red-600 font-bold">-</td></tr>
+                <tr><td class="bg-light-gray">뇌경색</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td></tr>
+                <tr><td class="bg-light-gray">급성심근경색</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-급성심근진단" class="editable-cell text-red-600 font-bold">-</td></tr>
+                <tr><td class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray">뇌/심(순환계)치료비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td>
                 </tr>
 
                 <!-- 장기요양 / 말기 / 골절 / 화상 등 -->
                 <tr>
                     <td rowspan="3" class="bg-light-gray">장기요양(치매)<br><span class="text-[9px]">(5-인지지원등급)</span></td>
                     <td colspan="2" class="bg-light-gray">복지용품+주야간이용</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">방문/재가/생활비</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
-                <tr><td colspan="2" class="bg-light-gray">표적치료제(치매비)</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">방문/재가/생활비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">표적치료제(치매비)</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
                 
-                <tr><td class="bg-light-gray">말기질환</td><td colspan="2" class="bg-light-gray">말기신부전증</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
+                <tr><td class="bg-light-gray">말기질환</td><td colspan="2" class="bg-light-gray">말기신부전증</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
                 
                 <tr>
                     <td rowspan="3" class="bg-light-gray">골절</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-골절진단">-</td><td class="text-[10px]">치아파절포함여부</td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-골절진단" class="editable-cell text-red-600 font-bold">-</td><td class="text-[10px]">치아파절포함여부</td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">수술비</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
-                <tr><td colspan="2" class="bg-light-gray">깁스</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">깁스</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
                 <tr>
                     <td rowspan="2" class="bg-light-gray">화상</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
-                <tr><td class="bg-light-gray">실손의료비</td><td colspan="2" class="bg-light-gray">세대(1~5세대)</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
+                <tr><td class="bg-light-gray">실손의료비</td><td colspan="2" class="bg-light-gray">세대(1~5세대)</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
                 <tr>
                     <td rowspan="3" class="bg-light-gray">법률비용</td>
                     <td colspan="2" class="bg-light-gray">운전자(현황급부)</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2" id="res-일배책">-</td><td></td></tr>
-                <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2">-</td><td></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일배책" class="editable-cell text-red-600 font-bold">-</td><td class="editable-cell"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
-                <!-- 보험료 -->
+                <!-- 보험료 (입력 규칙 6 적용) -->
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td>
-                    <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest">총보험료</td>
-                    <td rowspan="2"></td>
+                    <td colspan="2" id="prem1" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem2" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem3" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem4" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem5" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
+                    <td rowspan="2" class="editable-cell"></td>
                 </tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray">총 납입보험료</td>
-                    <td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td><td colspan="2"></td>
+                    <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td>
                 </tr>
                 
                 <!-- 하단 안내문 -->
@@ -312,6 +328,17 @@
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // 모든 편집 가능한 셀에 contenteditable 속성 부여 (원칙 5)
+        document.querySelectorAll('.editable-cell').forEach(cell => {
+            cell.setAttribute('contenteditable', 'true');
+            // 붙여넣기 시 텍스트만 남기도록 처리
+            cell.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                document.execCommand('insertText', false, text);
+            });
+        });
 
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
@@ -332,27 +359,56 @@
             e.target.value = '';
         });
 
-        // 원문 텍스트 변형 없이 매핑 (수정 금지 원칙)
+        // 원문 추출 및 조건부 매핑 (규칙 1~6 반영)
         function extractAndMapData(text) {
-            const extractedData = {
+            // [모의 데이터] 원수사 PDF에서 추출되었다고 가정한 '보유계약리스트' 데이터 (규칙 1)
+            const contractList = [
+                { comp: "메리츠화재", prod: "(무)당뇨먼저받는 3대질병보장보험1902", date: "2019-02-27", payTerm: "10년", maturity: "100세", premium: "16,570원", hasRenewableRider: true },
+                { comp: "한화손보", prod: "하이브리드운전자보험1004", date: "2011-03-21", payTerm: "20년", maturity: "80세", premium: "20,030원", hasRenewableRider: false },
+                { comp: "삼성화재", prod: "간편보험 새로고침 100세(2508)", date: "2025-11-26", payTerm: "47년", maturity: "90세", premium: "269,000원", hasRenewableRider: true },
+                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2504", date: "2025-05-30", payTerm: "20년", maturity: "90세", premium: "109,152원", hasRenewableRider: false },
+                { comp: "하나손보", prod: "뉴 건강하면 더 좋은 하나의 보험", date: "2024-09-24", payTerm: "20년", maturity: "100세", premium: "30,000원", hasRenewableRider: false }
+            ];
+
+            // 1. 보유계약리스트 상단 헤더 매핑 (최대 5개 지원)
+            contractList.forEach((contract, index) => {
+                if (index >= 5) return; // 양식상 5개 초과는 스킵
+                const idNum = index + 1;
+                
+                // 규칙 2, 3, 4, 6: 회사, 상품, 계약일, 보험료 자동입력
+                document.getElementById(`comp${idNum}`).innerText = contract.comp;
+                document.getElementById(`prod${idNum}`).innerText = contract.prod;
+                document.getElementById(`date${idNum}`).innerText = contract.date;
+                document.getElementById(`prem${idNum}`).innerText = contract.premium;
+
+                // 규칙 5: 납입기간/만기 병행 처리 및 갱신형 특약 조건부 변경
+                let termStr = `${contract.payTerm}/${contract.maturity}`;
+                if (contract.hasRenewableRider) {
+                    termStr = `갱신형/${contract.maturity}`; // 갱신형 특약 존재 시 '갱신형'으로 변경
+                }
+                document.getElementById(`term${idNum}`).innerText = termStr;
+            });
+
+            // 2. 합계 담보 데이터 매핑 (기존 유지)
+            const sumData = {
                 "상해후유": "1억 5,400만", "일반암진단": "1억 3,310만", "일반암수술": "3,400만", "유사암진단": "1,360만", 
                 "뇌혈관진단": "3,000만", "허혈성진단": "3,000만", "급성심근진단": "3,800만", 
                 "질병간병일당": "32만", "상해간병일당": "32만", "골절진단": "90만", "일배책": "1억",
                 "상해사망": "6억 9,600만", "질병사망": "1억 5,100만"
             };
 
-            Object.keys(extractedData).forEach(key => {
+            Object.keys(sumData).forEach(key => {
                 const cell = document.getElementById(`res-${key}`);
                 if (cell) {
-                    cell.innerText = extractedData[key];
-                    cell.style.color = "#d32f2f";
-                    cell.style.fontWeight = "bold";
+                    cell.innerText = sumData[key];
+                    cell.style.color = "#d32f2f"; // 자동입력된 값 시각적 강조
                 }
             });
 
-            alert("PDF 분석 완료: 보장분석표 양식에 원문 데이터가 매핑되었습니다.");
+            alert("PDF 분석 완료: 보유계약리스트 규칙(갱신형 조건 포함) 및 보장금액이 자동 입력되었습니다. 직접 클릭하여 셀을 수정할 수 있습니다.");
         }
 
+        // SheetJS를 활용한 엑셀 다운로드 (설계사가 직접 타이핑한 내용도 그대로 추출됨)
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
             const wb = XLSX.utils.table_to_book(table, {sheet: "보장분석표", raw: true});
