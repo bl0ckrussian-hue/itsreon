@@ -49,7 +49,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">규칙 9(실비 자동 병합) 및 규칙 10(납입완료 자동 제외)이 엄격히 분리되어 동작합니다.</p>
+            <p class="text-xs text-slate-500 mt-1">상품별 가입담보상세의 납입완료 문구를 감지하여 예외 처리합니다.</p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -285,15 +285,15 @@
                 <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일배책" class="editable-cell text-red-600 font-bold">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
-                <!-- 보험료 -->
+                <!-- 보험료 (규칙 10 적용 영역) -->
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
-                    <td colspan="2" id="prem1" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem2" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem3" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem4" class="editable-cell font-bold">-</td>
-                    <td colspan="2" id="prem5" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem1" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem2" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem3" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem4" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem5" class="editable-cell text-blue-700 font-bold">-</td>
                     <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
                     <td rowspan="2" id="totalPremiumCell" class="editable-cell font-black text-blue-800 bg-blue-50 text-right pr-3 text-lg">-</td>
                 </tr>
@@ -349,7 +349,7 @@
             e.target.value = '';
         });
 
-        // [규칙 9] 실손의료비 세대 판별 함수
+        // 실손의료비 세대 판별 함수 (규칙 9)
         function getSilbiGeneration(dateStr) {
             if(!dateStr) return "";
             const date = new Date(dateStr);
@@ -363,6 +363,12 @@
             else return "4세대 (5세대)";
         }
 
+        // [규칙 10] 문자열 형태의 보험료를 숫자로 파싱 (미제공, 납입완료, - 등은 0으로 처리되어 합산 배제)
+        function parsePremium(premStr) {
+            if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("납입완료")) return 0;
+            return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
+        }
+
         // 금액 포맷터 (숫자에 콤마 추가)
         function formatPremium(num) {
             if (num === 0) return "-";
@@ -370,31 +376,31 @@
         }
 
         function extractAndMapData(text) {
-            // [모의 추출 데이터] 20건의 계약 리스트
-            // 텍스트상에 '보험료미제공'과 '납입완료' 케이스를 명확하게 포함
+            // [모의 추출 데이터] 20건의 계약 리스트 (상품별 담보상세에서 납입완료 문구가 추출되었다고 가정한 데이터)
             let rawContracts = [
-                { comp: "메리츠화재", prod: "당뇨먼저받는 3대질병보장보험1902", date: "2019-02-27", payTerm: "10년", maturity: "100세", premium: "16,570원", hasRenewableRider: true },
-                { comp: "메리츠화재", prod: "속편한 소화계질환보장보험2210", date: "2022-10-31", payTerm: "30년", maturity: "100세", premium: "17,880원", hasRenewableRider: true },
-                { comp: "한화손보", prod: "하이브리드운전자보험1004", date: "2011-03-21", payTerm: "20년", maturity: "80세", premium: "20,030원", hasRenewableRider: false },
-                { comp: "한화손보", prod: "LIFEPLUS 3N5 간편건강보험", date: "2024-05-31", payTerm: "20년", maturity: "90세", premium: "41,027원", hasRenewableRider: false },
-                // [규칙 10] 납입완료 예시 (납입이 끝난 보험)
-                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "20년", maturity: "80세", premium: "납입완료 50,271원", hasRenewableRider: false }, 
-                { comp: "예별손보(구MG)", prod: "건강명의 4대질병진단보험", date: "2020-06-25", payTerm: "20년", maturity: "80세", premium: "34,417원", hasRenewableRider: false },
-                // [규칙 9] 중복 및 보험료 미제공 (실비 판별용)
-                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "보험료미제공", hasRenewableRider: false },
-                { comp: "흥국화재", prod: "홍Good 든든한 3N5 간편종합", date: "2025-11-26", payTerm: "20년", maturity: "90세", premium: "138,099원", hasRenewableRider: false },
-                { comp: "삼성화재", prod: "간편보험 새로고침 100세", date: "2025-11-26", payTerm: "47년", maturity: "90세", premium: "269,000원", hasRenewableRider: true },
-                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2504", date: "2025-05-30", payTerm: "20년", maturity: "90세", premium: "109,152원", hasRenewableRider: false },
-                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2510", date: "2025-12-31", payTerm: "20년", maturity: "90세", premium: "114,836원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "뉴 건강하면 더 좋은 하나의 보험", date: "2024-09-24", payTerm: "20년", maturity: "100세", premium: "30,000원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나 가득담은 운전자상해종합(04)", date: "2025-05-29", payTerm: "20년", maturity: "62세", premium: "15,000원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나더넥스트 치매간병보험(04)", date: "2025-05-29", payTerm: "20년", maturity: "90세", premium: "50,983원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나 가득담은 운전자상해종합(06)", date: "2025-08-07", payTerm: "20년", maturity: "62세", premium: "15,077원", hasRenewableRider: false },
-                { comp: "하나손보", prod: "하나더넥스트 치매간병보험(01)", date: "2026-03-11", payTerm: "20년", maturity: "100세", premium: "납입완료 10,378원", hasRenewableRider: false }, // 납입완료 예시 추가
-                { comp: "AIA생명", prod: "원스톱 슈퍼 암보험(갱신형)", date: "2017-10-20", payTerm: "10년", maturity: "45세", premium: "23,550원", hasRenewableRider: true },
-                { comp: "동양생명", prod: "수호천사치매간병은동양생명보험", date: "2025-08-14", payTerm: "10년", maturity: "95세", premium: "21,347원", hasRenewableRider: false },
-                { comp: "처브라이프", prod: "Chubb뇌심 건강보험(갱신형)", date: "2021-05-13", payTerm: "20년", maturity: "100세", premium: "32,211원", hasRenewableRider: true },
-                { comp: "처브라이프", prod: "Chubb 스탠다드 정기보험", date: "2022-03-31", payTerm: "5년", maturity: "84세", premium: "30,500원", hasRenewableRider: false }
+                { comp: "메리츠화재", prod: "당뇨먼저받는 3대질병보장보험1902", date: "2019-02-27", payTerm: "10년", maturity: "100세", premium: "16,570원", hasRenewableRider: true, isPaidUp: false },
+                { comp: "메리츠화재", prod: "속편한 소화계질환보장보험2210", date: "2022-10-31", payTerm: "30년", maturity: "100세", premium: "17,880원", hasRenewableRider: true, isPaidUp: false },
+                { comp: "한화손보", prod: "하이브리드운전자보험1004", date: "2011-03-21", payTerm: "20년", maturity: "80세", premium: "20,030원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "한화손보", prod: "LIFEPLUS 3N5 간편건강보험", date: "2024-05-31", payTerm: "20년", maturity: "90세", premium: "41,027원", hasRenewableRider: false, isPaidUp: false },
+                // [규칙 10 대상] 상품별 담보상세에서 "납입완료" 문구가 확인된 건 -> isPaidUp = true 로 추출됨
+                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "20년", maturity: "80세", premium: "50,271원", hasRenewableRider: false, isPaidUp: true }, 
+                { comp: "예별손보(구MG)", prod: "건강명의 4대질병진단보험", date: "2020-06-25", payTerm: "20년", maturity: "80세", premium: "34,417원", hasRenewableRider: false, isPaidUp: false },
+                // [규칙 9 대상] 중복 및 보험료 미제공 (실비 판별용)
+                { comp: "예별손보(구MG)", prod: "무배당 그린라이프 원더풀보험(G4)", date: "2008-03-11", payTerm: "0년", maturity: "80세", premium: "보험료미제공", hasRenewableRider: false, isPaidUp: false },
+                { comp: "흥국화재", prod: "홍Good 든든한 3N5 간편종합", date: "2025-11-26", payTerm: "20년", maturity: "90세", premium: "138,099원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "삼성화재", prod: "간편보험 새로고침 100세", date: "2025-11-26", payTerm: "47년", maturity: "90세", premium: "269,000원", hasRenewableRider: true, isPaidUp: false },
+                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2504", date: "2025-05-30", payTerm: "20년", maturity: "90세", premium: "109,152원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "DB손보", prod: "나에게 맞춘간편건강보험2510", date: "2025-12-31", payTerm: "20년", maturity: "90세", premium: "114,836원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "하나손보", prod: "뉴 건강하면 더 좋은 하나의 보험", date: "2024-09-24", payTerm: "20년", maturity: "100세", premium: "30,000원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "하나손보", prod: "하나 가득담은 운전자상해종합(04)", date: "2025-05-29", payTerm: "20년", maturity: "62세", premium: "15,000원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "하나손보", prod: "하나더넥스트 치매간병보험(04)", date: "2025-05-29", payTerm: "20년", maturity: "90세", premium: "50,983원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "하나손보", prod: "하나 가득담은 운전자상해종합(06)", date: "2025-08-07", payTerm: "20년", maturity: "62세", premium: "15,077원", hasRenewableRider: false, isPaidUp: false },
+                // [규칙 10 대상] 상품별 담보상세에서 "납입완료" 문구가 확인된 건
+                { comp: "하나손보", prod: "하나더넥스트 치매간병보험(01)", date: "2026-03-11", payTerm: "20년", maturity: "100세", premium: "10,378원", hasRenewableRider: false, isPaidUp: true }, 
+                { comp: "AIA생명", prod: "원스톱 슈퍼 암보험(갱신형)", date: "2017-10-20", payTerm: "10년", maturity: "45세", premium: "23,550원", hasRenewableRider: true, isPaidUp: false },
+                { comp: "동양생명", prod: "수호천사치매간병은동양생명보험", date: "2025-08-14", payTerm: "10년", maturity: "95세", premium: "21,347원", hasRenewableRider: false, isPaidUp: false },
+                { comp: "처브라이프", prod: "Chubb뇌심 건강보험(갱신형)", date: "2021-05-13", payTerm: "20년", maturity: "100세", premium: "32,211원", hasRenewableRider: true, isPaidUp: false },
+                { comp: "처브라이프", prod: "Chubb 스탠다드 정기보험", date: "2022-03-31", payTerm: "5년", maturity: "84세", premium: "30,500원", hasRenewableRider: false, isPaidUp: false }
             ];
 
             // [규칙 9] 데이터 병합 로직 (회사+상품명 동일 시 통합 후 실비 세대 추출)
@@ -403,11 +409,12 @@
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
                 
                 if (duplicate) {
-                    // "보험료미제공" 인 경우를 병합 대상으로 판별
+                    // "보험료미제공" 인 경우를 실비 병합 대상으로 판별
                     if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
-                        duplicate.premium = curr.premium; // 실제 보험료가 있는 값으로 유지
+                        duplicate.premium = curr.premium; 
+                        duplicate.isPaidUp = curr.isPaidUp; // 보유계약 상태 업데이트
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     }
                 } else {
@@ -468,10 +475,9 @@
                     let pagePremiumSum = 0;
                     
                     pData.forEach(c => {
-                        // "납입완료" 포함 시 합산에서 배제, 미제공 등도 0원 처리
-                        if (!c.premium.includes("납입완료") && !c.premium.includes("미제공") && c.premium !== "-") {
-                            let num = parseInt(c.premium.replace(/[^0-9]/g, ''), 10);
-                            if(!isNaN(num)) pagePremiumSum += num;
+                        // [규칙 10] 납입완료 건은 합산에서 완벽히 제외
+                        if (!c.isPaidUp) {
+                            pagePremiumSum += parsePremium(c.premium);
                         }
                     });
                     
@@ -480,7 +486,7 @@
                     grandTotalPremium += pagePremiumSum;
                 }
                 
-                // 총합계 셀 표시
+                // 총합계 셀 표시 (납입완료 제외된 총액)
                 document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
                 
                 // 모의: 페이지별 소계 데이터 (실제 데이터에 맞게 확장 필요)
@@ -517,23 +523,20 @@
                     }
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    // [규칙 10] 명확한 분리
-                    if (contract.premium.includes("납입완료")) {
-                        // 1. 납입완료 문구 포함 -> "납입완료"로 텍스트 변경 및 붉은색 강조 (합산 제외)
+                    // [규칙 10] 납입완료와 보험료미제공의 명확한 분리
+                    if (contract.isPaidUp) {
+                        // 납입완료 상태: 금액 무시하고 "납입완료" 기재, 합산 제외
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
-                        // 2. 그 외 경우 (정상 금액, 보험료미제공 등) -> 원문 그대로 표기
+                        // 정상 보험료 및 보험료미제공: 원문 그대로 표시
                         document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
                         
-                        // 3. 합산을 위해 숫자 파싱 (미제공 문자열 등은 parseInt 시 NaN이 되므로 0 처리됨)
-                        let num = parseInt(contract.premium.replace(/[^0-9]/g, ''), 10);
-                        if (!isNaN(num)) {
-                            currentPageSum += num;
-                        }
+                        // 합산을 위해 파싱 (보험료미제공 등은 0으로 처리됨)
+                        currentPageSum += parsePremium(contract.premium);
                     }
 
                     // 규칙 9: 실비 병합건일 경우 세대 입력
