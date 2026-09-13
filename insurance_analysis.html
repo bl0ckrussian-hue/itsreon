@@ -30,7 +30,7 @@
         .remark-yellow { background-color: #fff2cc; font-size: 10px; }
         .footer-note { text-align: left !important; font-size: 10px; color: #d32f2f; font-weight: bold; border: none !important; padding-top: 10px; }
 
-        /* 인쇄 최적화 */
+        /* 인쇄 최적화 (A4 세로 기준 한 장에 딱 맞도록) */
         @media print {
             @page { size: auto; margin: 8mm; } 
             body { background: white; margin: 0; padding: 0; }
@@ -49,7 +49,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터만 정밀 스캔하여 표출합니다. (모의 데이터 삭제 및 다이내믹 파서 적용)</p>
+            <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터를 추출하여 규칙 1~10에 맞게 엑셀표를 자동 완성합니다.</p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -103,11 +103,11 @@
                 </tr>
                 <tr>
                     <th class="bg-light-gray">상품명</th>
-                    <th colspan="2" id="prod1" class="editable-cell text-xs leading-tight">-</th>
-                    <th colspan="2" id="prod2" class="editable-cell text-xs leading-tight">-</th>
-                    <th colspan="2" id="prod3" class="editable-cell text-xs leading-tight">-</th>
-                    <th colspan="2" id="prod4" class="editable-cell text-xs leading-tight">-</th>
-                    <th colspan="2" id="prod5" class="editable-cell text-xs leading-tight">-</th>
+                    <th colspan="2" id="prod1" class="editable-cell text-[10px] leading-tight">-</th>
+                    <th colspan="2" id="prod2" class="editable-cell text-[10px] leading-tight">-</th>
+                    <th colspan="2" id="prod3" class="editable-cell text-[10px] leading-tight">-</th>
+                    <th colspan="2" id="prod4" class="editable-cell text-[10px] leading-tight">-</th>
+                    <th colspan="2" id="prod5" class="editable-cell text-[10px] leading-tight">-</th>
                 </tr>
                 <tr>
                     <th colspan="3" class="bg-light-gray">계약일자</th>
@@ -238,7 +238,7 @@
                 <tr><td class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
                 <tr><td colspan="2" class="bg-light-gray">뇌/심(순환계)치료비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td></tr>
 
-                <!-- 장기요양 / 실손의료비 -->
+                <!-- 장기요양 / 실손의료비 (규칙 9 반영 타겟) -->
                 <tr>
                     <td rowspan="3" class="bg-light-gray">장기요양(치매)<br><span class="text-[9px]">(5-인지지원등급)</span></td>
                     <td colspan="2" class="bg-light-gray">복지용품+주야간이용</td>
@@ -284,7 +284,7 @@
                 <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" id="res-일배책" class="editable-cell text-red-600 font-bold">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
-                <!-- 보험료 -->
+                <!-- 보험료 (규칙 10 적용) -->
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
@@ -374,12 +374,12 @@
             return num.toLocaleString() + "원";
         }
 
-        // 정규식을 활용하여 텍스트에서 데이터를 추출하는 핵심 함수
+        // 정규식을 활용하여 텍스트에서 데이터를 추출하는 다이내믹 엔진
         function extractDataFromText(text) {
             let rawContracts = [];
             
             // 1. 보유 계약 리스트 추출 로직 (정규식 기반 스캐너)
-            // 매칭 순서: (순번) | (회사명) | (상품명) | (계약일) | (납입기간) | (만기) | (보험료)
+            // 매칭: 순번 | 회사명 | 상품명 | 계약일 | 납입기간/주기 | 만기 | 보험료
             const contractPattern = /(\d{1,2})\s*(?:\|\s*)?([가-힣a-zA-Z0-9\(\)\s_\.\-\+\[\]]+?)\s*(?:\|\s*)?(\d{4}[-\.]\d{2}[-\.]\d{2})\s*(?:\|\s*)?(?:월납|연납|일시납|0년)?\s*(\d+년납?|월납|전기납|일시납|\d+세납?|0년)\s*(?:\|\s*)?(\d+세(?:만기)?|종신|100세)\s*(?:\|\s*)?([\d,]+원|-|보험료미제공|납입완료\s*[\d,]*원?)/g;
             
             let match;
@@ -412,7 +412,7 @@
                 
                 let hasRenewableRider = prod.includes("갱신형");
                 
-                // [규칙 10] 가입담보상세 영역에서 "납입완료" 키워드 정밀 교차 검증
+                // [규칙 10] 상품별 가입담보상세 내 납입완료 문구 스캔
                 let isPaidUp = false;
                 if (premium.includes("납입완료")) {
                     isPaidUp = true;
@@ -465,18 +465,21 @@
             }
 
             if (rawContracts.length === 0) {
-                alert("PDF에서 계약 정보를 추출하지 못했습니다. 원본 파일의 암호화 설정이나 스캔 양식 형식을 확인해주세요.");
+                alert("PDF에서 계약 정보를 추출하지 못했습니다. 표준 양식이 맞는지 확인해주세요.");
                 return;
             }
 
-            // [규칙 9] 데이터 병합 로직 (실손 통합)
+            // [규칙 9] 데이터 병합 로직 (실손 통합) - '보험료미제공'과 '납입완료' 엄격히 구분
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
+                
                 if (duplicate) {
+                    // 동일 상품 존재 시, '보험료미제공'이 있다면 실비로 병합 및 세대 추출
                     if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
+                        // 중복된 기존 데이터가 미제공이고 새로 들어온게 금액이 있으면 교체
                         duplicate.premium = curr.premium; 
                         duplicate.isPaidUp = curr.isPaidUp;
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
@@ -486,7 +489,7 @@
                 }
             });
 
-            // 페이징 계산
+            // 페이징 계산 (규칙 8)
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             currentPage = 1;
@@ -498,7 +501,7 @@
             }
 
             renderPage();
-            alert(`[스캐너 데이터 추출 완료]\n총 ${rawContracts.length}건을 파싱하여 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 동적 생성되었습니다.`);
+            alert(`[데이터 추출 완료]\n총 ${rawContracts.length}건을 파싱하여 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 생성되었습니다.`);
         }
 
         function renderPage() {
@@ -584,15 +587,16 @@
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
                     // [규칙 10] 완벽 분리: 납입완료 vs 보험료미제공 vs 정상금액
-                    if (contract.isPaidUp) {
+                    if (contract.isPaidUp || contract.premium.includes("납입완료")) {
+                        // 납입완료: 텍스트 변경 및 0원 처리
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
+                        // 정상 금액 및 미제공: 원문 유지 및 숫자 파싱
                         document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
-                        // 합산을 위해 파싱 (미제공은 parsePremium 내부에서 0으로 반환됨)
                         currentPageSum += parsePremium(contract.premium);
                     }
 
@@ -600,14 +604,6 @@
                     if (contract.silbiGen) {
                         document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     }
-                    
-                    // UI에 시각적 확인을 위한 더미 체크 마크 (사용자 임의 수정 가능 영역)
-                    if(contract.comp.includes("생명")) document.getElementById(`d_life_${idNum}`).innerText = "O";
-                    else {
-                        document.getElementById(`d_dieD_${idNum}`).innerText = "O";
-                        document.getElementById(`d_dieS_${idNum}`).innerText = "O";
-                    }
-                    if(contract.prod.includes("암")) document.getElementById(`d_cancer_${idNum}`).innerText = "O";
                 });
 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
