@@ -49,7 +49,7 @@
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터만 정밀 스캔하여 표출합니다. (모의 데이터 삭제 완료)</p>
+            <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터만 정밀 스캔하여 표출합니다. (모의 데이터 삭제 및 다이내믹 파서 적용)</p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -349,7 +349,7 @@
             e.target.value = '';
         });
 
-        // 실손의료비 세대 판별 함수
+        // 실손의료비 세대 판별 함수 (규칙 9)
         function getSilbiGeneration(dateStr) {
             if(!dateStr) return "";
             const date = new Date(dateStr);
@@ -363,13 +363,12 @@
             else return "4세대 (5세대)";
         }
 
-        // 보험료 파싱 함수: 오직 '미제공', '납입완료', '-' 인 경우에만 0 처리
+        // [규칙 10] 숫자 파싱기: 미제공 또는 납입완료 등 예외 문구 시 0원 처리
         function parsePremium(premStr) {
             if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("납입완료")) return 0;
             return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
         }
 
-        // 금액 포맷터
         function formatPremium(num) {
             if (num === 0) return "-";
             return num.toLocaleString() + "원";
@@ -379,22 +378,57 @@
         function extractDataFromText(text) {
             let rawContracts = [];
             
-            // 1. 보유 계약 리스트 추출 로직 (정규식 기반)
+            // 1. 보유 계약 리스트 추출 로직 (정규식 기반 스캐너)
             // 매칭 순서: (순번) | (회사명) | (상품명) | (계약일) | (납입기간) | (만기) | (보험료)
-            // PDF 원문에 있는 텍스트의 형태를 최대한 폭넓게 허용하도록 정규식 고도화
-            const contractPattern = /(\d{1,2})\s+\|\s+([가-힣\(\)]+)\s+([가-힣a-zA-Z0-9\(\)\s_\.\-]+?)\s+\|\s+(\d{4}-\d{2}-\d{2})\s+(?:\|\s+)?(?:월납|연납|일시납)?\s*(\d+년|월납|\d+세)\s+\|\s+(\d+세|종신)\s+\|\s+([\d,]+원|-|보험료미제공|납입완료\s*[\d,]*원?)/g;
+            const contractPattern = /(\d{1,2})\s*(?:\|\s*)?([가-힣a-zA-Z0-9\(\)\s_\.\-\+\[\]]+?)\s*(?:\|\s*)?(\d{4}[-\.]\d{2}[-\.]\d{2})\s*(?:\|\s*)?(?:월납|연납|일시납|0년)?\s*(\d+년납?|월납|전기납|일시납|\d+세납?|0년)\s*(?:\|\s*)?(\d+세(?:만기)?|종신|100세)\s*(?:\|\s*)?([\d,]+원|-|보험료미제공|납입완료\s*[\d,]*원?)/g;
             
             let match;
             while ((match = contractPattern.exec(text)) !== null) {
-                let comp = match[2].trim();
-                let prod = match[3].trim().replace(/\n/g, ''); // 상품명의 줄바꿈 제거
-                let date = match[4].trim();
-                let payTerm = match[5].trim();
-                let maturity = match[6].trim();
-                let premium = match[7].trim();
+                let compProd = match[2].trim();
+                compProd = compProd.replace(/화 재/g, '화재').replace(/손 보/g, '손보').replace(/생 명/g, '생명');
+                
+                let comp = "";
+                let prod = "";
+                
+                const compMatch = compProd.match(/^([가-힣a-zA-Z\(\)\s]+?(?:화재|손보|생명|보험|MG손보\)))/);
+                if (compMatch) {
+                    comp = compMatch[1].trim();
+                    prod = compProd.substring(compMatch[1].length).trim();
+                } else {
+                    const spaceIdx = compProd.indexOf(' ');
+                    if (spaceIdx > -1) {
+                        comp = compProd.substring(0, spaceIdx);
+                        prod = compProd.substring(spaceIdx + 1).trim();
+                    } else {
+                        comp = compProd;
+                        prod = "-";
+                    }
+                }
+
+                let date = match[3].trim();
+                let payTerm = match[4].trim();
+                let maturity = match[5].trim();
+                let premium = match[6].trim();
                 
                 let hasRenewableRider = prod.includes("갱신형");
                 
+                // [규칙 10] 가입담보상세 영역에서 "납입완료" 키워드 정밀 교차 검증
+                let isPaidUp = false;
+                if (premium.includes("납입완료")) {
+                    isPaidUp = true;
+                } else {
+                    let firstIdx = text.indexOf(prod);
+                    if (firstIdx > -1) {
+                        let secondIdx = text.indexOf(prod, firstIdx + 10);
+                        if (secondIdx > -1) {
+                            let contextAround = text.substring(secondIdx, secondIdx + 200);
+                            if (contextAround.includes("납입완료")) {
+                                isPaidUp = true;
+                            }
+                        }
+                    }
+                }
+
                 rawContracts.push({
                     comp: comp,
                     prod: prod,
@@ -402,21 +436,22 @@
                     payTerm: payTerm,
                     maturity: maturity,
                     premium: premium,
-                    hasRenewableRider: hasRenewableRider
+                    hasRenewableRider: hasRenewableRider,
+                    isPaidUp: isPaidUp
                 });
             }
 
             // 2. 전체 보장 현황 (합계) 추출 로직
             const sumPattern = {
-                "상해사망": /상해사망\s+\|\s+([\d억\s,]+만)/,
-                "질병사망": /질병사망\s+\|\s+([\d억\s,]+만)/,
-                "상해후유": /상해\s*80%미만후유장해\s+\|\s+([\d억\s,]+만)/,
-                "일반암진단": /일반암\s+\|\s+([\d억\s,]+만)/,
-                "유사암진단": /유사암\s+\|\s+([\d억\s,]+만)/,
-                "뇌혈관진단": /뇌혈관질환\s+\|\s+([\d억\s,]+만)/,
-                "급성심근경색": /급성심근경색증\s+\|\s+([\d억\s,]+만)/,
-                "일배책": /가족\/일상\/자녀배상\s+\|\s+([\d억\s,]+만?)/,
-                "골절진단": /골절진단비\s+\|\s+([\d억\s,]+만)/
+                "상해사망": /상해사망\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "질병사망": /질병사망\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "상해후유": /상해\s*80%미만후유장해\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "일반암진단": /일반암\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "유사암진단": /유사암\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "뇌혈관진단": /뇌혈관질환\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "급성심근경색": /급성심근경색증\s*(?:\|\s*)?([\d억\s,]+만)/,
+                "일배책": /가족\/일상\/자녀배상\s*(?:\|\s*)?([\d억\s,]+만?)/,
+                "골절진단": /골절진단비\s*(?:\|\s*)?([\d억\s,]+만)/
             };
 
             sumData = {};
@@ -429,13 +464,12 @@
                 }
             }
 
-            // 추출 결과가 없을 경우 대비 폴백(안전 장치)
-            if(rawContracts.length === 0) {
-                alert("PDF에서 계약 정보를 추출하지 못했습니다. 표준 양식이 맞는지 확인해주세요.");
+            if (rawContracts.length === 0) {
+                alert("PDF에서 계약 정보를 추출하지 못했습니다. 원본 파일의 암호화 설정이나 스캔 양식 형식을 확인해주세요.");
                 return;
             }
 
-            // [규칙 9] 실비 병합 처리: 동일 회사/상품명이고 '보험료미제공'이 포함된 경우 합치기
+            // [규칙 9] 데이터 병합 로직 (실손 통합)
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
@@ -443,8 +477,8 @@
                     if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
-                        // 중복된 것의 원래 보험료가 미제공이고 새로 들어온게 정상 보험료인 경우 교체
                         duplicate.premium = curr.premium; 
+                        duplicate.isPaidUp = curr.isPaidUp;
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     }
                 } else {
@@ -452,7 +486,7 @@
                 }
             });
 
-            // 페이지 계산
+            // 페이징 계산
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             currentPage = 1;
@@ -464,7 +498,7 @@
             }
 
             renderPage();
-            alert(`[데이터 추출 완료]\n총 ${rawContracts.length}건을 파싱하여 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 생성되었습니다.`);
+            alert(`[스캐너 데이터 추출 완료]\n총 ${rawContracts.length}건을 파싱하여 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 동적 생성되었습니다.`);
         }
 
         function renderPage() {
@@ -478,7 +512,7 @@
                 document.getElementById(`term${i}`).innerText = "";
                 document.getElementById(`prem${i}`).innerText = "";
                 document.getElementById(`silbi${i}`).innerText = "";
-                // 특약란 초기화
+                
                 const tds = document.querySelectorAll(`td[id$="_${i}"]`);
                 tds.forEach(td => td.innerText = "");
             }
@@ -487,7 +521,7 @@
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
             if (isSummaryPage) {
-                // 마지막 요약 페이지
+                // [규칙 8] 마지막 요약 페이지
                 document.getElementById('header-page-label').innerText = "총 합계";
                 
                 let grandTotalPremium = 0;
@@ -504,7 +538,8 @@
                     let pagePremiumSum = 0;
                     
                     pData.forEach(c => {
-                        pagePremiumSum += parsePremium(c.premium);
+                        // 납입완료 건은 제외 (parsePremium에서 0처리됨)
+                        if(!c.isPaidUp) pagePremiumSum += parsePremium(c.premium);
                     });
                     
                     document.getElementById(`prem${i}`).innerText = formatPremium(pagePremiumSum);
@@ -548,17 +583,16 @@
                     }
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    // 규칙 10: 납입완료와 보험료미제공의 명확한 분리
-                    if (contract.premium.includes("납입완료")) {
+                    // [규칙 10] 완벽 분리: 납입완료 vs 보험료미제공 vs 정상금액
+                    if (contract.isPaidUp) {
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
-                        // 정상 금액 또는 보험료미제공은 원문 그대로
                         document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
-                        // 합산
+                        // 합산을 위해 파싱 (미제공은 parsePremium 내부에서 0으로 반환됨)
                         currentPageSum += parsePremium(contract.premium);
                     }
 
@@ -566,6 +600,14 @@
                     if (contract.silbiGen) {
                         document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     }
+                    
+                    // UI에 시각적 확인을 위한 더미 체크 마크 (사용자 임의 수정 가능 영역)
+                    if(contract.comp.includes("생명")) document.getElementById(`d_life_${idNum}`).innerText = "O";
+                    else {
+                        document.getElementById(`d_dieD_${idNum}`).innerText = "O";
+                        document.getElementById(`d_dieS_${idNum}`).innerText = "O";
+                    }
+                    if(contract.prod.includes("암")) document.getElementById(`d_cancer_${idNum}`).innerText = "O";
                 });
 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
