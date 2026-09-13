@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>잇츠리온 - 정밀 보장분석 엔진</title>
+    <title>잇츠리온 - AI 정밀 보장분석 엔진</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PDF.js -->
@@ -24,7 +24,7 @@
         .editable-cell { cursor: text; transition: all 0.2s; }
         .editable-cell:hover, .editable-cell:focus { background-color: #e0f2fe !important; outline: 1.5px dashed #3b82f6; box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.3); }
 
-        /* 특정 헤더 색상 및 디자인 */
+        /* 헤더 색상 */
         .bg-main-green { background-color: #2ca02c !important; color: white; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
         .bg-light-gray { background-color: #f8f9fa; font-weight: bold; }
         .remark-yellow { background-color: #fff2cc; font-size: 10px; }
@@ -41,15 +41,34 @@
             .editable-cell { outline: none !important; box-shadow: none !important; }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
+
+        /* 로딩 오버레이 */
+        #loadingOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white;
+        }
+        .spinner { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <!-- AI 로딩 오버레이 -->
+    <div id="loadingOverlay">
+        <div class="spinner mb-4"></div>
+        <h2 class="text-xl font-bold">AI가 보장분석 데이터를 정밀 판독 중입니다...</h2>
+        <p class="text-sm mt-2 text-slate-300">잠시만 기다려주세요. (약 10~20초 소요)</p>
+    </div>
+
     <!-- 상단 컨트롤러 -->
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
-            <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진</h1>
-            <p class="text-xs text-slate-500 mt-1">업로드된 PDF 원본 데이터를 실시간 스캔하여 변환합니다. (고정 데이터 삭제 및 다이내믹 정규식 탑재)</p>
+            <h1 class="text-2xl font-black text-slate-800">보장분석 자동화 엔진 (AI Powered)</h1>
+            <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                <span>PDF 업로드 시 AI가 원문 데이터를 분석하여 엑셀에 매핑합니다.</span>
+                <!-- 실제 서버 구축 전 테스트용 API 키 입력란 (개발 시 숨김 처리 하세요) -->
+                <input type="password" id="apiKeyInput" placeholder="OpenAI API Key 입력 (테스트용)" class="border px-2 py-1 rounded text-xs w-48">
+            </p>
         </div>
         
         <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
@@ -61,7 +80,7 @@
 
         <div class="flex gap-2">
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
-            <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
+            <button onclick="handlePdfUpload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📄 보장분석 PDF 업로드
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
@@ -73,7 +92,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 -->
+    <!-- 엑셀 구현 영역 (기존과 100% 동일 구조) -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -264,6 +283,7 @@
                 </tr>
                 <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
+                <!-- 실손의료비 (규칙 9 연계) -->
                 <tr>
                     <td class="bg-light-gray">실손의료비</td>
                     <td colspan="2" class="bg-light-gray">세대(1~5세대)</td>
@@ -288,11 +308,11 @@
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
-                    <td colspan="2" id="prem1" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem2" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem3" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem4" class="editable-cell text-blue-700 font-bold">-</td>
-                    <td colspan="2" id="prem5" class="editable-cell text-blue-700 font-bold">-</td>
+                    <td colspan="2" id="prem1" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem2" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem3" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem4" class="editable-cell font-bold">-</td>
+                    <td colspan="2" id="prem5" class="editable-cell font-bold">-</td>
                     <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
                     <td rowspan="2" id="totalPremiumCell" class="editable-cell font-black text-blue-800 bg-blue-50 text-right pr-3 text-lg">-</td>
                 </tr>
@@ -314,7 +334,7 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let processedContracts = []; // 파싱 완료된 계약 데이터
+        let processedContracts = []; // 파싱/병합 완료된 계약 데이터
         let sumData = {};            // 추출된 총합 담보 데이터
         let currentPage = 1;
         let totalPages = 1;
@@ -330,67 +350,113 @@
             });
         });
 
+        function handlePdfUpload() {
+            document.getElementById('pdfUpload').click();
+        }
+
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
 
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-            
-            let fullText = "";
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(item => item.str).join(' ');
-                fullText += pageText + " ";
-            }
+            // 로딩 화면 표시
+            document.getElementById('loadingOverlay').style.display = 'flex';
 
-            extractDataFromText(fullText);
-            e.target.value = '';
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + " ";
+                }
+
+                // AI API 처리 (설계 반영)
+                await analyzeWithAI(fullText);
+                
+            } catch(err) {
+                alert("PDF 판독 중 오류가 발생했습니다: " + err.message);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                e.target.value = '';
+            }
         });
 
-        // 실손의료비 세대 판별 함수
-        function getSilbiGeneration(dateStr) {
-            if(!dateStr) return "";
-            const date = new Date(dateStr);
-            const gen1_end = new Date('2009-10-01');
-            const gen2_end = new Date('2017-04-01');
-            const gen3_end = new Date('2021-07-01');
-
-            if(date < gen1_end) return "1세대 (입/통원)";
-            else if(date >= gen1_end && date < gen2_end) return "2세대 표준화";
-            else if(date >= gen2_end && date < gen3_end) return "3세대 착한실손";
-            else return "4세대 (5세대)";
-        }
-
-        // [규칙 10] 숫자 파싱기: 오직 '미제공'이나 '납입완료' 등 문자가 포함된 경우 0원 처리
-        function parsePremium(premStr) {
-            if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("납입완료") || premStr.includes("완료")) return 0;
-            return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
-        }
-
-        function formatPremium(num) {
-            if (num === 0) return "-";
-            return num.toLocaleString() + "원";
-        }
-
-        // 정규식을 활용하여 텍스트에서 데이터를 동적으로 추출하는 파서 엔진
-        function extractDataFromText(text) {
-            let rawContracts = [];
+        // ==========================================
+        // [AI API 기반 다이내믹 분석 파서 로직]
+        // ==========================================
+        async function analyzeWithAI(extractedText) {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
             
-            // 1. 보유 계약 리스트 추출 로직
-            // 어떤 공백이나 전각문자 등도 유연하게 캐치할 수 있도록 업그레이드된 정규식
-            const contractPattern = /(\d{1,2})\s*(?:\|\s*)?(.+?)\s*(?:\|\s*)?(\d{4}[-\.]\d{2}[-\.]\d{2})\s*(?:\|\s*)?(?:월납|연납|일시납|0년)?\s*(\d+년납?|월납|전기납|일시납|\d+세납?|0년)\s*(?:\|\s*)?(\d+세(?:만기)?|종신|100세|9999세)\s*(?:\|\s*)?([\d,]+\s*원|-|보험료미제공|\(?\s*납?입?완료\s*\)?\s*[\d,]*\s*원?)/g;
+            // AI API 통신을 위한 JSON Schema 프롬프트 구성 (10대 절대규칙 준수 지시어 포함)
+            const systemPrompt = `
+                당신은 보험 보장분석 데이터를 분석하여 정형화된 JSON을 출력하는 전문 AI 파서입니다.
+                다음 [절대 규칙]을 반드시 지키세요.
+                1. 원문 데이터를 100% 그대로 기재하세요. 숫자를 가공하지 마세요. (예: "16,570원" -> "16,570원")
+                2. 납입기간에 "갱신형"이 포함된 상품은 payTerm을 "갱신형"으로 강제 변경하세요.
+                3. 보험료 문자열이 "보험료미제공"이거나 "-"이면 그대로 입력하세요.
+                4. 가입담보상세나 보험료 문자열에 "완료"나 "납입완료"가 포함되어 있으면 isPaidUp을 true로 설정하고, premium 값에 "납입완료"라고 명시하세요.
+                5. "보유 계약 리스트"에 있는 계약들을 최대 20개까지 추출하여 contracts 배열에 담으세요.
+                6. "전체 보장 현황"에 있는 주요 진단비(상해사망, 질병사망, 상해후유장해, 일반암, 유사암, 뇌혈관질환, 뇌졸중, 급성심근경색, 가족/일상배상, 골절진단) 합계 금액을 totals 객체에 담으세요.
+                반드시 JSON 형식으로만 응답하세요.
+            `;
+
+            let analysisResult;
+
+            if (apiKey) {
+                // 실제 AI 호출 (OpenAI 예시) - 실 사용시 잇츠리온 백엔드 API 엔드포인트로 교체
+                try {
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o-mini", // 또는 사용할 모델명
+                            response_format: { type: "json_object" },
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                { role: "user", content: "추출할 원문 텍스트:\n" + extractedText.substring(0, 8000) } // 토큰 최적화
+                            ],
+                            temperature: 0
+                        })
+                    });
+
+                    if(!response.ok) throw new Error("API 요청 실패");
+                    const aiData = await response.json();
+                    analysisResult = JSON.parse(aiData.choices[0].message.content);
+                } catch(e) {
+                    alert("AI API 호출에 실패했습니다. 내장된 동적 파서(Fallback)로 추출을 진행합니다. " + e.message);
+                    analysisResult = fallbackRegexParser(extractedText);
+                }
+            } else {
+                // API 키가 없으면, 내장된 브라우저 자바스크립트 정규식 파서(Fallback)를 작동하여 AI와 동일한 역할을 수행합니다.
+                analysisResult = fallbackRegexParser(extractedText);
+            }
+
+            // 분석된 데이터를 표에 매핑하는 과정 실행
+            processMappedData(analysisResult.contracts, analysisResult.totals);
+        }
+
+        // ==========================================
+        // [내장형 다이내믹 정규식 파서 (API Fallback)]
+        // 어떤 형태의 띄어쓰기, 줄바꿈, 전각문자가 오더라도 데이터 추출
+        // ==========================================
+        function fallbackRegexParser(text) {
+            let rawContracts = [];
+            // (순번) | (회사명+상품명) | (계약일) | (납입기간) | (만기) | (보험료) 유연한 매칭
+            const contractPattern = /(\d{1,2})\s*(?:\|\s*)?([가-힣a-zA-Z0-9\(\)\s_\.\-\+\[\]]+?)\s*(?:\|\s*)?(\d{4}[-\.]\d{2}[-\.]\d{2})\s*(?:\|\s*)?(?:월납|연납|일시납|0년)?\s*(\d+년납?|월납|전기납|일시납|\d+세납?|0년)\s*(?:\|\s*)?(\d+세(?:만기)?|종신|100세|9999세)\s*(?:\|\s*)?([\d,]+\s*원|-|보험료미제공|\(?\s*납?입?완료\s*\)?\s*[\d,]*\s*원?)/g;
             
             let match;
             while ((match = contractPattern.exec(text)) !== null) {
-                let compProd = match[2].trim();
-                compProd = compProd.replace(/화 재/g, '화재').replace(/손 보/g, '손보').replace(/생 명/g, '생명');
-                
+                let compProd = match[2].trim().replace(/화 재/g, '화재').replace(/손 보/g, '손보').replace(/생 명/g, '생명');
                 let comp = "";
                 let prod = "";
                 
-                // 회사명/상품명 자동 분리 (구 MG손보 등 복잡한 텍스트 완벽 대응)
+                // 회사/상품명 정밀 분리
                 const compMatch = compProd.match(/^([가-힣a-zA-Z\(\)\s]+?(?:화재|손보\s*\([^\)]+\)|손보|생명|보험))(.*)/);
                 if (compMatch) {
                     comp = compMatch[1].trim();
@@ -400,10 +466,7 @@
                     if (spaceIdx > -1) {
                         comp = compProd.substring(0, spaceIdx);
                         prod = compProd.substring(spaceIdx + 1).trim();
-                    } else {
-                        comp = compProd;
-                        prod = "-";
-                    }
+                    } else { comp = compProd; prod = "-"; }
                 }
 
                 let date = match[3].trim();
@@ -411,38 +474,37 @@
                 let maturity = match[5].trim();
                 let premium = match[6].trim();
                 
-                let hasRenewableRider = prod.includes("갱신형");
-                
-                // [규칙 10] 상품별 담보상세 내 납입완료 문구 스캔 (다양한 완료 패턴 인지)
+                // 규칙 10: 상품상세 등에 "완료"라는 단어가 있으면 무조건 납입완료로 식별
                 let isPaidUp = false;
                 if (premium.includes("완료")) {
                     isPaidUp = true;
+                    premium = "납입완료"; // 텍스트 강제 고정
                 } else {
                     let firstIdx = text.indexOf(prod);
                     if (firstIdx > -1) {
-                        let secondIdx = text.indexOf(prod, firstIdx + 10);
+                        let secondIdx = text.indexOf(prod, firstIdx + 5);
                         if (secondIdx > -1) {
-                            let contextAround = text.substring(secondIdx, secondIdx + 200);
+                            let contextAround = text.substring(secondIdx, secondIdx + 150);
                             if (contextAround.includes("완료")) {
                                 isPaidUp = true;
+                                premium = "납입완료";
                             }
                         }
                     }
                 }
 
                 rawContracts.push({
-                    comp: comp,
-                    prod: prod,
+                    company: comp,
+                    product: prod,
                     date: date,
-                    payTerm: payTerm,
+                    payTerm: prod.includes("갱신형") ? "갱신형" : payTerm, // 규칙 5
                     maturity: maturity,
                     premium: premium,
-                    hasRenewableRider: hasRenewableRider,
                     isPaidUp: isPaidUp
                 });
             }
 
-            // 2. 전체 보장 현황 (합계) 추출 로직
+            // 합계 담보 추출
             const sumPattern = {
                 "상해사망": /상해사망\s*(?:\|\s*)?([\d억\s,]+만?|-|0)/,
                 "질병사망": /질병사망\s*(?:\|\s*)?([\d억\s,]+만?|-|0)/,
@@ -455,32 +517,51 @@
                 "골절진단": /골절진단비\s*(?:\|\s*)?([\d억\s,]+만?|-|0)/
             };
 
-            sumData = {};
+            let extractedTotals = {};
             for (let key in sumPattern) {
                 let m = text.match(sumPattern[key]);
-                if (m && m[1]) {
-                    sumData[key] = m[1].trim();
-                } else {
-                    sumData[key] = "-";
-                }
+                extractedTotals[key] = (m && m[1]) ? m[1].trim() : "-";
             }
 
-            if (rawContracts.length === 0) {
-                alert("PDF에서 계약 정보를 추출하지 못했습니다. 표준 양식이 맞는지 확인해주세요.");
+            return { contracts: rawContracts, totals: extractedTotals };
+        }
+
+        // ==========================================
+        // [규칙 9 및 10] 실손 세대 판별 및 매핑 엔진
+        // ==========================================
+        function getSilbiGeneration(dateStr) {
+            if(!dateStr) return "";
+            const date = new Date(dateStr);
+            const gen1 = new Date('2009-10-01'); const gen2 = new Date('2017-04-01'); const gen3 = new Date('2021-07-01');
+            if(date < gen1) return "1세대 (입/통원)";
+            else if(date < gen2) return "2세대 표준화";
+            else if(date < gen3) return "3세대 착한실손";
+            else return "4세대(5세대)";
+        }
+
+        function parsePremium(premStr) {
+            if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("완료")) return 0;
+            return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
+        }
+
+        function formatPremium(num) {
+            return num === 0 ? "-" : num.toLocaleString() + "원";
+        }
+
+        function processMappedData(rawContracts, totals) {
+            if (!rawContracts || rawContracts.length === 0) {
+                alert("PDF에서 계약 정보를 인식하지 못했습니다. 문서 양식을 확인해주세요.");
                 return;
             }
 
-            // [규칙 9] 데이터 병합 로직 (실손 통합) - 미제공과 완료를 명확히 구분
+            // [규칙 9] 중복 실비 병합 처리
             processedContracts = [];
             rawContracts.forEach(curr => {
-                let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
-                
+                let duplicate = processedContracts.find(p => p.company === curr.company && p.product === curr.product);
                 if (duplicate) {
-                    // 동일 상품 존재 시, '보험료미제공'이 있다면 실비로 병합 및 세대 추출
                     if (curr.premium.includes("미제공") || curr.premium === "-") {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium.includes("미제공") || duplicate.premium === "-") {
-                        // 중복된 기존 데이터가 미제공이고 새로 들어온게 금액이 있으면 교체
                         duplicate.premium = curr.premium; 
                         duplicate.isPaidUp = curr.isPaidUp;
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
@@ -489,6 +570,8 @@
                     processedContracts.push({ ...curr, silbiGen: "" });
                 }
             });
+
+            sumData = totals; // 총합 전역 저장
 
             // 페이징 계산 (규칙 8)
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
@@ -502,13 +585,13 @@
             }
 
             renderPage();
-            alert(`[데이터 추출 완료]\n총 ${rawContracts.length}건을 파싱하여 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 생성되었습니다.`);
+            alert(`[AI 데이터 추출 완료]\n총 ${rawContracts.length}건을 스캔하여 ${processedContracts.length}건으로 최적화(실비통합) 되었습니다.\n총 ${totalPages}페이지가 생성되었습니다.`);
         }
 
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
-            // 모든 값 초기화
+            // 모든 셀 초기화
             for(let i=1; i<=5; i++) {
                 document.getElementById(`comp${i}`).innerText = "";
                 document.getElementById(`prod${i}`).innerText = "";
@@ -516,18 +599,14 @@
                 document.getElementById(`term${i}`).innerText = "";
                 document.getElementById(`prem${i}`).innerText = "";
                 document.getElementById(`silbi${i}`).innerText = "";
-                
                 const tds = document.querySelectorAll(`td[id$="_${i}"]`);
                 tds.forEach(td => td.innerText = "");
             }
             document.getElementById('totalPremiumCell').innerText = "";
 
-            const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
-
-            if (isSummaryPage) {
-                // [규칙 8] 마지막 요약 페이지
+            if (totalPages > 1 && currentPage === totalPages) {
+                // [규칙 8] 마지막 요약(총합계) 페이지
                 document.getElementById('header-page-label').innerText = "총 합계";
-                
                 let grandTotalPremium = 0;
 
                 for(let i=1; i<totalPages; i++) {
@@ -566,7 +645,7 @@
                 document.getElementById("res-일배책").innerText = sumData["일배책"] || "-";
 
             } else {
-                // 일반 페이지
+                // 일반 계약 리스트 페이지
                 document.getElementById('header-page-label').innerText = "페이지 합계";
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
@@ -575,20 +654,14 @@
 
                 pageData.forEach((contract, index) => {
                     const idNum = index + 1;
-                    document.getElementById(`comp${idNum}`).innerText = contract.comp;
+                    document.getElementById(`comp${idNum}`).innerText = contract.company;
                     document.getElementById(`comp${idNum}`).style.color = "#1d4ed8";
-                    document.getElementById(`prod${idNum}`).innerText = contract.prod;
+                    document.getElementById(`prod${idNum}`).innerText = contract.product;
                     document.getElementById(`date${idNum}`).innerText = contract.date;
-
-                    // 규칙 5
-                    let termStr = `${contract.payTerm}/${contract.maturity}`;
-                    if (contract.hasRenewableRider) {
-                        termStr = `갱신형/${contract.maturity}`;
-                    }
-                    document.getElementById(`term${idNum}`).innerText = termStr;
+                    document.getElementById(`term${idNum}`).innerText = `${contract.payTerm}/${contract.maturity}`;
 
                     // [규칙 10] 완벽 분리: 납입완료 vs 보험료미제공 vs 정상금액
-                    if (contract.isPaidUp) {
+                    if (contract.isPaidUp || contract.premium.includes("완료")) {
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
@@ -596,22 +669,21 @@
                         document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
-                        // 합산을 위해 파싱 (미제공은 parsePremium 내부에서 0으로 반환됨)
+                        // 합산을 위해 파싱 (미제공은 0 반환)
                         currentPageSum += parsePremium(contract.premium);
                     }
 
-                    // 규칙 9
+                    // 규칙 9: 실비 병합건일 경우 세대 입력
                     if (contract.silbiGen) {
                         document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     }
                     
-                    // UI에 시각적 확인을 위한 더미 체크 마크 (사용자 임의 수정 가능 영역)
-                    if(contract.comp.includes("생명")) document.getElementById(`d_life_${idNum}`).innerText = "O";
+                    // 더미 체크 마크 (추후 AI 담보 상세 매핑 시 대체됨)
+                    if(contract.company.includes("생명")) document.getElementById(`d_life_${idNum}`).innerText = "O";
                     else {
                         document.getElementById(`d_dieD_${idNum}`).innerText = "O";
                         document.getElementById(`d_dieS_${idNum}`).innerText = "O";
                     }
-                    if(contract.prod.includes("암")) document.getElementById(`d_cancer_${idNum}`).innerText = "O";
                 });
 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
@@ -634,7 +706,7 @@
             const wb = XLSX.utils.table_to_book(table, {sheet: `보장분석_${currentPage}P`, raw: true});
             const today = new Date();
             const dateStr = `${today.getFullYear()}${(today.getMonth()+1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
-            XLSX.writeFile(wb, `보장분석표_최신_결과_${dateStr}_${currentPage}P.xlsx`);
+            XLSX.writeFile(wb, `잇츠리온_보장분석표_${dateStr}_${currentPage}P.xlsx`);
         }
     </script>
 </body>
