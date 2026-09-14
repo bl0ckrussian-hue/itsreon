@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>잇츠리온 - 정밀 보장분석 엔진 (하이브리드 AI)</title>
+    <title>잇츠리온 - 클라우드 & AI 보장분석 엔진</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (엑셀 변환 및 다운로드) -->
+    <!-- SheetJS (엑셀 다운로드용) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -18,7 +18,7 @@
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
-        /* [원칙 5] 설계사 직접 수정 가능 셀 UI 효과 */
+        /* 설계사 직접 수정 가능 셀 UI 효과 */
         .editable-cell { cursor: text; transition: all 0.2s; }
         .editable-cell:hover, .editable-cell:focus { background-color: #e0f2fe !important; outline: 1.5px dashed #3b82f6; box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.3); }
 
@@ -54,7 +54,7 @@
     <!-- 하이브리드 로딩 오버레이 -->
     <div id="loadingOverlay">
         <div class="spinner mb-5"></div>
-        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 엑셀 추출 대기 중...</h2>
+        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 연결 중...</h2>
         <p class="text-sm text-slate-300" id="progressDesc">PDF 데이터를 안전하게 전송하고 있습니다.</p>
         <div class="w-64 bg-slate-700 h-2 mt-6 rounded-full overflow-hidden">
             <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
@@ -64,13 +64,13 @@
     <!-- 상단 컨트롤러 -->
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
-            <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 엔진</h1>
+            <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 업로드 시 클라우드 서버 추출 및 AI 정밀 검수를 거쳐 보장분석표에 자동 입력됩니다. (수정 가능)</span>
+                <span>PDF 업로드 시 클라우드 변환 서버 및 AI 검수를 거쳐 엑셀표에 자동 입력됩니다. (직접 수정 가능)</span>
             </p>
         </div>
         
-        <!-- [규칙 7] 페이지 네비게이션 컨테이너 -->
+        <!-- 페이지 네비게이션 -->
         <div id="pagination-container" class="flex items-center space-x-3 bg-white px-4 py-1.5 rounded-full shadow border border-slate-200 hidden">
             <button onclick="changePage(-1)" class="text-slate-400 hover:text-blue-600 font-bold px-2 py-1 transition">◀</button>
             <span id="page-indicator" class="text-sm font-bold text-slate-800 tracking-widest">1 / 1</span>
@@ -78,9 +78,9 @@
         </div>
 
         <div class="flex gap-2">
-            <!-- 파일 타입을 PDF로 고정 -->
-            <input type="file" id="fileUpload" accept="application/pdf" class="hidden">
-            <button onclick="document.getElementById('fileUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
+            <!-- 파일 타입을 PDF로 고정하고 정확한 ID 매핑 -->
+            <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
+            <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📄 보장분석 PDF 원문 업로드
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
@@ -92,7 +92,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 (기존 잇츠리온 홈페이지 구조 유지) -->
+    <!-- 엑셀 구현 영역 (기존과 동일 구조) -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -330,7 +330,7 @@
         let totalPages = 1;
         const itemsPerPage = 5;
 
-        // 원칙 5: 셀 클릭 시 수정 가능토록 처리
+        // 셀 직접 수정 기능 부여
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
             cell.addEventListener('paste', function(e) {
@@ -340,11 +340,16 @@
             });
         });
 
-        // ==========================================
-        // 하이브리드 아키텍처 (클라우드 엑셀 변환 -> AI 파싱) 완벽 연동
-        // ==========================================
-        
-        // 파일을 Base64로 인코딩
+        // 1. 파일 업로드 핸들링 부분 (버그 수정 완료)
+        document.getElementById('pdfUpload').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            // 핵심 하이브리드 로직 실행
+            await executeHybridAnalysis(file);
+            e.target.value = ''; // 입력란 초기화
+        });
+
         function getBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -354,13 +359,9 @@
             });
         }
 
-        document.getElementById('pdfUpload').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            await executeHybridAnalysis(file);
-            e.target.value = '';
-        });
-
+        // ==========================================
+        // 하이브리드 아키텍처 (클라우드 엑셀 변환 -> AI 파싱) 완벽 연동
+        // ==========================================
         async function executeHybridAnalysis(file) {
             const loadingOverlay = document.getElementById('loadingOverlay');
             const progressTitle = document.getElementById('progressTitle');
