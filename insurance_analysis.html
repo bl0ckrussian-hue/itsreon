@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>잇츠리온 - 정밀 보장분석 엔진 (하이브리드 AI)</title>
-    <!-- Tailwind CSS -->
+    <title>잇츠리온 - 클라우드 & AI 보장분석 엔진</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (엑셀 다운로드용) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -16,7 +14,6 @@
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
-        /* [원칙 5] 설계사 직접 수정 가능 셀 UI 효과 */
         .editable-cell { cursor: text; transition: all 0.2s; }
         .editable-cell:hover, .editable-cell:focus { background-color: #e0f2fe !important; outline: 1.5px dashed #3b82f6; box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.3); }
 
@@ -38,26 +35,29 @@
 
         #loadingOverlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white;
+            background: rgba(15, 23, 42, 0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .spinner { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .spinner { border: 4px solid rgba(255,255,255,0.2); border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div id="loadingOverlay">
-        <div class="spinner mb-4"></div>
-        <h2 class="text-xl font-bold text-white mb-2" id="loadingTitle">클라우드 엑셀 변환 및 즉각 맵핑 중...</h2>
-        <p class="text-sm text-slate-300" id="loadingDesc">PDF를 안전하게 변환하여 지연 없이 표에 즉시 채워 넣습니다.</p>
+        <div class="spinner mb-5"></div>
+        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 연결 중...</h2>
+        <p class="text-sm text-slate-300" id="progressDesc">요청을 처리하고 있습니다.</p>
+        <div class="w-64 bg-slate-700 h-2 mt-6 rounded-full overflow-hidden">
+            <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+        </div>
     </div>
 
     <!-- 상단 컨트롤러 -->
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
-            <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
+            <h1 class="text-2xl font-black text-slate-800">잇츠리온 AI 보장분석 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>1차: 클라우드 연동 초고속 다이렉트 맵핑 ➔ 2차: AI 약관/오류 정밀 검수 (필요시 선택 실행)</span>
+                <span>PDF 업로드 ➔ 클라우드 엑셀 변환 ➔ AI 정밀 검수 ➔ 보장분석표 자동 작성</span>
             </p>
         </div>
         
@@ -71,9 +71,6 @@
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📄 보장분석 PDF 업로드
-            </button>
-            <button onclick="runAIVerification()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                🤖 AI 정밀 검수 실행
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📊 결과 엑셀 다운로드
@@ -163,16 +160,12 @@
                     <td id="res-질병사망" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해사망" class="editable-cell text-red-600 font-bold">-</td>
                 </tr>
                 
-                <!-- 장애 (에러 픽스: d_disD, d_disS ID 추가) -->
+                <!-- 장애 -->
                 <tr>
                     <td class="bg-light-gray">장애</td>
                     <td class="bg-light-gray">후유장애</td>
                     <td class="bg-light-gray">3%이상</td>
-                    <td id="d_disD_1" class="editable-cell"></td><td id="d_disS_1" class="editable-cell"></td>
-                    <td id="d_disD_2" class="editable-cell"></td><td id="d_disS_2" class="editable-cell"></td>
-                    <td id="d_disD_3" class="editable-cell"></td><td id="d_disS_3" class="editable-cell"></td>
-                    <td id="d_disD_4" class="editable-cell"></td><td id="d_disS_4" class="editable-cell"></td>
-                    <td id="d_disD_5" class="editable-cell"></td><td id="d_disS_5" class="editable-cell"></td>
+                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td>
                     <td id="res-질병후유" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해후유" class="editable-cell text-red-600 font-bold">-</td>
                     <td class="editable-cell"></td>
                 </tr>
@@ -320,14 +313,14 @@
     </div>
 
     <script>
-        // 전역 변수 설정
+        // 전역 변수
         let processedContracts = []; 
         let sumData = {};            
         let currentPage = 1;
         let totalPages = 1;
         const itemsPerPage = 5;
 
-        // 원칙 5: 셀 클릭 시 수정 가능토록 처리
+        // 셀 직접 수정 기능 부여
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
             cell.addEventListener('paste', function(e) {
@@ -337,7 +330,9 @@
             });
         });
 
-        // 1. 파일 업로드 리스너 (PDF 클라우드 전송 ➔ 엑셀 변환 ➔ 즉각 매핑)
+        // ==========================================
+        // 파일 업로드 (PDF ➔ Cloud Run 엑셀 변환 ➔ AI 검수 ➔ 화면 렌더링)
+        // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
@@ -351,13 +346,13 @@
                 loadingOverlay.style.display = 'flex';
                 
                 // STEP 1: 클라우드 파이썬 서버로 엑셀 변환 요청
-                progressTitle.innerText = "1/2. 클라우드 엑셀 추출 중...";
+                progressTitle.innerText = "1/3. 클라우드 엑셀 추출 중...";
                 progressDesc.innerText = "안전한 서버 환경에서 PDF를 테이블(Grid) 형태의 엑셀 데이터로 변환하고 있습니다.";
-                progressBar.style.width = '40%';
+                progressBar.style.width = '30%';
 
                 const base64data = await getBase64(file);
                 
-                // 팀장님께서 배포 성공하신 전용 클라우드 파이썬 서버 URL (오류 없는 통신)
+                // 팀장님께서 배포 성공하신 전용 클라우드 파서 URL
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
                 
                 const cloudRes = await fetch(CLOUD_PARSER_URL, {
@@ -366,32 +361,105 @@
                     body: JSON.stringify({ file_data: base64data })
                 });
 
-                if(!cloudRes.ok) throw new Error("클라우드 서버 변환에 실패했습니다. (서버 응답 오류)");
+                if(!cloudRes.ok) throw new Error("클라우드 서버 통신 에러가 발생했습니다.");
                 
                 const cloudData = await cloudRes.json();
-                if(!cloudData.success) throw new Error("파싱 에러: " + (cloudData.error || "알 수 없는 오류"));
+                if(!cloudData.success) throw new Error("PDF 파싱 에러: " + (cloudData.error || "알 수 없는 오류"));
 
                 const rawExcelData = cloudData.rawExcelData; 
-                
                 if(!rawExcelData || Object.keys(rawExcelData).length === 0) {
-                    throw new Error("엑셀로 변환할 테이블을 찾지 못했습니다. 파일 양식을 확인해 주세요.");
+                    throw new Error("엑셀로 변환할 테이블을 찾지 못했습니다. 파일 양식을 확인해주세요.");
                 }
 
-                // STEP 2: 자바스크립트로 즉각적인 다이렉트 맵핑 (소요시간 0.1초 - 무한 로딩 해결)
-                progressTitle.innerText = "2/2. 데이터 즉각 맵핑 중...";
-                progressDesc.innerText = "변환된 엑셀 데이터를 화면 양식에 맞추어 지연 없이 즉시 채워 넣습니다.";
+                // STEP 2: 추출된 엑셀 데이터를 통째로 AI에 넘겨서 검수 및 JSON 변환
+                progressTitle.innerText = "2/3. 잇츠리온 AI 정밀 검수 중...";
+                progressDesc.innerText = "추출된 엑셀 데이터를 바탕으로 [보장분석 12대 원칙]에 맞춰 문맥을 파악하고 있습니다.";
+                progressBar.style.width = '70%';
+
+                // AI에게 보낼 프롬프트 텍스트 조립 (엑셀 시트를 텍스트로 풀어씀)
+                let promptContext = "### 클라우드 엑셀 추출 데이터 ###\n";
+                for (let sheet in rawExcelData) {
+                    const rows = rawExcelData[sheet];
+                    // 빈 행 필터링
+                    const validRows = rows.filter(r => r.some(cell => cell !== null && cell !== ""));
+                    if(validRows.length > 0) {
+                        promptContext += `\n[${sheet}]\n`;
+                        validRows.forEach(r => {
+                            promptContext += r.join(" | ") + "\n";
+                        });
+                    }
+                }
+
+                const aiPrompt = `
+당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
+아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 아래 명시된 JSON 포맷으로만 출력하세요.
+(응답 시 마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.)
+
+[절대 추출 규칙]
+1. 계약리스트 추출 (contracts 배열): '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'가 있는 데이터에서 계약 목록을 추출하세요.
+   - payTerm: 상품명이나 납입기간에 '갱신형'이 포함되어 있으면 무조건 "갱신형" 기재.
+   - premium: 원문에 "보험료미제공" 또는 "-" 인 경우는 숫자로 변환하지 말고 문자 그대로 기재.
+   - isPaidUp & premium(납입완료): 해당 계약 상품의 담보들이 나열된 '가입담보상세' 데이터를 찾아, 우측의 "월납 보험료" 부분에 "(납입완료)" 혹은 "완료" 문구가 있는지 확인하세요. 있다면 isPaidUp을 true로 설정하고, premium 값을 무조건 "납입완료"로 기재하세요. (규칙 11 반영)
+2. 담보 매핑 (coverages 객체): "가입담보상세" 데이터에서 "회사 담보명"과 "가입금액"을 찾아 아래 key에 매핑하세요. 표에 없는 특약은 무시하세요.
+   - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병수술), d_disS(상해수술), d_careD(질병간병일당), d_careS(상해간병일당), d_cancer(일반암/암진단), d_cancer_op(암수술), d_similar(유사암/기타피부암진단), d_brain(뇌혈관진단), d_heart(허혈성심장진단), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일상생활배상책임)
+3. 합계 추출 (totals 객체): "전체보장현황" 데이터에서 담보별 합계 매핑. 값이 없으면 "-" 기재.
+
+[출력 JSON 포맷 예시]
+{
+  "contracts": [
+    {
+      "comp": "메리츠화재", "prod": "(무) 메리츠 성공파트너 종합보험", "date": "2023-11-10", "payTerm": "15년", "maturity": "71세", "premium": "52,770원", "isPaidUp": false,
+      "coverages": { "d_dieS": "100만", "d_disS": "100만" }
+    },
+    {
+      "comp": "처브라이프생명", "prod": "NYL종신보험(무배당)", "date": "2005-05-16", "payTerm": "20년", "maturity": "종신", "premium": "납입완료", "isPaidUp": true,
+      "coverages": { "d_dieD": "3,000만", "d_dieS": "3,000만", "d_cancer_op": "900만" }
+    }
+  ],
+  "totals": {
+    "상해사망": "1억 3,400만", "질병사망": "3,050만", "일반암진단": "0", "유사암진단": "200만", "뇌혈관진단": "0", "급성심근경색": "2,000만", "골절진단": "30만", "일배책": "1억", "상해후유": "1억 4,000만"
+  }
+}
+
+${promptContext.substring(0, 30000)}
+                `;
+
+                // 기존 알릴의무에서 사용하던 잇츠리온 전용 Proxy 서버 호출
+                const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
+                const aiRes = await fetch(AI_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ prompt: aiPrompt })
+                });
+                
+                const aiData = await aiRes.json();
+                if (!aiData || !aiData.candidates || aiData.candidates.length === 0) {
+                    throw new Error("AI 응답 지연. 서버가 혼잡할 수 있습니다.");
+                }
+                
+                let aiResultStr = aiData.candidates[0].content.parts[0].text;
+                let cleanJson = aiResultStr.replace(/```json/g, '').replace(/```/g, '').trim();
+                let analysisResult = JSON.parse(cleanJson);
+
+                if (!analysisResult.contracts || analysisResult.contracts.length === 0) {
+                    throw new Error("추출된 계약 정보가 없습니다.");
+                }
+
+                // STEP 3: 화면 매핑 및 규칙 적용
+                progressTitle.innerText = "3/3. 엑셀 매핑 및 최종 출력 중...";
+                progressDesc.innerText = "AI가 정제한 데이터를 화면 양식에 맞추어 자동 작성하고 있습니다.";
                 progressBar.style.width = '100%';
 
                 setTimeout(() => {
-                    extractDataDirectly(rawExcelData);
+                    processMappedData(analysisResult.contracts, analysisResult.totals);
+                    loadingOverlay.style.display = 'none';
                 }, 500);
 
             } catch (err) {
-                alert("❌ 시스템 처리 중 오류 발생:\n" + err.message);
+                alert("❌ 처리 중 오류 발생:\n" + err.message);
                 loadingOverlay.style.display = 'none';
             }
-            e.target.value = '';
-        });
+        }
 
         function getBase64(file) {
             return new Promise((resolve, reject) => {
@@ -403,165 +471,8 @@
         }
 
         // ==========================================
-        // [1차] 자바스크립트 즉각 다이렉트 매핑 (무한 로딩 완전 차단)
+        // [규칙 9 및 10] 실손 판별 및 합산 로직
         // ==========================================
-        function extractDataDirectly(rawExcelData) {
-            let rawContracts = [];
-            sumData = {};
-
-            // 1. "전체계약리스트" 배열 스캔
-            const contractRows = rawExcelData["전체계약리스트"] || [];
-            let dataRows = contractRows.filter(row => row.length > 5 && !isNaN(parseInt(row[0])));
-            
-            dataRows.forEach(row => {
-                const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
-                if (cleanRow.length >= 6) {
-                    rawContracts.push({
-                        comp: String(cleanRow[1]).trim().replace(/\n/g, ''),
-                        prod: String(cleanRow[2]).trim().replace(/\n/g, ''),
-                        date: String(cleanRow[3]).trim(),
-                        payTerm: String(cleanRow[4]).trim(),
-                        maturity: String(cleanRow[5]).trim(),
-                        premium: String(cleanRow[6] || cleanRow[cleanRow.length-1]).trim(),
-                        hasRenewableRider: String(cleanRow[2]).includes("갱신형"),
-                        isPaidUp: false,
-                        coverages: {}
-                    });
-                }
-            });
-
-            // 2. "가입담보상세" 스캔 및 매핑
-            const detailRows = rawExcelData["가입담보상세"] || [];
-            let matchedContract = null;
-            
-            for (let row of detailRows) {
-                const rowStr = row.join(" ");
-                
-                // 구분선(가상 행)에서 새로운 계약 컨텍스트 찾기
-                if (rowStr.includes("--- 상세페이지 상단 정보 ---")) {
-                    matchedContract = null; // 초기화
-                }
-                
-                if (!matchedContract) {
-                    matchedContract = rawContracts.find(c => rowStr.includes(c.prod.split("(")[0])); 
-                }
-
-                // [규칙 11] 납입완료 확인
-                if (matchedContract && rowStr.includes("보험료") && (rowStr.includes("완료") || rowStr.includes("납입완료"))) {
-                    matchedContract.isPaidUp = true;
-                    matchedContract.premium = "납입완료";
-                }
-
-                // [규칙 12] 담보 매핑
-                if (matchedContract && row.length > 2) {
-                    const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
-                    if(cleanRow.length >= 3) {
-                        const damboName = String(cleanRow[1] || cleanRow[2]).trim();
-                        const amt = String(cleanRow[cleanRow.length-1]).trim();
-                        
-                        if (damboName.includes("질병사망")) matchedContract.coverages.d_dieD = amt;
-                        else if (damboName.includes("상해사망") || damboName.includes("재해사망")) matchedContract.coverages.d_dieS = amt;
-                        else if (damboName.includes("질병수술")) matchedContract.coverages.d_disD = amt;
-                        else if (damboName.includes("상해수술")) matchedContract.coverages.d_disS = amt;
-                        else if (damboName.includes("암수술")) matchedContract.coverages.d_cancer_op = amt;
-                        else if (damboName.includes("암진단") || damboName.includes("일반암")) matchedContract.coverages.d_cancer = amt;
-                        else if (damboName.includes("유사암") || damboName.includes("기타피부암")) matchedContract.coverages.d_similar = amt;
-                        else if (damboName.includes("뇌혈관")) matchedContract.coverages.d_brain = amt;
-                        else if (damboName.includes("허혈성")) matchedContract.coverages.d_heart = amt;
-                        else if (damboName.includes("심근경색")) matchedContract.coverages.d_ami = amt;
-                        else if (damboName.includes("골절")) matchedContract.coverages.d_fracture = amt;
-                        else if (damboName.includes("배상")) matchedContract.coverages.d_liab = amt;
-                    }
-                }
-            }
-            
-            // 3. "전체보장현황" (합계) 확인
-            const summaryRows = rawExcelData["전체보장현황"] || [];
-            summaryRows.forEach(row => {
-                const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
-                if (cleanRow.length >= 2) {
-                    const name = String(cleanRow[0]).replace(/\s/g, '');
-                    const val = String(cleanRow[1]);
-                    if (name.includes("상해사망")) sumData["상해사망"] = val;
-                    if (name.includes("질병사망")) sumData["질병사망"] = val;
-                    if (name.includes("상해80")) sumData["상해후유"] = val;
-                    if (name.includes("일반암")) sumData["일반암진단"] = val;
-                    if (name.includes("유사암")) sumData["유사암진단"] = val;
-                    if (name.includes("뇌혈관")) sumData["뇌혈관진단"] = val;
-                    if (name.includes("심근경색")) sumData["급성심근경색"] = val;
-                    if (name.includes("배상")) sumData["일배책"] = val;
-                    if (name.includes("골절진단비")) sumData["골절진단"] = val;
-                }
-            });
-
-            if (rawContracts.length === 0) {
-                alert("추출된 계약 정보가 없습니다. 표준 양식인지 확인해주세요.");
-                document.getElementById('loadingOverlay').style.display = 'none';
-                return;
-            }
-
-            processMappedData(rawContracts, sumData);
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-
-        // ==========================================
-        // [2차] AI 정밀 검수 (사용자가 원할 때 수동 실행, 과부하 방지)
-        // ==========================================
-        async function runAIVerification() {
-            if (processedContracts.length === 0) {
-                alert("먼저 PDF 원문 데이터를 업로드하여 화면을 채워주세요.");
-                return;
-            }
-            
-            const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-            
-            document.getElementById('progressTitle').innerText = "AI 정밀 검수 중...";
-            document.getElementById('progressDesc').innerText = "현재 맵핑된 데이터를 바탕으로 약관에 따른 예외 항목 및 누락된 특약을 검수하고 있습니다.";
-            document.getElementById('progressBar').style.width = '100%';
-            document.getElementById('loadingOverlay').style.display = 'flex';
-
-            const currentDataSnapshot = JSON.stringify(processedContracts);
-            
-            const prompt = `
-당신은 최고 수준의 보험 보장분석 검수 AI입니다.
-아래는 현재 시스템이 1차로 자동 맵핑한 계약 데이터입니다.
-[검수 요청사항]
-이 데이터를 확인하고, 오류가 있거나 빈 칸으로 남겨진 중요 담보(수술비, 간병비 등) 중 "상품명"을 유추하여 약관상 추가되어야 할 기본 가입금액이 있다면 수정하여 동일한 JSON 배열 형식으로 반환하세요. 수정 사항이 없으면 원본 그대로 반환하세요. (마크다운 기호 없이 순수 JSON만 출력)
-
-[현재 데이터]
-${currentDataSnapshot}
-            `;
-
-            try {
-                const res = await fetch(AI_PROXY_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ prompt: prompt })
-                });
-                
-                const aiData = await res.json();
-                if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연");
-                
-                let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-                let verifiedContracts = JSON.parse(cleanJson);
-                
-                processMappedData(verifiedContracts, sumData);
-                alert("AI 검수 및 누락 데이터 보완이 완료되었습니다.");
-            } catch(e) {
-                alert("AI 검수 중 오류 발생: " + e.message);
-            } finally {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
-        }
-
-        // ==========================================
-        // 안전한 데이터 렌더링 함수 (에러 방지 처리)
-        // ==========================================
-        function safeSetText(id, value) {
-            const el = document.getElementById(id);
-            if (el) el.innerText = value;
-        }
-
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
             const date = new Date(dateStr);
@@ -589,6 +500,7 @@ ${currentDataSnapshot}
                     if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
                     } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
+                        // 기존 데이터가 미제공이고 새로 들어온게 금액이 있으면 교체
                         duplicate.premium = curr.premium; 
                         duplicate.isPaidUp = curr.isPaidUp;
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
@@ -609,34 +521,37 @@ ${currentDataSnapshot}
                 document.getElementById('pagination-container').classList.add('hidden');
             }
             renderPage();
+            alert(`[자동화 분석 완료]\n총 ${rawContracts.length}건을 통째로 AI가 검토하여 실손 통합 후 ${processedContracts.length}건이 엑셀표에 등록되었습니다.`);
         }
 
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
+            // 모든 셀 텍스트 초기화
             for(let i=1; i<=5; i++) {
-                safeSetText(`comp${i}`, "");
-                safeSetText(`prod${i}`, "");
-                safeSetText(`date${i}`, "");
-                safeSetText(`term${i}`, "");
-                safeSetText(`prem${i}`, "");
-                safeSetText(`silbi${i}`, "");
+                document.getElementById(`comp${i}`).innerText = "";
+                document.getElementById(`prod${i}`).innerText = "";
+                document.getElementById(`date${i}`).innerText = "";
+                document.getElementById(`term${i}`).innerText = "";
+                document.getElementById(`prem${i}`).innerText = "";
+                document.getElementById(`silbi${i}`).innerText = "";
                 document.querySelectorAll(`td[id$="_${i}"]`).forEach(td => td.innerText = "");
             }
-            safeSetText('totalPremiumCell', "");
+            document.getElementById('totalPremiumCell').innerText = "";
 
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
             if (isSummaryPage) {
-                safeSetText('header-page-label', "총 합계");
+                // [규칙 8 & 10] 요약 페이지
+                document.getElementById('header-page-label').innerText = "총 합계";
                 let grandTotalPremium = 0;
 
                 for(let i=1; i<totalPages; i++) {
-                    safeSetText(`comp${i}`, `${i}페이지`);
+                    document.getElementById(`comp${i}`).innerText = `${i}페이지`;
                     document.getElementById(`comp${i}`).style.color = "#d32f2f";
-                    safeSetText(`prod${i}`, "-");
-                    safeSetText(`date${i}`, "-");
-                    safeSetText(`term${i}`, "-");
+                    document.getElementById(`prod${i}`).innerText = "-";
+                    document.getElementById(`date${i}`).innerText = "-";
+                    document.getElementById(`term${i}`).innerText = "-";
                     
                     const pStart = (i - 1) * itemsPerPage;
                     const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
@@ -646,26 +561,28 @@ ${currentDataSnapshot}
                         if(!c.isPaidUp) pagePremiumSum += parsePremium(c.premium);
                     });
                     
-                    safeSetText(`prem${i}`, formatPremium(pagePremiumSum));
+                    document.getElementById(`prem${i}`).innerText = formatPremium(pagePremiumSum);
                     document.getElementById(`prem${i}`).style.color = "#1d4ed8";
                     grandTotalPremium += pagePremiumSum;
                 }
                 
-                safeSetText('totalPremiumCell', formatPremium(grandTotalPremium));
+                document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
                 
-                safeSetText("res-종신일반", sumData["상해사망"] || "-");
-                safeSetText("res-질병사망", sumData["질병사망"] || "-");
-                safeSetText("res-상해사망", sumData["상해사망"] || "-");
-                safeSetText("res-상해후유", sumData["상해후유"] || "-");
-                safeSetText("res-일반암진단", sumData["일반암진단"] || "-");
-                safeSetText("res-유사암진단", sumData["유사암진단"] || "-");
-                safeSetText("res-뇌혈관진단", sumData["뇌혈관진단"] || "-");
-                safeSetText("res-급성심근진단", sumData["급성심근경색"] || "-");
-                safeSetText("res-골절진단", sumData["골절진단"] || "-");
-                safeSetText("res-일배책", sumData["일배책"] || "-");
+                // 총합 데이터 적용 (AI 추출 값)
+                document.getElementById("res-종신일반").innerText = sumData["상해사망"] || "-";
+                document.getElementById("res-질병사망").innerText = sumData["질병사망"] || "-";
+                document.getElementById("res-상해사망").innerText = sumData["상해사망"] || "-";
+                document.getElementById("res-상해후유").innerText = sumData["상해후유"] || "-";
+                document.getElementById("res-일반암진단").innerText = sumData["일반암진단"] || "-";
+                document.getElementById("res-유사암진단").innerText = sumData["유사암진단"] || "-";
+                document.getElementById("res-뇌혈관진단").innerText = sumData["뇌혈관진단"] || "-";
+                document.getElementById("res-급성심근진단").innerText = sumData["급성심근경색"] || "-";
+                document.getElementById("res-골절진단").innerText = sumData["골절진단"] || "-";
+                document.getElementById("res-일배책").innerText = sumData["일배책"] || "-";
 
             } else {
-                safeSetText('header-page-label', "페이지 합계");
+                // 일반 계약 리스트 페이지
+                document.getElementById('header-page-label').innerText = "페이지 합계";
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
                 
@@ -673,49 +590,51 @@ ${currentDataSnapshot}
 
                 pageData.forEach((contract, index) => {
                     const idNum = index + 1;
-                    
-                    safeSetText(`comp${idNum}`, contract.comp);
+                    document.getElementById(`comp${idNum}`).innerText = contract.comp;
                     document.getElementById(`comp${idNum}`).style.color = "#1d4ed8";
-                    safeSetText(`prod${idNum}`, contract.prod);
-                    safeSetText(`date${idNum}`, contract.date);
+                    document.getElementById(`prod${idNum}`).innerText = contract.prod;
+                    document.getElementById(`date${idNum}`).innerText = contract.date;
                     
                     let termStr = `${contract.payTerm}/${contract.maturity}`;
-                    if (contract.payTerm === "갱신형" || contract.hasRenewableRider) termStr = `갱신형/${contract.maturity}`;
-                    safeSetText(`term${idNum}`, termStr);
+                    if (contract.payTerm === "갱신형") termStr = `갱신형/${contract.maturity}`;
+                    document.getElementById(`term${idNum}`).innerText = termStr;
 
+                    // [규칙 10, 11] 납입완료 예외 처리
                     if (contract.isPaidUp || contract.premium.includes("완료") || contract.premium.includes("납입완료")) {
-                        safeSetText(`prem${idNum}`, "납입완료");
+                        document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
-                        safeSetText(`prem${idNum}`, contract.premium);
+                        document.getElementById(`prem${idNum}`).innerText = contract.premium; 
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
                         currentPageSum += parsePremium(contract.premium);
                     }
 
-                    if (contract.silbiGen) safeSetText(`silbi${idNum}`, contract.silbiGen);
+                    // [규칙 9]
+                    if (contract.silbiGen) document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     
+                    // [규칙 12] AI 담보 매핑
                     if (contract.coverages) {
                         const cov = contract.coverages;
-                        if(cov.d_dieD) safeSetText(`d_dieD_${idNum}`, cov.d_dieD);
-                        if(cov.d_dieS) safeSetText(`d_dieS_${idNum}`, cov.d_dieS);
-                        if(cov.d_disD) safeSetText(`d_disD_${idNum}`, cov.d_disD);
-                        if(cov.d_disS) safeSetText(`d_disS_${idNum}`, cov.d_disS);
-                        if(cov.d_careD) safeSetText(`d_careD_${idNum}`, cov.d_careD);
-                        if(cov.d_careS) safeSetText(`d_careS_${idNum}`, cov.d_careS);
-                        if(cov.d_cancer) safeSetText(`d_cancer_${idNum}`, cov.d_cancer);
-                        if(cov.d_cancer_op) safeSetText(`d_cancer_op_${idNum}`, cov.d_cancer_op);
-                        if(cov.d_similar) safeSetText(`d_similar_${idNum}`, cov.d_similar);
-                        if(cov.d_brain) safeSetText(`d_brain_${idNum}`, cov.d_brain);
-                        if(cov.d_heart) safeSetText(`d_heart_${idNum}`, cov.d_heart);
-                        if(cov.d_ami) safeSetText(`d_ami_${idNum}`, cov.d_ami);
-                        if(cov.d_fracture) safeSetText(`d_fracture_${idNum}`, cov.d_fracture);
-                        if(cov.d_liab) safeSetText(`d_liab_${idNum}`, cov.d_liab);
+                        if(cov.d_dieD) document.getElementById(`d_dieD_${idNum}`).innerText = cov.d_dieD;
+                        if(cov.d_dieS) document.getElementById(`d_dieS_${idNum}`).innerText = cov.d_dieS;
+                        if(cov.d_disD) document.getElementById(`d_disD_${idNum}`).innerText = cov.d_disD;
+                        if(cov.d_disS) document.getElementById(`d_disS_${idNum}`).innerText = cov.d_disS;
+                        if(cov.d_careD) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD;
+                        if(cov.d_careS) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS;
+                        if(cov.d_cancer) document.getElementById(`d_cancer_${idNum}`).innerText = cov.d_cancer;
+                        if(cov.d_cancer_op) document.getElementById(`d_cancer_op_${idNum}`).innerText = cov.d_cancer_op;
+                        if(cov.d_similar) document.getElementById(`d_similar_${idNum}`).innerText = cov.d_similar;
+                        if(cov.d_brain) document.getElementById(`d_brain_${idNum}`).innerText = cov.d_brain;
+                        if(cov.d_heart) document.getElementById(`d_heart_${idNum}`).innerText = cov.d_heart;
+                        if(cov.d_ami) document.getElementById(`d_ami_${idNum}`).innerText = cov.d_ami;
+                        if(cov.d_fracture) document.getElementById(`d_fracture_${idNum}`).innerText = cov.d_fracture;
+                        if(cov.d_liab) document.getElementById(`d_liab_${idNum}`).innerText = cov.d_liab;
                     }
                 });
 
-                safeSetText('totalPremiumCell', formatPremium(currentPageSum));
+                document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
             }
         }
 
