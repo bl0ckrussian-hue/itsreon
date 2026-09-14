@@ -56,6 +56,46 @@
         </div>
     </div>
 
+    <!-- ⭐️ 신규: 스케줄 입력 팝업창 -->
+    <div id="scheduleInputModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div class="bg-blue-600 p-4 flex justify-between items-center text-white">
+                <h2 class="font-bold text-lg flex items-center gap-2"><span>📅</span> <span>일정 스케줄 등록</span></h2>
+                <button onclick="closeScheduleModal()" class="text-white hover:text-slate-200 text-xl font-bold">✕</button>
+            </div>
+            
+            <div class="p-5 bg-slate-50 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">1. 상담 유형 선택</label>
+                    <select id="schType" class="w-full p-2 border border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm font-bold text-slate-700 bg-white shadow-sm">
+                        <option value="">- 선택 -</option>
+                        <option value="초회상담">초회상담</option>
+                        <option value="2차상담">2차상담</option>
+                        <option value="3차상담">3차상담</option>
+                        <option value="4차상담">4차상담</option>
+                        <option value="계약">계약</option>
+                        <option value="계약관리">계약관리</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">2. 날짜 및 시간</label>
+                    <input type="datetime-local" id="schDateTime" class="w-full p-2 border border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm font-bold text-slate-700 bg-white shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">3. 장소 및 메모</label>
+                    <input type="text" id="schLocation" placeholder="예: 강남역 스벅, 방문 상담 등" class="w-full p-2 border border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm bg-white shadow-sm">
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 border-t border-slate-200 flex justify-end gap-3 z-10">
+                <button onclick="clearScheduleInput()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-sm transition">입력 지우기</button>
+                <div class="flex-grow"></div>
+                <button onclick="closeScheduleModal()" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-bold text-sm text-slate-700 transition">취소</button>
+                <button onclick="confirmScheduleModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-md transition">적용</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 우측 하단 고정 전체 저장 버튼 -->
     <div class="fixed bottom-6 right-6 xl:bottom-10 xl:right-10 z-50">
         <button id="globalSaveBtn" onclick="saveAllChanges()" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-5 xl:py-4 xl:px-8 rounded-full shadow-[0_10px_25px_-5px_rgba(37,99,235,0.6)] transition-all hover:scale-105 flex items-center gap-2 xl:gap-3 border-2 border-white">
@@ -75,13 +115,17 @@
         });
         window.addEventListener('focus', () => document.body.classList.remove('blurred'));
 
-        // ⭐️ 기존 웹앱 URL로 교체해 주세요!
+        // ⭐️ 기존 웹앱 URL 유지
         const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxn21-o8u5iOZz1pxd7gQF3qfPiiW-I5AJ6dtLURYMKkS9NPoCCXgnDkc71WTkYpXxl/exec"; 
         
         const currentAgent = localStorage.getItem('rion_logged_user');
         let modifiedRows = new Set(); 
         let currentModalIndex = null; 
         let currentModalPrefix = ''; 
+
+        // ⭐️ 신규: 스케줄 모달용 변수
+        let currentSchIndex = null;
+        let currentSchPrefix = '';
 
         if (!currentAgent) {
             alert('보안 접근입니다. 메인 홈페이지에서 로그인을 먼저 진행해주세요.');
@@ -161,9 +205,11 @@
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
                                 
+                                <!-- ⭐️ 신규: 일정입력 클릭 시 모달창 열림 -->
                                 <div class="w-[12%] shrink-0">
-                                    <input type="text" id="schedule_${index}" value="${valSchedule}" onchange="markModified(${index})" placeholder="일정입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
+                                    <input type="text" id="schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, '')" placeholder="일정입력 (클릭)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
                                 </div>
+                                
                                 <div class="w-[6%] shrink-0">
                                     <select id="status_${index}" onchange="handleStatusChange(${index}, '')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
                                         <option value="" ${valStatus===''?'selected':''}>- 진행현황 -</option>
@@ -194,7 +240,7 @@
                 // 📱 2. 모바일 뷰
                 // ==========================================
                 mobileHtml += `
-                    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden relative">
+                    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden relative mb-4">
                         <input type="hidden" id="m_custName_${index}" value="${db.customerName}">
                         <div id="m_edit_area_${index}" class="p-4 transition-all bg-white">
                             <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
@@ -225,8 +271,9 @@
                                 </div>
 
                                 <div class="flex gap-2 pt-1">
+                                    <!-- ⭐️ 신규: 모바일 스케줄 입력 클릭 -->
                                     <div class="w-[50%] flex gap-1">
-                                        <input type="text" id="m_schedule_${index}" value="${valSchedule}" onchange="markModified(${index})" placeholder="일정입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
+                                        <input type="text" id="m_schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, 'm_')" placeholder="일정입력(터치)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
                                     </div>
                                     <div class="w-[50%]">
                                         <select id="m_status_${index}" onchange="handleStatusChange(${index}, 'm_')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
@@ -254,7 +301,7 @@
                 `;
             });
 
-            let html = `
+            container.innerHTML = `
                 <div class="hidden xl:block bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden min-w-[1400px]">
                     <table class="w-full text-xs text-center border-collapse whitespace-nowrap">
                         <thead class="bg-slate-800 text-white">
@@ -285,9 +332,73 @@
                     ${mobileHtml}
                 </div>
             `;
-            container.innerHTML = html;
         }
 
+        // ==========================================
+        // 📅 ⭐️ 신규: 스케줄 모달 제어 함수들
+        // ==========================================
+        function openScheduleModal(index, prefix) {
+            currentSchIndex = index;
+            currentSchPrefix = prefix;
+            
+            // 기존에 입력된 값이 있다면 불러와서 파싱 시도 (단순 텍스트면 장소에 넣음)
+            const existVal = document.getElementById(`${prefix}schedule_${index}`).value;
+            document.getElementById('schType').value = "";
+            document.getElementById('schDateTime').value = "";
+            document.getElementById('schLocation').value = existVal;
+            
+            document.getElementById('scheduleInputModal').classList.remove('hidden');
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('scheduleInputModal').classList.add('hidden');
+        }
+
+        function clearScheduleInput() {
+            if(confirm('입력된 스케줄을 초기화하시겠습니까?')) {
+                document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`).value = "";
+                markModified(currentSchIndex);
+                closeScheduleModal();
+            }
+        }
+
+        function confirmScheduleModal() {
+            const sType = document.getElementById('schType').value;
+            const sTimeRaw = document.getElementById('schDateTime').value; // YYYY-MM-DDThh:mm
+            const sLoc = document.getElementById('schLocation').value.trim();
+
+            let resultText = "";
+            
+            if (sType || sTimeRaw || sLoc) {
+                // 날짜 포맷팅 변환 (예: 2026-09-20T14:30 -> 09/20 14:30)
+                let formattedTime = "";
+                if (sTimeRaw) {
+                    const dt = new Date(sTimeRaw);
+                    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                    const dd = String(dt.getDate()).padStart(2, '0');
+                    const hh = String(dt.getHours()).padStart(2, '0');
+                    const mns = String(dt.getMinutes()).padStart(2, '0');
+                    formattedTime = `${mm}/${dd} ${hh}:${mns}`;
+                }
+
+                const parts = [];
+                if (sType) parts.push(sType);
+                if (formattedTime) parts.push(formattedTime);
+                if (sLoc) parts.push(sLoc);
+
+                resultText = parts.join(" / ");
+            }
+
+            // 입력창에 값 세팅 및 수정 표시
+            document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`).value = resultText;
+            markModified(currentSchIndex);
+            
+            closeScheduleModal();
+        }
+
+        // ==========================================
+        // (이하 기존 함수들 동일하게 유지)
+        // ==========================================
         function generateTaSelect(id, label, selectedValue, index, prefix) {
             const val = selectedValue || '';
             const colorClass = val === '' ? 'text-slate-500' : 'text-slate-800';
@@ -333,14 +444,11 @@
             document.getElementById('contractModal').classList.add('hidden');
         }
 
-        // ⭐️ 입력 시 실시간으로 숫자에 콤마를 찍어주는 함수
         function formatPremiumInput(input) {
-            // 숫자가 아닌 모든 문자 제거
             let val = input.value.replace(/[^0-9]/g, '');
             if(val === '') {
                 input.value = '';
             } else {
-                // 3자리마다 콤마 추가
                 input.value = Number(val).toLocaleString();
             }
         }
@@ -359,7 +467,6 @@
                     <option value="일반">일반</option>
                 </select>
                 <div class="w-[55%] relative">
-                    <!-- ⭐️ 입력창에 oninput 이벤트를 걸어서 실시간 콤마 적용 -->
                     <input type="text" placeholder="보험료 입력" oninput="formatPremiumInput(this)" class="contract-premium w-full p-2 border border-slate-300 rounded font-bold text-sm text-slate-700 text-right pr-6 focus:outline-none focus:border-blue-500">
                     <span class="absolute right-2 top-2.5 text-xs font-bold text-slate-400">원</span>
                 </div>
@@ -384,7 +491,6 @@
             rows.forEach(row => {
                 const category = row.querySelector('select').value;
                 const premiumFormatted = row.querySelector('.contract-premium').value;
-                // ⭐️ 계산을 위해 콤마 제거
                 const premiumRaw = premiumFormatted.replace(/,/g, ''); 
                 
                 if (category && premiumRaw && !isNaN(premiumRaw)) {
@@ -402,7 +508,6 @@
             document.getElementById(`${currentModalPrefix}prm_${currentModalIndex}`).value = totalPremium.toLocaleString() + "원";
             
             markModified(currentModalIndex);
-            
             closeContractModal();
         }
 
@@ -454,7 +559,7 @@
                     ta2: document.getElementById(`${pfx}ta2_${idx}`).value,
                     ta3: document.getElementById(`${pfx}ta3_${idx}`).value,
                     ta4: document.getElementById(`${pfx}ta4_${idx}`).value,
-                    schedule: document.getElementById(`${pfx}schedule_${idx}`).value,
+                    schedule: document.getElementById(`${pfx}schedule_${idx}`).value, // ⭐️ 모달에서 합쳐진 스케줄 텍스트
                     status: document.getElementById(`${pfx}status_${idx}`).value,
                     contractCount: rawCount,
                     contractPremium: rawPremium,
