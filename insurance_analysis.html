@@ -3,32 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>잇츠리온 - 클라우드 & AI 보장분석 엔진</title>
-    <!-- Tailwind CSS -->
+    <title>잇츠리온 - 정밀 보장분석 엔진</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (엑셀 다운로드용) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; }
         
         .engine-container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow-x: auto; }
-        
-        /* 엑셀 스캔본 100% 싱크로율 테이블 CSS */
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
-        /* 설계사 직접 수정 가능 셀 UI 효과 */
         .editable-cell { cursor: text; transition: all 0.2s; }
         .editable-cell:hover, .editable-cell:focus { background-color: #e0f2fe !important; outline: 1.5px dashed #3b82f6; box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.3); }
 
-        /* 헤더 색상 */
         .bg-main-green { background-color: #2ca02c !important; color: white; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
         .bg-light-gray { background-color: #f8f9fa; font-weight: bold; }
         .remark-yellow { background-color: #fff2cc; font-size: 10px; }
         .footer-note { text-align: left !important; font-size: 10px; color: #d32f2f; font-weight: bold; border: none !important; padding-top: 10px; }
 
-        /* 인쇄 최적화 (A4 세로 기준 한 장에 딱 맞도록) */
         @media print {
             @page { size: auto; margin: 8mm; } 
             body { background: white; margin: 0; padding: 0; }
@@ -40,25 +33,20 @@
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
-        /* 로딩 오버레이 */
         #loadingOverlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white;
+            background: rgba(15, 23, 42, 0.85); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .spinner { border: 4px solid rgba(255,255,255,0.2); border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .spinner { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- 하이브리드 로딩 오버레이 -->
     <div id="loadingOverlay">
-        <div class="spinner mb-5"></div>
-        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 연결 중...</h2>
-        <p class="text-sm text-slate-300" id="progressDesc">PDF 데이터를 안전하게 전송하고 있습니다.</p>
-        <div class="w-64 bg-slate-700 h-2 mt-6 rounded-full overflow-hidden">
-            <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
-        </div>
+        <div class="spinner mb-4"></div>
+        <h2 class="text-xl font-bold text-white mb-2" id="loadingTitle">데이터 즉각 맵핑 중...</h2>
+        <p class="text-sm text-slate-300" id="loadingDesc">엑셀 원문 데이터를 초고속으로 화면에 배치하고 있습니다.</p>
     </div>
 
     <!-- 상단 컨트롤러 -->
@@ -66,11 +54,10 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 업로드 시 클라우드 변환 서버 및 AI 검수를 거쳐 엑셀표에 자동 입력됩니다. (직접 수정 가능)</span>
+                <span>1차: 엑셀 데이터 초고속 다이렉트 맵핑 ➔ 2차: AI 약관/오류 정밀 검수 (필요시)</span>
             </p>
         </div>
         
-        <!-- 페이지 네비게이션 -->
         <div id="pagination-container" class="flex items-center space-x-3 bg-white px-4 py-1.5 rounded-full shadow border border-slate-200 hidden">
             <button onclick="changePage(-1)" class="text-slate-400 hover:text-blue-600 font-bold px-2 py-1 transition">◀</button>
             <span id="page-indicator" class="text-sm font-bold text-slate-800 tracking-widest">1 / 1</span>
@@ -78,10 +65,12 @@
         </div>
 
         <div class="flex gap-2">
-            <!-- 파일 타입을 PDF로 고정하고 정확한 ID 매핑 -->
-            <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
-            <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                📄 보장분석 PDF 원문 업로드
+            <input type="file" id="fileUpload" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden">
+            <button onclick="document.getElementById('fileUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
+                📄 보장분석 원문 엑셀 업로드
+            </button>
+            <button onclick="runAIVerification()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
+                🤖 AI 정밀 검수 실행
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📊 결과 엑셀 다운로드
@@ -92,7 +81,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 (기존과 동일 구조) -->
+    <!-- 엑셀 구현 영역 -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -330,7 +319,7 @@
         let totalPages = 1;
         const itemsPerPage = 5;
 
-        // 셀 직접 수정 기능 부여
+        // 원칙 5: 셀 클릭 시 수정 가능토록 처리
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
             cell.addEventListener('paste', function(e) {
@@ -340,148 +329,192 @@
             });
         });
 
-        // 1. 파일 업로드 핸들링 부분 (버그 수정 완료)
-        document.getElementById('pdfUpload').addEventListener('change', async function(e) {
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(!file) return;
-            
-            // 핵심 하이브리드 로직 실행
-            await executeHybridAnalysis(file);
-            e.target.value = ''; // 입력란 초기화
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // 1차: 자바스크립트를 이용해 지연 없이 즉각적으로 엑셀 데이터를 화면에 매핑
+                    extractDataDirectly(workbook);
+                } catch(err) {
+                    alert("엑셀 파일 판독 중 오류가 발생했습니다: " + err.message);
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
         });
 
-        function getBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
+        // ==========================================
+        // [1차] 자바스크립트 즉각 다이렉트 매핑 (대기시간 0초)
+        // ==========================================
+        function extractDataDirectly(workbook) {
+            let rawContracts = [];
+            sumData = {};
+
+            // 1. "전체 계약 리스트" 스캔
+            let contractSheetName = workbook.SheetNames.find(name => {
+                const sheetText = XLSX.utils.sheet_to_csv(workbook.Sheets[name]);
+                return sheetText.includes("계약일") && sheetText.includes("납입기간");
             });
+
+            if (contractSheetName) {
+                const contractSheet = workbook.Sheets[contractSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(contractSheet, {header: 1});
+                
+                let dataRows = jsonData.filter(row => row.length > 5 && !isNaN(parseInt(row[0])));
+                dataRows.forEach(row => {
+                    const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
+                    if (cleanRow.length >= 6) {
+                        rawContracts.push({
+                            comp: String(cleanRow[1]).trim().replace(/\n/g, ''),
+                            prod: String(cleanRow[2]).trim().replace(/\n/g, ''),
+                            date: String(cleanRow[3]).trim(),
+                            payTerm: String(cleanRow[4]).trim(),
+                            maturity: String(cleanRow[5]).trim(),
+                            premium: String(cleanRow[6] || cleanRow[cleanRow.length-1]).trim(),
+                            hasRenewableRider: String(cleanRow[2]).includes("갱신형"),
+                            isPaidUp: false,
+                            coverages: {}
+                        });
+                    }
+                });
+            }
+
+            // 2. "가입담보상세" 스캔 및 매핑
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const csvData = XLSX.utils.sheet_to_csv(sheet);
+                
+                if (csvData.includes("회사 담보명") || csvData.includes("가입담보상세")) {
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                    let matchedContract = null;
+                    
+                    for (let row of jsonData) {
+                        const rowStr = row.join(" ");
+                        if (!matchedContract) {
+                            matchedContract = rawContracts.find(c => rowStr.includes(c.prod.split("(")[0])); 
+                        }
+
+                        // 납입완료 확인
+                        if (matchedContract && rowStr.includes("월납 보험료") && rowStr.includes("완료")) {
+                            matchedContract.isPaidUp = true;
+                            matchedContract.premium = "납입완료";
+                        }
+
+                        // 담보 매핑
+                        if (matchedContract && row.length > 2) {
+                            const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
+                            if(cleanRow.length >= 3) {
+                                const damboName = String(cleanRow[1] || cleanRow[2]).trim();
+                                const amt = String(cleanRow[cleanRow.length-1]).trim();
+                                
+                                if (damboName.includes("질병사망")) matchedContract.coverages.d_dieD = amt;
+                                else if (damboName.includes("상해사망") || damboName.includes("재해사망")) matchedContract.coverages.d_dieS = amt;
+                                else if (damboName.includes("질병수술")) matchedContract.coverages.d_disD = amt;
+                                else if (damboName.includes("상해수술")) matchedContract.coverages.d_disS = amt;
+                                else if (damboName.includes("암수술")) matchedContract.coverages.d_cancer_op = amt;
+                                else if (damboName.includes("암진단")) matchedContract.coverages.d_cancer = amt;
+                                else if (damboName.includes("유사암")) matchedContract.coverages.d_similar = amt;
+                                else if (damboName.includes("뇌혈관")) matchedContract.coverages.d_brain = amt;
+                                else if (damboName.includes("허혈성")) matchedContract.coverages.d_heart = amt;
+                                else if (damboName.includes("심근경색")) matchedContract.coverages.d_ami = amt;
+                                else if (damboName.includes("골절")) matchedContract.coverages.d_fracture = amt;
+                                else if (damboName.includes("배상")) matchedContract.coverages.d_liab = amt;
+                            }
+                        }
+                    }
+                }
+                
+                // 3. 합계 확인
+                if (csvData.includes("전체 보장 현황") || csvData.includes("과부족")) {
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                    jsonData.forEach(row => {
+                        const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
+                        if (cleanRow.length >= 2) {
+                            const name = String(cleanRow[0]).replace(/\s/g, '');
+                            const val = String(cleanRow[1]);
+                            if (name.includes("상해사망")) sumData["상해사망"] = val;
+                            if (name.includes("질병사망")) sumData["질병사망"] = val;
+                            if (name.includes("상해80")) sumData["상해후유"] = val;
+                            if (name.includes("일반암")) sumData["일반암진단"] = val;
+                            if (name.includes("유사암")) sumData["유사암진단"] = val;
+                            if (name.includes("뇌혈관")) sumData["뇌혈관진단"] = val;
+                            if (name.includes("심근경색")) sumData["급성심근경색"] = val;
+                            if (name.includes("배상")) sumData["일배책"] = val;
+                            if (name.includes("골절진단비")) sumData["골절진단"] = val;
+                        }
+                    });
+                }
+            });
+
+            if (rawContracts.length === 0) {
+                alert("엑셀 파일에서 계약 정보를 추출하지 못했습니다. 표준 양식인지 확인해주세요.");
+                document.getElementById('loadingOverlay').style.display = 'none';
+                return;
+            }
+
+            processMappedData(rawContracts, sumData);
+            document.getElementById('loadingOverlay').style.display = 'none';
         }
 
         // ==========================================
-        // 하이브리드 아키텍처 (클라우드 엑셀 변환 -> AI 파싱) 완벽 연동
+        // [2차] AI 정밀 검수 (수동 실행)
         // ==========================================
-        async function executeHybridAnalysis(file) {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const progressTitle = document.getElementById('progressTitle');
-            const progressDesc = document.getElementById('progressDesc');
-            const progressBar = document.getElementById('progressBar');
+        async function runAIVerification() {
+            if (processedContracts.length === 0) {
+                alert("먼저 엑셀 원본 데이터를 업로드하여 화면을 채워주세요.");
+                return;
+            }
             
+            const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
+            
+            document.getElementById('loadingTitle').innerText = "AI 정밀 검수 중...";
+            document.getElementById('loadingDesc').innerText = "현재 맵핑된 데이터를 바탕으로 약관에 따른 예외 항목 및 누락된 특약을 검수하고 있습니다.";
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            const currentDataSnapshot = JSON.stringify(processedContracts);
+            
+            const prompt = `
+당신은 최고 수준의 보험 보장분석 검수 AI입니다.
+아래는 현재 시스템이 1차로 자동 맵핑한 계약 데이터입니다.
+[검수 요청사항]
+이 데이터를 확인하고, 오류가 있거나 빈 칸으로 남겨진 중요 담보(수술비, 간병비 등) 중 "상품명"을 유추하여 약관상 추가되어야 할 기본 가입금액이 있다면 수정하여 동일한 JSON 배열 형식으로 반환하세요. 수정 사항이 없으면 원본 그대로 반환하세요. (마크다운 없이 JSON만 출력)
+
+[현재 데이터]
+${currentDataSnapshot}
+            `;
+
             try {
-                loadingOverlay.style.display = 'flex';
-                
-                // STEP 1: 클라우드 파이썬 서버로 엑셀 변환 요청
-                progressTitle.innerText = "1/3. 클라우드 엑셀 추출 중...";
-                progressDesc.innerText = "안전한 서버 환경에서 PDF를 테이블(Grid) 형태의 엑셀 데이터로 변환하고 있습니다.";
-                progressBar.style.width = '30%';
-
-                const base64data = await getBase64(file);
-                
-                // 팀장님께서 배포 성공하신 전용 클라우드 파이썬 서버 URL
-                const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
-                
-                const cloudRes = await fetch(CLOUD_PARSER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file_data: base64data })
-                });
-
-                if(!cloudRes.ok) throw new Error("클라우드 서버 변환에 실패했습니다. (서버 응답 오류)");
-                
-                const cloudData = await cloudRes.json();
-                if(!cloudData.success) throw new Error("파싱 에러: " + (cloudData.error || "알 수 없는 오류"));
-
-                const rawExcelData = cloudData.rawExcelData; 
-                
-                if(!rawExcelData || Object.keys(rawExcelData).length === 0) {
-                    throw new Error("엑셀로 변환할 테이블을 찾지 못했습니다.");
-                }
-
-                // STEP 2: 엑셀 데이터를 마크다운 형태로 조립하여 AI에 전달
-                progressTitle.innerText = "2/3. 잇츠리온 AI 정밀 분석 중...";
-                progressDesc.innerText = "추출된 엑셀 데이터를 바탕으로 [보장분석 12대 원칙]에 맞춰 문맥을 검수하고 있습니다.";
-                progressBar.style.width = '70%';
-
-                let promptContext = "### 클라우드 엑셀 추출 데이터 ###\n";
-                for (let sheet in rawExcelData) {
-                    const rows = rawExcelData[sheet];
-                    // 빈 행 필터링
-                    const validRows = rows.filter(r => r.some(cell => cell !== null && cell !== ""));
-                    if(validRows.length > 0) {
-                        promptContext += `\n[${sheet}]\n`;
-                        validRows.forEach(r => {
-                            promptContext += r.map(c => c === null ? "" : String(c).trim().replace(/\n/g, ' ')).join(" | ") + "\n";
-                        });
-                    }
-                }
-
-                const aiPrompt = `
-당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
-아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 아래 명시된 JSON 포맷으로만 출력하세요.
-(마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.)
-
-[절대 추출 규칙]
-1. 계약리스트 (contracts 배열): '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출. 
-   - payTerm: 원문에 '갱신형' 포함 시 무조건 "갱신형".
-   - premium: 원문에 "보험료미제공" 또는 "-" 인 경우는 그대로 기재.
-   - isPaidUp: 해당 계약의 "가입담보상세 시트"에서 "(납입완료)" 혹은 "완료" 문구가 확인되면 true 설정 후, premium 값을 "납입완료"로 기재.
-2. 담보 매핑 (coverages 객체): "가입담보상세 시트"에서 각 계약별 담보를 아래 key로 매핑.
-   - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병수술), d_disS(상해수술), d_careD(질병간병), d_careS(상해간병), d_cancer(암진단), d_cancer_op(암수술), d_similar(유사암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
-3. 합계 추출 (totals 객체): "전체 보장 현황 시트"에서 담보별 합계 매핑. 없으면 "-".
-
-[출력 JSON 포맷 예시]
-{
-  "contracts": [
-    {
-      "comp": "메리츠화재", "prod": "(무) 메리츠 성공파트너 종합보험2306", "date": "2023-11-10", "payTerm": "15년", "maturity": "71세", "premium": "52,770원", "isPaidUp": false,
-      "coverages": { "d_dieS": "100만", "d_disS": "100만" }
-    }
-  ],
-  "totals": {
-    "상해사망": "1억 3,400만", "질병사망": "3,050만", "일반암진단": "0", "유사암진단": "200만", "뇌혈관진단": "0", "급성심근경색": "2,000만", "골절진단": "30만", "일배책": "1억", "상해후유": "1억 4,000만"
-  }
-}
-
-${promptContext.substring(0, 30000)}
-                `;
-
-                // AI 프록시 서버 호출
-                const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-                const aiRes = await fetch(AI_PROXY_URL, {
+                const res = await fetch(AI_PROXY_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ prompt: aiPrompt })
+                    body: JSON.stringify({ prompt: prompt })
                 });
                 
-                const aiData = await aiRes.json();
-                if (!aiData || !aiData.candidates || aiData.candidates.length === 0) {
-                    throw new Error("AI 응답 지연. 다시 시도해주세요.");
-                }
+                const aiData = await res.json();
+                if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연");
                 
-                let aiResultStr = aiData.candidates[0].content.parts[0].text;
-                let cleanJson = aiResultStr.replace(/```json/g, '').replace(/```/g, '').trim();
-                let analysisResult = JSON.parse(cleanJson);
-
-                // STEP 3: 화면 매핑 및 규칙 적용
-                progressTitle.innerText = "3/3. 엑셀 매핑 및 최종 출력 중...";
-                progressDesc.innerText = "12대 원칙에 따라 화면의 양식에 맞추어 자동 작성하고 있습니다.";
-                progressBar.style.width = '100%';
-
-                setTimeout(() => {
-                    processMappedData(analysisResult.contracts, analysisResult.totals);
-                    loadingOverlay.style.display = 'none';
-                }, 800);
-
-            } catch (err) {
-                alert("❌ 시스템 처리 중 오류 발생:\n" + err.message);
-                loadingOverlay.style.display = 'none';
+                let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                let verifiedContracts = JSON.parse(cleanJson);
+                
+                processMappedData(verifiedContracts, sumData);
+                alert("AI 검수 및 누락 데이터 보완이 완료되었습니다.");
+            } catch(e) {
+                alert("AI 검수 중 오류 발생: " + e.message);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
             }
         }
 
-        // ==========================================
-        // [규칙 9 및 10] 실손 판별 및 합산 로직
-        // ==========================================
+        // 공통 로직
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
             const date = new Date(dateStr);
@@ -501,14 +534,13 @@ ${promptContext.substring(0, 30000)}
         }
 
         function processMappedData(rawContracts, totals) {
-            // [규칙 9] 실비 병합 처리
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
                 if (duplicate) {
-                    if (curr.premium.includes("미제공") || curr.premium === "-") {
+                    if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
-                    } else {
+                    } else if (duplicate.premium === "보험료미제공" || duplicate.premium === "-" || duplicate.premium.includes("미제공")) {
                         duplicate.premium = curr.premium; 
                         duplicate.isPaidUp = curr.isPaidUp;
                         duplicate.silbiGen = getSilbiGeneration(duplicate.date);
@@ -519,8 +551,6 @@ ${promptContext.substring(0, 30000)}
             });
 
             sumData = totals || {};
-
-            // 페이징 계산 (규칙 8)
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             currentPage = 1;
@@ -530,15 +560,12 @@ ${promptContext.substring(0, 30000)}
             } else {
                 document.getElementById('pagination-container').classList.add('hidden');
             }
-
             renderPage();
-            alert(`[자동화 분석 완료]\n총 ${rawContracts.length}건을 AI가 검토하여 실손 통합 후 ${processedContracts.length}건이 등록되었습니다.\n총 ${totalPages}페이지가 생성되었습니다.`);
         }
 
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
-            // 모든 셀 텍스트 초기화
             for(let i=1; i<=5; i++) {
                 document.getElementById(`comp${i}`).innerText = "";
                 document.getElementById(`prod${i}`).innerText = "";
@@ -553,7 +580,6 @@ ${promptContext.substring(0, 30000)}
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
             if (isSummaryPage) {
-                // [규칙 8 & 10] 요약 페이지
                 document.getElementById('header-page-label').innerText = "총 합계";
                 let grandTotalPremium = 0;
 
@@ -579,7 +605,6 @@ ${promptContext.substring(0, 30000)}
                 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
                 
-                // 총합 데이터 (AI 추출 값) 적용
                 document.getElementById("res-종신일반").innerText = sumData["상해사망"] || "-";
                 document.getElementById("res-질병사망").innerText = sumData["질병사망"] || "-";
                 document.getElementById("res-상해사망").innerText = sumData["상해사망"] || "-";
@@ -592,7 +617,6 @@ ${promptContext.substring(0, 30000)}
                 document.getElementById("res-일배책").innerText = sumData["일배책"] || "-";
 
             } else {
-                // 일반 계약 리스트 페이지
                 document.getElementById('header-page-label').innerText = "페이지 합계";
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
@@ -607,10 +631,9 @@ ${promptContext.substring(0, 30000)}
                     document.getElementById(`date${idNum}`).innerText = contract.date;
                     
                     let termStr = `${contract.payTerm}/${contract.maturity}`;
-                    if (contract.payTerm === "갱신형") termStr = `갱신형/${contract.maturity}`;
+                    if (contract.payTerm === "갱신형" || contract.hasRenewableRider) termStr = `갱신형/${contract.maturity}`;
                     document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    // [규칙 10, 11] 납입완료 예외 처리
                     if (contract.isPaidUp || contract.premium.includes("완료")) {
                         document.getElementById(`prem${idNum}`).innerText = "납입완료";
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
@@ -622,10 +645,8 @@ ${promptContext.substring(0, 30000)}
                         currentPageSum += parsePremium(contract.premium);
                     }
 
-                    // [규칙 9]
                     if (contract.silbiGen) document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     
-                    // [규칙 12] AI 담보 매핑
                     if (contract.coverages) {
                         const cov = contract.coverages;
                         if(cov.d_dieD) document.getElementById(`d_dieD_${idNum}`).innerText = cov.d_dieD;
