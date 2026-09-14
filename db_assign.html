@@ -195,11 +195,11 @@
                             <input type="hidden" id="custName_${index}" value="${db.customerName}">
                             <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
                                 
-                             <!-- ⭐️ 수정됨: 검은 박스 크기는 유지(h-10), 플레이어만 더 밑으로 끌어내림(top: 8px) -->
+                             <!-- ⭐️ 수정됨: 검은 박스는 고정, 내부 iframe의 높이를 키워 완벽한 정중앙으로 조준 -->
                                 <div class="w-[20%] shrink-0 flex items-center pl-1">
                                     <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight mr-1.5">🎧 녹취</span>
                                     <div class="flex-grow w-full relative overflow-hidden h-10 rounded border border-slate-300 shadow-sm bg-[#141414]">
-                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: 8px; left: -5px; width: calc(100% + 55px); height: 60px; border: none;" allow="autoplay"></iframe>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
+                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: -25px; left: -10px; width: calc(100% + 60px); height: 90px; border: none;" allow="autoplay"></iframe>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
                                     </div>
                                 </div>
 
@@ -259,11 +259,11 @@
 
                             <div class="space-y-2 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
                                 
-                             <!-- ⭐️ 수정됨: 검은 박스 크기는 유지(h-10), 플레이어만 더 밑으로 끌어내림(top: 8px) -->
+                            <!-- ⭐️ 수정됨: 검은 박스는 고정, 내부 iframe의 높이를 키워 완벽한 정중앙으로 조준 -->
                                 <div class="w-full flex items-center gap-2 mb-1">
                                     <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">🎧 녹취</span>
                                     <div class="flex-grow w-full relative overflow-hidden h-10 rounded border border-slate-300 shadow-sm bg-[#141414]">
-                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: 8px; left: -5px; width: calc(100% + 55px); height: 60px; border: none;" allow="autoplay"></iframe>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
+                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: -25px; left: -10px; width: calc(100% + 60px); height: 90px; border: none;" allow="autoplay"></iframe>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
                                     </div>
                                 </div>
 
