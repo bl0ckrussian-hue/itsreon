@@ -205,7 +205,6 @@
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
                                 
-                                <!-- ⭐️ 신규: 일정입력 클릭 시 모달창 열림 -->
                                 <div class="w-[12%] shrink-0">
                                     <input type="text" id="schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, '')" placeholder="일정입력 (클릭)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
                                 </div>
@@ -271,7 +270,6 @@
                                 </div>
 
                                 <div class="flex gap-2 pt-1">
-                                    <!-- ⭐️ 신규: 모바일 스케줄 입력 클릭 -->
                                     <div class="w-[50%] flex gap-1">
                                         <input type="text" id="m_schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, 'm_')" placeholder="일정입력(터치)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
                                     </div>
@@ -341,11 +339,18 @@
             currentSchIndex = index;
             currentSchPrefix = prefix;
             
-            // 기존에 입력된 값이 있다면 불러와서 파싱 시도 (단순 텍스트면 장소에 넣음)
-            const existVal = document.getElementById(`${prefix}schedule_${index}`).value;
-            document.getElementById('schType').value = "";
-            document.getElementById('schDateTime').value = "";
-            document.getElementById('schLocation').value = existVal;
+            const schInput = document.getElementById(`${prefix}schedule_${index}`);
+            const existVal = schInput.value;
+            
+            // 기존 텍스트가 있다면 분리해서 모달 창에 세팅
+            document.getElementById('schType').value = schInput.getAttribute('data-sch-type') || "";
+            document.getElementById('schDateTime').value = schInput.getAttribute('data-raw-time') || "";
+            
+            if (schInput.getAttribute('data-sch-loc')) {
+                document.getElementById('schLocation').value = schInput.getAttribute('data-sch-loc');
+            } else {
+                document.getElementById('schLocation').value = existVal.includes(' / ') ? '' : existVal;
+            }
             
             document.getElementById('scheduleInputModal').classList.remove('hidden');
         }
@@ -356,7 +361,12 @@
 
         function clearScheduleInput() {
             if(confirm('입력된 스케줄을 초기화하시겠습니까?')) {
-                document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`).value = "";
+                const schInput = document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`);
+                schInput.value = "";
+                schInput.removeAttribute('data-raw-time');
+                schInput.removeAttribute('data-sch-type');
+                schInput.removeAttribute('data-sch-loc');
+                schInput.removeAttribute('data-sync-calendar');
                 markModified(currentSchIndex);
                 closeScheduleModal();
             }
@@ -368,10 +378,9 @@
             const sLoc = document.getElementById('schLocation').value.trim();
 
             let resultText = "";
+            let formattedTime = "";
             
             if (sType || sTimeRaw || sLoc) {
-                // 날짜 포맷팅 변환 (예: 2026-09-20T14:30 -> 09/20 14:30)
-                let formattedTime = "";
                 if (sTimeRaw) {
                     const dt = new Date(sTimeRaw);
                     const mm = String(dt.getMonth() + 1).padStart(2, '0');
@@ -389,15 +398,22 @@
                 resultText = parts.join(" / ");
             }
 
-            // 입력창에 값 세팅 및 수정 표시
-            document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`).value = resultText;
-            markModified(currentSchIndex);
+            const schInput = document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`);
+            schInput.value = resultText;
             
+            // ⭐️ 앱스크립트로 넘겨주기 위해 원본 데이터(Raw Data)를 요소 속성으로 저장
+            schInput.setAttribute('data-raw-time', sTimeRaw);
+            schInput.setAttribute('data-sch-type', sType);
+            schInput.setAttribute('data-sch-loc', sLoc);
+            // ⭐️ 캘린더 동기화 신호(true) 부여
+            schInput.setAttribute('data-sync-calendar', 'true');
+            
+            markModified(currentSchIndex);
             closeScheduleModal();
         }
 
         // ==========================================
-        // (이하 기존 함수들 동일하게 유지)
+        // (기존 함수들 동일하게 유지)
         // ==========================================
         function generateTaSelect(id, label, selectedValue, index, prefix) {
             const val = selectedValue || '';
@@ -429,14 +445,9 @@
         function openContractModal(index, prefix) {
             currentModalIndex = index;
             currentModalPrefix = prefix;
-            
             const container = document.getElementById('contractRowsContainer');
             container.innerHTML = ""; 
-            
-            addContractRow();
-            addContractRow();
-            addContractRow();
-            
+            addContractRow(); addContractRow(); addContractRow();
             document.getElementById('contractModal').classList.remove('hidden');
         }
 
@@ -485,8 +496,7 @@
 
         function confirmContractModal() {
             const rows = document.querySelectorAll('.contract-item');
-            let totalCount = 0;
-            let totalPremium = 0;
+            let totalCount = 0; let totalPremium = 0;
 
             rows.forEach(row => {
                 const category = row.querySelector('select').value;
@@ -494,14 +504,12 @@
                 const premiumRaw = premiumFormatted.replace(/,/g, ''); 
                 
                 if (category && premiumRaw && !isNaN(premiumRaw)) {
-                    totalCount++;
-                    totalPremium += parseInt(premiumRaw, 10);
+                    totalCount++; totalPremium += parseInt(premiumRaw, 10);
                 }
             });
 
             if (totalCount === 0) {
-                alert("입력된 상품 정보가 없습니다. 취소하시려면 '취소' 버튼을 눌러주세요.");
-                return;
+                alert("입력된 상품 정보가 없습니다. 취소하시려면 '취소' 버튼을 눌러주세요."); return;
             }
 
             document.getElementById(`${currentModalPrefix}cnt_${currentModalIndex}`).value = totalCount + "건";
@@ -526,30 +534,27 @@
         }
 
         async function saveAllChanges() {
-            if (modifiedRows.size === 0) {
-                alert("수정된 항목이 없습니다.");
-                return;
-            }
+            if (modifiedRows.size === 0) { alert("수정된 항목이 없습니다."); return; }
 
             const btn = document.getElementById('globalSaveBtn');
             const textSpan = document.getElementById('globalSaveText');
-            btn.disabled = true;
-            btn.classList.replace('bg-blue-600', 'bg-slate-500');
+            btn.disabled = true; btn.classList.replace('bg-blue-600', 'bg-slate-500');
 
             const isMobileView = window.innerWidth < 1280;
             const pfx = isMobileView ? 'm_' : '';
 
-            let successCount = 0;
-            let failCount = 0;
-            const total = modifiedRows.size;
-            const indexes = Array.from(modifiedRows);
+            let successCount = 0; let failCount = 0;
+            const total = modifiedRows.size; const indexes = Array.from(modifiedRows);
 
             for (let i = 0; i < indexes.length; i++) {
                 const idx = indexes[i];
-                textSpan.innerText = `⏳ 저장 중... (${i+1}/${total})`;
+                textSpan.innerText = `⏳ 저장 및 동기화 중... (${i+1}/${total})`;
 
                 let rawCount = document.getElementById(`${pfx}cnt_${idx}`).value.replace(/[^0-9]/g, '');
                 let rawPremium = document.getElementById(`${pfx}prm_${idx}`).value.replace(/[^0-9]/g, '');
+                
+                const schInput = document.getElementById(`${pfx}schedule_${idx}`);
+                const scheduleVal = schInput.value.trim();
 
                 const payload = {
                     action: "updateHyunhwang",
@@ -559,7 +564,12 @@
                     ta2: document.getElementById(`${pfx}ta2_${idx}`).value,
                     ta3: document.getElementById(`${pfx}ta3_${idx}`).value,
                     ta4: document.getElementById(`${pfx}ta4_${idx}`).value,
-                    schedule: document.getElementById(`${pfx}schedule_${idx}`).value, // ⭐️ 모달에서 합쳐진 스케줄 텍스트
+                    schedule: scheduleVal, 
+                    // ⭐️ 신규: 프론트에서 생성된 동기화 데이터를 모두 전송
+                    rawSchTime: schInput.getAttribute('data-raw-time'),
+                    schType: schInput.getAttribute('data-sch-type'),
+                    schLoc: schInput.getAttribute('data-sch-loc'),
+                    syncCalendar: schInput.getAttribute('data-sync-calendar') === 'true', 
                     status: document.getElementById(`${pfx}status_${idx}`).value,
                     contractCount: rawCount,
                     contractPremium: rawPremium,
@@ -568,19 +578,23 @@
 
                 try {
                     const response = await fetch(GAS_WEBAPP_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
+                        method: 'POST', body: JSON.stringify(payload)
                     });
                     const result = await response.json();
-                    if(result.success) successCount++;
+                    if(result.success) {
+                        successCount++;
+                        // ⭐️ 캘린더 실패 시 알림창 띄우기
+                        if (result.calResult && !result.calResult.success) {
+                            alert(`🚨 캘린더 연동 실패! (고객명: ${payload.customerName})\n사유: ${result.calResult.error}`);
+                        }
+                    }
                 } catch (error) {
                     failCount++;
                 }
             }
 
-            alert(`총 ${total}건 중 ${successCount}건이 성공적으로 저장되었습니다.` + (failCount > 0 ? `\n(실패: ${failCount}건)` : ""));
-            btn.disabled = false;
-            btn.classList.replace('bg-slate-500', 'bg-blue-600');
+            alert(`총 ${total}건 저장 및 동기화 완료!` + (failCount > 0 ? `\n(실패: ${failCount}건)` : ""));
+            btn.disabled = false; btn.classList.replace('bg-slate-500', 'bg-blue-600');
             textSpan.innerText = "💾 전체 저장";
             
             loadAssignedDBs(); 
