@@ -197,7 +197,7 @@
                                 <div class="w-[20%] shrink-0 flex items-center gap-1.5 pl-1">
                                     <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight">🎧 녹취듣기</span>
                                     <div class="flex-grow w-full">
-                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300 bg-white shadow-sm"></iframe>` : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 없음</div>`}
+                                       ${db.audioUrl ? `<audio controls controlsList="nodownload" class="w-full h-9 outline-none"><source src="${db.audioUrl}"></audio>` : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 없음</div>`}
                                     </div>
                                 </div>
                                 <div class="w-[5%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA', valTa1, index, '')}</div>
@@ -258,7 +258,7 @@
                                 <div class="w-full flex items-center gap-2 mb-1">
                                     <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">🎧 녹취</span>
                                     <div class="flex-grow w-full">
-                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" class="w-full h-8 rounded border border-slate-300 bg-white shadow-sm"></iframe>` : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 없음</div>`}
+                                       ${db.audioUrl ? `<audio controls controlsList="nodownload" class="w-full h-9 outline-none"><source src="${db.audioUrl}"></audio>` : `<div class="w-full h-8 flex items-center justify-center bg-slate-100 rounded border border-slate-200 text-[10px] text-slate-400 shadow-inner">녹취 없음</div>`}
                                     </div>
                                 </div>
 
