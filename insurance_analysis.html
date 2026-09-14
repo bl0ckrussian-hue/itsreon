@@ -68,7 +68,6 @@
         </div>
 
         <div class="flex gap-2">
-            <!-- 파일 타입을 PDF로 고정 -->
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📄 보장분석 PDF 업로드
@@ -164,12 +163,16 @@
                     <td id="res-질병사망" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해사망" class="editable-cell text-red-600 font-bold">-</td>
                 </tr>
                 
-                <!-- 장애 -->
+                <!-- 장애 (에러 픽스: d_disD, d_disS ID 추가) -->
                 <tr>
                     <td class="bg-light-gray">장애</td>
                     <td class="bg-light-gray">후유장애</td>
                     <td class="bg-light-gray">3%이상</td>
-                    <td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td>
+                    <td id="d_disD_1" class="editable-cell"></td><td id="d_disS_1" class="editable-cell"></td>
+                    <td id="d_disD_2" class="editable-cell"></td><td id="d_disS_2" class="editable-cell"></td>
+                    <td id="d_disD_3" class="editable-cell"></td><td id="d_disS_3" class="editable-cell"></td>
+                    <td id="d_disD_4" class="editable-cell"></td><td id="d_disS_4" class="editable-cell"></td>
+                    <td id="d_disD_5" class="editable-cell"></td><td id="d_disS_5" class="editable-cell"></td>
                     <td id="res-질병후유" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해후유" class="editable-cell text-red-600 font-bold">-</td>
                     <td class="editable-cell"></td>
                 </tr>
@@ -296,7 +299,7 @@
                 <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" id="d_liab_1" class="editable-cell"></td><td colspan="2" id="d_liab_2" class="editable-cell"></td><td colspan="2" id="d_liab_3" class="editable-cell"></td><td colspan="2" id="d_liab_4" class="editable-cell"></td><td colspan="2" id="d_liab_5" class="editable-cell"></td><td colspan="2" id="res-일배책" class="editable-cell text-red-600 font-bold">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
-                <!-- 보험료 (규칙 10 적용) -->
+                <!-- 보험료 -->
                 <tr>
                     <td rowspan="2" class="bg-light-gray">보험료</td>
                     <td colspan="2" class="bg-light-gray">보험료(월)</td>
@@ -317,7 +320,7 @@
     </div>
 
     <script>
-        // 전역 변수
+        // 전역 변수 설정
         let processedContracts = []; 
         let sumData = {};            
         let currentPage = 1;
@@ -334,9 +337,7 @@
             });
         });
 
-        // ==========================================
-        // 파일 업로드 이벤트 리스너 (PDF ➔ Cloud Run ➔ JS 매핑)
-        // ==========================================
+        // 1. 파일 업로드 리스너 (PDF 클라우드 전송 ➔ 엑셀 변환 ➔ 즉각 매핑)
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
@@ -349,14 +350,14 @@
             try {
                 loadingOverlay.style.display = 'flex';
                 
-                // STEP 1: 클라우드 파이썬 서버로 엑셀 변환 요청 (소요시간 2~3초)
+                // STEP 1: 클라우드 파이썬 서버로 엑셀 변환 요청
                 progressTitle.innerText = "1/2. 클라우드 엑셀 추출 중...";
                 progressDesc.innerText = "안전한 서버 환경에서 PDF를 테이블(Grid) 형태의 엑셀 데이터로 변환하고 있습니다.";
                 progressBar.style.width = '40%';
 
                 const base64data = await getBase64(file);
                 
-                // 팀장님이 배포하신 클라우드 파서 URL
+                // 팀장님께서 배포 성공하신 전용 클라우드 파이썬 서버 URL (오류 없는 통신)
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
                 
                 const cloudRes = await fetch(CLOUD_PARSER_URL, {
@@ -376,7 +377,7 @@
                     throw new Error("엑셀로 변환할 테이블을 찾지 못했습니다. 파일 양식을 확인해 주세요.");
                 }
 
-                // STEP 2: 자바스크립트로 즉각적인 다이렉트 맵핑 (소요시간 0.1초)
+                // STEP 2: 자바스크립트로 즉각적인 다이렉트 맵핑 (소요시간 0.1초 - 무한 로딩 해결)
                 progressTitle.innerText = "2/2. 데이터 즉각 맵핑 중...";
                 progressDesc.innerText = "변환된 엑셀 데이터를 화면 양식에 맞추어 지연 없이 즉시 채워 넣습니다.";
                 progressBar.style.width = '100%';
@@ -402,7 +403,7 @@
         }
 
         // ==========================================
-        // [1차] 자바스크립트 즉각 다이렉트 매핑 (대기시간 0초)
+        // [1차] 자바스크립트 즉각 다이렉트 매핑 (무한 로딩 완전 차단)
         // ==========================================
         function extractDataDirectly(rawExcelData) {
             let rawContracts = [];
@@ -463,8 +464,8 @@
                         else if (damboName.includes("질병수술")) matchedContract.coverages.d_disD = amt;
                         else if (damboName.includes("상해수술")) matchedContract.coverages.d_disS = amt;
                         else if (damboName.includes("암수술")) matchedContract.coverages.d_cancer_op = amt;
-                        else if (damboName.includes("암진단")) matchedContract.coverages.d_cancer = amt;
-                        else if (damboName.includes("유사암")) matchedContract.coverages.d_similar = amt;
+                        else if (damboName.includes("암진단") || damboName.includes("일반암")) matchedContract.coverages.d_cancer = amt;
+                        else if (damboName.includes("유사암") || damboName.includes("기타피부암")) matchedContract.coverages.d_similar = amt;
                         else if (damboName.includes("뇌혈관")) matchedContract.coverages.d_brain = amt;
                         else if (damboName.includes("허혈성")) matchedContract.coverages.d_heart = amt;
                         else if (damboName.includes("심근경색")) matchedContract.coverages.d_ami = amt;
@@ -504,7 +505,7 @@
         }
 
         // ==========================================
-        // [2차] AI 정밀 검수 (사용자가 원할 때 수동 실행)
+        // [2차] AI 정밀 검수 (사용자가 원할 때 수동 실행, 과부하 방지)
         // ==========================================
         async function runAIVerification() {
             if (processedContracts.length === 0) {
@@ -553,7 +554,14 @@ ${currentDataSnapshot}
             }
         }
 
-        // 공통 로직
+        // ==========================================
+        // 안전한 데이터 렌더링 함수 (에러 방지 처리)
+        // ==========================================
+        function safeSetText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = value;
+        }
+
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
             const date = new Date(dateStr);
@@ -607,29 +615,28 @@ ${currentDataSnapshot}
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
             for(let i=1; i<=5; i++) {
-                document.getElementById(`comp${i}`).innerText = "";
-                document.getElementById(`prod${i}`).innerText = "";
-                document.getElementById(`date${i}`).innerText = "";
-                document.getElementById(`term${i}`).innerText = "";
-                document.getElementById(`prem${i}`).innerText = "";
-                document.getElementById(`silbi${i}`).innerText = "";
+                safeSetText(`comp${i}`, "");
+                safeSetText(`prod${i}`, "");
+                safeSetText(`date${i}`, "");
+                safeSetText(`term${i}`, "");
+                safeSetText(`prem${i}`, "");
+                safeSetText(`silbi${i}`, "");
                 document.querySelectorAll(`td[id$="_${i}"]`).forEach(td => td.innerText = "");
             }
-            document.getElementById('totalPremiumCell').innerText = "";
+            safeSetText('totalPremiumCell', "");
 
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
             if (isSummaryPage) {
-                // [규칙 8 & 10] 요약 페이지
-                document.getElementById('header-page-label').innerText = "총 합계";
+                safeSetText('header-page-label', "총 합계");
                 let grandTotalPremium = 0;
 
                 for(let i=1; i<totalPages; i++) {
-                    document.getElementById(`comp${i}`).innerText = `${i}페이지`;
+                    safeSetText(`comp${i}`, `${i}페이지`);
                     document.getElementById(`comp${i}`).style.color = "#d32f2f";
-                    document.getElementById(`prod${i}`).innerText = "-";
-                    document.getElementById(`date${i}`).innerText = "-";
-                    document.getElementById(`term${i}`).innerText = "-";
+                    safeSetText(`prod${i}`, "-");
+                    safeSetText(`date${i}`, "-");
+                    safeSetText(`term${i}`, "-");
                     
                     const pStart = (i - 1) * itemsPerPage;
                     const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
@@ -639,27 +646,26 @@ ${currentDataSnapshot}
                         if(!c.isPaidUp) pagePremiumSum += parsePremium(c.premium);
                     });
                     
-                    document.getElementById(`prem${i}`).innerText = formatPremium(pagePremiumSum);
+                    safeSetText(`prem${i}`, formatPremium(pagePremiumSum));
                     document.getElementById(`prem${i}`).style.color = "#1d4ed8";
                     grandTotalPremium += pagePremiumSum;
                 }
                 
-                document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
+                safeSetText('totalPremiumCell', formatPremium(grandTotalPremium));
                 
-                document.getElementById("res-종신일반").innerText = sumData["상해사망"] || "-";
-                document.getElementById("res-질병사망").innerText = sumData["질병사망"] || "-";
-                document.getElementById("res-상해사망").innerText = sumData["상해사망"] || "-";
-                document.getElementById("res-상해후유").innerText = sumData["상해후유"] || "-";
-                document.getElementById("res-일반암진단").innerText = sumData["일반암진단"] || "-";
-                document.getElementById("res-유사암진단").innerText = sumData["유사암진단"] || "-";
-                document.getElementById("res-뇌혈관진단").innerText = sumData["뇌혈관진단"] || "-";
-                document.getElementById("res-급성심근진단").innerText = sumData["급성심근경색"] || "-";
-                document.getElementById("res-골절진단").innerText = sumData["골절진단"] || "-";
-                document.getElementById("res-일배책").innerText = sumData["일배책"] || "-";
+                safeSetText("res-종신일반", sumData["상해사망"] || "-");
+                safeSetText("res-질병사망", sumData["질병사망"] || "-");
+                safeSetText("res-상해사망", sumData["상해사망"] || "-");
+                safeSetText("res-상해후유", sumData["상해후유"] || "-");
+                safeSetText("res-일반암진단", sumData["일반암진단"] || "-");
+                safeSetText("res-유사암진단", sumData["유사암진단"] || "-");
+                safeSetText("res-뇌혈관진단", sumData["뇌혈관진단"] || "-");
+                safeSetText("res-급성심근진단", sumData["급성심근경색"] || "-");
+                safeSetText("res-골절진단", sumData["골절진단"] || "-");
+                safeSetText("res-일배책", sumData["일배책"] || "-");
 
             } else {
-                // 일반 리스트 페이지
-                document.getElementById('header-page-label').innerText = "페이지 합계";
+                safeSetText('header-page-label', "페이지 합계");
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
                 
@@ -667,48 +673,49 @@ ${currentDataSnapshot}
 
                 pageData.forEach((contract, index) => {
                     const idNum = index + 1;
-                    document.getElementById(`comp${idNum}`).innerText = contract.comp;
+                    
+                    safeSetText(`comp${idNum}`, contract.comp);
                     document.getElementById(`comp${idNum}`).style.color = "#1d4ed8";
-                    document.getElementById(`prod${idNum}`).innerText = contract.prod;
-                    document.getElementById(`date${idNum}`).innerText = contract.date;
+                    safeSetText(`prod${idNum}`, contract.prod);
+                    safeSetText(`date${idNum}`, contract.date);
                     
                     let termStr = `${contract.payTerm}/${contract.maturity}`;
                     if (contract.payTerm === "갱신형" || contract.hasRenewableRider) termStr = `갱신형/${contract.maturity}`;
-                    document.getElementById(`term${idNum}`).innerText = termStr;
+                    safeSetText(`term${idNum}`, termStr);
 
                     if (contract.isPaidUp || contract.premium.includes("완료") || contract.premium.includes("납입완료")) {
-                        document.getElementById(`prem${idNum}`).innerText = "납입완료";
+                        safeSetText(`prem${idNum}`, "납입완료");
                         document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "900";
                     } else {
-                        document.getElementById(`prem${idNum}`).innerText = contract.premium; 
+                        safeSetText(`prem${idNum}`, contract.premium);
                         document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
                         document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
                         currentPageSum += parsePremium(contract.premium);
                     }
 
-                    if (contract.silbiGen) document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
+                    if (contract.silbiGen) safeSetText(`silbi${idNum}`, contract.silbiGen);
                     
                     if (contract.coverages) {
                         const cov = contract.coverages;
-                        if(cov.d_dieD) document.getElementById(`d_dieD_${idNum}`).innerText = cov.d_dieD;
-                        if(cov.d_dieS) document.getElementById(`d_dieS_${idNum}`).innerText = cov.d_dieS;
-                        if(cov.d_disD) document.getElementById(`d_disD_${idNum}`).innerText = cov.d_disD;
-                        if(cov.d_disS) document.getElementById(`d_disS_${idNum}`).innerText = cov.d_disS;
-                        if(cov.d_careD) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD;
-                        if(cov.d_careS) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS;
-                        if(cov.d_cancer) document.getElementById(`d_cancer_${idNum}`).innerText = cov.d_cancer;
-                        if(cov.d_cancer_op) document.getElementById(`d_cancer_op_${idNum}`).innerText = cov.d_cancer_op;
-                        if(cov.d_similar) document.getElementById(`d_similar_${idNum}`).innerText = cov.d_similar;
-                        if(cov.d_brain) document.getElementById(`d_brain_${idNum}`).innerText = cov.d_brain;
-                        if(cov.d_heart) document.getElementById(`d_heart_${idNum}`).innerText = cov.d_heart;
-                        if(cov.d_ami) document.getElementById(`d_ami_${idNum}`).innerText = cov.d_ami;
-                        if(cov.d_fracture) document.getElementById(`d_fracture_${idNum}`).innerText = cov.d_fracture;
-                        if(cov.d_liab) document.getElementById(`d_liab_${idNum}`).innerText = cov.d_liab;
+                        if(cov.d_dieD) safeSetText(`d_dieD_${idNum}`, cov.d_dieD);
+                        if(cov.d_dieS) safeSetText(`d_dieS_${idNum}`, cov.d_dieS);
+                        if(cov.d_disD) safeSetText(`d_disD_${idNum}`, cov.d_disD);
+                        if(cov.d_disS) safeSetText(`d_disS_${idNum}`, cov.d_disS);
+                        if(cov.d_careD) safeSetText(`d_careD_${idNum}`, cov.d_careD);
+                        if(cov.d_careS) safeSetText(`d_careS_${idNum}`, cov.d_careS);
+                        if(cov.d_cancer) safeSetText(`d_cancer_${idNum}`, cov.d_cancer);
+                        if(cov.d_cancer_op) safeSetText(`d_cancer_op_${idNum}`, cov.d_cancer_op);
+                        if(cov.d_similar) safeSetText(`d_similar_${idNum}`, cov.d_similar);
+                        if(cov.d_brain) safeSetText(`d_brain_${idNum}`, cov.d_brain);
+                        if(cov.d_heart) safeSetText(`d_heart_${idNum}`, cov.d_heart);
+                        if(cov.d_ami) safeSetText(`d_ami_${idNum}`, cov.d_ami);
+                        if(cov.d_fracture) safeSetText(`d_fracture_${idNum}`, cov.d_fracture);
+                        if(cov.d_liab) safeSetText(`d_liab_${idNum}`, cov.d_liab);
                     }
                 });
 
-                document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
+                safeSetText('totalPremiumCell', formatPremium(currentPageSum));
             }
         }
 
