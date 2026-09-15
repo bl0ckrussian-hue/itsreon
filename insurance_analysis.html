@@ -337,7 +337,7 @@
         const itemsPerPage = 5;
 
         // ==========================================
-        // 오류 해결 1. 마우스 및 엑셀 키보드 이동 완벽 정상화
+        // 1. 마우스 및 엑셀 키보드 이동 완벽 정상화 (버그 픽스)
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
@@ -350,7 +350,6 @@
             const rows = Array.from(tbody.querySelectorAll('tr'));
             const rowIndex = rows.indexOf(row);
 
-            // Enter를 누르면 브라우저 줄바꿈을 막고 아래 셀로 이동
             if (e.key === 'Enter') {
                 e.preventDefault(); 
                 for (let i = rowIndex + 1; i < rows.length; i++) {
@@ -361,7 +360,6 @@
                     }
                 }
             } 
-            // 위 아래 방향키를 누르면 셀 이동 (기본 스크롤 방지)
             else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 for (let i = rowIndex - 1; i >= 0; i--) {
@@ -374,10 +372,25 @@
                     const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
                     if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
                 }
+            } else if (e.key === 'ArrowRight') {
+                const sel = window.getSelection();
+                if (cell.innerText.trim() === "" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset >= sel.focusNode.textContent.length)) {
+                    if (cellIndex < cells.length - 1) {
+                        e.preventDefault();
+                        cells[cellIndex + 1].focus();
+                    }
+                }
+            } else if (e.key === 'ArrowLeft') {
+                const sel = window.getSelection();
+                if (cell.innerText.trim() === "" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset === 0)) {
+                    if (cellIndex > 0) {
+                        e.preventDefault();
+                        cells[cellIndex - 1].focus();
+                    }
+                }
             }
         });
 
-        // 텍스트 타이핑/복사붙여넣기 시 즉시 우측 합계 반영
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
             cell.addEventListener('input', calculateRowSums);
@@ -390,7 +403,7 @@
         });
 
         // ==========================================
-        // 1. 파일 업로드 -> 클라우드 전송 -> AI 연동
+        // 2. 파일 업로드 -> 클라우드 전송 -> AI 연동
         // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
@@ -426,9 +439,9 @@
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
                 document.getElementById('progressTitle').innerText = "2/2. AI가 19대 룰에 맞춰 자동 맵핑 중...";
-                document.getElementById('progressDesc').innerText = "파편화된 원문 데이터를 AI가 문맥으로 파악하여 화면에 채워 넣습니다. (약 10초 소요)";
+                document.getElementById('progressDesc').innerText = "파편화된 원문 데이터를 AI가 문맥으로 파악하여 화면에 채워 넣습니다. (약 10~15초 소요)";
 
-                // 오류 해결 2. AI에게 넘겨서 확실히 파싱하도록 AI엔진 호출
+                // 🚨 AI 연동 파싱 호출
                 await extractDataWithAIEngine(rawCloudDataForExport);
 
             } catch (err) {
@@ -531,7 +544,14 @@ ${promptContext.substring(0, 40000)}
                 const aiData = await aiRes.json();
                 if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연.");
                 
+                // ⬇️ 추가: AI JSON 파싱 오류(Unterminated string)를 완벽 차단하는 정화 로직
                 let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                cleanJson = cleanJson.replace(/[\n\r\t]/g, ' '); 
+                let startIndex = cleanJson.indexOf('{');
+                let endIndex = cleanJson.lastIndexOf('}');
+                if (startIndex !== -1 && endIndex !== -1) {
+                    cleanJson = cleanJson.substring(startIndex, endIndex + 1);
+                }
                 let analysisResult = JSON.parse(cleanJson);
 
                 if (!analysisResult.contracts || analysisResult.contracts.length === 0) {
@@ -605,7 +625,6 @@ ${promptContext.substring(0, 40000)}
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
             if (isSummaryPage) {
-                // [규칙 8 & 10] 총 합계 페이지 렌더링
                 document.getElementById('header-page-label').innerText = "총 합계";
                 let grandTotalPremium = 0;
                 const maxSummaryCols = Math.min(totalPages - 1, 5); 
@@ -651,7 +670,6 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(grandTotalPremium);
 
             } else {
-                // 일반 계약 리스트 페이지
                 document.getElementById('header-page-label').innerText = "페이지 합계";
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
@@ -720,7 +738,7 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(currentPageSum);
             }
             
-            // 페이지 렌더링 직후 가로 합계(Rule 6) 자동 계산
+            // 페이지 렌더링 후 가로 합계(Rule 6) 자동 계산
             calculateRowSums();
         }
 
@@ -760,11 +778,15 @@ ${promptContext.substring(0, 40000)}
         }
 
         // ==========================================
-        // 추출 원본 엑셀 다운로드 (데이터 인입 테스트용)
+        // 추출 원본 엑셀 다운로드 (디버깅 지원)
         // ==========================================
         function exportRawToExcel() {
-            if(!rawCloudDataForExport) return alert("데이터가 없습니다. PDF를 업로드 해주세요.");
+            if(!rawCloudDataForExport) {
+                alert("아직 추출된 데이터가 없습니다. PDF를 먼저 업로드 해주세요.");
+                return;
+            }
             const wb = XLSX.utils.book_new();
+            
             for (const [sheetName, dataRows] of Object.entries(rawCloudDataForExport)) {
                 if(dataRows.length > 0) {
                     const ws = XLSX.utils.aoa_to_sheet(dataRows);
@@ -779,12 +801,9 @@ ${promptContext.substring(0, 40000)}
         // ==========================================
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
-            
-            // raw:true 옵션으로 텍스트를 그대로 가져오되, 스타일을 입힐 수 있게 객체 생성
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.table_to_sheet(table, {raw: true});
 
-            // 원본 잇츠리온 양식과 동일한 스타일(색상, 테두리, 중앙정렬 등) 적용
             for (let i in ws) {
                 if (i[0] === '!') continue;
                 let cell = ws[i];
@@ -801,21 +820,17 @@ ${promptContext.substring(0, 40000)}
                     }
                 };
 
-                // 첫 줄 초록색 헤더
                 if (rowNum === 1) {
                     cell.s.fill = { fgColor: { rgb: "2CA02C" } };
                     cell.s.font.color = { rgb: "FFFFFF" };
                     cell.s.font.bold = true;
                     cell.s.font.sz = 11;
-                } 
-                // 회색 배경 및 노란색 비고란
-                else if (cell.v && (String(cell.v).includes("사망") || String(cell.v).includes("장애") || String(cell.v).includes("일반 치료비"))) {
+                } else if (cell.v && (String(cell.v).includes("사망") || String(cell.v).includes("장애") || String(cell.v).includes("일반 치료비"))) {
                     cell.s.fill = { fgColor: { rgb: "F8F9FA" } };
                     cell.s.font.bold = true;
                 }
             }
 
-            // 열 넓이 최적화
             ws['!cols'] = [{wch: 6}, {wch: 6}, {wch: 8}, {wch: 11}, {wch: 11}, {wch: 11}, {wch: 11}, {wch: 11}, {wch: 8}, {wch: 8}, {wch: 15}];
 
             XLSX.utils.book_append_sheet(wb, ws, `보장분석_${currentPage}P`);
@@ -827,19 +842,25 @@ ${promptContext.substring(0, 40000)}
         async function runAIVerification() {
             if (processedContracts.length === 0) return alert("먼저 PDF 원본 데이터를 업로드하세요.");
             const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-            document.getElementById('progressTitle').innerText = "AI 정밀 검수 중...";
+            document.getElementById('progressTitle').innerText = "AI 정밀 오류 검수 중...";
             document.getElementById('loadingOverlay').style.display = 'flex';
 
-            const prompt = `당신은 최고 수준의 보험 보장분석 검수 AI입니다. 아래 데이터에서 논리적 누락/오류를 검수하여 같은 형태의 JSON으로 반환하세요. \n\n${JSON.stringify(processedContracts)}`;
+            const prompt = `당신은 최고 수준의 보험 보장분석 검수 AI입니다. 아래 1차 매핑 데이터(JSON)에서 논리적 누락/오류를 검수하여 같은 형태의 JSON으로 반환하세요. \n\n${JSON.stringify(processedContracts)}`;
 
             try {
                 const res = await fetch(AI_PROXY_URL, { method: 'POST', body: JSON.stringify({ prompt: prompt }) });
                 const aiData = await res.json();
+                
                 let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                cleanJson = cleanJson.replace(/[\n\r\t]/g, ' '); 
+                let startIndex = cleanJson.indexOf('{');
+                let endIndex = cleanJson.lastIndexOf('}');
+                if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
+                
                 processMappedData(JSON.parse(cleanJson));
                 alert("AI 검수 완료.");
             } catch(e) {
-                alert("AI 오류: " + e.message);
+                alert("AI 검수 오류: " + e.message);
             } finally {
                 document.getElementById('loadingOverlay').style.display = 'none';
             }
