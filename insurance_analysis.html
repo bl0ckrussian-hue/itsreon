@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>잇츠리온 - 보장분석 다이렉트 엔진</title>
+    <title>잇츠리온 - 정밀 보장분석 자동화 엔진</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
@@ -40,11 +40,8 @@
 
     <div id="loadingOverlay">
         <div class="spinner mb-5"></div>
-        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 추출 및 맵핑 중...</h2>
-        <p class="text-sm text-slate-300" id="progressDesc">PDF 데이터를 즉시 엑셀표 양식에 맞춰 연산하고 있습니다.</p>
-        <div class="w-64 bg-slate-700 h-2 mt-6 rounded-full overflow-hidden">
-            <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
-        </div>
+        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 연결 중...</h2>
+        <p class="text-sm text-slate-300" id="progressDesc">데이터를 처리하고 있습니다.</p>
     </div>
 
     <!-- 상단 컨트롤러 -->
@@ -52,7 +49,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>클라우드 서버 원문 추출 ➔ 자바스크립트 즉각 매핑 (19대 룰 전체 적용)</span>
+                <span>PDF 원문 추출 ➔ 19대 룰 자동 매핑 ➔ 가로 행 자동 합산 및 최종 페이지 요약</span>
             </p>
         </div>
         
@@ -65,21 +62,24 @@
         <div class="flex gap-2">
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                📄 보장분석 PDF 원문 업로드
+                📄 보장분석 PDF 업로드
+            </button>
+            <button id="btnDownloadRaw" onclick="exportRawToExcel()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition hidden">
+                📥 추출 원본 엑셀 확인
             </button>
             <button onclick="runAIVerification()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                🤖 AI 정밀 오류 검수 (선택)
+                🤖 AI 정밀 검수
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📊 결과 엑셀 다운로드
             </button>
             <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                🖨️ 인쇄하기
+                🖨️ 인쇄
             </button>
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 (UI 유지) -->
+    <!-- 엑셀 구현 영역 -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -133,14 +133,14 @@
                     <th colspan="2" id="term5" class="editable-cell">-</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
                 <!-- 사망 -->
                 <tr>
                     <td rowspan="4" class="bg-light-gray text-[9px]">사망<br>(장해지급률80%<br>이상시. 2008년<br>이전종신상품 약<br>관에따라 다름)</td>
                     <td rowspan="2" class="bg-light-gray">종신(생명)</td>
                     <td class="bg-light-gray">일반</td>
-                    <td colspan="2" id="d_life_1" class="editable-cell"></td><td colspan="2" id="d_life_2" class="editable-cell"></td><td colspan="2" id="d_life_3" class="editable-cell"></td><td colspan="2" id="d_life_4" class="editable-cell"></td><td colspan="2" id="d_life_5" class="editable-cell"></td>
-                    <td colspan="2" id="res-종신일반" class="editable-cell font-bold text-red-600">-</td>
+                    <td colspan="2" id="d_life_1" class="editable-cell sum-target" data-key="d_life_"></td><td colspan="2" id="d_life_2" class="editable-cell sum-target" data-key="d_life_"></td><td colspan="2" id="d_life_3" class="editable-cell sum-target" data-key="d_life_"></td><td colspan="2" id="d_life_4" class="editable-cell sum-target" data-key="d_life_"></td><td colspan="2" id="d_life_5" class="editable-cell sum-target" data-key="d_life_"></td>
+                    <td colspan="2" id="res_d_life_" class="editable-cell font-bold text-red-600 bg-red-50">-</td>
                     <td rowspan="4" class="remark-yellow">진단비 최초1회<br>만 수술비 반복<br>보장 최대보장금<br>액기재</td>
                 </tr>
                 <tr>
@@ -154,8 +154,8 @@
                 <tr>
                     <td class="bg-light-gray">손해</td>
                     <td class="bg-light-gray">사망(80세)</td>
-                    <td id="d_dieD_1" class="editable-cell"></td><td id="d_dieS_1" class="editable-cell"></td><td id="d_dieD_2" class="editable-cell"></td><td id="d_dieS_2" class="editable-cell"></td><td id="d_dieD_3" class="editable-cell"></td><td id="d_dieS_3" class="editable-cell"></td><td id="d_dieD_4" class="editable-cell"></td><td id="d_dieS_4" class="editable-cell"></td><td id="d_dieD_5" class="editable-cell"></td><td id="d_dieS_5" class="editable-cell"></td>
-                    <td id="res-질병사망" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해사망" class="editable-cell text-red-600 font-bold">-</td>
+                    <td id="d_dieD_1" class="editable-cell sum-target" data-key="d_dieD_"></td><td id="d_dieS_1" class="editable-cell sum-target" data-key="d_dieS_"></td><td id="d_dieD_2" class="editable-cell sum-target" data-key="d_dieD_"></td><td id="d_dieS_2" class="editable-cell sum-target" data-key="d_dieS_"></td><td id="d_dieD_3" class="editable-cell sum-target" data-key="d_dieD_"></td><td id="d_dieS_3" class="editable-cell sum-target" data-key="d_dieS_"></td><td id="d_dieD_4" class="editable-cell sum-target" data-key="d_dieD_"></td><td id="d_dieS_4" class="editable-cell sum-target" data-key="d_dieS_"></td><td id="d_dieD_5" class="editable-cell sum-target" data-key="d_dieD_"></td><td id="d_dieS_5" class="editable-cell sum-target" data-key="d_dieS_"></td>
+                    <td id="res_d_dieD_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td id="res_d_dieS_" class="editable-cell text-red-600 font-bold bg-red-50">-</td>
                 </tr>
                 
                 <!-- 장애 -->
@@ -163,8 +163,8 @@
                     <td class="bg-light-gray">장애</td>
                     <td class="bg-light-gray">후유장애</td>
                     <td class="bg-light-gray">3%이상</td>
-                    <td id="d_disD_1" class="editable-cell"></td><td id="d_disS_1" class="editable-cell"></td><td id="d_disD_2" class="editable-cell"></td><td id="d_disS_2" class="editable-cell"></td><td id="d_disD_3" class="editable-cell"></td><td id="d_disS_3" class="editable-cell"></td><td id="d_disD_4" class="editable-cell"></td><td id="d_disS_4" class="editable-cell"></td><td id="d_disD_5" class="editable-cell"></td><td id="d_disS_5" class="editable-cell"></td>
-                    <td id="res-질병후유" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해후유" class="editable-cell text-red-600 font-bold">-</td>
+                    <td id="d_disD_1" class="editable-cell sum-target" data-key="d_disD_"></td><td id="d_disS_1" class="editable-cell sum-target" data-key="d_disS_"></td><td id="d_disD_2" class="editable-cell sum-target" data-key="d_disD_"></td><td id="d_disS_2" class="editable-cell sum-target" data-key="d_disS_"></td><td id="d_disD_3" class="editable-cell sum-target" data-key="d_disD_"></td><td id="d_disS_3" class="editable-cell sum-target" data-key="d_disS_"></td><td id="d_disD_4" class="editable-cell sum-target" data-key="d_disD_"></td><td id="d_disS_4" class="editable-cell sum-target" data-key="d_disS_"></td><td id="d_disD_5" class="editable-cell sum-target" data-key="d_disD_"></td><td id="d_disS_5" class="editable-cell sum-target" data-key="d_disS_"></td>
+                    <td id="res_d_disD_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td id="res_d_disS_" class="editable-cell text-red-600 font-bold bg-red-50">-</td>
                     <td class="editable-cell"></td>
                 </tr>
 
@@ -173,23 +173,23 @@
                     <td rowspan="6" class="bg-light-gray">입원비</td>
                     <td rowspan="4" class="bg-light-gray">입원</td>
                     <td class="bg-light-gray">일반병원</td>
-                    <td id="d_hospD_1" class="editable-cell"></td><td id="d_hospS_1" class="editable-cell"></td><td id="d_hospD_2" class="editable-cell"></td><td id="d_hospS_2" class="editable-cell"></td><td id="d_hospD_3" class="editable-cell"></td><td id="d_hospS_3" class="editable-cell"></td><td id="d_hospD_4" class="editable-cell"></td><td id="d_hospS_4" class="editable-cell"></td><td id="d_hospD_5" class="editable-cell"></td><td id="d_hospS_5" class="editable-cell"></td>
-                    <td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
+                    <td id="d_hospD_1" class="editable-cell sum-target" data-key="d_hospD_"></td><td id="d_hospS_1" class="editable-cell sum-target" data-key="d_hospS_"></td><td id="d_hospD_2" class="editable-cell sum-target" data-key="d_hospD_"></td><td id="d_hospS_2" class="editable-cell sum-target" data-key="d_hospS_"></td><td id="d_hospD_3" class="editable-cell sum-target" data-key="d_hospD_"></td><td id="d_hospS_3" class="editable-cell sum-target" data-key="d_hospS_"></td><td id="d_hospD_4" class="editable-cell sum-target" data-key="d_hospD_"></td><td id="d_hospS_4" class="editable-cell sum-target" data-key="d_hospS_"></td><td id="d_hospD_5" class="editable-cell sum-target" data-key="d_hospD_"></td><td id="d_hospS_5" class="editable-cell sum-target" data-key="d_hospS_"></td>
+                    <td id="res_d_hospD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_hospS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td>
                 </tr>
                 <tr><td class="bg-light-gray">상급1인실</td>
-                    <td id="d_1inD_1" class="editable-cell"></td><td id="d_1inS_1" class="editable-cell"></td><td id="d_1inD_2" class="editable-cell"></td><td id="d_1inS_2" class="editable-cell"></td><td id="d_1inD_3" class="editable-cell"></td><td id="d_1inS_3" class="editable-cell"></td><td id="d_1inD_4" class="editable-cell"></td><td id="d_1inS_4" class="editable-cell"></td><td id="d_1inD_5" class="editable-cell"></td><td id="d_1inS_5" class="editable-cell"></td>
-                    <td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_1inD_1" class="editable-cell sum-target" data-key="d_1inD_"></td><td id="d_1inS_1" class="editable-cell sum-target" data-key="d_1inS_"></td><td id="d_1inD_2" class="editable-cell sum-target" data-key="d_1inD_"></td><td id="d_1inS_2" class="editable-cell sum-target" data-key="d_1inS_"></td><td id="d_1inD_3" class="editable-cell sum-target" data-key="d_1inD_"></td><td id="d_1inS_3" class="editable-cell sum-target" data-key="d_1inS_"></td><td id="d_1inD_4" class="editable-cell sum-target" data-key="d_1inD_"></td><td id="d_1inS_4" class="editable-cell sum-target" data-key="d_1inS_"></td><td id="d_1inD_5" class="editable-cell sum-target" data-key="d_1inD_"></td><td id="d_1inS_5" class="editable-cell sum-target" data-key="d_1inS_"></td>
+                    <td id="res_d_1inD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_1inS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술입원</td>
-                    <td id="d_opHospD_1" class="editable-cell"></td><td id="d_opHospS_1" class="editable-cell"></td><td id="d_opHospD_2" class="editable-cell"></td><td id="d_opHospS_2" class="editable-cell"></td><td id="d_opHospD_3" class="editable-cell"></td><td id="d_opHospS_3" class="editable-cell"></td><td id="d_opHospD_4" class="editable-cell"></td><td id="d_opHospS_4" class="editable-cell"></td><td id="d_opHospD_5" class="editable-cell"></td><td id="d_opHospS_5" class="editable-cell"></td>
-                    <td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_opHospD_1" class="editable-cell sum-target" data-key="d_opHospD_"></td><td id="d_opHospS_1" class="editable-cell sum-target" data-key="d_opHospS_"></td><td id="d_opHospD_2" class="editable-cell sum-target" data-key="d_opHospD_"></td><td id="d_opHospS_2" class="editable-cell sum-target" data-key="d_opHospS_"></td><td id="d_opHospD_3" class="editable-cell sum-target" data-key="d_opHospD_"></td><td id="d_opHospS_3" class="editable-cell sum-target" data-key="d_opHospS_"></td><td id="d_opHospD_4" class="editable-cell sum-target" data-key="d_opHospD_"></td><td id="d_opHospS_4" class="editable-cell sum-target" data-key="d_opHospS_"></td><td id="d_opHospD_5" class="editable-cell sum-target" data-key="d_opHospD_"></td><td id="d_opHospS_5" class="editable-cell sum-target" data-key="d_opHospS_"></td>
+                    <td id="res_d_opHospD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_opHospS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">중환자실</td>
-                    <td id="d_icuD_1" class="editable-cell"></td><td id="d_icuS_1" class="editable-cell"></td><td id="d_icuD_2" class="editable-cell"></td><td id="d_icuS_2" class="editable-cell"></td><td id="d_icuD_3" class="editable-cell"></td><td id="d_icuS_3" class="editable-cell"></td><td id="d_icuD_4" class="editable-cell"></td><td id="d_icuS_4" class="editable-cell"></td><td id="d_icuD_5" class="editable-cell"></td><td id="d_icuS_5" class="editable-cell"></td>
-                    <td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_icuD_1" class="editable-cell sum-target" data-key="d_icuD_"></td><td id="d_icuS_1" class="editable-cell sum-target" data-key="d_icuS_"></td><td id="d_icuD_2" class="editable-cell sum-target" data-key="d_icuD_"></td><td id="d_icuS_2" class="editable-cell sum-target" data-key="d_icuS_"></td><td id="d_icuD_3" class="editable-cell sum-target" data-key="d_icuD_"></td><td id="d_icuS_3" class="editable-cell sum-target" data-key="d_icuS_"></td><td id="d_icuD_4" class="editable-cell sum-target" data-key="d_icuD_"></td><td id="d_icuS_4" class="editable-cell sum-target" data-key="d_icuS_"></td><td id="d_icuD_5" class="editable-cell sum-target" data-key="d_icuD_"></td><td id="d_icuS_5" class="editable-cell sum-target" data-key="d_icuS_"></td>
+                    <td id="res_d_icuD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_icuS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">간병</td>
                     <td class="bg-light-gray">지원/일당</td>
-                    <td id="d_careD_1" class="editable-cell"></td><td id="d_careS_1" class="editable-cell"></td><td id="d_careD_2" class="editable-cell"></td><td id="d_careS_2" class="editable-cell"></td><td id="d_careD_3" class="editable-cell"></td><td id="d_careS_3" class="editable-cell"></td><td id="d_careD_4" class="editable-cell"></td><td id="d_careS_4" class="editable-cell"></td><td id="d_careD_5" class="editable-cell"></td><td id="d_careS_5" class="editable-cell"></td>
-                    <td id="res-질병간병일당" class="editable-cell text-red-600 font-bold">-</td><td id="res-상해간병일당" class="editable-cell text-red-600 font-bold">-</td>
+                    <td id="d_careD_1" class="editable-cell sum-target" data-key="d_careD_"></td><td id="d_careS_1" class="editable-cell sum-target" data-key="d_careS_"></td><td id="d_careD_2" class="editable-cell sum-target" data-key="d_careD_"></td><td id="d_careS_2" class="editable-cell sum-target" data-key="d_careS_"></td><td id="d_careD_3" class="editable-cell sum-target" data-key="d_careD_"></td><td id="d_careS_3" class="editable-cell sum-target" data-key="d_careS_"></td><td id="d_careD_4" class="editable-cell sum-target" data-key="d_careD_"></td><td id="d_careS_4" class="editable-cell sum-target" data-key="d_careS_"></td><td id="d_careD_5" class="editable-cell sum-target" data-key="d_careD_"></td><td id="d_careS_5" class="editable-cell sum-target" data-key="d_careS_"></td>
+                    <td id="res_d_careD_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td id="res_d_careS_" class="editable-cell text-red-600 font-bold bg-red-50">-</td>
                     <td rowspan="2" class="text-[10px]">일반병원기준</td>
                 </tr>
                 <tr><td class="bg-light-gray">통합간호</td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td></tr>
@@ -199,44 +199,44 @@
                     <td rowspan="12" class="bg-light-gray">일반 치료비</td>
                     <td rowspan="11" class="bg-light-gray">수술비</td>
                     <td class="bg-light-gray">수술 1종</td>
-                    <td id="d_op1D_1" class="editable-cell"></td><td id="d_op1S_1" class="editable-cell"></td><td id="d_op1D_2" class="editable-cell"></td><td id="d_op1S_2" class="editable-cell"></td><td id="d_op1D_3" class="editable-cell"></td><td id="d_op1S_3" class="editable-cell"></td><td id="d_op1D_4" class="editable-cell"></td><td id="d_op1S_4" class="editable-cell"></td><td id="d_op1D_5" class="editable-cell"></td><td id="d_op1S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td>
+                    <td id="d_op1D_1" class="editable-cell sum-target" data-key="d_op1D_"></td><td id="d_op1S_1" class="editable-cell sum-target" data-key="d_op1S_"></td><td id="d_op1D_2" class="editable-cell sum-target" data-key="d_op1D_"></td><td id="d_op1S_2" class="editable-cell sum-target" data-key="d_op1S_"></td><td id="d_op1D_3" class="editable-cell sum-target" data-key="d_op1D_"></td><td id="d_op1S_3" class="editable-cell sum-target" data-key="d_op1S_"></td><td id="d_op1D_4" class="editable-cell sum-target" data-key="d_op1D_"></td><td id="d_op1S_4" class="editable-cell sum-target" data-key="d_op1S_"></td><td id="d_op1D_5" class="editable-cell sum-target" data-key="d_op1D_"></td><td id="d_op1S_5" class="editable-cell sum-target" data-key="d_op1S_"></td><td id="res_d_op1D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op1S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td>
                 </tr>
                 <tr><td class="bg-light-gray">수술 2종</td>
-                    <td id="d_op2D_1" class="editable-cell"></td><td id="d_op2S_1" class="editable-cell"></td><td id="d_op2D_2" class="editable-cell"></td><td id="d_op2S_2" class="editable-cell"></td><td id="d_op2D_3" class="editable-cell"></td><td id="d_op2S_3" class="editable-cell"></td><td id="d_op2D_4" class="editable-cell"></td><td id="d_op2S_4" class="editable-cell"></td><td id="d_op2D_5" class="editable-cell"></td><td id="d_op2S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op2D_1" class="editable-cell sum-target" data-key="d_op2D_"></td><td id="d_op2S_1" class="editable-cell sum-target" data-key="d_op2S_"></td><td id="d_op2D_2" class="editable-cell sum-target" data-key="d_op2D_"></td><td id="d_op2S_2" class="editable-cell sum-target" data-key="d_op2S_"></td><td id="d_op2D_3" class="editable-cell sum-target" data-key="d_op2D_"></td><td id="d_op2S_3" class="editable-cell sum-target" data-key="d_op2S_"></td><td id="d_op2D_4" class="editable-cell sum-target" data-key="d_op2D_"></td><td id="d_op2S_4" class="editable-cell sum-target" data-key="d_op2S_"></td><td id="d_op2D_5" class="editable-cell sum-target" data-key="d_op2D_"></td><td id="d_op2S_5" class="editable-cell sum-target" data-key="d_op2S_"></td><td id="res_d_op2D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op2S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술 3종</td>
-                    <td id="d_op3D_1" class="editable-cell"></td><td id="d_op3S_1" class="editable-cell"></td><td id="d_op3D_2" class="editable-cell"></td><td id="d_op3S_2" class="editable-cell"></td><td id="d_op3D_3" class="editable-cell"></td><td id="d_op3S_3" class="editable-cell"></td><td id="d_op3D_4" class="editable-cell"></td><td id="d_op3S_4" class="editable-cell"></td><td id="d_op3D_5" class="editable-cell"></td><td id="d_op3S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op3D_1" class="editable-cell sum-target" data-key="d_op3D_"></td><td id="d_op3S_1" class="editable-cell sum-target" data-key="d_op3S_"></td><td id="d_op3D_2" class="editable-cell sum-target" data-key="d_op3D_"></td><td id="d_op3S_2" class="editable-cell sum-target" data-key="d_op3S_"></td><td id="d_op3D_3" class="editable-cell sum-target" data-key="d_op3D_"></td><td id="d_op3S_3" class="editable-cell sum-target" data-key="d_op3S_"></td><td id="d_op3D_4" class="editable-cell sum-target" data-key="d_op3D_"></td><td id="d_op3S_4" class="editable-cell sum-target" data-key="d_op3S_"></td><td id="d_op3D_5" class="editable-cell sum-target" data-key="d_op3D_"></td><td id="d_op3S_5" class="editable-cell sum-target" data-key="d_op3S_"></td><td id="res_d_op3D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op3S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술 4종</td>
-                    <td id="d_op4D_1" class="editable-cell"></td><td id="d_op4S_1" class="editable-cell"></td><td id="d_op4D_2" class="editable-cell"></td><td id="d_op4S_2" class="editable-cell"></td><td id="d_op4D_3" class="editable-cell"></td><td id="d_op4S_3" class="editable-cell"></td><td id="d_op4D_4" class="editable-cell"></td><td id="d_op4S_4" class="editable-cell"></td><td id="d_op4D_5" class="editable-cell"></td><td id="d_op4S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op4D_1" class="editable-cell sum-target" data-key="d_op4D_"></td><td id="d_op4S_1" class="editable-cell sum-target" data-key="d_op4S_"></td><td id="d_op4D_2" class="editable-cell sum-target" data-key="d_op4D_"></td><td id="d_op4S_2" class="editable-cell sum-target" data-key="d_op4S_"></td><td id="d_op4D_3" class="editable-cell sum-target" data-key="d_op4D_"></td><td id="d_op4S_3" class="editable-cell sum-target" data-key="d_op4S_"></td><td id="d_op4D_4" class="editable-cell sum-target" data-key="d_op4D_"></td><td id="d_op4S_4" class="editable-cell sum-target" data-key="d_op4S_"></td><td id="d_op4D_5" class="editable-cell sum-target" data-key="d_op4D_"></td><td id="d_op4S_5" class="editable-cell sum-target" data-key="d_op4S_"></td><td id="res_d_op4D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op4S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술 5종</td>
-                    <td id="d_op5D_1" class="editable-cell"></td><td id="d_op5S_1" class="editable-cell"></td><td id="d_op5D_2" class="editable-cell"></td><td id="d_op5S_2" class="editable-cell"></td><td id="d_op5D_3" class="editable-cell"></td><td id="d_op5S_3" class="editable-cell"></td><td id="d_op5D_4" class="editable-cell"></td><td id="d_op5S_4" class="editable-cell"></td><td id="d_op5D_5" class="editable-cell"></td><td id="d_op5S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op5D_1" class="editable-cell sum-target" data-key="d_op5D_"></td><td id="d_op5S_1" class="editable-cell sum-target" data-key="d_op5S_"></td><td id="d_op5D_2" class="editable-cell sum-target" data-key="d_op5D_"></td><td id="d_op5S_2" class="editable-cell sum-target" data-key="d_op5S_"></td><td id="d_op5D_3" class="editable-cell sum-target" data-key="d_op5D_"></td><td id="d_op5S_3" class="editable-cell sum-target" data-key="d_op5S_"></td><td id="d_op5D_4" class="editable-cell sum-target" data-key="d_op5D_"></td><td id="d_op5S_4" class="editable-cell sum-target" data-key="d_op5S_"></td><td id="d_op5D_5" class="editable-cell sum-target" data-key="d_op5D_"></td><td id="d_op5S_5" class="editable-cell sum-target" data-key="d_op5S_"></td><td id="res_d_op5D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op5S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술 6종</td>
-                    <td id="d_op6D_1" class="editable-cell"></td><td id="d_op6S_1" class="editable-cell"></td><td id="d_op6D_2" class="editable-cell"></td><td id="d_op6S_2" class="editable-cell"></td><td id="d_op6D_3" class="editable-cell"></td><td id="d_op6S_3" class="editable-cell"></td><td id="d_op6D_4" class="editable-cell"></td><td id="d_op6S_4" class="editable-cell"></td><td id="d_op6D_5" class="editable-cell"></td><td id="d_op6S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op6D_1" class="editable-cell sum-target" data-key="d_op6D_"></td><td id="d_op6S_1" class="editable-cell sum-target" data-key="d_op6S_"></td><td id="d_op6D_2" class="editable-cell sum-target" data-key="d_op6D_"></td><td id="d_op6S_2" class="editable-cell sum-target" data-key="d_op6S_"></td><td id="d_op6D_3" class="editable-cell sum-target" data-key="d_op6D_"></td><td id="d_op6S_3" class="editable-cell sum-target" data-key="d_op6S_"></td><td id="d_op6D_4" class="editable-cell sum-target" data-key="d_op6D_"></td><td id="d_op6S_4" class="editable-cell sum-target" data-key="d_op6S_"></td><td id="d_op6D_5" class="editable-cell sum-target" data-key="d_op6D_"></td><td id="d_op6S_5" class="editable-cell sum-target" data-key="d_op6S_"></td><td id="res_d_op6D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op6S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술 7종</td>
-                    <td id="d_op7D_1" class="editable-cell"></td><td id="d_op7S_1" class="editable-cell"></td><td id="d_op7D_2" class="editable-cell"></td><td id="d_op7S_2" class="editable-cell"></td><td id="d_op7D_3" class="editable-cell"></td><td id="d_op7S_3" class="editable-cell"></td><td id="d_op7D_4" class="editable-cell"></td><td id="d_op7S_4" class="editable-cell"></td><td id="d_op7D_5" class="editable-cell"></td><td id="d_op7S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op7D_1" class="editable-cell sum-target" data-key="d_op7D_"></td><td id="d_op7S_1" class="editable-cell sum-target" data-key="d_op7S_"></td><td id="d_op7D_2" class="editable-cell sum-target" data-key="d_op7D_"></td><td id="d_op7S_2" class="editable-cell sum-target" data-key="d_op7S_"></td><td id="d_op7D_3" class="editable-cell sum-target" data-key="d_op7D_"></td><td id="d_op7S_3" class="editable-cell sum-target" data-key="d_op7S_"></td><td id="d_op7D_4" class="editable-cell sum-target" data-key="d_op7D_"></td><td id="d_op7S_4" class="editable-cell sum-target" data-key="d_op7S_"></td><td id="d_op7D_5" class="editable-cell sum-target" data-key="d_op7D_"></td><td id="d_op7S_5" class="editable-cell sum-target" data-key="d_op7S_"></td><td id="res_d_op7D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op7S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">수술 8종</td>
-                    <td id="d_op8D_1" class="editable-cell"></td><td id="d_op8S_1" class="editable-cell"></td><td id="d_op8D_2" class="editable-cell"></td><td id="d_op8S_2" class="editable-cell"></td><td id="d_op8D_3" class="editable-cell"></td><td id="d_op8S_3" class="editable-cell"></td><td id="d_op8D_4" class="editable-cell"></td><td id="d_op8S_4" class="editable-cell"></td><td id="d_op8D_5" class="editable-cell"></td><td id="d_op8S_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_op8D_1" class="editable-cell sum-target" data-key="d_op8D_"></td><td id="d_op8S_1" class="editable-cell sum-target" data-key="d_op8S_"></td><td id="d_op8D_2" class="editable-cell sum-target" data-key="d_op8D_"></td><td id="d_op8S_2" class="editable-cell sum-target" data-key="d_op8S_"></td><td id="d_op8D_3" class="editable-cell sum-target" data-key="d_op8D_"></td><td id="d_op8S_3" class="editable-cell sum-target" data-key="d_op8S_"></td><td id="d_op8D_4" class="editable-cell sum-target" data-key="d_op8D_"></td><td id="d_op8S_4" class="editable-cell sum-target" data-key="d_op8S_"></td><td id="d_op8D_5" class="editable-cell sum-target" data-key="d_op8D_"></td><td id="d_op8S_5" class="editable-cell sum-target" data-key="d_op8S_"></td><td id="res_d_op8D_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_op8S_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">병원</td>
-                    <td id="d_opNormD_1" class="editable-cell"></td><td id="d_opNormS_1" class="editable-cell"></td><td id="d_opNormD_2" class="editable-cell"></td><td id="d_opNormS_2" class="editable-cell"></td><td id="d_opNormD_3" class="editable-cell"></td><td id="d_opNormS_3" class="editable-cell"></td><td id="d_opNormD_4" class="editable-cell"></td><td id="d_opNormS_4" class="editable-cell"></td><td id="d_opNormD_5" class="editable-cell"></td><td id="d_opNormS_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_opNormD_1" class="editable-cell sum-target" data-key="d_opNormD_"></td><td id="d_opNormS_1" class="editable-cell sum-target" data-key="d_opNormS_"></td><td id="d_opNormD_2" class="editable-cell sum-target" data-key="d_opNormD_"></td><td id="d_opNormS_2" class="editable-cell sum-target" data-key="d_opNormS_"></td><td id="d_opNormD_3" class="editable-cell sum-target" data-key="d_opNormD_"></td><td id="d_opNormS_3" class="editable-cell sum-target" data-key="d_opNormS_"></td><td id="d_opNormD_4" class="editable-cell sum-target" data-key="d_opNormD_"></td><td id="d_opNormS_4" class="editable-cell sum-target" data-key="d_opNormS_"></td><td id="d_opNormD_5" class="editable-cell sum-target" data-key="d_opNormD_"></td><td id="d_opNormS_5" class="editable-cell sum-target" data-key="d_opNormS_"></td><td id="res_d_opNormD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_opNormS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">종합병원</td>
-                    <td id="d_opGenD_1" class="editable-cell"></td><td id="d_opGenS_1" class="editable-cell"></td><td id="d_opGenD_2" class="editable-cell"></td><td id="d_opGenS_2" class="editable-cell"></td><td id="d_opGenD_3" class="editable-cell"></td><td id="d_opGenS_3" class="editable-cell"></td><td id="d_opGenD_4" class="editable-cell"></td><td id="d_opGenS_4" class="editable-cell"></td><td id="d_opGenD_5" class="editable-cell"></td><td id="d_opGenS_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_opGenD_1" class="editable-cell sum-target" data-key="d_opGenD_"></td><td id="d_opGenS_1" class="editable-cell sum-target" data-key="d_opGenS_"></td><td id="d_opGenD_2" class="editable-cell sum-target" data-key="d_opGenD_"></td><td id="d_opGenS_2" class="editable-cell sum-target" data-key="d_opGenS_"></td><td id="d_opGenD_3" class="editable-cell sum-target" data-key="d_opGenD_"></td><td id="d_opGenS_3" class="editable-cell sum-target" data-key="d_opGenS_"></td><td id="d_opGenD_4" class="editable-cell sum-target" data-key="d_opGenD_"></td><td id="d_opGenS_4" class="editable-cell sum-target" data-key="d_opGenS_"></td><td id="d_opGenD_5" class="editable-cell sum-target" data-key="d_opGenD_"></td><td id="d_opGenS_5" class="editable-cell sum-target" data-key="d_opGenS_"></td><td id="res_d_opGenD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_opGenS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td class="bg-light-gray">상급병원</td>
-                    <td id="d_opHighD_1" class="editable-cell"></td><td id="d_opHighS_1" class="editable-cell"></td><td id="d_opHighD_2" class="editable-cell"></td><td id="d_opHighS_2" class="editable-cell"></td><td id="d_opHighD_3" class="editable-cell"></td><td id="d_opHighS_3" class="editable-cell"></td><td id="d_opHighD_4" class="editable-cell"></td><td id="d_opHighS_4" class="editable-cell"></td><td id="d_opHighD_5" class="editable-cell"></td><td id="d_opHighS_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_opHighD_1" class="editable-cell sum-target" data-key="d_opHighD_"></td><td id="d_opHighS_1" class="editable-cell sum-target" data-key="d_opHighS_"></td><td id="d_opHighD_2" class="editable-cell sum-target" data-key="d_opHighD_"></td><td id="d_opHighS_2" class="editable-cell sum-target" data-key="d_opHighS_"></td><td id="d_opHighD_3" class="editable-cell sum-target" data-key="d_opHighD_"></td><td id="d_opHighS_3" class="editable-cell sum-target" data-key="d_opHighS_"></td><td id="d_opHighD_4" class="editable-cell sum-target" data-key="d_opHighD_"></td><td id="d_opHighS_4" class="editable-cell sum-target" data-key="d_opHighS_"></td><td id="d_opHighD_5" class="editable-cell sum-target" data-key="d_opHighD_"></td><td id="d_opHighS_5" class="editable-cell sum-target" data-key="d_opHighS_"></td><td id="res_d_opHighD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_opHighS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">통합(입원/수술포함)</td>
-                    <td id="d_totD_1" class="editable-cell"></td><td id="d_totS_1" class="editable-cell"></td><td id="d_totD_2" class="editable-cell"></td><td id="d_totS_2" class="editable-cell"></td><td id="d_totD_3" class="editable-cell"></td><td id="d_totS_3" class="editable-cell"></td><td id="d_totD_4" class="editable-cell"></td><td id="d_totS_4" class="editable-cell"></td><td id="d_totD_5" class="editable-cell"></td><td id="d_totS_5" class="editable-cell"></td><td class="editable-cell">-</td><td class="editable-cell">-</td><td class="editable-cell"></td></tr>
+                    <td id="d_totD_1" class="editable-cell sum-target" data-key="d_totD_"></td><td id="d_totS_1" class="editable-cell sum-target" data-key="d_totS_"></td><td id="d_totD_2" class="editable-cell sum-target" data-key="d_totD_"></td><td id="d_totS_2" class="editable-cell sum-target" data-key="d_totS_"></td><td id="d_totD_3" class="editable-cell sum-target" data-key="d_totD_"></td><td id="d_totS_3" class="editable-cell sum-target" data-key="d_totS_"></td><td id="d_totD_4" class="editable-cell sum-target" data-key="d_totD_"></td><td id="d_totS_4" class="editable-cell sum-target" data-key="d_totS_"></td><td id="d_totD_5" class="editable-cell sum-target" data-key="d_totD_"></td><td id="d_totS_5" class="editable-cell sum-target" data-key="d_totS_"></td><td id="res_d_totD_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td id="res_d_totS_" class="editable-cell bg-red-50 font-bold text-red-600">-</td><td class="editable-cell"></td></tr>
 
                 <!-- 암 -->
                 <tr>
                     <td rowspan="7" class="bg-light-gray">암</td>
                     <td rowspan="2" class="bg-light-gray">일반암</td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2" id="d_cancer_1" class="editable-cell"></td><td colspan="2" id="d_cancer_2" class="editable-cell"></td><td colspan="2" id="d_cancer_3" class="editable-cell"></td><td colspan="2" id="d_cancer_4" class="editable-cell"></td><td colspan="2" id="d_cancer_5" class="editable-cell"></td><td colspan="2" id="res-일반암진단" class="editable-cell text-red-600 font-bold">-</td>
+                    <td colspan="2" id="d_cancer_1" class="editable-cell sum-target" data-key="d_cancer_"></td><td colspan="2" id="d_cancer_2" class="editable-cell sum-target" data-key="d_cancer_"></td><td colspan="2" id="d_cancer_3" class="editable-cell sum-target" data-key="d_cancer_"></td><td colspan="2" id="d_cancer_4" class="editable-cell sum-target" data-key="d_cancer_"></td><td colspan="2" id="d_cancer_5" class="editable-cell sum-target" data-key="d_cancer_"></td><td colspan="2" id="res_d_cancer_" class="editable-cell text-red-600 font-bold bg-red-50">-</td>
                     <td rowspan="2" class="text-[10px]">전이암포함여부</td>
                 </tr>
-                <tr><td class="bg-light-gray">수술비</td><td colspan="2" id="d_cancer_op_1" class="editable-cell"></td><td colspan="2" id="d_cancer_op_2" class="editable-cell"></td><td colspan="2" id="d_cancer_op_3" class="editable-cell"></td><td colspan="2" id="d_cancer_op_4" class="editable-cell"></td><td colspan="2" id="d_cancer_op_5" class="editable-cell"></td><td colspan="2" id="res-일반암수술" class="editable-cell text-red-600 font-bold">-</td></tr>
+                <tr><td class="bg-light-gray">수술비</td><td colspan="2" id="d_cancer_op_1" class="editable-cell sum-target" data-key="d_cancer_op_"></td><td colspan="2" id="d_cancer_op_2" class="editable-cell sum-target" data-key="d_cancer_op_"></td><td colspan="2" id="d_cancer_op_3" class="editable-cell sum-target" data-key="d_cancer_op_"></td><td colspan="2" id="d_cancer_op_4" class="editable-cell sum-target" data-key="d_cancer_op_"></td><td colspan="2" id="d_cancer_op_5" class="editable-cell sum-target" data-key="d_cancer_op_"></td><td colspan="2" id="res_d_cancer_op_" class="editable-cell text-red-600 font-bold bg-red-50">-</td></tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">기타실피<br><span class="text-[9px]">(갑/기/경/제)</span></td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2" id="d_similar_1" class="editable-cell"></td><td colspan="2" id="d_similar_2" class="editable-cell"></td><td colspan="2" id="d_similar_3" class="editable-cell"></td><td colspan="2" id="d_similar_4" class="editable-cell"></td><td colspan="2" id="d_similar_5" class="editable-cell"></td><td colspan="2" id="res-유사암진단" class="editable-cell text-red-600 font-bold">-</td><td rowspan="2" class="editable-cell"></td>
+                    <td colspan="2" id="d_similar_1" class="editable-cell sum-target" data-key="d_similar_"></td><td colspan="2" id="d_similar_2" class="editable-cell sum-target" data-key="d_similar_"></td><td colspan="2" id="d_similar_3" class="editable-cell sum-target" data-key="d_similar_"></td><td colspan="2" id="d_similar_4" class="editable-cell sum-target" data-key="d_similar_"></td><td colspan="2" id="d_similar_5" class="editable-cell sum-target" data-key="d_similar_"></td><td colspan="2" id="res_d_similar_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td rowspan="2" class="editable-cell"></td>
                 </tr>
                 <tr><td class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td></tr>
                 <tr>
@@ -253,11 +253,11 @@
                     <td rowspan="6" class="bg-light-gray">뇌/심(순환계)</td>
                     <td rowspan="5" class="bg-light-gray">진단비</td>
                     <td class="bg-light-gray">뇌혈관</td>
-                    <td colspan="2" id="d_brain_1" class="editable-cell"></td><td colspan="2" id="d_brain_2" class="editable-cell"></td><td colspan="2" id="d_brain_3" class="editable-cell"></td><td colspan="2" id="d_brain_4" class="editable-cell"></td><td colspan="2" id="d_brain_5" class="editable-cell"></td><td colspan="2" id="res-뇌혈관진단" class="editable-cell text-red-600 font-bold">-</td><td rowspan="4" class="editable-cell"></td>
+                    <td colspan="2" id="d_brain_1" class="editable-cell sum-target" data-key="d_brain_"></td><td colspan="2" id="d_brain_2" class="editable-cell sum-target" data-key="d_brain_"></td><td colspan="2" id="d_brain_3" class="editable-cell sum-target" data-key="d_brain_"></td><td colspan="2" id="d_brain_4" class="editable-cell sum-target" data-key="d_brain_"></td><td colspan="2" id="d_brain_5" class="editable-cell sum-target" data-key="d_brain_"></td><td colspan="2" id="res_d_brain_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td rowspan="4" class="editable-cell"></td>
                 </tr>
-                <tr><td class="bg-light-gray">허혈성</td><td colspan="2" id="d_heart_1" class="editable-cell"></td><td colspan="2" id="d_heart_2" class="editable-cell"></td><td colspan="2" id="d_heart_3" class="editable-cell"></td><td colspan="2" id="d_heart_4" class="editable-cell"></td><td colspan="2" id="d_heart_5" class="editable-cell"></td><td colspan="2" id="res-허혈성진단" class="editable-cell text-red-600 font-bold">-</td></tr>
+                <tr><td class="bg-light-gray">허혈성</td><td colspan="2" id="d_heart_1" class="editable-cell sum-target" data-key="d_heart_"></td><td colspan="2" id="d_heart_2" class="editable-cell sum-target" data-key="d_heart_"></td><td colspan="2" id="d_heart_3" class="editable-cell sum-target" data-key="d_heart_"></td><td colspan="2" id="d_heart_4" class="editable-cell sum-target" data-key="d_heart_"></td><td colspan="2" id="d_heart_5" class="editable-cell sum-target" data-key="d_heart_"></td><td colspan="2" id="res_d_heart_" class="editable-cell text-red-600 font-bold bg-red-50">-</td></tr>
                 <tr><td class="bg-light-gray">뇌경색</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td></tr>
-                <tr><td class="bg-light-gray">급성심근경색</td><td colspan="2" id="d_ami_1" class="editable-cell"></td><td colspan="2" id="d_ami_2" class="editable-cell"></td><td colspan="2" id="d_ami_3" class="editable-cell"></td><td colspan="2" id="d_ami_4" class="editable-cell"></td><td colspan="2" id="d_ami_5" class="editable-cell"></td><td colspan="2" id="res-급성심근진단" class="editable-cell text-red-600 font-bold">-</td></tr>
+                <tr><td class="bg-light-gray">급성심근경색</td><td colspan="2" id="d_ami_1" class="editable-cell sum-target" data-key="d_ami_"></td><td colspan="2" id="d_ami_2" class="editable-cell sum-target" data-key="d_ami_"></td><td colspan="2" id="d_ami_3" class="editable-cell sum-target" data-key="d_ami_"></td><td colspan="2" id="d_ami_4" class="editable-cell sum-target" data-key="d_ami_"></td><td colspan="2" id="d_ami_5" class="editable-cell sum-target" data-key="d_ami_"></td><td colspan="2" id="res_d_ami_" class="editable-cell text-red-600 font-bold bg-red-50">-</td></tr>
                 <tr><td class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
                 <tr><td colspan="2" class="bg-light-gray">뇌/심(순환계)치료비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td></tr>
 
@@ -275,7 +275,7 @@
                 <tr>
                     <td rowspan="3" class="bg-light-gray">골절</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
-                    <td colspan="2" id="d_fracture_1" class="editable-cell"></td><td colspan="2" id="d_fracture_2" class="editable-cell"></td><td colspan="2" id="d_fracture_3" class="editable-cell"></td><td colspan="2" id="d_fracture_4" class="editable-cell"></td><td colspan="2" id="d_fracture_5" class="editable-cell"></td><td colspan="2" id="res-골절진단" class="editable-cell text-red-600 font-bold">-</td><td class="text-[10px]">치아파절포함여부</td>
+                    <td colspan="2" id="d_fracture_1" class="editable-cell sum-target" data-key="d_fracture_"></td><td colspan="2" id="d_fracture_2" class="editable-cell sum-target" data-key="d_fracture_"></td><td colspan="2" id="d_fracture_3" class="editable-cell sum-target" data-key="d_fracture_"></td><td colspan="2" id="d_fracture_4" class="editable-cell sum-target" data-key="d_fracture_"></td><td colspan="2" id="d_fracture_5" class="editable-cell sum-target" data-key="d_fracture_"></td><td colspan="2" id="res_d_fracture_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td class="text-[10px]">치아파절포함여부</td>
                 </tr>
                 <tr><td colspan="2" class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">깁스</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
@@ -296,7 +296,7 @@
                     <td colspan="2" id="silbi3" class="editable-cell text-blue-700 font-bold"></td>
                     <td colspan="2" id="silbi4" class="editable-cell text-blue-700 font-bold"></td>
                     <td colspan="2" id="silbi5" class="editable-cell text-blue-700 font-bold"></td>
-                    <td colspan="2" id="res-실손세대" class="editable-cell">-</td>
+                    <td colspan="2" class="editable-cell bg-red-50">-</td>
                     <td class="editable-cell"></td>
                 </tr>
 
@@ -305,7 +305,7 @@
                     <td colspan="2" class="bg-light-gray">운전자(현황급부)</td>
                     <td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" id="d_liab_1" class="editable-cell"></td><td colspan="2" id="d_liab_2" class="editable-cell"></td><td colspan="2" id="d_liab_3" class="editable-cell"></td><td colspan="2" id="d_liab_4" class="editable-cell"></td><td colspan="2" id="d_liab_5" class="editable-cell"></td><td colspan="2" id="res-일배책" class="editable-cell text-red-600 font-bold">-</td><td class="editable-cell"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" id="d_liab_1" class="editable-cell sum-target" data-key="d_liab_"></td><td colspan="2" id="d_liab_2" class="editable-cell sum-target" data-key="d_liab_"></td><td colspan="2" id="d_liab_3" class="editable-cell sum-target" data-key="d_liab_"></td><td colspan="2" id="d_liab_4" class="editable-cell sum-target" data-key="d_liab_"></td><td colspan="2" id="d_liab_5" class="editable-cell sum-target" data-key="d_liab_"></td><td colspan="2" id="res_d_liab_" class="editable-cell text-red-600 font-bold bg-red-50">-</td><td class="editable-cell"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell"></td></tr>
 
                 <!-- 보험료 -->
@@ -330,24 +330,25 @@
 
     <script>
         let processedContracts = []; 
+        let rawCloudDataForExport = null; // 중간 엑셀 파일 다운로드용 변수
         let sumData = {};            
         let currentPage = 1;
         let totalPages = 1;
         const itemsPerPage = 5;
 
-        // 원칙 5: 셀 텍스트 직접 수정 기능
+        // 원칙: 셀 직접 수정 시 실시간 합계 반영 (Rule 6)
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
+            cell.addEventListener('input', calculateRowSums);
             cell.addEventListener('paste', function(e) {
                 e.preventDefault();
                 var text = (e.originalEvent || e).clipboardData.getData('text/plain');
                 document.execCommand('insertText', false, text);
+                calculateRowSums();
             });
         });
 
-        // ==========================================
-        // 1. 파일 업로드 -> 클라우드 전송 -> JS 다이렉트 맵핑 (19대 룰 적용)
-        // ==========================================
+        // 1. PDF 업로드 -> 파이썬 서버 추출 -> JS 매핑
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
@@ -355,15 +356,12 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             const progressTitle = document.getElementById('progressTitle');
             const progressDesc = document.getElementById('progressDesc');
-            const progressBar = document.getElementById('progressBar');
             
             try {
                 loadingOverlay.style.display = 'flex';
                 
-                // STEP 1: 클라우드 파이썬 서버 추출
-                progressTitle.innerText = "1/2. 클라우드 엑셀 추출 중...";
-                progressDesc.innerText = "안전한 서버 환경에서 PDF를 테이블(Grid) 형태의 엑셀 데이터로 변환하고 있습니다.";
-                progressBar.style.width = '40%';
+                if(progressTitle) progressTitle.innerText = "1/2. 클라우드 엑셀 추출 중...";
+                if(progressDesc) progressDesc.innerText = "PDF를 분석하여 전체계약 및 가입담보상세를 안전하게 추출 중입니다.";
 
                 const base64data = await getBase64(file);
                 
@@ -376,27 +374,28 @@
                     body: JSON.stringify({ file_data: base64data })
                 });
 
-                if(!cloudRes.ok) throw new Error("클라우드 서버 추출에 실패했습니다.");
+                if(!cloudRes.ok) throw new Error("클라우드 서버 통신에 실패했습니다.");
                 
                 const cloudData = await cloudRes.json();
-                if(!cloudData.success) throw new Error("파싱 에러: " + (cloudData.error || "알 수 없는 오류"));
+                if(!cloudData.success) throw new Error("PDF 파싱 에러: " + (cloudData.error || "알 수 없는 오류"));
 
-                const rawExcelData = cloudData.rawExcelData; 
-                if(!rawExcelData || Object.keys(rawExcelData).length === 0) {
-                    throw new Error("데이터를 추출할 수 없습니다. 보장분석 표준 PDF인지 확인해주세요.");
+                rawCloudDataForExport = cloudData.rawExcelData; // 중간 다운로드용 저장
+                if(!rawCloudDataForExport || rawCloudDataForExport["전체계약리스트"].length === 0) {
+                    throw new Error("엑셀로 추출할 데이터가 없습니다. 원문 PDF 양식을 확인해주세요.");
                 }
 
-                // STEP 2: JS 다이렉트 맵핑 (0.1초 컷 - 규칙 0~19 완벽 구현)
-                progressTitle.innerText = "2/2. 데이터 즉각 맵핑 중...";
-                progressDesc.innerText = "추출된 데이터를 [19대 보장분석 원칙]에 맞춰 지연 없이 즉시 화면에 채워 넣습니다.";
-                progressBar.style.width = '100%';
+                // 성공 시 원본 다운로드 버튼 활성화
+                document.getElementById('btnDownloadRaw').classList.remove('hidden');
+
+                if(progressTitle) progressTitle.innerText = "2/2. 데이터 즉각 맵핑 중...";
+                if(progressDesc) progressDesc.innerText = "[19대 보장분석 절대원칙]에 맞춰 지연 없이 화면에 연산하여 채워 넣습니다.";
 
                 setTimeout(() => {
-                    extractDataDirectly(rawExcelData);
+                    extractDataDirectly(rawCloudDataForExport);
                 }, 300);
 
             } catch (err) {
-                alert("❌ 오류 발생:\n" + err.message);
+                alert("❌ 처리 중 오류 발생:\n" + err.message);
                 loadingOverlay.style.display = 'none';
             }
             e.target.value = '';
@@ -412,14 +411,40 @@
         }
 
         // ==========================================
-        // [1차] 자바스크립트 즉각 다이렉트 매핑 (대기시간 0초)
-        // [규칙 13~19] 사망, 입원, 수술, 간병인 등 완벽 자동 분류
+        // 문자열 숫자(금액) 파싱 및 포맷팅 헬퍼
+        // ==========================================
+        function parseAmt(amtStr) {
+            if (!amtStr) return 0;
+            if (String(amtStr).includes("지원")) return 0; // 규칙 17 텍스트 예외
+            let str = String(amtStr).replace(/,/g, '');
+            let uk = 0, man = 0;
+            if (str.includes("억")) {
+                let parts = str.split("억");
+                uk = parseInt(parts[0].replace(/[^0-9]/g, '')) || 0;
+                man = parseInt(parts[1] ? parts[1].replace(/[^0-9]/g, '') : '0') || 0;
+            } else {
+                man = parseInt(str.replace(/[^0-9]/g, '')) || 0;
+            }
+            return (uk * 10000) + man;
+        }
+
+        function formatAmt(num) {
+            if (num === 0) return "-";
+            if (num >= 10000) {
+                let uk = Math.floor(num / 10000);
+                let man = num % 10000;
+                return man > 0 ? `${uk}억 ${man.toLocaleString()}만` : `${uk}억`;
+            }
+            return num.toLocaleString() + "만";
+        }
+
+        // ==========================================
+        // [1차] 자바스크립트 다이렉트 매핑 (대기시간 0초, 19대 룰 적용)
         // ==========================================
         function extractDataDirectly(rawExcelData) {
             let rawContracts = [];
-            sumData = {};
 
-            // 1. "전체계약리스트" 스캔
+            // 1. 전체계약리스트 스캔 (규칙 0)
             const contractRows = rawExcelData["전체계약리스트"] || [];
             let dataRows = contractRows.filter(row => row.length > 5 && !isNaN(parseInt(row[0])));
             
@@ -440,48 +465,30 @@
                 }
             });
 
-            // 2. "가입담보상세" 스캔 및 매핑
+            // 2. 가입담보상세 맵핑 (규칙 13~19)
             const detailRows = rawExcelData["가입담보상세"] || [];
             let matchedContract = null;
             
             for (let row of detailRows) {
                 const rowStr = row.join(" ");
+                if (rowStr.includes("--- 상세페이지 상단 정보 ---")) matchedContract = null; 
+                if (!matchedContract) matchedContract = rawContracts.find(c => rowStr.includes(c.prod.split("(")[0])); 
                 
-                if (rowStr.includes("--- 상세페이지 상단 정보 ---")) {
-                    matchedContract = null; 
-                }
-                
-                if (!matchedContract) {
-                    matchedContract = rawContracts.find(c => rowStr.includes(c.prod.split("(")[0])); 
-                }
-
-                // [규칙 11] 납입완료 확인
+                // 규칙 11 (납입완료)
                 if (matchedContract && rowStr.includes("보험료") && (rowStr.includes("완료") || rowStr.includes("납입완료"))) {
                     matchedContract.isPaidUp = true;
                     matchedContract.premium = "납입완료";
                 }
 
-                // [규칙 13~19] 복잡한 담보명 분석 및 매핑
                 if (matchedContract && row.length > 2) {
                     const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
                     if(cleanRow.length >= 3) {
                         const damboName = String(cleanRow[1] || cleanRow[2]).trim();
                         let amtStr = String(cleanRow[cleanRow.length-1]).trim();
-                        
-                        // 계산을 위해 금액에서 숫자만 추출하여 '만' 단위로 변환
-                        let amtNum = 0;
-                        if(amtStr.includes("억")) {
-                           const parts = amtStr.split("억");
-                           let uk = parseInt(parts[0].replace(/[^0-9]/g, '')) || 0;
-                           let man = parseInt(parts[1] ? parts[1].replace(/[^0-9]/g, '') : '0') || 0;
-                           amtNum = (uk * 10000) + man;
-                        } else {
-                           amtNum = parseInt(amtStr.replace(/[^0-9]/g, '')) || 0;
-                        }
-
+                        let amtNum = parseAmt(amtStr);
                         let targetKey = "";
 
-                        // [규칙 14] 종신/일반 사망 분리 (차액 발생 시 손해로 자동 할당)
+                        // 규칙 14 (종신/일반 사망)
                         if(damboName.includes("질병사망") || damboName.includes("상해사망") || damboName.includes("재해사망")) {
                             if(matchedContract.prod.includes("종신") || matchedContract.comp.includes("생명") || matchedContract.comp.includes("라이프")) {
                                 if(damboName.includes("질병")) matchedContract.tempDieD = (matchedContract.tempDieD || 0) + amtNum;
@@ -490,217 +497,111 @@
                                 targetKey = damboName.includes("질병") ? "d_dieD_" : "d_dieS_";
                             }
                         }
-                        
-                        // [규칙 15] 후유장애 (3% 이상만 필터링)
+                        // 규칙 15 (후유장애 3%)
                         else if(damboName.includes("후유장애") || damboName.includes("후유장해")) {
-                            if(damboName.includes("3%")) {
-                                targetKey = damboName.includes("질병") ? "d_disD_" : "d_disS_";
-                            }
+                            if(damboName.includes("3%")) targetKey = damboName.includes("질병") ? "d_disD_" : "d_disS_";
                         }
-
-                        // [규칙 16] 입원 (일반병원, 상급1인실, 수술입원, 중환자실)
+                        // 규칙 16 (입원)
                         else if(damboName.includes("입원일당") || damboName.includes("입원비") || damboName.includes("입원통원")) {
                             let prefix = damboName.includes("질병") ? "d" : "s"; 
                             if(damboName.includes("수술")) targetKey = prefix === "d" ? "d_opHospD_" : "d_opHospS_";
                             else if(damboName.includes("상급1인실")) targetKey = prefix === "d" ? "d_1inD_" : "d_1inS_";
                             else if(damboName.includes("중환자실")) targetKey = prefix === "d" ? "d_icuD_" : "d_icuS_";
-                            else targetKey = prefix === "d" ? "d_hospD_" : "d_hospS_"; // 일반병원
+                            else targetKey = prefix === "d" ? "d_hospD_" : "d_hospS_";
                         }
-
-                        // [규칙 17] 간병인 지원/일당 (요양병원/제외 자동 합산)
+                        // 규칙 17 (간병인)
                         else if(damboName.includes("간병인")) {
-                            let isSupport = damboName.includes("직접지원");
+                            let isSupport = damboName.includes("직접지원") || damboName.includes("지원비");
                             let prefix = damboName.includes("질병") ? "d_careD_" : "d_careS_";
                             if(isSupport) matchedContract.coverages[prefix + "text"] = "지원";
-                            else {
-                                matchedContract.coverages[prefix + "sum"] = (matchedContract.coverages[prefix + "sum"] || 0) + amtNum;
-                            }
+                            else matchedContract.coverages[prefix + "sum"] = (matchedContract.coverages[prefix + "sum"] || 0) + amtNum;
                         }
-
-                        // [규칙 18] 수술비 분류 (1~8종, 상급, 종합, 일반)
+                        // 규칙 18 (수술비)
                         else if(damboName.includes("수술비") && !damboName.includes("입원")) {
                             let prefix = damboName.includes("질병") ? "D_" : "S_";
                             let jongMatch = damboName.match(/(\d+)종/);
-                            if(jongMatch) {
-                                targetKey = `d_op${jongMatch[1]}${prefix}`;
-                            } else if(damboName.includes("상급")) {
-                                targetKey = "d_opHigh" + prefix;
-                            } else if(damboName.includes("종합")) {
-                                targetKey = "d_opGen" + prefix;
-                            } else if (!damboName.includes("암") && !damboName.includes("뇌") && !damboName.includes("심장")) {
-                                targetKey = "d_opNorm" + prefix; 
-                            }
+                            if(jongMatch) targetKey = `d_op${jongMatch[1]}${prefix}`;
+                            else if(damboName.includes("상급")) targetKey = "d_opHigh" + prefix;
+                            else if(damboName.includes("종합")) targetKey = "d_opGen" + prefix;
+                            else if (!damboName.includes("암") && !damboName.includes("뇌") && !damboName.includes("심장")) targetKey = "d_opNorm" + prefix; 
                         }
-
-                        // [규칙 19] 통합치료비
+                        // 규칙 19 (통합치료비)
                         else if(damboName.includes("통합치료비")) {
                             targetKey = damboName.includes("질병") ? "d_totD_" : "d_totS_";
                         }
-
-                        // 기타 기본 담보 매핑
+                        // 기타 진단비
                         else if (damboName.includes("암수술") && !damboName.includes("유사암")) targetKey = "d_cancer_op_";
                         else if (damboName.includes("암진단") && !damboName.includes("유사암")) targetKey = "d_cancer_";
                         else if (damboName.includes("유사암") || damboName.includes("기타피부암")) targetKey = "d_similar_";
                         else if (damboName.includes("뇌혈관")) targetKey = "d_brain_";
                         else if (damboName.includes("허혈성")) targetKey = "d_heart_";
                         else if (damboName.includes("심근경색")) targetKey = "d_ami_";
-                        else if (damboName.includes("골절")) targetKey = "d_fracture_";
+                        else if (damboName.includes("골절진단")) targetKey = "d_fracture_";
                         else if (damboName.includes("배상")) targetKey = "d_liab_";
 
-                        if(targetKey) matchedContract.coverages[targetKey] = amtStr;
+                        if(targetKey) matchedContract.coverages[targetKey] = formatAmt(amtNum);
                     }
                 }
             }
             
-            // [규칙 14] 사망 가입금액 차액 계산 및 분할
+            // 규칙 14 차액 분할
             rawContracts.forEach(c => {
                 if(c.tempDieD > 0 || c.tempDieS > 0) {
-                    let d = c.tempDieD || 0;
-                    let s = c.tempDieS || 0;
-                    
+                    let d = c.tempDieD || 0; let s = c.tempDieS || 0;
                     let minVal = Math.min(d, s);
                     if(d > 0 && s === 0) minVal = d;
                     if(s > 0 && d === 0) minVal = s;
-                    
-                    c.coverages.d_life_ = minVal >= 10000 ? (minVal/10000) + "억" : minVal + "만"; 
-                    
-                    if(d > s && s > 0) c.coverages.d_dieD_ = ((d - s) >= 10000 ? ((d - s)/10000) + "억" : (d - s) + "만");
-                    if(s > d && d > 0) c.coverages.d_dieS_ = ((s - d) >= 10000 ? ((s - d)/10000) + "억" : (s - d) + "만");
-                }
-            });
-            
-            // 3. "전체보장현황" (합계) 확인
-            const summaryRows = rawExcelData["전체보장현황"] || [];
-            summaryRows.forEach(row => {
-                const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
-                if (cleanRow.length >= 2) {
-                    const name = String(cleanRow[0]).replace(/\s/g, '');
-                    const val = String(cleanRow[1]);
-                    if (name.includes("상해사망")) sumData["상해사망"] = val;
-                    if (name.includes("질병사망")) sumData["질병사망"] = val;
-                    if (name.includes("상해80")) sumData["상해후유"] = val;
-                    if (name.includes("일반암")) sumData["일반암진단"] = val;
-                    if (name.includes("유사암")) sumData["유사암진단"] = val;
-                    if (name.includes("뇌혈관")) sumData["뇌혈관진단"] = val;
-                    if (name.includes("심근경색")) sumData["급성심근경색"] = val;
-                    if (name.includes("배상")) sumData["일배책"] = val;
-                    if (name.includes("골절진단비")) sumData["골절진단"] = val;
+                    c.coverages.d_life_ = formatAmt(minVal); 
+                    if(d > s && s > 0) c.coverages.d_dieD_ = formatAmt(d - s);
+                    if(s > d && d > 0) c.coverages.d_dieS_ = formatAmt(s - d);
                 }
             });
 
             if (rawContracts.length === 0) {
-                alert("추출된 계약 정보가 없습니다. 표준 양식인지 확인해주세요.");
+                alert("엑셀에서 계약 정보를 추출하지 못했습니다. (표준 양식인지 확인해주세요)");
                 document.getElementById('loadingOverlay').style.display = 'none';
                 return;
             }
 
-            processMappedData(rawContracts, sumData);
+            processMappedData(rawContracts);
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
         // ==========================================
-        // [2차] AI 정밀 검수 (필요시 수동 실행 버튼)
+        // 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
         // ==========================================
-        async function runAIVerification() {
-            if (processedContracts.length === 0) {
-                alert("먼저 PDF 원본 데이터를 업로드하여 화면을 채워주세요.");
-                return;
-            }
-            
-            const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-            
-            document.getElementById('progressTitle').innerText = "AI 정밀 오류 검수 중...";
-            document.getElementById('progressDesc').innerText = "현재 맵핑된 데이터를 바탕으로, 약관을 분석하여 오류나 누락된 항목을 찾아 채워넣습니다.";
-            document.getElementById('progressBar').style.width = '100%';
-            document.getElementById('loadingOverlay').style.display = 'flex';
-
-            const currentDataSnapshot = JSON.stringify(processedContracts);
-            
-            const prompt = `
-당신은 최고 수준의 보험 보장분석 검수 AI입니다.
-아래는 현재 시스템이 자동 맵핑한 계약 데이터입니다.
-[검수 요청사항]
-이 데이터를 확인하고, 오류가 있거나 빈 칸으로 남겨진 중요 담보 중 "상품명"을 유추하여 약관상 당연히 추가되어야 할 기본 가입금액이 있다면 수정하여 동일한 JSON 배열 형식으로 반환하세요. 수정 사항이 없으면 원본 그대로 반환하세요. (마크다운 기호 없이 순수 JSON만 출력)
-
-[현재 맵핑된 데이터]
-${currentDataSnapshot}
-            `;
-
-            try {
-                const res = await fetch(AI_PROXY_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ prompt: prompt })
-                });
-                
-                const aiData = await res.json();
-                if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연");
-                
-                let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-                let verifiedContracts = JSON.parse(cleanJson);
-                
-                processMappedData(verifiedContracts, sumData);
-                alert("AI 검수 및 누락 데이터 보완이 완료되었습니다.");
-            } catch(e) {
-                alert("AI 검수 중 오류 발생: " + e.message);
-            } finally {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
-        }
-
-        // 공통 로직
-        function getSilbiGeneration(dateStr) {
-            if(!dateStr || dateStr === "-") return "";
-            const date = new Date(dateStr);
-            if(date < new Date('2009-10-01')) return "1세대 (입/통원)";
-            else if(date < new Date('2017-04-01')) return "2세대 표준화";
-            else if(date < new Date('2021-07-01')) return "3세대 착한실손";
-            else return "4세대 (5세대)";
-        }
-
-        function parsePremium(premStr) {
-            if (!premStr || premStr === "-" || premStr.includes("미제공") || premStr.includes("완료") || premStr.includes("납입완료")) return 0;
-            return parseInt(premStr.replace(/[^0-9]/g, ''), 10) || 0;
-        }
-
-        function formatPremium(num) {
-            return num === 0 ? "-" : num.toLocaleString() + "원";
-        }
-
-        function processMappedData(rawContracts, totals) {
-            // [규칙 9] 실손 병합 처리
+        function processMappedData(rawContracts) {
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
                 if (duplicate) {
-                    if (curr.premium === "보험료미제공" || curr.premium === "-" || curr.premium.includes("미제공")) {
-                        duplicate.silbiGen = getSilbiGeneration(duplicate.date);
-                    } else {
+                    let gen = getSilbiGeneration(duplicate.date);
+                    if (curr.premium.includes("미제공") || curr.premium === "-") duplicate.silbiGen = gen;
+                    else {
                         duplicate.premium = curr.premium; 
                         duplicate.isPaidUp = curr.isPaidUp;
-                        duplicate.silbiGen = getSilbiGeneration(duplicate.date);
+                        duplicate.silbiGen = gen;
                     }
                 } else {
                     processedContracts.push({ ...curr, silbiGen: "" });
                 }
             });
 
-            sumData = totals || {};
+            // 페이지 계산을 위해 총 합계 페이지(+1) 고려 (Rule 7, 8)
             const regularPagesCount = Math.ceil(processedContracts.length / itemsPerPage);
             totalPages = regularPagesCount > 1 ? regularPagesCount + 1 : regularPagesCount;
             currentPage = 1;
             
-            if(totalPages > 1) {
-                document.getElementById('pagination-container').classList.remove('hidden');
-            } else {
-                document.getElementById('pagination-container').classList.add('hidden');
-            }
+            if(totalPages > 1) document.getElementById('pagination-container').classList.remove('hidden');
+            else document.getElementById('pagination-container').classList.add('hidden');
+            
             renderPage();
         }
 
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
+            // 모든 셀 초기화
             for(let i=1; i<=5; i++) {
                 document.getElementById(`comp${i}`).innerText = "";
                 document.getElementById(`prod${i}`).innerText = "";
@@ -715,55 +616,54 @@ ${currentDataSnapshot}
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
             if (isSummaryPage) {
-                // [규칙 8 & 10] 총 합계 페이지 렌더링
+                // [규칙 8 & 10] 총 합계 페이지 렌더링 (각 페이지별 합산을 컬럼에 뿌림)
                 document.getElementById('header-page-label').innerText = "총 합계";
                 let grandTotalPremium = 0;
-
                 const maxSummaryCols = Math.min(totalPages - 1, 5); 
 
+                // 페이지별 데이터를 뽑아와서 각 열에 세팅
                 for(let i=1; i<=maxSummaryCols; i++) {
-                    const compEl = document.getElementById(`comp${i}`);
-                    if(compEl) {
-                        compEl.innerText = `${i}페이지`;
-                        compEl.style.color = "#d32f2f";
-                    }
-                    
-                    if(document.getElementById(`prod${i}`)) document.getElementById(`prod${i}`).innerText = "-";
-                    if(document.getElementById(`date${i}`)) document.getElementById(`date${i}`).innerText = "-";
-                    if(document.getElementById(`term${i}`)) document.getElementById(`term${i}`).innerText = "-";
+                    document.getElementById(`comp${i}`).innerText = `${i}페이지`;
+                    document.getElementById(`comp${i}`).style.color = "#d32f2f";
+                    document.getElementById(`prod${i}`).innerText = "-";
                     
                     const pStart = (i - 1) * itemsPerPage;
                     const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
+                    
+                    // 페이지별로 coverages 속성들을 합산 (Rule 7: 각 페이지의 최종 합산값)
                     let pagePremiumSum = 0;
+                    let pageCoveragesSum = {};
                     
                     pData.forEach(c => {
                         if(!c.isPaidUp) pagePremiumSum += parsePremium(c.premium);
+                        
+                        if(c.coverages) {
+                            for (let key in c.coverages) {
+                                let val = c.coverages[key];
+                                if(String(val).includes("지원")) continue; // "지원" 텍스트 무시
+                                let num = parseAmt(val);
+                                pageCoveragesSum[key] = (pageCoveragesSum[key] || 0) + num;
+                            }
+                        }
                     });
                     
-                    const premEl = document.getElementById(`prem${i}`);
-                    if(premEl) {
-                        premEl.innerText = formatPremium(pagePremiumSum);
-                        premEl.style.color = "#1d4ed8";
-                    }
+                    document.getElementById(`prem${i}`).innerText = formatPremium(pagePremiumSum);
+                    document.getElementById(`prem${i}`).style.color = "#1d4ed8";
                     grandTotalPremium += pagePremiumSum;
+
+                    // 해당 페이지 합산을 i열에 출력
+                    const sumCells = document.querySelectorAll(`td[id$="_${i}"].sum-target`);
+                    sumCells.forEach(cell => {
+                        let dataKey = cell.getAttribute('data-key');
+                        let sumVal = pageCoveragesSum[dataKey] || pageCoveragesSum[dataKey+"sum"] || 0;
+                        if(sumVal > 0) cell.innerText = formatAmt(sumVal);
+                    });
                 }
                 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
-                
-                // 총합 데이터 렌더링
-                document.getElementById("res-종신일반").innerText = sumData["상해사망"] || "-";
-                document.getElementById("res-질병사망").innerText = sumData["질병사망"] || "-";
-                document.getElementById("res-상해사망").innerText = sumData["상해사망"] || "-";
-                document.getElementById("res-상해후유").innerText = sumData["상해후유"] || "-";
-                document.getElementById("res-일반암진단").innerText = sumData["일반암진단"] || "-";
-                document.getElementById("res-유사암진단").innerText = sumData["유사암진단"] || "-";
-                document.getElementById("res-뇌혈관진단").innerText = sumData["뇌혈관진단"] || "-";
-                document.getElementById("res-급성심근진단").innerText = sumData["급성심근경색"] || "-";
-                document.getElementById("res-골절진단").innerText = sumData["골절진단"] || "-";
-                document.getElementById("res-일배책").innerText = sumData["일배책"] || "-";
 
             } else {
-                // 일반 계약 리스트 페이지 렌더링
+                // 일반 계약 리스트 페이지
                 document.getElementById('header-page-label').innerText = "페이지 합계";
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const pageData = processedContracts.slice(startIndex, startIndex + itemsPerPage);
@@ -772,92 +672,94 @@ ${currentDataSnapshot}
 
                 pageData.forEach((contract, index) => {
                     const idNum = index + 1;
-                    
-                    const compEl = document.getElementById(`comp${idNum}`);
-                    if(compEl) {
-                        compEl.innerText = contract.comp;
-                        compEl.style.color = "#1d4ed8";
-                    }
-                    
-                    if(document.getElementById(`prod${idNum}`)) document.getElementById(`prod${idNum}`).innerText = contract.prod;
-                    if(document.getElementById(`date${idNum}`)) document.getElementById(`date${idNum}`).innerText = contract.date;
+                    document.getElementById(`comp${idNum}`).innerText = contract.comp;
+                    document.getElementById(`comp${idNum}`).style.color = "#1d4ed8";
+                    document.getElementById(`prod${idNum}`).innerText = contract.prod;
+                    document.getElementById(`date${idNum}`).innerText = contract.date;
                     
                     let termStr = `${contract.payTerm}/${contract.maturity}`;
                     if (contract.payTerm === "갱신형" || contract.hasRenewableRider) termStr = `갱신형/${contract.maturity}`;
-                    if(document.getElementById(`term${idNum}`)) document.getElementById(`term${idNum}`).innerText = termStr;
+                    document.getElementById(`term${idNum}`).innerText = termStr;
 
-                    const premEl = document.getElementById(`prem${idNum}`);
-                    if(premEl) {
-                        if (contract.isPaidUp || contract.premium.includes("완료") || contract.premium.includes("납입완료")) {
-                            premEl.innerText = "납입완료";
-                            premEl.style.color = "#d32f2f";
-                            premEl.style.fontWeight = "900";
-                        } else {
-                            premEl.innerText = contract.premium; 
-                            premEl.style.color = "#1d4ed8";
-                            premEl.style.fontWeight = "bold";
-                            currentPageSum += parsePremium(contract.premium);
-                        }
+                    if (contract.isPaidUp || contract.premium.includes("완료")) {
+                        document.getElementById(`prem${idNum}`).innerText = "납입완료";
+                        document.getElementById(`prem${idNum}`).style.color = "#d32f2f";
+                        document.getElementById(`prem${idNum}`).style.fontWeight = "900";
+                    } else {
+                        document.getElementById(`prem${idNum}`).innerText = contract.premium; 
+                        document.getElementById(`prem${idNum}`).style.color = "#1d4ed8";
+                        document.getElementById(`prem${idNum}`).style.fontWeight = "bold";
+                        currentPageSum += parsePremium(contract.premium);
                     }
 
-                    if (contract.silbiGen && document.getElementById(`silbi${idNum}`)) {
-                        document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
-                    }
+                    if (contract.silbiGen) document.getElementById(`silbi${idNum}`).innerText = contract.silbiGen;
                     
-                    // [규칙 14~19 담보 렌더링]
                     if (contract.coverages) {
                         const cov = contract.coverages;
-
                         if(cov.d_life_) document.getElementById(`d_life_${idNum}`).innerText = cov.d_life_;
-
-                        if(cov.d_careD_sum) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD_sum + "만";
+                        
+                        if(cov.d_careD_sum) document.getElementById(`d_careD_${idNum}`).innerText = formatAmt(cov.d_careD_sum);
                         else if(cov.d_careD_text) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD_text;
                         
-                        if(cov.d_careS_sum) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS_sum + "만";
+                        if(cov.d_careS_sum) document.getElementById(`d_careS_${idNum}`).innerText = formatAmt(cov.d_careS_sum);
                         else if(cov.d_careS_text) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS_text;
 
-                        if(cov.d_dieD_) document.getElementById(`d_dieD_${idNum}`).innerText = cov.d_dieD_;
-                        if(cov.d_dieS_) document.getElementById(`d_dieS_${idNum}`).innerText = cov.d_dieS_;
-                        if(cov.d_disD_) document.getElementById(`d_disD_${idNum}`).innerText = cov.d_disD_;
-                        if(cov.d_disS_) document.getElementById(`d_disS_${idNum}`).innerText = cov.d_disS_;
-                        
-                        if(cov.d_hospD_) document.getElementById(`d_hospD_${idNum}`).innerText = cov.d_hospD_;
-                        if(cov.d_hospS_) document.getElementById(`d_hospS_${idNum}`).innerText = cov.d_hospS_;
-                        if(cov.d_1inD_) document.getElementById(`d_1inD_${idNum}`).innerText = cov.d_1inD_;
-                        if(cov.d_1inS_) document.getElementById(`d_1inS_${idNum}`).innerText = cov.d_1inS_;
-                        if(cov.d_opHospD_) document.getElementById(`d_opHospD_${idNum}`).innerText = cov.d_opHospD_;
-                        if(cov.d_opHospS_) document.getElementById(`d_opHospS_${idNum}`).innerText = cov.d_opHospS_;
-                        if(cov.d_icuD_) document.getElementById(`d_icuD_${idNum}`).innerText = cov.d_icuD_;
-                        if(cov.d_icuS_) document.getElementById(`d_icuS_${idNum}`).innerText = cov.d_icuS_;
+                        const mappings = [
+                            'd_dieD_', 'd_dieS_', 'd_disD_', 'd_disS_', 'd_hospD_', 'd_hospS_', 'd_1inD_', 'd_1inS_',
+                            'd_opHospD_', 'd_opHospS_', 'd_icuD_', 'd_icuS_', 'd_op1D_', 'd_op1S_', 'd_op2D_', 'd_op2S_',
+                            'd_op3D_', 'd_op3S_', 'd_op4D_', 'd_op4S_', 'd_op5D_', 'd_op5S_', 'd_op6D_', 'd_op6S_',
+                            'd_op7D_', 'd_op7S_', 'd_op8D_', 'd_op8S_', 'd_opNormD_', 'd_opNormS_', 'd_opGenD_', 'd_opGenS_',
+                            'd_opHighD_', 'd_opHighS_', 'd_totD_', 'd_totS_', 'd_cancer_', 'd_cancer_op_', 'd_similar_',
+                            'd_brain_', 'd_heart_', 'd_ami_', 'd_fracture_', 'd_liab_'
+                        ];
 
-                        for(let j=1; j<=8; j++) {
-                            if(cov[`d_op${j}D_`]) document.getElementById(`d_op${j}D_${idNum}`).innerText = cov[`d_op${j}D_`];
-                            if(cov[`d_op${j}S_`]) document.getElementById(`d_op${j}S_${idNum}`).innerText = cov[`d_op${j}S_`];
-                        }
-                        if(cov.d_opNormD_) document.getElementById(`d_opNormD_${idNum}`).innerText = cov.d_opNormD_;
-                        if(cov.d_opNormS_) document.getElementById(`d_opNormS_${idNum}`).innerText = cov.d_opNormS_;
-                        if(cov.d_opGenD_) document.getElementById(`d_opGenD_${idNum}`).innerText = cov.d_opGenD_;
-                        if(cov.d_opGenS_) document.getElementById(`d_opGenS_${idNum}`).innerText = cov.d_opGenS_;
-                        if(cov.d_opHighD_) document.getElementById(`d_opHighD_${idNum}`).innerText = cov.d_opHighD_;
-                        if(cov.d_opHighS_) document.getElementById(`d_opHighS_${idNum}`).innerText = cov.d_opHighS_;
-                        if(cov.d_totD_) document.getElementById(`d_totD_${idNum}`).innerText = cov.d_totD_;
-                        if(cov.d_totS_) document.getElementById(`d_totS_${idNum}`).innerText = cov.d_totS_;
-
-                        if(cov.d_cancer_) document.getElementById(`d_cancer_${idNum}`).innerText = cov.d_cancer_;
-                        if(cov.d_cancer_op_) document.getElementById(`d_cancer_op_${idNum}`).innerText = cov.d_cancer_op_;
-                        if(cov.d_similar_) document.getElementById(`d_similar_${idNum}`).innerText = cov.d_similar_;
-                        if(cov.d_brain_) document.getElementById(`d_brain_${idNum}`).innerText = cov.d_brain_;
-                        if(cov.d_heart_) document.getElementById(`d_heart_${idNum}`).innerText = cov.d_heart_;
-                        if(cov.d_ami_) document.getElementById(`d_ami_${idNum}`).innerText = cov.d_ami_;
-                        if(cov.d_fracture_) document.getElementById(`d_fracture_${idNum}`).innerText = cov.d_fracture_;
-                        if(cov.d_liab_) document.getElementById(`d_liab_${idNum}`).innerText = cov.d_liab_;
+                        mappings.forEach(key => {
+                            if(cov[key] && document.getElementById(`${key}${idNum}`)) {
+                                document.getElementById(`${key}${idNum}`).innerText = cov[key];
+                            }
+                        });
                     }
                 });
 
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
             }
+            
+            // [규칙 6, 7] 페이지 렌더링 직후 가로 합계(Row Sum) 자동 계산 실행
+            calculateRowSums();
         }
 
+        // ==========================================
+        // 가로 합계 자동 연산 (규칙 6)
+        // ==========================================
+        function calculateRowSums() {
+            // `data-key` 속성을 가진 모든 좌측 입력 셀들의 고유 키를 찾음
+            const uniqueKeys = new Set();
+            document.querySelectorAll('.sum-target').forEach(cell => uniqueKeys.add(cell.getAttribute('data-key')));
+
+            uniqueKeys.forEach(key => {
+                let rowSum = 0;
+                let hasText = false;
+                
+                // 1~5열까지 값을 가져와 합산
+                for(let i=1; i<=5; i++) {
+                    const cell = document.getElementById(`${key}${i}`);
+                    if(cell && cell.innerText.trim() !== "") {
+                        let textVal = cell.innerText.trim();
+                        if(textVal.includes("지원")) hasText = true; // "지원" 텍스트 무시
+                        else rowSum += parseAmt(textVal);
+                    }
+                }
+                
+                // 합계 셀(res_[키이름])에 결과 반영
+                const resCell = document.getElementById(`res_${key}`);
+                if(resCell) {
+                    if(hasText && rowSum === 0) resCell.innerText = "지원";
+                    else resCell.innerText = formatAmt(rowSum);
+                }
+            });
+        }
+
+        // 페이지 이동
         function changePage(step) {
             let newPage = currentPage + step;
             if(newPage < 1) newPage = 1;
@@ -868,11 +770,61 @@ ${currentDataSnapshot}
             }
         }
 
+        // ==========================================
+        // 엑셀 원본/결과물 다운로드 기능
+        // ==========================================
+        function exportRawToExcel() {
+            if(!rawCloudDataForExport) {
+                alert("아직 추출된 데이터가 없습니다. PDF를 먼저 업로드 해주세요.");
+                return;
+            }
+            const wb = XLSX.utils.book_new();
+            
+            for (const [sheetName, dataRows] of Object.entries(rawCloudDataForExport)) {
+                if(dataRows.length > 0) {
+                    const ws = XLSX.utils.aoa_to_sheet(dataRows);
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                }
+            }
+            XLSX.writeFile(wb, `잇츠리온_원문데이터추출본.xlsx`);
+        }
+
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
             const wb = XLSX.utils.table_to_book(table, {sheet: `보장분석_${currentPage}P`, raw: true});
             const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
             XLSX.writeFile(wb, `잇츠리온_보장분석표_${dateStr}_${currentPage}P.xlsx`);
+        }
+
+        // AI 정밀 검수 (보조)
+        async function runAIVerification() {
+            if (processedContracts.length === 0) return alert("먼저 PDF 원본 데이터를 업로드하세요.");
+            const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
+            document.getElementById('progressTitle').innerText = "AI 정밀 오류 검수 중...";
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            const prompt = `당신은 최고 수준의 보험 보장분석 검수 AI입니다. 아래 1차 매핑 데이터(JSON)에서 논리적 누락/오류를 검수하여 같은 형태의 JSON으로 반환하세요. \n\n${JSON.stringify(processedContracts)}`;
+
+            try {
+                const res = await fetch(AI_PROXY_URL, { method: 'POST', body: JSON.stringify({ prompt: prompt }) });
+                const aiData = await res.json();
+                let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                processMappedData(JSON.parse(cleanJson));
+                alert("AI 검수 및 누락 데이터 보완이 완료되었습니다.");
+            } catch(e) {
+                alert("AI 검수 중 오류 발생: " + e.message);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function getSilbiGeneration(dateStr) {
+            if(!dateStr || dateStr === "-") return "";
+            const date = new Date(dateStr);
+            if(date < new Date('2009-10-01')) return "1세대 (입/통원)";
+            else if(date < new Date('2017-04-01')) return "2세대 표준화";
+            else if(date < new Date('2021-07-01')) return "3세대 착한실손";
+            else return "4세대 (5세대)";
         }
     </script>
 </body>
