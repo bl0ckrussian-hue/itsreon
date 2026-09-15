@@ -13,8 +13,8 @@
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
-        /* 엑셀 셀 선택 및 키보드 포커스 효과 강화 */
-        .editable-cell { cursor: text; transition: all 0.1s; }
+        /* 엑셀 셀 선택 및 마우스 포커스 효과 (수정됨) */
+        .editable-cell { cursor: text; transition: all 0.1s; background-color: white; }
         .editable-cell:hover { background-color: #f0f9ff !important; }
         .editable-cell:focus { 
             background-color: #e0f2fe !important; 
@@ -52,6 +52,9 @@
         <div class="spinner mb-5"></div>
         <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 연결 중...</h2>
         <p class="text-sm text-slate-300" id="progressDesc">데이터를 처리하고 있습니다.</p>
+        <div class="w-64 bg-slate-700 h-2 mt-6 rounded-full overflow-hidden">
+            <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+        </div>
     </div>
 
     <!-- 상단 컨트롤러 -->
@@ -59,7 +62,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 원문 추출 ➔ 19대 룰 매핑 ➔ 가로 행 자동 합산 (키보드 방향키 이동 지원)</span>
+                <span>PDF 원문 추출 ➔ 19대 룰 자동 맵핑 ➔ 가로 행 자동 합산 (마우스 및 키보드 이동 완벽 지원)</span>
             </p>
         </div>
         
@@ -72,8 +75,8 @@
         <div class="flex gap-2">
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             
-            <button onclick="exportRawToExcel()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                📥 추출 원본 다운로드
+            <button id="btnDownloadRaw" onclick="exportRawToExcel()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm shadow transition hidden">
+                📥 추출 원문 다운로드
             </button>
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📄 보장분석 PDF 업로드
@@ -341,36 +344,65 @@
 
     <script>
         let processedContracts = []; 
-        let rawCloudDataForExport = null; // 중간 엑셀 파일 다운로드용 변수
+        let rawCloudDataForExport = null; // 중간 엑셀 원문 저장용
         let sumData = {};            
         let currentPage = 1;
         let totalPages = 1;
         const itemsPerPage = 5;
 
         // ==========================================
-        // 엑셀 키보드 이동 로직 (화살표, Enter, Tab 연동)
+        // 오류 해결 1. 엑셀 키보드 이동 및 마우스 입력 정상화
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
             
-            // 사용자가 글자를 작성/수정 중일 때는 텍스트 커서가 우선 이동하도록 방어 로직 추가
-            const isTyping = window.getSelection().type === 'Range' || e.target.innerText.length > 0 && document.activeElement === e.target && e.key !== 'Enter';
+            const cell = e.target;
+            const row = cell.parentElement;
+            const tbody = row.parentElement;
             
+            const cells = Array.from(row.querySelectorAll('.editable-cell'));
+            const cellIndex = cells.indexOf(cell);
+            
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const rowIndex = rows.indexOf(row);
+
             if (e.key === 'Enter') {
-                e.preventDefault();
-                // 엑셀처럼 Enter 누르면 다음 셀로 포커스 이동
-                const editableCells = Array.from(document.querySelectorAll('.editable-cell'));
-                const currentIndex = editableCells.indexOf(e.target);
-                if (currentIndex >= 0 && currentIndex < editableCells.length - 1) {
-                    editableCells[currentIndex + 1].focus();
-                    document.execCommand('selectAll', false, null); // 엑셀처럼 텍스트 전체 선택
+                e.preventDefault(); 
+                // 아래쪽 셀로 즉시 이동
+                for (let i = rowIndex + 1; i < rows.length; i++) {
+                    const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
+                    if (targetCells[cellIndex]) {
+                        targetCells[cellIndex].focus();
+                        break;
+                    }
+                }
+            } else if (e.key === 'ArrowUp') {
+                for (let i = rowIndex - 1; i >= 0; i--) {
+                    const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
+                    if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
+                }
+            } else if (e.key === 'ArrowDown') {
+                for (let i = rowIndex + 1; i < rows.length; i++) {
+                    const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
+                    if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
+                }
+            } else if (e.key === 'ArrowRight') {
+                if (window.getSelection().anchorOffset === cell.innerText.length || cell.innerText.length === 0) {
+                    if (cellIndex < cells.length - 1) {
+                        e.preventDefault();
+                        cells[cellIndex + 1].focus();
+                    }
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (window.getSelection().anchorOffset === 0 || cell.innerText.length === 0) {
+                    if (cellIndex > 0) {
+                        e.preventDefault();
+                        cells[cellIndex - 1].focus();
+                    }
                 }
             }
         });
 
-        // ==========================================
-        // 셀 직접 수정 시 실시간 합계 반영 (Rule 6)
-        // ==========================================
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.addEventListener('input', calculateRowSums);
             cell.addEventListener('paste', function(e) {
@@ -381,24 +413,23 @@
             });
         });
 
-        // 1. PDF 업로드 -> 파이썬 서버 추출 -> JS 매핑
+        // ==========================================
+        // 오류 해결 2. 데이터 수집 정상화 (유연한 엑셀 추출 복구)
+        // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
 
             const loadingOverlay = document.getElementById('loadingOverlay');
-            const progressTitle = document.getElementById('progressTitle');
-            const progressDesc = document.getElementById('progressDesc');
             
             try {
                 loadingOverlay.style.display = 'flex';
-                
-                if(progressTitle) progressTitle.innerText = "1/2. 클라우드 엑셀 추출 중...";
-                if(progressDesc) progressDesc.innerText = "PDF를 분석하여 전체계약 및 가입담보상세를 안전하게 추출 중입니다.";
+                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 추출 중...";
+                document.getElementById('progressDesc').innerText = "PDF를 변환하여 전체계약 및 가입담보상세를 안전하게 추출 중입니다.";
 
                 const base64data = await getBase64(file);
                 
-                // 🚨 팀장님이 배포 성공하신 전용 클라우드 파서 URL 🚨
+                // 🚨 팀장님이 배포 성공하신 전용 클라우드 파서 URL
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
                 
                 const cloudRes = await fetch(CLOUD_PARSER_URL, {
@@ -413,15 +444,15 @@
                 if(!cloudData.success) throw new Error("PDF 파싱 에러: " + (cloudData.error || "알 수 없는 오류"));
 
                 rawCloudDataForExport = cloudData.rawExcelData; 
-                if(!rawCloudDataForExport || rawCloudDataForExport["전체계약리스트"].length === 0) {
-                    throw new Error("엑셀로 추출할 데이터가 없습니다. 원문 PDF 양식을 확인해주세요.");
-                }
+                
+                // 구글 클라우드에서 넘어온 데이터 검증
+                if(!rawCloudDataForExport) throw new Error("데이터를 추출할 수 없습니다. 보장분석 PDF인지 확인해주세요.");
 
-                // 변환 성공 시 [추출 원본 엑셀 확인] 버튼 활성화
+                // 성공 시 원본 다운로드 버튼 활성화
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
-                if(progressTitle) progressTitle.innerText = "2/2. 데이터 즉각 맵핑 중...";
-                if(progressDesc) progressDesc.innerText = "[19대 보장분석 절대원칙]에 맞춰 지연 없이 화면에 연산하여 채워 넣습니다.";
+                document.getElementById('progressTitle').innerText = "2/2. 데이터 즉각 맵핑 중...";
+                document.getElementById('progressDesc').innerText = "규칙에 맞춰 지연 없이 화면에 연산하여 채워 넣습니다.";
 
                 setTimeout(() => {
                     extractDataDirectly(rawCloudDataForExport);
@@ -443,12 +474,9 @@
             });
         }
 
-        // ==========================================
-        // 문자열 숫자(금액) 파싱 및 포맷팅 헬퍼
-        // ==========================================
         function parseAmt(amtStr) {
             if (!amtStr) return 0;
-            if (String(amtStr).includes("지원")) return 0; // 규칙 17 지원 텍스트
+            if (String(amtStr).includes("지원")) return 0;
             let str = String(amtStr).replace(/,/g, '');
             let uk = 0, man = 0;
             if (str.includes("억")) {
@@ -471,15 +499,30 @@
             return num.toLocaleString() + "만";
         }
 
-        // ==========================================
-        // [1차] 자바스크립트 다이렉트 매핑 (대기시간 0초, 19대 룰 적용)
-        // ==========================================
         function extractDataDirectly(rawExcelData) {
             let rawContracts = [];
 
-            const contractRows = rawExcelData["전체계약리스트"] || [];
+            // 구글 파이썬 서버가 배열(딕셔너리)로 보낸 것과, 예전처럼 Table 1로 보낸 것 모두 호환되도록 처리
+            let contractRows = [];
+            let detailRows = [];
+            let summaryRows = [];
+
+            for (let key in rawExcelData) {
+                let sheetData = rawExcelData[key];
+                let textData = sheetData.flat().join(" ");
+                if (textData.includes("보유 계약 리스트") || (textData.includes("계약일") && textData.includes("납입기간"))) {
+                    contractRows = contractRows.concat(sheetData);
+                }
+                if (textData.includes("회사 담보명") || textData.includes("가입담보상세")) {
+                    detailRows = detailRows.concat(sheetData);
+                }
+                if (textData.includes("전체 보장 현황") || textData.includes("과부족")) {
+                    summaryRows = summaryRows.concat(sheetData);
+                }
+            }
+
+            // 계약 추출
             let dataRows = contractRows.filter(row => row.length > 5 && !isNaN(parseInt(row[0])));
-            
             dataRows.forEach(row => {
                 const cleanRow = row.filter(item => item !== null && item !== "" && item !== undefined);
                 if (cleanRow.length >= 6) {
@@ -497,9 +540,8 @@
                 }
             });
 
-            const detailRows = rawExcelData["가입담보상세"] || [];
+            // 담보 매핑
             let matchedContract = null;
-            
             for (let row of detailRows) {
                 const rowStr = row.join(" ");
                 if (rowStr.includes("--- 상세페이지 상단 정보 ---")) matchedContract = null; 
@@ -580,7 +622,7 @@
             });
 
             if (rawContracts.length === 0) {
-                alert("엑셀에서 계약 정보를 추출하지 못했습니다. (표준 양식인지 확인해주세요)");
+                alert("엑셀에서 계약 정보를 찾을 수 없습니다. (보유계약리스트가 포함된 PDF인지 확인해주세요)");
                 document.getElementById('loadingOverlay').style.display = 'none';
                 return;
             }
@@ -589,9 +631,6 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // ==========================================
-        // 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
-        // ==========================================
         function processMappedData(rawContracts) {
             processedContracts = [];
             rawContracts.forEach(curr => {
@@ -641,9 +680,13 @@
                 const maxSummaryCols = Math.min(totalPages - 1, 5); 
 
                 for(let i=1; i<=maxSummaryCols; i++) {
-                    document.getElementById(`comp${i}`).innerText = `${i}페이지`;
-                    document.getElementById(`comp${i}`).style.color = "#d32f2f";
-                    document.getElementById(`prod${i}`).innerText = "-";
+                    const compEl = document.getElementById(`comp${i}`);
+                    if(compEl) {
+                        compEl.innerText = `${i}페이지`;
+                        compEl.style.color = "#d32f2f";
+                    }
+                    
+                    if(document.getElementById(`prod${i}`)) document.getElementById(`prod${i}`).innerText = "-";
                     
                     const pStart = (i - 1) * itemsPerPage;
                     const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
@@ -749,7 +792,6 @@
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
             }
             
-            // 페이지 렌더링 직후 가로 합계(Row Sum) 자동 계산
             calculateRowSums();
         }
 
@@ -792,7 +834,7 @@
         }
 
         // ==========================================
-        // 추출 원본 엑셀 다운로드 (디버깅용)
+        // 추출 원본 엑셀 다운로드 기능
         // ==========================================
         function exportRawToExcel() {
             if(!rawCloudDataForExport) {
@@ -836,6 +878,15 @@
             } finally {
                 document.getElementById('loadingOverlay').style.display = 'none';
             }
+        }
+
+        function getSilbiGeneration(dateStr) {
+            if(!dateStr || dateStr === "-") return "";
+            const date = new Date(dateStr);
+            if(date < new Date('2009-10-01')) return "1세대 (입/통원)";
+            else if(date < new Date('2017-04-01')) return "2세대 표준화";
+            else if(date < new Date('2021-07-01')) return "3세대 착한실손";
+            else return "4세대 (5세대)";
         }
     </script>
 </body>
