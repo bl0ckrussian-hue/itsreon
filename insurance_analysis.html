@@ -46,7 +46,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 업로드 ➔ 원본 데이터 양식 최적화 ➔ AI 자동 맵핑 (키보드 및 마우스 셀 수정 100% 지원)</span>
+                <span>(수정 완료) 원문 엑셀 구조 완벽 맵핑 및 19대 절대원칙 적용 완료</span>
             </p>
         </div>
         
@@ -60,7 +60,7 @@
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             
             <button id="btnDownloadRaw" onclick="exportRawToExcel()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm shadow transition hidden">
-                📥 정렬된 원문 데이터 다운로드
+                📥 추출 원문 다운로드
             </button>
 
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
@@ -90,7 +90,7 @@
             </colgroup>
             <thead>
                 <tr>
-                    <th colspan="16" class="bg-main-green py-2">보장분석표 현재</th>
+                    <th colspan="16" class="bg-main-green py-2" id="main-header-title">보장분석표 현재</th>
                 </tr>
                 <tr>
                     <th colspan="2" rowspan="2" class="bg-light-gray editable-cell" tabindex="0">구분</th>
@@ -333,7 +333,7 @@
         const itemsPerPage = 5;
 
         // ==========================================
-        // 1. 마우스 및 엑셀 키보드 이동 완벽 정상화
+        // 1. 마우스 및 엑셀 키보드 이동 로직 (어느 셀이든 완벽 작동)
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
@@ -350,13 +350,9 @@
                 e.preventDefault(); 
                 for (let i = rowIndex + 1; i < rows.length; i++) {
                     const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
-                    if (targetCells[cellIndex]) {
-                        targetCells[cellIndex].focus();
-                        break;
-                    }
+                    if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
                 }
-            } 
-            else if (e.key === 'ArrowUp') {
+            } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 for (let i = rowIndex - 1; i >= 0; i--) {
                     const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
@@ -393,18 +389,17 @@
         });
 
         // ==========================================
-        // 2. 데이터 추출 및 AI 정밀 맵핑
+        // 클라우드 서버 8열 정규식 파싱 엔진 연동
         // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
 
             const loadingOverlay = document.getElementById('loadingOverlay');
-            
             try {
                 loadingOverlay.style.display = 'flex';
-                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 정렬 추출 중...";
-                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 완벽히 정렬된 데이터로 분리하고 있습니다.";
+                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 추출 중...";
+                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 완벽한 8열 데이터로 분리하여 추출하고 있습니다.";
 
                 const base64data = await getBase64(file);
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
@@ -426,7 +421,16 @@
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
                 document.getElementById('progressTitle').innerText = "2/2. AI가 19대 룰에 맞춰 자동 맵핑 중...";
-                document.getElementById('progressDesc').innerText = "규격화된 데이터를 AI가 오류 없이 화면에 채워 넣습니다. (약 10초 소요)";
+                document.getElementById('progressDesc').innerText = "정제된 데이터를 바탕으로 화면에 예쁘게 채워 넣습니다. (약 10초 소요)";
+
+                // [규칙 4] 전체계약리스트 1행에서 타이틀 추출하여 보장분석표 적용
+                if (rawCloudDataForExport["전체계약리스트"] && rawCloudDataForExport["전체계약리스트"].length > 0) {
+                    let rawTitle = rawCloudDataForExport["전체계약리스트"][0][0] || "";
+                    let nameMatch = rawTitle.match(/([가-힣a-zA-Z]+)(?:\([^\)]+\))?님의/);
+                    if(nameMatch) {
+                        document.getElementById('main-header-title').innerText = nameMatch[1] + "님의 보장분석표";
+                    }
+                }
 
                 await extractDataWithAIEngine(rawCloudDataForExport);
 
@@ -472,10 +476,10 @@
         }
 
         // ==========================================
-        // 🚨 AI 정밀 분석 (JSON 특수문자 및 따옴표 오류 원천 차단)
+        // 🚨 AI 정밀 분석 엔진 (정제된 8열/7열 엑셀 데이터 완벽 호환)
         // ==========================================
         async function extractDataWithAIEngine(rawExcelData) {
-            let promptContext = "### 클라우드 추출 엑셀 원문 데이터 ###\n";
+            let promptContext = "### 클라우드 추출 완벽 정렬 엑셀 데이터 ###\n";
             for (let sheet in rawExcelData) {
                 const rows = rawExcelData[sheet];
                 const validRows = rows.map(r => r.map(c => c || " ")); 
@@ -491,16 +495,16 @@
 당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
 아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 JSON 포맷으로만 출력하세요.
 ★[JSON 문법 절대 원칙]★
-- 응답 시 마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.
-- 데이터 안에 큰따옴표(")가 있다면 반드시 제거하거나 백슬래시(\\")로 이스케이프 하세요. 오류의 주 원인입니다.
+- 마크다운 기호 \`\`\`json 나 부가 설명은 절대 금지합니다.
+- 데이터 안에 큰따옴표(")가 있다면 작은따옴표(')로 대체하거나 백슬래시(\\")로 이스케이프 하세요.
 
 [19대 절대 추출 규칙]
 1. 계약리스트: '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출. (갱신형, 납입완료 등 적용)
-2. 담보 매핑: "가입담보상세"에서 "회사명", "상품명"이 일치하는 계약에 "회사 담보명", "신정원 담보명"과 "가입금액"을 매핑.
+2. 담보 매핑: "가입담보상세"에서 "회사명", "상품명"이 일치하는 계약을 찾아 "회사 담보명", "신정원 담보명", "가입금액"을 key에 매핑.
    - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병후유장해3%), d_disS(상해후유장해3%), d_cancer(일반암), d_cancer_op(암수술), d_similar(유사암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
    - [입원일당] 일반(d_hospD, d_hospS), 상급1인실(d_1inD, d_1inS), 수술입원(d_opHospD, d_opHospS), 중환자실(d_icuD, d_icuS)
    - [수술비] 종수술 1~8종(d_op1D_ ~ d_op8S_), 상급병원(d_opHigh), 종합병원(d_opGen), 일반병원(d_opNorm)
-   - [간병인 합산] 숫자는 합산 (지원비는 text="지원" 으로 입력)
+   - [간병인 합산] 간병인 관련 특약은 숫자로 합산 (지원비는 text="지원" 으로 입력)
    - [사망 분리] 회사명에 "생명"이 있으면 d_life_ 에 최소사망금액을 입력.
 3. 합계: "전체보장현황" 데이터에서 담보별 합계 매핑.
 
@@ -518,11 +522,9 @@ ${promptContext.substring(0, 40000)}
                 const aiData = await aiRes.json();
                 if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연.");
                 
-                // 🚨 JSON 파싱 오류(Unterminated string) 완벽 차단 정화 로직 🚨
                 let cleanJson = aiData.candidates[0].content.parts[0].text;
                 cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '').trim();
-                // JSON 문법을 해치는 숨은 제어문자(엔터, 탭 등)를 띄어쓰기로 모두 치환
-                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " ");
+                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " "); 
                 
                 let startIndex = cleanJson.indexOf('{');
                 let endIndex = cleanJson.lastIndexOf('}');
@@ -718,7 +720,7 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(currentPageSum);
             }
             
-            // 페이지 렌더링 후 가로 합계(Rule 6) 자동 계산
+            // 페이지 렌더링 후 가로 합계 자동 계산
             calculateRowSums();
         }
 
