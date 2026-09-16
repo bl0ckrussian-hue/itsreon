@@ -75,7 +75,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 -->
+    <!-- 엑셀 구현 영역 (배경색 흰색 통일, 모든 셀 편집 가능) -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -398,8 +398,8 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             try {
                 loadingOverlay.style.display = 'flex';
-                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 추출 중...";
-                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 완벽한 엑셀 8열 데이터로 분리하고 있습니다.";
+                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 정밀 추출 중...";
+                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 완벽한 8열 데이터로 분리하여 추출하고 있습니다.";
 
                 const base64data = await getBase64(file);
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
@@ -421,7 +421,7 @@
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
                 document.getElementById('progressTitle').innerText = "2/2. AI가 19대 룰에 맞춰 자동 맵핑 중...";
-                document.getElementById('progressDesc').innerText = "정제된 데이터를 AI가 오류 없이 화면에 채워 넣습니다. (약 10초 소요)";
+                document.getElementById('progressDesc').innerText = "정제된 데이터를 AI가 오류 없이 화면에 꽂아 넣습니다. (약 10초 소요)";
 
                 await extractDataWithAIEngine(rawCloudDataForExport);
 
@@ -467,13 +467,12 @@
         }
 
         // ==========================================
-        // 🚨 AI 정밀 분석 (JSON 특수문자 및 따옴표 오류 원천 차단)
+        // 🚨 AI 정밀 분석 엔진 (정제된 8열/7열 엑셀 데이터 완벽 호환)
         // ==========================================
         async function extractDataWithAIEngine(rawExcelData) {
-            let promptContext = "### 클라우드 추출 엑셀 원문 데이터 ###\n";
+            let promptContext = "### 클라우드 추출 완벽 정렬 엑셀 데이터 ###\n";
             for (let sheet in rawExcelData) {
                 const rows = rawExcelData[sheet];
-                // 빈 칸 삭제(Filter) 금지! 파이썬에서 내려준 열 순서를 그대로 보존합니다.
                 const validRows = rows.map(r => r.map(c => c || " ")); 
                 if(validRows.length > 0) {
                     promptContext += `\n[${sheet}]\n`;
@@ -487,16 +486,16 @@
 당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
 아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 JSON 포맷으로만 출력하세요.
 ★[JSON 문법 절대 원칙]★
-- 응답 시 마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.
-- 데이터 안에 큰따옴표(")가 있다면 반드시 제거하거나 백슬래시(\\")로 이스케이프 하세요. 오류의 주 원인입니다.
+- 마크다운 기호 \`\`\`json 나 부가 설명은 절대 금지합니다.
+- 데이터 안에 큰따옴표(")가 있다면 작은따옴표(')로 대체하거나 백슬래시(\\")로 이스케이프 하세요.
 
 [19대 절대 추출 규칙]
 1. 계약리스트: '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출. (갱신형, 납입완료 등 적용)
-2. 담보 매핑: "가입담보상세"에서 "회사명"과 "상품명"이 일치하는 계약에 "회사 담보명", "신정원 담보명"과 "가입금액"을 매핑.
+2. 담보 매핑: "가입담보상세"에서 "회사명", "상품명"이 일치하는 계약을 찾아 "회사 담보명", "신정원 담보명", "가입금액"을 key에 매핑.
    - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병후유장해3%), d_disS(상해후유장해3%), d_cancer(일반암), d_cancer_op(암수술), d_similar(유사암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
    - [입원일당] 일반(d_hospD, d_hospS), 상급1인실(d_1inD, d_1inS), 수술입원(d_opHospD, d_opHospS), 중환자실(d_icuD, d_icuS)
    - [수술비] 종수술 1~8종(d_op1D_ ~ d_op8S_), 상급병원(d_opHigh), 종합병원(d_opGen), 일반병원(d_opNorm)
-   - [간병인 합산] 숫자는 합산 (지원비는 text="지원" 으로 입력)
+   - [간병인 합산] 간병인 관련 특약은 숫자로 합산 (지원비는 text="지원" 으로 입력)
    - [사망 분리] 회사명에 "생명"이 있으면 d_life_ 에 최소사망금액을 입력.
 3. 합계: "전체보장현황" 데이터에서 담보별 합계 매핑.
 
@@ -514,10 +513,9 @@ ${promptContext.substring(0, 40000)}
                 const aiData = await aiRes.json();
                 if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연.");
                 
-                // JSON 오류 원인인 줄바꿈(\n) 및 이스케이프 안 된 큰따옴표를 강제로 정화
                 let cleanJson = aiData.candidates[0].content.parts[0].text;
                 cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '').trim();
-                cleanJson = cleanJson.replace(/[\n\r\t]/g, " "); 
+                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " "); 
                 
                 let startIndex = cleanJson.indexOf('{');
                 let endIndex = cleanJson.lastIndexOf('}');
@@ -542,7 +540,7 @@ ${promptContext.substring(0, 40000)}
         }
 
         // ==========================================
-        // 렌더링, 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
+        // 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
         // ==========================================
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
