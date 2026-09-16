@@ -28,7 +28,7 @@
                 <div>
                     <div class="flex items-center space-x-2 text-amber-600 mb-2">
                         <span class="text-2xl">🏥</span>
-                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v21.1 최종판</span>
+                        <span class="text-xs font-bold bg-amber-100 px-2 py-0.5 rounded-full shadow-sm">v23.0 6대질병 추적 엔진 탑재</span>
                     </div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-tight">알릴의무 & 고지유무<br>정밀 분석기</h1>
                     <p class="text-xs text-slate-500 mt-2">환영합니다, <span id="loggedUserName" class="font-bold text-blue-600">사용자</span> 팀장님!</p>
@@ -85,7 +85,6 @@
                 </button>
             </div>
 
-            <!-- ⭐️ 사용자 안내 배너 -->
             <div class="mb-6 bg-indigo-50 border border-indigo-100 rounded-xl p-5 shadow-sm text-sm text-indigo-900 leading-relaxed">
                 <h3 class="font-extrabold flex items-center gap-2 mb-3 text-indigo-700">
                     <span class="text-lg">💡</span> 알릴의무 분석 전 참고사항
@@ -102,10 +101,6 @@
                     <li class="flex items-start gap-2">
                         <span class="text-indigo-400 mt-0.5">3.</span>
                         <span>같은 날 여러 부위에 <strong>다른 수술이나 시술</strong>이 시행되었다면 연속으로 각각 표기됩니다.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-indigo-400 mt-0.5">4.</span>
-                        <span>유추 질병명에 위와 소화기능과 관련없이 <strong>소화제나 위관련 약물</strong>이 처방되었다면 단순 처방으로 고지할 필요는 없습니다.</span>
                     </li>
                 </ul>
             </div>
@@ -331,6 +326,9 @@
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
 
+            // ⭐️ 6대 중증 질환 키워드 배열
+            const critical6Keywords = ["암", "악성신생물", "협심증", "심근경색", "뇌졸중", "뇌출혈", "뇌경색", "간경화", "간경변", "심장판막"];
+
             for (let dis in diseaseAgg) {
                 const agg = diseaseAgg[dis];
                 let isTarget = false;
@@ -339,11 +337,13 @@
                 let validVisitCnt = 0; 
                 const yearlyVisits = {};
                 let recent3Month = false;
+                let has5YearRecord = false; // 5년 이내 진료기록 여부 확인
                 
                 agg.visitDates.forEach(d => {
                     const diff = diffDaysFn(d);
                     if (diff >= 0 && diff <= 365 * 5) {
                         validVisitCnt += 1;
+                        has5YearRecord = true;
                         const y = d.substring(0, 4);
                         yearlyVisits[y] = (yearlyVisits[y] || 0) + 1;
                     }
@@ -351,8 +351,23 @@
                 });
 
                 const validAdmits = agg.admits.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
+                if (validAdmits.length > 0) has5YearRecord = true;
+
                 const validSurgs = agg.surgs.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
                 const validTests = agg.tests.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365);
+
+                // ⭐️ 6대 질병 필터링 (5년 이내 통원 또는 입원 기록이 있는 경우에만)
+                let isCritical6 = false;
+                if (has5YearRecord) {
+                    for (let kw of critical6Keywords) {
+                        if (dis.includes(kw)) {
+                            isCritical6 = true;
+                            isTarget = true; // 강제 포함
+                            reason.push("6대질병 치료력");
+                            break;
+                        }
+                    }
+                }
 
                 if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
                 if (validTests.length > 0) { isTarget = true; reason.push("1년내 검사"); }
@@ -369,36 +384,35 @@
                     visitStr = `${validVisitCnt}회<br>(${yearList})`;
                 }
 
-                // ⭐️ [에러 수정 완료] 빠져있던 fDateFmt / lDateFmt 변수를 추가했습니다!
                 const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
                 const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
                 
-                const fDateFmt = firstDate ? firstDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
-                const lDateFmt = lastDate ? lastDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
-                // ---------------------------------------------------------------------------------
-
+                const fDateFmt = firstDate || "-";
+                const lDateFmt = lastDate || "-";
+                
                 const hospitalsStr = agg.hospitals.join(', ');
-                const reasonStr = reason.join(', ');
+                
+                // 중복 제거 후 합치기
+                const uniqueReasons = [...new Set(reason)];
+                const reasonStr = uniqueReasons.join(', ');
 
                 let mainRowSurg = validSurgs.length > 0 ? "예" : "아니오";
                 let mainRowSurgName = validSurgs.length > 0 ? validSurgs[0].name + (validSurgs.length > 1 ? " 외" : "") : "-";
                 
                 let totalAdmitDays = validAdmits.reduce((acc, curr) => acc + curr.days, 0);
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
-
                 let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
+
                 const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
-                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** | **${costStr}** |\n`;
+                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
 
                 validAdmits.forEach(ad => {
-                    let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
+                    markdownRows += `| ↳ | | ${ad.date} | ${ad.date} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
                 });
 
                 validSurgs.forEach(sg => {
-                    let dFmt = sg.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
+                    markdownRows += `| ↳ | | ${sg.date} | ${sg.date} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
                 });
             }
 
@@ -414,8 +428,8 @@
    - 심사자 A와 B가 제공된 데이터를 분석하여 병명과 약물([처방: 약품명...])의 연관성을 교차로 검증합니다.
    - 당신(AI 감독관)은 A와 B의 의견을 취합하여, 주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
    - 유추 기록을 마친 후 처방약 텍스트 \`[처방: ...]\` 원문은 표에서 지웁니다.
-2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 날짜, 금액, 하부행(↳) 등 모든 데이터는 단 1글자도 변경하지 말고 100% 똑같이 복사해서 출력하십시오.
-3. [비고란 출력 원칙]: 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
+2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+3. [비고란 출력 원칙]: 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 🕒 **분석 요청 시점(대한민국 서울 기준):** ${todayDate}
 
@@ -455,6 +469,9 @@ ${markdownRows}
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
 
+            // ⭐️ 6대 중증 질환 키워드 배열
+            const critical6Keywords = ["암", "악성신생물", "협심증", "심근경색", "뇌졸중", "뇌출혈", "뇌경색", "간경화", "간경변", "심장판막"];
+
             for (let dis in diseaseAgg) {
                 const agg = diseaseAgg[dis];
                 let isTarget = false;
@@ -463,11 +480,13 @@ ${markdownRows}
                 let validVisitCnt = 0; 
                 const yearlyVisits = {};
                 let recent3Month = false;
+                let has5YearRecord = false;
                 
                 agg.visitDates.forEach(d => {
                     const diff = diffDaysFn(d);
                     if (diff >= 0 && diff <= 365 * 5) {
                         validVisitCnt += 1;
+                        has5YearRecord = true;
                         const y = d.substring(0, 4);
                         yearlyVisits[y] = (yearlyVisits[y] || 0) + 1;
                     }
@@ -475,8 +494,23 @@ ${markdownRows}
                 });
 
                 const validAdmits = agg.admits.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
+                if (validAdmits.length > 0) has5YearRecord = true;
+                
                 const validSurgs = agg.surgs.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
                 const validTests = agg.tests.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365);
+
+                // ⭐️ 6대 질병 필터링
+                let isCritical6 = false;
+                if (has5YearRecord) {
+                    for (let kw of critical6Keywords) {
+                        if (dis.includes(kw)) {
+                            isCritical6 = true;
+                            isTarget = true;
+                            reason.push("6대질병 치료력");
+                            break;
+                        }
+                    }
+                }
 
                 if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
                 if (validTests.length > 0) { isTarget = true; reason.push("1년내 검사"); }
@@ -496,11 +530,13 @@ ${markdownRows}
                 const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
                 const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
                 
-                const fDateFmt = firstDate ? firstDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
-                const lDateFmt = lastDate ? lastDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : "-";
-
+                const fDateFmt = firstDate || "-";
+                const lDateFmt = lastDate || "-";
+                
                 const hospitalsStr = agg.hospitals.join(', ');
-                const reasonStr = reason.join(', ');
+                
+                const uniqueReasons = [...new Set(reason)];
+                const reasonStr = uniqueReasons.join(', ');
 
                 let mainRowSurg = validSurgs.length > 0 ? "예" : "아니오";
                 let mainRowSurgName = validSurgs.length > 0 ? validSurgs[0].name + (validSurgs.length > 1 ? " 외" : "") : "-";
@@ -511,7 +547,7 @@ ${markdownRows}
 
                 const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
-                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **${reasonStr}** | **${costStr}** |\n`;
+                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
 
                 validAdmits.forEach(ad => {
                     let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
@@ -534,7 +570,7 @@ ${markdownRows}
 🚨 **[절대원칙 - 텍스트 조작 금지]**
 1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다.
 2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
-3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약" 중에서만 표기하고 그 외 표현은 금지합니다.
+3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하고 그 외 표현은 금지합니다.
 
 ---
 **[사전 완성된 마크다운 데이터]**
@@ -628,7 +664,6 @@ ${markdownRows}
                 try {
                     analysisData = await response.json();
                 } catch(e) {
-                    // 서버 응답 파싱 실패시 통신오류로 처리
                 }
 
                 if (!response.ok) {
@@ -829,5 +864,7 @@ ${markdownRows}
             }
         }
     </script>
+</body>
+</html>
 </body>
 </html>
