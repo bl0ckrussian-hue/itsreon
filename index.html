@@ -80,7 +80,7 @@
         <div id="viewIntro" class="block transition-all duration-300">
             <!-- 1-1. 히어로 슬라이더 섹션 -->
             <section id="introHero" class="relative bg-slate-950 text-white overflow-hidden min-h-[460px] md:min-h-[500px] flex items-center">
-                <!-- Slide 1 -->
+                <!-- Slide 1 (첫번째 페이지 - 중간배너2.jpg 적용) -->
                 <div id="slide1" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-100">
                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('images/중간배너2.jpg');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/70 to-transparent"></div>
@@ -96,7 +96,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Slide 2 -->
+                <!-- Slide 2 (두번째 페이지 - 중간배너1.jpg 적용) -->
                 <div id="slide2" class="hero-slide absolute inset-0 w-full h-full flex items-center transition-opacity duration-700 opacity-0 pointer-events-none">
                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('images/중간배너1.jpg');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/70 to-transparent"></div>
@@ -128,7 +128,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                        <!-- [좌측 카드] 설계사 스마트 업무지원 -->
+                        <!-- [좌측 카드] 설계사 스마트 업무지원 (logo3.jpg 적용) -->
                         <div class="bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-800 text-white flex flex-col justify-between items-center text-center group hover:border-blue-500/50 transition duration-300">
                             <div class="flex flex-col items-center w-full">
                                 <div class="w-24 h-24 rounded-2xl bg-white p-3.5 shadow-lg mb-5 flex items-center justify-center overflow-hidden group-hover:scale-105 transition transform">
@@ -221,17 +221,18 @@
                 </div>
             </div>
 
-            <!-- 2-1. 주요 업무 기능 9대 카드 섹션 -->
+            <!-- 2-1. 주요 업무 기능 카드 섹션 (가로 4 x 세로 3 배열) -->
             <section id="features" class="bg-white py-12 text-slate-800 border-b border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="mb-8">
                         <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2"><span>🛠️</span> <span>주요 업무 기능</span></h2>
                         <p class="text-slate-500 text-xs mt-1">원하시는 업무 아이콘 카드를 클릭하여 즉시 실행하세요.</p>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
+                        <!-- [1열] 스케줄관리 -->
                         <div onclick="checkAuthAndOpen('dbAssignPage')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <!-- 엔진 동작 녹색 닷 -->
                             <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -241,74 +242,84 @@
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">네이버 캘린더 연동으로<br/>배정된 DB 일정 자동 관리</p>
                         </div>
 
-                        <!-- ⭐️ AI 보장분석 -->
+                        <!-- [2열] AI보장분석 -->
                         <div onclick="checkAuthAndOpen('coverageModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-red-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <!-- 엔진 동작 녹색 닷 추가 -->
                             <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                             </div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🛡️</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-red-600 transition">AI보장분석</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">고객 보장 현황 자동 분석<br/><span class="text-red-600 font-bold">(테스트 중)</span></p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">고객 보장 현황 자동 분석<br/>보장분석표 자동 완성</p>
                         </div>
 
-                        <div onclick="checkAuthAndOpen('termsCloudModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition">약관비교분석</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
-                        </div>
-
-                        <!-- ⭐️ AI 알릴의무분석 -->
+                        <!-- [3열] AI알릴의무분석 -->
                         <div onclick="checkAuthAndOpen('dutyModal')" class="bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <!-- 엔진 동작 녹색 닷 -->
                             <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                             </div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🏥</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition">AI알릴의무분석</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료기록 기반 분석 </p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">진료이력 기반 분석<br/>(새 창에서 열림)</p>
                         </div>
 
+                        <!-- [4열] 약관비교분석 -->
+                        <div onclick="checkAuthAndOpen('termsCloudModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📖</div>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition">약관비교분석</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
+                        </div>
+
+                        <!-- [5열] 보험청구 -->
                         <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-emerald-600 transition">보험청구</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">원수사별 자동 청구서 작성 및<br/>개인 모바일 팩스 연동 청구 </p>
                         </div>
 
-                        <!-- ⭐️ 계약현황 대시보드 -->
-                        <div onclick="checkAuthAndOpen('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <!-- 엔진 동작 녹색 닷 -->
-                            <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                            </div>
-                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-teal-600 transition">계약현황 대시보드</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">나는 연봉 1억이 된다.!<br/>나는 할 수 있다.!</p>
-                        </div>
-
-                        <!-- ⭐️ 실비 마스터 (새 창 연결) -->
+                        <!-- [6열] 실비마스터 -->
                         <div onclick="checkAuthAndOpen('indemnityCalcModal')" class="bg-white hover:bg-[#f8fafc] border border-slate-200 hover:border-slate-800 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <!-- 엔진 동작 녹색 닷 -->
                             <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                             </div>
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🧮</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 transition">실비 마스터<br/>(비회원 가능)</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/>세대별 약관 & 갱신보험료 예측</p>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 transition">실비 마스터</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">1~5세대 정밀 실비계산<br/>(비회원 가능)</p>
                         </div>
 
-                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
-                            <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
-                            <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
+                        <!-- [7열] 세일즈교육 (NEW) -->
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-orange-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🎬</div>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition">세일즈 교육</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">네이버 드라이브 영상 연동<br/>(준비 중)</p>
                         </div>
 
+                        <!-- [8열] 교육자료 (NEW) -->
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-cyan-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📁</div>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-cyan-600 transition">교육자료</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">구글 클라우드 다운로드<br/>(준비 중)</p>
+                        </div>
+
+                        <!-- [9열] 내 보험 찾아줌 (NEW) -->
+                        <div onclick="window.open('https://cont.insure.or.kr/cont_web/insurance/insurancePrivacy.do?redirectUrl=http%3A%2F%2Fcont.insure.or.kr&serviceUrl=https%3A%2F%2Fcont.insure.or.kr%2Fcont_web&realServiceDomain=cont.insure.or.kr&isRealService=true', '_blank')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-pink-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </div>
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🔍</div>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-pink-600 transition">내 보험 찾아줌</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">숨은 내 보험금 찾기<br/>(새 창에서 열림)</p>
+                        </div>
+
+                        <!-- [10열] 보험전산 -->
                         <div onclick="window.open('https://xn--on3bi2e18htop.com/', '_blank');" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-fuchsia-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <!-- 엔진 동작 녹색 닷 -->
                             <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -316,6 +327,24 @@
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💻</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-fuchsia-600 transition">보험전산<br/>(비회원 가능)</h3>
                             <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 업무 전산<br/>통합 접속 포털</p>
+                        </div>
+
+                        <!-- [11열] 서비스 출시 예정 -->
+                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
+                            <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">⏳</div>
+                            <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
+                        </div>
+
+                        <!-- [12열] 계약현황 대시보드 -->
+                        <div onclick="checkAuthAndOpen('contractDashboardModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                            <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </div>
+                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📊</div>
+                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-teal-600 transition">계약현황 대시보드</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">클릭하면 새 창으로<br/>대시보드가 열립니다.</p>
                         </div>
 
                     </div>
@@ -517,7 +546,7 @@
         </div>
     </div>
 
-    <!-- 스케줄 모달 등 기타 원본 모달 -->
+    <!-- 기타 원본 모달 -->
     <div id="comingSoonModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center"><button onclick="closeModal('comingSoonModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button><div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">⏳</div><h3 class="text-xl font-bold text-slate-900">신규 서비스 준비 중</h3><p class="text-xs text-slate-500 mt-2 leading-relaxed">설계사님들의 업무 효율을 더욱 높여드릴 차세대 영업 지원 기능이 곧 업데이트될 예정입니다.</p><div class="mt-6"><button onclick="closeModal('comingSoonModal')" class="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-xs">확인</button></div></div></div>
     <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative"><button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button><h3 class="text-xl font-bold text-slate-900">잇츠리온 시스템 문의하기</h3><form onsubmit="event.preventDefault(); alert('문의가 성공적으로 접수되었습니다.'); closeModal('contactModal');" class="mt-4 space-y-3 text-xs"><div><label class="block font-bold text-slate-700 mb-1">성함 / 소속 GA</label><input type="text" value="김설계 팀장 / 센티넬어드바이저스" required class="w-full px-3 py-2 border rounded-lg"></div><div><label class="block font-bold text-slate-700 mb-1">연락처</label><input type="tel" value="010-1234-5678" required class="w-full px-3 py-2 border rounded-lg"></div><button type="submit" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">문의 접수</button></form></div></div>
     <div id="quickUpdateModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative"><button onclick="closeModal('quickUpdateModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button><h3 class="text-xl font-bold text-slate-900">설계사 프로필 설정</h3><form onsubmit="event.preventDefault(); alert('정보가 업데이트되었습니다.'); closeModal('quickUpdateModal');" class="mt-4 space-y-3 text-xs"><div><label class="block font-bold text-slate-700 mb-1">성명</label><input type="text" value="김설계" class="w-full px-3 py-2 border rounded-lg"></div><button type="submit" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">저장</button></form></div></div>
@@ -681,7 +710,7 @@
             closeModal('expertConsultModal');
         }
 
-        // ⭐️ [로직 수정] 대시보드 클릭 시 동작 분리 (보장분석 새창 연결 수정 완료)
+        // ⭐️ 대시보드 클릭 시 동작 분리 (보장분석 새창 연결 수정 완료)
         function checkAuthAndOpen(modalId) {
             // 1. 비회원 기능
             if (modalId === 'indemnityCalcModal') {
@@ -707,7 +736,7 @@
                     window.open('duty_analysis.html', '_blank');
                 } else if (modalId === 'contractDashboardModal') {
                     window.open('db_carts.html', '_blank');
-                } else if (modalId === 'coverageModal') { // 보장분석 새 창 연결 추가
+                } else if (modalId === 'coverageModal') { // 보장분석 새 창 연결
                     window.open('insurance_analysis.html', '_blank');
                 } else {
                     openModal(modalId); 
