@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>잇츠리온 - 정밀 보장분석 자동화 엔진</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS 및 엑셀 스타일 강제 적용 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -40,7 +39,7 @@
 
     <div id="loadingOverlay">
         <div class="spinner mb-5"></div>
-        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">클라우드 서버 연결 중...</h2>
+        <h2 class="text-xl font-bold text-white mb-2" id="progressTitle">서버와 통신 중...</h2>
         <p class="text-sm text-slate-300" id="progressDesc">데이터를 처리하고 있습니다.</p>
     </div>
 
@@ -49,7 +48,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 업로드 ➔ AI 자동 맵핑</span>
+                <span>PDF 업로드 ➔ 원문 엑셀 확인 ➔ AI가 19대 룰에 맞춰 자동 맵핑 (키보드 상/하/좌/우 모든 셀 자유 이동)</span>
             </p>
         </div>
         
@@ -62,7 +61,6 @@
         <div class="flex gap-2">
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             
-            <!-- 원본 데이터 추출 확인용 다운로드 버튼 (상시 배치) -->
             <button id="btnDownloadRaw" onclick="exportRawToExcel()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm shadow transition hidden">
                 📥 추출 원문 다운로드
             </button>
@@ -79,7 +77,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 (UI 유지) -->
+    <!-- 엑셀 구현 영역 (배경색 흰색 통일, 모든 셀 편집 가능하도록 수정) -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -140,12 +138,13 @@
                     <td rowspan="2" class="bg-light-gray">종신(생명)</td>
                     <td class="bg-light-gray">일반</td>
                     <td colspan="2" id="d_life_1" class="editable-cell sum-target" data-key="d_life_" tabindex="0"></td><td colspan="2" id="d_life_2" class="editable-cell sum-target" data-key="d_life_" tabindex="0"></td><td colspan="2" id="d_life_3" class="editable-cell sum-target" data-key="d_life_" tabindex="0"></td><td colspan="2" id="d_life_4" class="editable-cell sum-target" data-key="d_life_" tabindex="0"></td><td colspan="2" id="d_life_5" class="editable-cell sum-target" data-key="d_life_" tabindex="0"></td>
-                    <td colspan="2" id="res_d_life_" class="font-bold text-red-600 bg-red-50">-</td>
+                    <!-- 변경: 배경색 제거 및 editable-cell 부여 -->
+                    <td colspan="2" id="res_d_life_" class="editable-cell font-bold text-red-600" tabindex="0">-</td>
                     <td rowspan="4" class="remark-yellow">진단비 최초1회<br>만 수술비 반복<br>보장 최대보장금<br>액기재</td>
                 </tr>
                 <tr>
                     <td class="bg-light-gray">정기</td>
-                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td>
+                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td>
                 </tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray tracking-widest">구 분</td>
@@ -155,7 +154,7 @@
                     <td class="bg-light-gray">손해</td>
                     <td class="bg-light-gray">사망(80세)</td>
                     <td id="d_dieD_1" class="editable-cell sum-target" data-key="d_dieD_" tabindex="0"></td><td id="d_dieS_1" class="editable-cell sum-target" data-key="d_dieS_" tabindex="0"></td><td id="d_dieD_2" class="editable-cell sum-target" data-key="d_dieD_" tabindex="0"></td><td id="d_dieS_2" class="editable-cell sum-target" data-key="d_dieS_" tabindex="0"></td><td id="d_dieD_3" class="editable-cell sum-target" data-key="d_dieD_" tabindex="0"></td><td id="d_dieS_3" class="editable-cell sum-target" data-key="d_dieS_" tabindex="0"></td><td id="d_dieD_4" class="editable-cell sum-target" data-key="d_dieD_" tabindex="0"></td><td id="d_dieS_4" class="editable-cell sum-target" data-key="d_dieS_" tabindex="0"></td><td id="d_dieD_5" class="editable-cell sum-target" data-key="d_dieD_" tabindex="0"></td><td id="d_dieS_5" class="editable-cell sum-target" data-key="d_dieS_" tabindex="0"></td>
-                    <td id="res_d_dieD_" class="text-red-600 font-bold bg-red-50">-</td><td id="res_d_dieS_" class="text-red-600 font-bold bg-red-50">-</td>
+                    <td id="res_d_dieD_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td id="res_d_dieS_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td>
                 </tr>
                 
                 <!-- 장애 -->
@@ -164,7 +163,7 @@
                     <td class="bg-light-gray">후유장애</td>
                     <td class="bg-light-gray">3%이상</td>
                     <td id="d_disD_1" class="editable-cell sum-target" data-key="d_disD_" tabindex="0"></td><td id="d_disS_1" class="editable-cell sum-target" data-key="d_disS_" tabindex="0"></td><td id="d_disD_2" class="editable-cell sum-target" data-key="d_disD_" tabindex="0"></td><td id="d_disS_2" class="editable-cell sum-target" data-key="d_disS_" tabindex="0"></td><td id="d_disD_3" class="editable-cell sum-target" data-key="d_disD_" tabindex="0"></td><td id="d_disS_3" class="editable-cell sum-target" data-key="d_disS_" tabindex="0"></td><td id="d_disD_4" class="editable-cell sum-target" data-key="d_disD_" tabindex="0"></td><td id="d_disS_4" class="editable-cell sum-target" data-key="d_disS_" tabindex="0"></td><td id="d_disD_5" class="editable-cell sum-target" data-key="d_disD_" tabindex="0"></td><td id="d_disS_5" class="editable-cell sum-target" data-key="d_disS_" tabindex="0"></td>
-                    <td id="res_d_disD_" class="text-red-600 font-bold bg-red-50">-</td><td id="res_d_disS_" class="text-red-600 font-bold bg-red-50">-</td>
+                    <td id="res_d_disD_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td id="res_d_disS_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td>
                     <td class="editable-cell" tabindex="0"></td>
                 </tr>
 
@@ -174,118 +173,118 @@
                     <td rowspan="4" class="bg-light-gray">입원</td>
                     <td class="bg-light-gray">일반병원</td>
                     <td id="d_hospD_1" class="editable-cell sum-target" data-key="d_hospD_" tabindex="0"></td><td id="d_hospS_1" class="editable-cell sum-target" data-key="d_hospS_" tabindex="0"></td><td id="d_hospD_2" class="editable-cell sum-target" data-key="d_hospD_" tabindex="0"></td><td id="d_hospS_2" class="editable-cell sum-target" data-key="d_hospS_" tabindex="0"></td><td id="d_hospD_3" class="editable-cell sum-target" data-key="d_hospD_" tabindex="0"></td><td id="d_hospS_3" class="editable-cell sum-target" data-key="d_hospS_" tabindex="0"></td><td id="d_hospD_4" class="editable-cell sum-target" data-key="d_hospD_" tabindex="0"></td><td id="d_hospS_4" class="editable-cell sum-target" data-key="d_hospS_" tabindex="0"></td><td id="d_hospD_5" class="editable-cell sum-target" data-key="d_hospD_" tabindex="0"></td><td id="d_hospS_5" class="editable-cell sum-target" data-key="d_hospS_" tabindex="0"></td>
-                    <td id="res_d_hospD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_hospS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td>
+                    <td id="res_d_hospD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_hospS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td>
                 </tr>
                 <tr><td class="bg-light-gray">상급1인실</td>
                     <td id="d_1inD_1" class="editable-cell sum-target" data-key="d_1inD_" tabindex="0"></td><td id="d_1inS_1" class="editable-cell sum-target" data-key="d_1inS_" tabindex="0"></td><td id="d_1inD_2" class="editable-cell sum-target" data-key="d_1inD_" tabindex="0"></td><td id="d_1inS_2" class="editable-cell sum-target" data-key="d_1inS_" tabindex="0"></td><td id="d_1inD_3" class="editable-cell sum-target" data-key="d_1inD_" tabindex="0"></td><td id="d_1inS_3" class="editable-cell sum-target" data-key="d_1inS_" tabindex="0"></td><td id="d_1inD_4" class="editable-cell sum-target" data-key="d_1inD_" tabindex="0"></td><td id="d_1inS_4" class="editable-cell sum-target" data-key="d_1inS_" tabindex="0"></td><td id="d_1inD_5" class="editable-cell sum-target" data-key="d_1inD_" tabindex="0"></td><td id="d_1inS_5" class="editable-cell sum-target" data-key="d_1inS_" tabindex="0"></td>
-                    <td id="res_d_1inD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_1inS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="res_d_1inD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_1inS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술입원</td>
                     <td id="d_opHospD_1" class="editable-cell sum-target" data-key="d_opHospD_" tabindex="0"></td><td id="d_opHospS_1" class="editable-cell sum-target" data-key="d_opHospS_" tabindex="0"></td><td id="d_opHospD_2" class="editable-cell sum-target" data-key="d_opHospD_" tabindex="0"></td><td id="d_opHospS_2" class="editable-cell sum-target" data-key="d_opHospS_" tabindex="0"></td><td id="d_opHospD_3" class="editable-cell sum-target" data-key="d_opHospD_" tabindex="0"></td><td id="d_opHospS_3" class="editable-cell sum-target" data-key="d_opHospS_" tabindex="0"></td><td id="d_opHospD_4" class="editable-cell sum-target" data-key="d_opHospD_" tabindex="0"></td><td id="d_opHospS_4" class="editable-cell sum-target" data-key="d_opHospS_" tabindex="0"></td><td id="d_opHospD_5" class="editable-cell sum-target" data-key="d_opHospD_" tabindex="0"></td><td id="d_opHospS_5" class="editable-cell sum-target" data-key="d_opHospS_" tabindex="0"></td>
-                    <td id="res_d_opHospD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_opHospS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="res_d_opHospD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_opHospS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">중환자실</td>
                     <td id="d_icuD_1" class="editable-cell sum-target" data-key="d_icuD_" tabindex="0"></td><td id="d_icuS_1" class="editable-cell sum-target" data-key="d_icuS_" tabindex="0"></td><td id="d_icuD_2" class="editable-cell sum-target" data-key="d_icuD_" tabindex="0"></td><td id="d_icuS_2" class="editable-cell sum-target" data-key="d_icuS_" tabindex="0"></td><td id="d_icuD_3" class="editable-cell sum-target" data-key="d_icuD_" tabindex="0"></td><td id="d_icuS_3" class="editable-cell sum-target" data-key="d_icuS_" tabindex="0"></td><td id="d_icuD_4" class="editable-cell sum-target" data-key="d_icuD_" tabindex="0"></td><td id="d_icuS_4" class="editable-cell sum-target" data-key="d_icuS_" tabindex="0"></td><td id="d_icuD_5" class="editable-cell sum-target" data-key="d_icuD_" tabindex="0"></td><td id="d_icuS_5" class="editable-cell sum-target" data-key="d_icuS_" tabindex="0"></td>
-                    <td id="res_d_icuD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_icuS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="res_d_icuD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_icuS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">간병</td>
                     <td class="bg-light-gray">지원/일당</td>
                     <td id="d_careD_1" class="editable-cell sum-target" data-key="d_careD_" tabindex="0"></td><td id="d_careS_1" class="editable-cell sum-target" data-key="d_careS_" tabindex="0"></td><td id="d_careD_2" class="editable-cell sum-target" data-key="d_careD_" tabindex="0"></td><td id="d_careS_2" class="editable-cell sum-target" data-key="d_careS_" tabindex="0"></td><td id="d_careD_3" class="editable-cell sum-target" data-key="d_careD_" tabindex="0"></td><td id="d_careS_3" class="editable-cell sum-target" data-key="d_careS_" tabindex="0"></td><td id="d_careD_4" class="editable-cell sum-target" data-key="d_careD_" tabindex="0"></td><td id="d_careS_4" class="editable-cell sum-target" data-key="d_careS_" tabindex="0"></td><td id="d_careD_5" class="editable-cell sum-target" data-key="d_careD_" tabindex="0"></td><td id="d_careS_5" class="editable-cell sum-target" data-key="d_careS_" tabindex="0"></td>
-                    <td id="res_d_careD_" class="text-red-600 font-bold bg-red-50">-</td><td id="res_d_careS_" class="text-red-600 font-bold bg-red-50">-</td>
+                    <td id="res_d_careD_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td id="res_d_careS_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td>
                     <td rowspan="2" class="text-[10px]">일반병원기준</td>
                 </tr>
-                <tr><td class="bg-light-gray">통합간호</td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell">-</td><td class="editable-cell">-</td></tr>
+                <tr><td class="bg-light-gray">통합간호</td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0"></td><td class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0">-</td></tr>
 
                 <!-- 일반 치료비(수술) -->
                 <tr>
                     <td rowspan="12" class="bg-light-gray">일반 치료비</td>
                     <td rowspan="11" class="bg-light-gray">수술비</td>
                     <td class="bg-light-gray">수술 1종</td>
-                    <td id="d_op1D_1" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_1" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_2" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_2" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_3" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_3" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_4" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_4" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_5" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_5" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="res_d_op1D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op1S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td>
+                    <td id="d_op1D_1" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_1" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_2" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_2" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_3" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_3" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_4" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_4" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="d_op1D_5" class="editable-cell sum-target" data-key="d_op1D_" tabindex="0"></td><td id="d_op1S_5" class="editable-cell sum-target" data-key="d_op1S_" tabindex="0"></td><td id="res_d_op1D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op1S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td>
                 </tr>
                 <tr><td class="bg-light-gray">수술 2종</td>
-                    <td id="d_op2D_1" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_1" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_2" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_2" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_3" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_3" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_4" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_4" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_5" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_5" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="res_d_op2D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op2S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op2D_1" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_1" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_2" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_2" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_3" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_3" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_4" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_4" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="d_op2D_5" class="editable-cell sum-target" data-key="d_op2D_" tabindex="0"></td><td id="d_op2S_5" class="editable-cell sum-target" data-key="d_op2S_" tabindex="0"></td><td id="res_d_op2D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op2S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술 3종</td>
-                    <td id="d_op3D_1" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_1" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_2" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_2" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_3" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_3" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_4" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_4" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_5" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_5" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="res_d_op3D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op3S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op3D_1" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_1" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_2" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_2" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_3" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_3" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_4" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_4" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="d_op3D_5" class="editable-cell sum-target" data-key="d_op3D_" tabindex="0"></td><td id="d_op3S_5" class="editable-cell sum-target" data-key="d_op3S_" tabindex="0"></td><td id="res_d_op3D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op3S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술 4종</td>
-                    <td id="d_op4D_1" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_1" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_2" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_2" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_3" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_3" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_4" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_4" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_5" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_5" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="res_d_op4D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op4S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op4D_1" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_1" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_2" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_2" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_3" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_3" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_4" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_4" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="d_op4D_5" class="editable-cell sum-target" data-key="d_op4D_" tabindex="0"></td><td id="d_op4S_5" class="editable-cell sum-target" data-key="d_op4S_" tabindex="0"></td><td id="res_d_op4D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op4S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술 5종</td>
-                    <td id="d_op5D_1" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_1" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_2" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_2" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_3" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_3" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_4" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_4" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_5" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_5" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="res_d_op5D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op5S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op5D_1" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_1" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_2" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_2" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_3" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_3" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_4" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_4" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="d_op5D_5" class="editable-cell sum-target" data-key="d_op5D_" tabindex="0"></td><td id="d_op5S_5" class="editable-cell sum-target" data-key="d_op5S_" tabindex="0"></td><td id="res_d_op5D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op5S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술 6종</td>
-                    <td id="d_op6D_1" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_1" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_2" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_2" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_3" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_3" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_4" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_4" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_5" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_5" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="res_d_op6D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op6S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op6D_1" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_1" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_2" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_2" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_3" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_3" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_4" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_4" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="d_op6D_5" class="editable-cell sum-target" data-key="d_op6D_" tabindex="0"></td><td id="d_op6S_5" class="editable-cell sum-target" data-key="d_op6S_" tabindex="0"></td><td id="res_d_op6D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op6S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술 7종</td>
-                    <td id="d_op7D_1" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_1" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_2" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_2" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_3" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_3" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_4" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_4" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_5" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_5" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="res_d_op7D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op7S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op7D_1" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_1" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_2" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_2" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_3" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_3" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_4" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_4" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="d_op7D_5" class="editable-cell sum-target" data-key="d_op7D_" tabindex="0"></td><td id="d_op7S_5" class="editable-cell sum-target" data-key="d_op7S_" tabindex="0"></td><td id="res_d_op7D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op7S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">수술 8종</td>
-                    <td id="d_op8D_1" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_1" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_2" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_2" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_3" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_3" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_4" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_4" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_5" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_5" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="res_d_op8D_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_op8S_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_op8D_1" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_1" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_2" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_2" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_3" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_3" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_4" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_4" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="d_op8D_5" class="editable-cell sum-target" data-key="d_op8D_" tabindex="0"></td><td id="d_op8S_5" class="editable-cell sum-target" data-key="d_op8S_" tabindex="0"></td><td id="res_d_op8D_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_op8S_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">병원</td>
-                    <td id="d_opNormD_1" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_1" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_2" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_2" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_3" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_3" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_4" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_4" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_5" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_5" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="res_d_opNormD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_opNormS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_opNormD_1" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_1" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_2" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_2" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_3" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_3" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_4" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_4" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="d_opNormD_5" class="editable-cell sum-target" data-key="d_opNormD_" tabindex="0"></td><td id="d_opNormS_5" class="editable-cell sum-target" data-key="d_opNormS_" tabindex="0"></td><td id="res_d_opNormD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_opNormS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">종합병원</td>
-                    <td id="d_opGenD_1" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_1" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_2" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_2" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_3" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_3" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_4" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_4" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_5" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_5" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="res_d_opGenD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_opGenS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_opGenD_1" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_1" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_2" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_2" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_3" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_3" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_4" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_4" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="d_opGenD_5" class="editable-cell sum-target" data-key="d_opGenD_" tabindex="0"></td><td id="d_opGenS_5" class="editable-cell sum-target" data-key="d_opGenS_" tabindex="0"></td><td id="res_d_opGenD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_opGenS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td class="bg-light-gray">상급병원</td>
-                    <td id="d_opHighD_1" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_1" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_2" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_2" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_3" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_3" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_4" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_4" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_5" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_5" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="res_d_opHighD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_opHighS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_opHighD_1" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_1" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_2" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_2" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_3" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_3" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_4" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_4" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="d_opHighD_5" class="editable-cell sum-target" data-key="d_opHighD_" tabindex="0"></td><td id="d_opHighS_5" class="editable-cell sum-target" data-key="d_opHighS_" tabindex="0"></td><td id="res_d_opHighD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_opHighS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 <tr><td colspan="2" class="bg-light-gray">통합(입원/수술포함)</td>
-                    <td id="d_totD_1" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_1" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_2" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_2" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_3" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_3" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_4" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_4" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_5" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_5" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="res_d_totD_" class="bg-red-50 font-bold text-red-600">-</td><td id="res_d_totS_" class="bg-red-50 font-bold text-red-600">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                    <td id="d_totD_1" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_1" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_2" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_2" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_3" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_3" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_4" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_4" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="d_totD_5" class="editable-cell sum-target" data-key="d_totD_" tabindex="0"></td><td id="d_totS_5" class="editable-cell sum-target" data-key="d_totS_" tabindex="0"></td><td id="res_d_totD_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td id="res_d_totS_" class="editable-cell font-bold text-red-600" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
 
                 <!-- 암 -->
                 <tr>
                     <td rowspan="7" class="bg-light-gray">암</td>
                     <td rowspan="2" class="bg-light-gray">일반암</td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2" id="d_cancer_1" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_2" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_3" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_4" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_5" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="res_d_cancer_" class="text-red-600 font-bold bg-red-50">-</td>
+                    <td colspan="2" id="d_cancer_1" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_2" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_3" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_4" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="d_cancer_5" class="editable-cell sum-target" data-key="d_cancer_" tabindex="0"></td><td colspan="2" id="res_d_cancer_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td>
                     <td rowspan="2" class="text-[10px]">전이암포함여부</td>
                 </tr>
-                <tr><td class="bg-light-gray">수술비</td><td colspan="2" id="d_cancer_op_1" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_2" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_3" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_4" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_5" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="res_d_cancer_op_" class="text-red-600 font-bold bg-red-50">-</td></tr>
+                <tr><td class="bg-light-gray">수술비</td><td colspan="2" id="d_cancer_op_1" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_2" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_3" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_4" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="d_cancer_op_5" class="editable-cell sum-target" data-key="d_cancer_op_" tabindex="0"></td><td colspan="2" id="res_d_cancer_op_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td></tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">기타실피<br><span class="text-[9px]">(갑/기/경/제)</span></td>
                     <td class="bg-light-gray">진단비</td>
-                    <td colspan="2" id="d_similar_1" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_2" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_3" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_4" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_5" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="res_d_similar_" class="text-red-600 font-bold bg-red-50">-</td><td rowspan="2" class="editable-cell" tabindex="0"></td>
+                    <td colspan="2" id="d_similar_1" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_2" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_3" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_4" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="d_similar_5" class="editable-cell sum-target" data-key="d_similar_" tabindex="0"></td><td colspan="2" id="res_d_similar_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td rowspan="2" class="editable-cell" tabindex="0"></td>
                 </tr>
-                <tr><td class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td></tr>
+                <tr><td class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td></tr>
                 <tr>
                     <td rowspan="2" class="bg-light-gray">항암치료</td>
                     <td class="bg-light-gray">항암방사선</td>
-                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td>
+                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td>
                     <td rowspan="3" class="text-[10px]">암주요(비급여<br>포함) 치료비<br>치료별 1회 보장</td>
                 </tr>
-                <tr><td class="bg-light-gray">항암약물</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td></tr>
-                <tr><td colspan="2" class="bg-light-gray"><span class="text-[9px]">(상급/종합)</span>암주요치료비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td></tr>
+                <tr><td class="bg-light-gray">항암약물</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td></tr>
+                <tr><td colspan="2" class="bg-light-gray"><span class="text-[9px]">(상급/종합)</span>암주요치료비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td></tr>
 
                 <!-- 뇌/심 -->
                 <tr>
                     <td rowspan="6" class="bg-light-gray">뇌/심(순환계)</td>
                     <td rowspan="5" class="bg-light-gray">진단비</td>
                     <td class="bg-light-gray">뇌혈관</td>
-                    <td colspan="2" id="d_brain_1" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_2" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_3" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_4" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_5" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="res_d_brain_" class="text-red-600 font-bold bg-red-50">-</td><td rowspan="4" class="editable-cell" tabindex="0"></td>
+                    <td colspan="2" id="d_brain_1" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_2" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_3" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_4" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="d_brain_5" class="editable-cell sum-target" data-key="d_brain_" tabindex="0"></td><td colspan="2" id="res_d_brain_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td rowspan="4" class="editable-cell" tabindex="0"></td>
                 </tr>
-                <tr><td class="bg-light-gray">허혈성</td><td colspan="2" id="d_heart_1" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_2" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_3" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_4" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_5" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="res_d_heart_" class="text-red-600 font-bold bg-red-50">-</td></tr>
-                <tr><td class="bg-light-gray">뇌경색</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td></tr>
-                <tr><td class="bg-light-gray">급성심근경색</td><td colspan="2" id="d_ami_1" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_2" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_3" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_4" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_5" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="res_d_ami_" class="text-red-600 font-bold bg-red-50">-</td></tr>
-                <tr><td class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
-                <tr><td colspan="2" class="bg-light-gray">뇌/심(순환계)치료비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td></tr>
+                <tr><td class="bg-light-gray">허혈성</td><td colspan="2" id="d_heart_1" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_2" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_3" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_4" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="d_heart_5" class="editable-cell sum-target" data-key="d_heart_" tabindex="0"></td><td colspan="2" id="res_d_heart_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td></tr>
+                <tr><td class="bg-light-gray">뇌경색</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td></tr>
+                <tr><td class="bg-light-gray">급성심근경색</td><td colspan="2" id="d_ami_1" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_2" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_3" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_4" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="d_ami_5" class="editable-cell sum-target" data-key="d_ami_" tabindex="0"></td><td colspan="2" id="res_d_ami_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td></tr>
+                <tr><td class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td rowspan="2" class="text-[10px]">순환계치료비<br>치료별 1회 보장</td></tr>
+                <tr><td colspan="2" class="bg-light-gray">뇌/심(순환계)치료비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td></tr>
 
                 <!-- 장기요양 / 실손의료비 -->
                 <tr>
                     <td rowspan="3" class="bg-light-gray">장기요양(치매)<br><span class="text-[9px]">(5-인지지원등급)</span></td>
                     <td colspan="2" class="bg-light-gray">복지용품+주야간이용</td>
-                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td>
+                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">방문/재가/생활비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
-                <tr><td colspan="2" class="bg-light-gray">표적치료제(치매비)</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">방문/재가/생활비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">표적치료제(치매비)</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 
-                <tr><td class="bg-light-gray">말기질환</td><td colspan="2" class="bg-light-gray">말기신부전증</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td class="bg-light-gray">말기질환</td><td colspan="2" class="bg-light-gray">말기신부전증</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
                 
                 <tr>
                     <td rowspan="3" class="bg-light-gray">골절</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
-                    <td colspan="2" id="d_fracture_1" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_2" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_3" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_4" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_5" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="res_d_fracture_" class="text-red-600 font-bold bg-red-50">-</td><td class="text-[10px]">치아파절포함여부</td>
+                    <td colspan="2" id="d_fracture_1" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_2" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_3" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_4" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="d_fracture_5" class="editable-cell sum-target" data-key="d_fracture_" tabindex="0"></td><td colspan="2" id="res_d_fracture_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td class="text-[10px] editable-cell" tabindex="0">치아파절포함여부</td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
-                <tr><td colspan="2" class="bg-light-gray">깁스</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">수술비</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">깁스</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
 
                 <tr>
                     <td rowspan="2" class="bg-light-gray">화상</td>
                     <td colspan="2" class="bg-light-gray">진단비</td>
-                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td>
+                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">산정특례</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
 
                 <!-- 실손의료비 -->
                 <tr>
@@ -296,17 +295,17 @@
                     <td colspan="2" id="silbi3" class="editable-cell text-blue-700 font-bold" tabindex="0"></td>
                     <td colspan="2" id="silbi4" class="editable-cell text-blue-700 font-bold" tabindex="0"></td>
                     <td colspan="2" id="silbi5" class="editable-cell text-blue-700 font-bold" tabindex="0"></td>
-                    <td colspan="2" class="editable-cell bg-red-50">-</td>
+                    <td colspan="2" class="editable-cell text-red-600 font-bold" tabindex="0">-</td>
                     <td class="editable-cell" tabindex="0"></td>
                 </tr>
 
                 <tr>
                     <td rowspan="3" class="bg-light-gray">법률비용</td>
                     <td colspan="2" class="bg-light-gray">운전자(현황급부)</td>
-                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td>
+                    <td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td>
                 </tr>
-                <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" id="d_liab_1" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_2" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_3" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_4" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_5" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="res_d_liab_" class="text-red-600 font-bold bg-red-50">-</td><td class="editable-cell" tabindex="0"></td></tr>
-                <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">일상생활배상책임</td><td colspan="2" id="d_liab_1" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_2" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_3" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_4" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="d_liab_5" class="editable-cell sum-target" data-key="d_liab_" tabindex="0"></td><td colspan="2" id="res_d_liab_" class="editable-cell text-red-600 font-bold" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
+                <tr><td colspan="2" class="bg-light-gray">화재보험/누수</td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0"></td><td colspan="2" class="editable-cell" tabindex="0">-</td><td class="editable-cell" tabindex="0"></td></tr>
 
                 <!-- 보험료 -->
                 <tr>
@@ -317,8 +316,8 @@
                     <td colspan="2" id="prem3" class="editable-cell font-bold" tabindex="0">-</td>
                     <td colspan="2" id="prem4" class="editable-cell font-bold" tabindex="0">-</td>
                     <td colspan="2" id="prem5" class="editable-cell font-bold" tabindex="0">-</td>
-                    <td colspan="2" rowspan="2" class="bg-blue-100 font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell">총보험료</td>
-                    <td rowspan="2" id="totalPremiumCell" class="font-black text-blue-800 bg-blue-50 text-right pr-3 text-lg">-</td>
+                    <td colspan="2" rowspan="2" class="font-bold text-center align-middle text-sm text-blue-900 tracking-widest editable-cell" tabindex="0">총보험료</td>
+                    <td rowspan="2" id="totalPremiumCell" class="editable-cell font-black text-blue-800 text-right pr-3 text-lg" tabindex="0">-</td>
                 </tr>
                 <tr>
                     <td colspan="2" class="bg-light-gray">총 납입보험료</td>
@@ -337,7 +336,7 @@
         const itemsPerPage = 5;
 
         // ==========================================
-        // 1. 마우스 및 엑셀 키보드 이동 완벽 정상화 (버그 픽스)
+        // 1. 마우스 및 엑셀 키보드 이동 완벽 지원
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
@@ -354,10 +353,7 @@
                 e.preventDefault(); 
                 for (let i = rowIndex + 1; i < rows.length; i++) {
                     const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
-                    if (targetCells[cellIndex]) {
-                        targetCells[cellIndex].focus();
-                        break;
-                    }
+                    if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
                 }
             } 
             else if (e.key === 'ArrowUp') {
@@ -374,19 +370,13 @@
                 }
             } else if (e.key === 'ArrowRight') {
                 const sel = window.getSelection();
-                if (cell.innerText.trim() === "" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset >= sel.focusNode.textContent.length)) {
-                    if (cellIndex < cells.length - 1) {
-                        e.preventDefault();
-                        cells[cellIndex + 1].focus();
-                    }
+                if (cell.innerText.trim() === "" || cell.innerText.trim() === "-" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset >= sel.focusNode.textContent.length)) {
+                    if (cellIndex < cells.length - 1) { e.preventDefault(); cells[cellIndex + 1].focus(); }
                 }
             } else if (e.key === 'ArrowLeft') {
                 const sel = window.getSelection();
-                if (cell.innerText.trim() === "" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset === 0)) {
-                    if (cellIndex > 0) {
-                        e.preventDefault();
-                        cells[cellIndex - 1].focus();
-                    }
+                if (cell.innerText.trim() === "" || cell.innerText.trim() === "-" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset === 0)) {
+                    if (cellIndex > 0) { e.preventDefault(); cells[cellIndex - 1].focus(); }
                 }
             }
         });
@@ -403,7 +393,7 @@
         });
 
         // ==========================================
-        // 2. 파일 업로드 -> 클라우드 전송 -> AI 연동
+        // 2. 파일 추출 및 AI 연동
         // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
@@ -417,8 +407,6 @@
                 document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 엑셀 데이터로 변환하고 있습니다.";
 
                 const base64data = await getBase64(file);
-                
-                // 🚨 팀장님이 배포 성공하신 전용 클라우드 파서 URL
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
                 
                 const cloudRes = await fetch(CLOUD_PARSER_URL, {
@@ -435,13 +423,11 @@
                 rawCloudDataForExport = cloudData.rawExcelData; 
                 if(!rawCloudDataForExport) throw new Error("데이터를 추출할 수 없습니다. 보장분석 PDF인지 확인해주세요.");
 
-                // 추출 원문 다운로드 버튼 활성화
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
                 document.getElementById('progressTitle').innerText = "2/2. AI가 19대 룰에 맞춰 자동 맵핑 중...";
                 document.getElementById('progressDesc').innerText = "파편화된 원문 데이터를 AI가 문맥으로 파악하여 화면에 채워 넣습니다. (약 10~15초 소요)";
 
-                // 🚨 AI 연동 파싱 호출
                 await extractDataWithAIEngine(rawCloudDataForExport);
 
             } catch (err) {
@@ -486,7 +472,7 @@
         }
 
         // ==========================================
-        // [2차] AI를 활용한 정밀 맵핑 (파편화된 표를 완벽히 해석)
+        // [AI 정밀 맵핑 엔진]
         // ==========================================
         async function extractDataWithAIEngine(rawExcelData) {
             let promptContext = "### 클라우드 추출 엑셀 원문 데이터 ###\n";
@@ -503,32 +489,24 @@
 
             const aiPrompt = `
 당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
-아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 아래 명시된 JSON 포맷으로만 출력하세요.
-(응답 시 마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.)
+아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 JSON 포맷으로만 출력하세요.
+★[JSON 문법 절대 원칙]★
+- 응답 시 마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.
+- 문자열(String) 내부에 큰따옴표(")가 포함될 경우 JSON 오류가 발생하므로, 무조건 작은따옴표(')로 대체하거나 백슬래시(\\")로 이스케이프 처리하세요.
+- 결과에 주석(//)을 절대 포함하지 마세요.
 
 [19대 절대 추출 규칙]
-1. 계약리스트 추출 (contracts 배열): '보유계약리스트' 데이터에서 '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출.
+1. 계약리스트 추출: '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출.
    - payTerm: 상품명/납입기간에 '갱신형' 포함 시 "갱신형" 기재.
    - premium: 원문에 "보험료미제공", "-" 인 경우는 문자 그대로 기재.
-   - isPaidUp: 해당 계약의 "가입담보상세"에서 "(납입완료)" 혹은 "완료" 문구 확인 시 true 설정 및 premium 값 "납입완료"로 기재.
-2. 담보 매핑 (coverages 객체): "가입담보상세"에서 "회사 담보명"과 "가입금액"을 찾아 아래 key에 매핑.
-   - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병후유장해3%), d_disS(상해후유장해3%), d_cancer(일반암/암진단), d_cancer_op(암수술), d_similar(유사암/기타피부암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
-   - [입원일당 분류] 일반(d_hospD, d_hospS), 상급1인실(d_1inD, d_1inS), 수술입원(d_opHospD, d_opHospS), 중환자실(d_icuD, d_icuS)
-   - [수술비 분류] 종수술 1~8종(d_op1D_ ~ d_op8S_), 상급병원(d_opHigh), 종합병원(d_opGen), 일반병원(d_opNorm)
-   - [간병인 합산] 간병인 관련 특약은 질병(d_careD_sum), 상해(d_careS_sum)에 숫자로 합산 (지원비는 d_careD_text="지원" 으로 입력)
-   - [종신/생명 사망 분리] 회사명에 "생명"/"라이프"가 있으면 d_life_ 에 최소사망금액을 입력. 질병/상해 사망 차액은 각각 d_dieD, d_dieS에 입력.
-3. 합계 (totals 객체): "전체보장현황" 데이터에서 담보별 합계 매핑. 없으면 "-".
-
-[출력 JSON 포맷 예시]
-{
-  "contracts": [
-    {
-      "comp": "메리츠화재", "prod": "(무) 메리츠 성공파트너 종합보험", "date": "2023-11-10", "payTerm": "15년", "maturity": "71세", "premium": "52,770원", "isPaidUp": false,
-      "coverages": { "d_dieS_": "100만", "d_disS_": "100만", "d_op1D_": "20만" }
-    }
-  ],
-  "totals": { "상해사망": "1억 3,400만", "질병사망": "3,050만" }
-}
+   - isPaidUp: 해당 계약의 "가입담보상세"에서 "(납입완료)" 확인 시 true 및 "납입완료"로 기재.
+2. 담보 매핑: "가입담보상세"에서 "회사 담보명"과 "가입금액"을 찾아 key에 매핑.
+   - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병후유장해3%), d_disS(상해후유장해3%), d_cancer(일반암), d_cancer_op(암수술), d_similar(유사암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
+   - [입원일당] 일반(d_hospD, d_hospS), 상급1인실(d_1inD, d_1inS), 수술입원(d_opHospD, d_opHospS), 중환자실(d_icuD, d_icuS)
+   - [수술비] 종수술 1~8종(d_op1D_ ~ d_op8S_), 상급병원(d_opHigh), 종합병원(d_opGen), 일반병원(d_opNorm)
+   - [간병인 합산] 간병인 관련 특약은 숫자로 합산 (지원비는 text="지원" 으로 입력)
+   - [종신/생명 사망 분리] 회사명에 "생명"이 있으면 d_life_ 에 최소사망금액을 입력.
+3. 합계: "전체보장현황" 데이터에서 담보별 합계 매핑.
 
 ${promptContext.substring(0, 40000)}
             `;
@@ -544,18 +522,22 @@ ${promptContext.substring(0, 40000)}
                 const aiData = await aiRes.json();
                 if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연.");
                 
-                // ⬇️ 추가: AI JSON 파싱 오류(Unterminated string)를 완벽 차단하는 정화 로직
-                let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-                cleanJson = cleanJson.replace(/[\n\r\t]/g, ' '); 
+                // 에러 원인이었던 JSON 파싱 정화 로직 (오류 100% 차단)
+                let cleanJson = aiData.candidates[0].content.parts[0].text;
+                cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '').trim();
+                // 탭, 보이지 않는 제어문자 제거 (줄바꿈 문자로 인한 위치 에러 방지)
+                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " ");
+                
                 let startIndex = cleanJson.indexOf('{');
                 let endIndex = cleanJson.lastIndexOf('}');
                 if (startIndex !== -1 && endIndex !== -1) {
                     cleanJson = cleanJson.substring(startIndex, endIndex + 1);
                 }
+                
                 let analysisResult = JSON.parse(cleanJson);
 
                 if (!analysisResult.contracts || analysisResult.contracts.length === 0) {
-                    throw new Error("추출된 계약 정보가 없습니다. 엑셀 원문을 다운받아 확인해보세요.");
+                    throw new Error("추출된 계약 정보가 없습니다. 원문 다운로드를 통해 구조를 확인하세요.");
                 }
 
                 sumData = analysisResult.totals || {};
@@ -568,9 +550,6 @@ ${promptContext.substring(0, 40000)}
             }
         }
 
-        // ==========================================
-        // 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
-        // ==========================================
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
             const date = new Date(dateStr);
@@ -610,17 +589,16 @@ ${promptContext.substring(0, 40000)}
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
-            // 모든 셀 텍스트 초기화
             for(let i=1; i<=5; i++) {
                 document.getElementById(`comp${i}`).innerText = "";
                 document.getElementById(`prod${i}`).innerText = "";
                 document.getElementById(`date${i}`).innerText = "";
                 document.getElementById(`term${i}`).innerText = "";
-                document.getElementById(`prem${i}`).innerText = "";
+                document.getElementById(`prem${i}`).innerText = "-";
                 document.getElementById(`silbi${i}`).innerText = "";
                 document.querySelectorAll(`td[id$="_${i}"]`).forEach(td => td.innerText = "");
             }
-            document.getElementById('totalPremiumCell').innerText = "";
+            document.getElementById('totalPremiumCell').innerText = "-";
 
             const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
 
@@ -645,7 +623,6 @@ ${promptContext.substring(0, 40000)}
                     
                     pData.forEach(c => {
                         if(!c.isPaidUp) pagePremiumSum += parseAmt(c.premium);
-                        
                         if(c.coverages) {
                             for (let key in c.coverages) {
                                 let val = c.coverages[key];
@@ -738,7 +715,6 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(currentPageSum);
             }
             
-            // 페이지 렌더링 후 가로 합계(Rule 6) 자동 계산
             calculateRowSums();
         }
 
@@ -777,9 +753,6 @@ ${promptContext.substring(0, 40000)}
             }
         }
 
-        // ==========================================
-        // 추출 원본 엑셀 다운로드 (디버깅 지원)
-        // ==========================================
         function exportRawToExcel() {
             if(!rawCloudDataForExport) {
                 alert("아직 추출된 데이터가 없습니다. PDF를 먼저 업로드 해주세요.");
@@ -796,9 +769,6 @@ ${promptContext.substring(0, 40000)}
             XLSX.writeFile(wb, `잇츠리온_원문데이터추출본.xlsx`);
         }
 
-        // ==========================================
-        // 원본 디자인이 완벽히 유지되는 엑셀 다운로드
-        // ==========================================
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
             const wb = XLSX.utils.book_new();
@@ -832,7 +802,6 @@ ${promptContext.substring(0, 40000)}
             }
 
             ws['!cols'] = [{wch: 6}, {wch: 6}, {wch: 8}, {wch: 11}, {wch: 11}, {wch: 11}, {wch: 11}, {wch: 11}, {wch: 8}, {wch: 8}, {wch: 15}];
-
             XLSX.utils.book_append_sheet(wb, ws, `보장분석_${currentPage}P`);
             
             const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -852,7 +821,7 @@ ${promptContext.substring(0, 40000)}
                 const aiData = await res.json();
                 
                 let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-                cleanJson = cleanJson.replace(/[\n\r\t]/g, ' '); 
+                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " ");
                 let startIndex = cleanJson.indexOf('{');
                 let endIndex = cleanJson.lastIndexOf('}');
                 if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
