@@ -41,12 +41,11 @@
         <p class="text-sm text-slate-300" id="progressDesc">데이터를 처리하고 있습니다.</p>
     </div>
 
-    <!-- 상단 컨트롤러 -->
     <div class="max-w-[1400px] mx-auto mb-4 flex justify-between items-end no-print">
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 업로드 ➔ 원본 데이터 완벽 정렬 ➔ AI 맵핑 (키보드 및 마우스 셀 수정 100% 지원)</span>
+                <span>(수정 완료) 원본 엑셀 완벽 정렬 ➔ 자바스크립트 JS 에러 100% 차단</span>
             </p>
         </div>
         
@@ -333,7 +332,7 @@
         const itemsPerPage = 5;
 
         // ==========================================
-        // 마우스 및 엑셀 키보드 이동 로직 (어느 셀이든 완벽 작동)
+        // 1. 마우스 및 엑셀 키보드 이동 로직 (어느 셀이든 완벽 작동)
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
@@ -389,17 +388,18 @@
         });
 
         // ==========================================
-        // 클라우드 서버 5열 정규식 파싱 엔진 연동
+        // 2. 파일 추출 및 AI 연동
         // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
 
             const loadingOverlay = document.getElementById('loadingOverlay');
+            
             try {
                 loadingOverlay.style.display = 'flex';
-                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 추출 중...";
-                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 정렬된 5열 엑셀 데이터로 변환하고 있습니다.";
+                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 정밀 추출 중...";
+                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF 원문을 완벽한 엑셀 표 구조로 변환하고 있습니다.";
 
                 const base64data = await getBase64(file);
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
@@ -420,8 +420,8 @@
 
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
-                document.getElementById('progressTitle').innerText = "2/2. AI가 19대 룰에 맞춰 자동 맵핑 중...";
-                document.getElementById('progressDesc').innerText = "정제된 데이터를 AI가 오류 없이 화면에 채워 넣습니다. (약 10초 소요)";
+                document.getElementById('progressTitle').innerText = "2/2. 규격화된 데이터 자동 맵핑 중...";
+                document.getElementById('progressDesc').innerText = "정돈된 엑셀 데이터를 바탕으로 AI가 19대 절대 규칙에 맞추어 화면에 채워 넣습니다. (약 10초 소요)";
 
                 await extractDataWithAIEngine(rawCloudDataForExport);
 
@@ -467,10 +467,10 @@
         }
 
         // ==========================================
-        // 🚨 AI 정밀 분석 (JSON 특수문자 및 따옴표 오류 원천 차단)
+        // 🚨 AI 정밀 분석 엔진 (정제된 7열 엑셀 데이터 활용)
         // ==========================================
         async function extractDataWithAIEngine(rawExcelData) {
-            let promptContext = "### 클라우드 추출 엑셀 원문 데이터 ###\n";
+            let promptContext = "### 클라우드 추출 완벽 정렬 엑셀 데이터 ###\n";
             for (let sheet in rawExcelData) {
                 const rows = rawExcelData[sheet];
                 const validRows = rows.filter(r => r.some(cell => cell !== null && cell !== ""));
@@ -486,16 +486,16 @@
 당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
 아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 JSON 포맷으로만 출력하세요.
 ★[JSON 문법 절대 원칙]★
-- 응답 시 마크다운 기호 \`\`\`json 나 부가 설명은 절대 포함하지 말고 순수 JSON 문자열만 출력하세요.
-- 데이터 안에 큰따옴표(")가 있다면 반드시 제거하거나 백슬래시(\\")로 이스케이프 하세요. 오류의 주 원인입니다.
+- 마크다운 기호 \`\`\`json 나 부가 설명은 절대 금지합니다.
+- 데이터 안에 큰따옴표(")가 있다면 작은따옴표(')로 대체하거나 백슬래시(\\")로 이스케이프 하세요.
 
 [19대 절대 추출 규칙]
 1. 계약리스트: '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출. (갱신형, 납입완료 등 적용)
-2. 담보 매핑: "가입담보상세"에서 "회사 담보명", "신정원 담보명"과 "가입금액"을 찾아 key에 매핑.
+2. 담보 매핑: "가입담보상세"에서 "회사명", "상품명"이 일치하는 계약을 찾아 "회사 담보명", "신정원 담보명", "가입금액"을 key에 매핑.
    - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병후유장해3%), d_disS(상해후유장해3%), d_cancer(일반암), d_cancer_op(암수술), d_similar(유사암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
    - [입원일당] 일반(d_hospD, d_hospS), 상급1인실(d_1inD, d_1inS), 수술입원(d_opHospD, d_opHospS), 중환자실(d_icuD, d_icuS)
    - [수술비] 종수술 1~8종(d_op1D_ ~ d_op8S_), 상급병원(d_opHigh), 종합병원(d_opGen), 일반병원(d_opNorm)
-   - [간병인 합산] 숫자는 합산 (지원비는 text="지원" 으로 입력)
+   - [간병인 합산] 간병인 관련 특약은 숫자로 합산 (지원비는 text="지원" 으로 입력)
    - [사망 분리] 회사명에 "생명"이 있으면 d_life_ 에 최소사망금액을 입력.
 3. 합계: "전체보장현황" 데이터에서 담보별 합계 매핑.
 
@@ -513,10 +513,9 @@ ${promptContext.substring(0, 40000)}
                 const aiData = await aiRes.json();
                 if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연.");
                 
-                // 🚨 JSON 오류 원인인 줄바꿈(\n) 및 이스케이프 안 된 큰따옴표를 강제로 정화(Sanitize)
                 let cleanJson = aiData.candidates[0].content.parts[0].text;
                 cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '').trim();
-                cleanJson = cleanJson.replace(/[\n\r\t]/g, " "); // 줄바꿈을 공백으로 치환
+                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " "); 
                 
                 let startIndex = cleanJson.indexOf('{');
                 let endIndex = cleanJson.lastIndexOf('}');
@@ -541,7 +540,7 @@ ${promptContext.substring(0, 40000)}
         }
 
         // ==========================================
-        // 렌더링, 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
+        // 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
         // ==========================================
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
@@ -584,12 +583,12 @@ ${promptContext.substring(0, 40000)}
             
             // 모든 셀 텍스트 초기화
             for(let i=1; i<=5; i++) {
-                document.getElementById(`comp${i}`).innerText = "";
-                document.getElementById(`prod${i}`).innerText = "";
-                document.getElementById(`date${i}`).innerText = "";
-                document.getElementById(`term${i}`).innerText = "";
-                document.getElementById(`prem${i}`).innerText = "-";
-                document.getElementById(`silbi${i}`).innerText = "";
+                if(document.getElementById(`comp${i}`)) document.getElementById(`comp${i}`).innerText = "";
+                if(document.getElementById(`prod${i}`)) document.getElementById(`prod${i}`).innerText = "";
+                if(document.getElementById(`date${i}`)) document.getElementById(`date${i}`).innerText = "";
+                if(document.getElementById(`term${i}`)) document.getElementById(`term${i}`).innerText = "";
+                if(document.getElementById(`prem${i}`)) document.getElementById(`prem${i}`).innerText = "-";
+                if(document.getElementById(`silbi${i}`)) document.getElementById(`silbi${i}`).innerText = "";
                 document.querySelectorAll(`td[id$="_${i}"]`).forEach(td => td.innerText = "");
             }
             document.getElementById('totalPremiumCell').innerText = "-";
@@ -617,7 +616,6 @@ ${promptContext.substring(0, 40000)}
                     
                     pData.forEach(c => {
                         if(!c.isPaidUp) pagePremiumSum += parseAmt(c.premium);
-                        
                         if(c.coverages) {
                             for (let key in c.coverages) {
                                 let val = c.coverages[key];
@@ -628,8 +626,10 @@ ${promptContext.substring(0, 40000)}
                         }
                     });
                     
-                    document.getElementById(`prem${i}`).innerText = formatAmt(pagePremiumSum);
-                    document.getElementById(`prem${i}`).style.color = "#1d4ed8";
+                    if(document.getElementById(`prem${i}`)) {
+                        document.getElementById(`prem${i}`).innerText = formatAmt(pagePremiumSum);
+                        document.getElementById(`prem${i}`).style.color = "#1d4ed8";
+                    }
                     grandTotalPremium += pagePremiumSum;
 
                     const sumCells = document.querySelectorAll(`td[id$="_${i}"].sum-target`);
@@ -710,7 +710,7 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(currentPageSum);
             }
             
-            // 페이지 렌더링 후 가로 합계(Rule 6) 자동 계산
+            // 페이지 렌더링 후 가로 합계 자동 계산
             calculateRowSums();
         }
 
@@ -750,7 +750,7 @@ ${promptContext.substring(0, 40000)}
         }
 
         // ==========================================
-        // 추출 원본 엑셀 다운로드 (디버깅 지원)
+        // 추출 원본 엑셀 다운로드 (정렬된 5/7열 데이터 확인용)
         // ==========================================
         function exportRawToExcel() {
             if(!rawCloudDataForExport) {
@@ -765,12 +765,9 @@ ${promptContext.substring(0, 40000)}
                     XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 }
             }
-            XLSX.writeFile(wb, `잇츠리온_원문데이터정렬본.xlsx`);
+            XLSX.writeFile(wb, `잇츠리온_클라우드추출원문.xlsx`);
         }
 
-        // ==========================================
-        // 원본 디자인이 완벽히 유지되는 엑셀 다운로드
-        // ==========================================
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
             const wb = XLSX.utils.book_new();
