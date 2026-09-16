@@ -13,7 +13,6 @@
         table.excel-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 1200px; background: white; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; word-break: keep-all; }
         
-        /* 마우스 클릭 및 글자 작성 완벽 보장 */
         .editable-cell { cursor: text; transition: all 0.1s; outline: none; background-color: white; }
         .editable-cell:hover { background-color: #f0f9ff !important; }
         .editable-cell:focus { 
@@ -47,7 +46,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>PDF 업로드 ➔ 원본 데이터 양식 최적화 ➔ AI 자동 맵핑 (키보드 및 마우스 모든 셀 수정 완벽 지원)</span>
+                <span>PDF 업로드 ➔ 원본 데이터 완벽 정렬 ➔ AI 맵핑 (키보드 및 마우스 셀 수정 100% 지원)</span>
             </p>
         </div>
         
@@ -76,7 +75,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 구현 영역 (모든 붉은색 배경 제거 및 모든 셀 편집 가능하도록 수정) -->
+    <!-- 엑셀 구현 영역 -->
     <div class="engine-container print-container">
         <table id="analysisTable" class="excel-table">
             <colgroup>
@@ -618,6 +617,7 @@ ${promptContext.substring(0, 40000)}
                     
                     pData.forEach(c => {
                         if(!c.isPaidUp) pagePremiumSum += parseAmt(c.premium);
+                        
                         if(c.coverages) {
                             for (let key in c.coverages) {
                                 let val = c.coverages[key];
@@ -710,7 +710,7 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(currentPageSum);
             }
             
-            // 페이지 렌더링 직후 가로 합계(Rule 6) 자동 계산
+            // 페이지 렌더링 후 가로 합계(Rule 6) 자동 계산
             calculateRowSums();
         }
 
@@ -750,7 +750,7 @@ ${promptContext.substring(0, 40000)}
         }
 
         // ==========================================
-        // 다운로드 로직 유지 (건드리지 않음)
+        // 추출 원본 엑셀 다운로드 (디버깅 지원)
         // ==========================================
         function exportRawToExcel() {
             if(!rawCloudDataForExport) {
@@ -758,6 +758,7 @@ ${promptContext.substring(0, 40000)}
                 return;
             }
             const wb = XLSX.utils.book_new();
+            
             for (const [sheetName, dataRows] of Object.entries(rawCloudDataForExport)) {
                 if(dataRows.length > 0) {
                     const ws = XLSX.utils.aoa_to_sheet(dataRows);
@@ -767,6 +768,9 @@ ${promptContext.substring(0, 40000)}
             XLSX.writeFile(wb, `잇츠리온_원문데이터정렬본.xlsx`);
         }
 
+        // ==========================================
+        // 원본 디자인이 완벽히 유지되는 엑셀 다운로드
+        // ==========================================
         function exportToExcel() {
             const table = document.getElementById("analysisTable");
             const wb = XLSX.utils.book_new();
@@ -812,7 +816,7 @@ ${promptContext.substring(0, 40000)}
             document.getElementById('progressTitle').innerText = "AI 정밀 오류 검수 중...";
             document.getElementById('loadingOverlay').style.display = 'flex';
 
-            const prompt = `당신은 최고 수준의 보험 보장분석 검수 AI입니다. 아래 데이터에서 오류를 검수하여 JSON으로 반환하세요. \n\n${JSON.stringify(processedContracts)}`;
+            const prompt = `당신은 최고 수준의 보험 보장분석 검수 AI입니다. 아래 데이터에서 논리적 누락/오류를 검수하여 같은 형태의 JSON으로 반환하세요. \n\n${JSON.stringify(processedContracts)}`;
 
             try {
                 const res = await fetch(AI_PROXY_URL, { method: 'POST', body: JSON.stringify({ prompt: prompt }) });
