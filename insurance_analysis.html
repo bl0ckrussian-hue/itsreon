@@ -46,7 +46,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span>(수정 완료) 원문 엑셀 구조 완벽 맵핑 및 19대 절대원칙 적용 완료</span>
+                <span class="font-bold text-blue-600">(완전 자동화)</span> AI 로딩 없이 추출된 엑셀 데이터를 즉각 분배합니다.
             </p>
         </div>
         
@@ -65,6 +65,9 @@
 
             <button onclick="document.getElementById('pdfUpload').click();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📄 보장분석 PDF 업로드
+            </button>
+            <button onclick="runAIVerification()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
+                🤖 AI 실손/오류 검수
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
                 📊 디자인 포함 엑셀 저장
@@ -333,7 +336,7 @@
         const itemsPerPage = 5;
 
         // ==========================================
-        // 1. 마우스 및 엑셀 키보드 이동 로직 (어느 셀이든 완벽 작동)
+        // 마우스 및 엑셀 키보드 이동 로직 (어느 셀이든 완벽 작동)
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
@@ -389,7 +392,7 @@
         });
 
         // ==========================================
-        // 클라우드 서버 8열 정규식 파싱 엔진 연동
+        // 클라우드 서버 추출 및 다이렉트 맵핑 실행 (AI 100% 배제)
         // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
@@ -398,10 +401,11 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             try {
                 loadingOverlay.style.display = 'flex';
-                document.getElementById('progressTitle').innerText = "1/2. 클라우드 엑셀 추출 중...";
-                document.getElementById('progressDesc').innerText = "안전한 서버 환경에서 PDF를 완벽한 8열 데이터로 분리하여 추출하고 있습니다.";
+                document.getElementById('progressTitle').innerText = "클라우드 엑셀 추출 및 연산 중...";
+                document.getElementById('progressDesc').innerText = "서버에서 추출된 데이터를 보장분석 규칙에 맞춰 즉각 화면에 렌더링합니다.";
 
                 const base64data = await getBase64(file);
+                // 🚨 팀장님이 배포 성공하신 전용 클라우드 파서 URL
                 const CLOUD_PARSER_URL = "https://insuranceanalysis-225817792244.asia-northeast3.run.app"; 
                 
                 const cloudRes = await fetch(CLOUD_PARSER_URL, {
@@ -420,19 +424,10 @@
 
                 document.getElementById('btnDownloadRaw').classList.remove('hidden');
 
-                document.getElementById('progressTitle').innerText = "2/2. AI가 19대 룰에 맞춰 자동 맵핑 중...";
-                document.getElementById('progressDesc').innerText = "정제된 데이터를 바탕으로 화면에 예쁘게 채워 넣습니다. (약 10초 소요)";
-
-                // [규칙 4] 전체계약리스트 1행에서 타이틀 추출하여 보장분석표 적용
-                if (rawCloudDataForExport["전체계약리스트"] && rawCloudDataForExport["전체계약리스트"].length > 0) {
-                    let rawTitle = rawCloudDataForExport["전체계약리스트"][0][0] || "";
-                    let nameMatch = rawTitle.match(/([가-힣a-zA-Z]+)(?:\([^\)]+\))?님의/);
-                    if(nameMatch) {
-                        document.getElementById('main-header-title').innerText = nameMatch[1] + "님의 보장분석표";
-                    }
-                }
-
-                await extractDataWithAIEngine(rawCloudDataForExport);
+                // 🚨 자바스크립트가 AI 없이 모든 규칙을 즉시 처리 (0.1초 컷)
+                setTimeout(() => {
+                    extractDataDirectly(rawCloudDataForExport);
+                }, 300);
 
             } catch (err) {
                 alert("❌ 처리 중 오류 발생:\n" + err.message);
@@ -476,76 +471,148 @@
         }
 
         // ==========================================
-        // 🚨 AI 정밀 분석 엔진 (정제된 8열/7열 엑셀 데이터 완벽 호환)
+        // 🚨 순수 자바스크립트 다이렉트 맵핑 (19대 룰 전체 탑재) 🚨
         // ==========================================
-        async function extractDataWithAIEngine(rawExcelData) {
-            let promptContext = "### 클라우드 추출 완벽 정렬 엑셀 데이터 ###\n";
-            for (let sheet in rawExcelData) {
-                const rows = rawExcelData[sheet];
-                const validRows = rows.map(r => r.map(c => c || " ")); 
-                if(validRows.length > 0) {
-                    promptContext += `\n[${sheet}]\n`;
-                    validRows.forEach(r => {
-                        promptContext += r.join(" | ") + "\n";
-                    });
-                }
+        function extractDataDirectly(rawExcelData) {
+            let rawContracts = [];
+
+            // 1. 전체계약리스트 파싱
+            const contractSheet = rawExcelData["전체계약리스트"] || [];
+            
+            // [규칙 4] 타이틀 추출 및 변경 ("~님의 보장분석표")
+            if (contractSheet.length > 0 && contractSheet[0][0]) {
+                let match = contractSheet[0][0].match(/([가-힣a-zA-Z]+)(?:\([^\)]+\))?님의/);
+                if (match) document.getElementById('main-header-title').innerText = match[1] + "님의 보장분석표";
             }
 
-            const aiPrompt = `
-당신은 최고 수준의 보험 보장분석 데이터 AI 엔진입니다.
-아래 제공된 [클라우드 엑셀 추출 데이터]를 완벽히 분석하여 JSON 포맷으로만 출력하세요.
-★[JSON 문법 절대 원칙]★
-- 마크다운 기호 \`\`\`json 나 부가 설명은 절대 금지합니다.
-- 데이터 안에 큰따옴표(")가 있다면 작은따옴표(')로 대체하거나 백슬래시(\\")로 이스케이프 하세요.
-
-[19대 절대 추출 규칙]
-1. 계약리스트: '회사명', '상품명', '계약일', '납입기간', '만기', '보험료'를 추출. (갱신형, 납입완료 등 적용)
-2. 담보 매핑: "가입담보상세"에서 "회사명", "상품명"이 일치하는 계약을 찾아 "회사 담보명", "신정원 담보명", "가입금액"을 key에 매핑.
-   - d_dieD(질병사망), d_dieS(상해/재해사망), d_disD(질병후유장해3%), d_disS(상해후유장해3%), d_cancer(일반암), d_cancer_op(암수술), d_similar(유사암), d_brain(뇌혈관), d_heart(허혈성), d_ami(급성심근경색), d_fracture(골절진단), d_liab(일배책)
-   - [입원일당] 일반(d_hospD, d_hospS), 상급1인실(d_1inD, d_1inS), 수술입원(d_opHospD, d_opHospS), 중환자실(d_icuD, d_icuS)
-   - [수술비] 종수술 1~8종(d_op1D_ ~ d_op8S_), 상급병원(d_opHigh), 종합병원(d_opGen), 일반병원(d_opNorm)
-   - [간병인 합산] 간병인 관련 특약은 숫자로 합산 (지원비는 text="지원" 으로 입력)
-   - [사망 분리] 회사명에 "생명"이 있으면 d_life_ 에 최소사망금액을 입력.
-3. 합계: "전체보장현황" 데이터에서 담보별 합계 매핑.
-
-${promptContext.substring(0, 40000)}
-            `;
-
-            try {
-                const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-                const aiRes = await fetch(AI_PROXY_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ prompt: aiPrompt })
+            const cRows = contractSheet.filter(r => r.length >= 6 && !isNaN(parseInt(r[0])));
+            cRows.forEach(r => {
+                rawContracts.push({
+                    no: r[0], 
+                    comp: r[1], 
+                    prod: r[2], 
+                    date: r[3],
+                    payCycle: r[4], 
+                    payTerm: r[5], 
+                    maturity: r[6], 
+                    premium: r[7] || "",
+                    hasRenewableRider: false,
+                    isPaidUp: false, 
+                    silbiGen: "", 
+                    coverages: {}
                 });
-                
-                const aiData = await aiRes.json();
-                if (!aiData || !aiData.candidates) throw new Error("AI 응답 지연.");
-                
-                let cleanJson = aiData.candidates[0].content.parts[0].text;
-                cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '').trim();
-                cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " "); 
-                
-                let startIndex = cleanJson.indexOf('{');
-                let endIndex = cleanJson.lastIndexOf('}');
-                if (startIndex !== -1 && endIndex !== -1) {
-                    cleanJson = cleanJson.substring(startIndex, endIndex + 1);
-                }
-                
-                let analysisResult = JSON.parse(cleanJson);
+            });
 
-                if (!analysisResult.contracts || analysisResult.contracts.length === 0) {
-                    throw new Error("추출된 계약 정보가 없습니다. 원문 다운로드를 통해 구조를 확인하세요.");
+            // 2. 가입담보상세 파싱
+            const detailSheet = rawExcelData["가입담보상세"] || [];
+            detailSheet.forEach(r => {
+                if(r.length < 7) return;
+
+                let comp = r[1], prod = r[2], gubun = r[3], cDambo = r[4], sDambo = r[5], amtStr = r[6];
+                
+                // 마커 감지 (납입완료)
+                if (r[0] === "MARKER" && gubun === "납입완료") {
+                    let c = rawContracts.find(c => c.comp === comp && c.prod === prod);
+                    if (c) { c.isPaidUp = true; c.premium = "납입완료"; }
+                    return;
                 }
 
-                sumData = analysisResult.totals || {};
-                processMappedData(analysisResult.contracts);
+                // 본문 데이터 맵핑
+                if (!isNaN(parseInt(r[0]))) {
+                    let c = rawContracts.find(c => c.comp === comp && c.prod === prod);
+                    if (!c) return;
 
-            } catch (e) {
-                alert("❌ AI 분석 중 오류 발생:\n" + e.message);
-            } finally {
+                    // 갱신형 단어 추적 (규칙 5)
+                    if(cDambo.includes("갱신형") || sDambo.includes("갱신형") || prod.includes("갱신형")) {
+                        c.hasRenewableRider = true;
+                    }
+
+                    // [규칙 2] "기본계약"일 경우 신정원담보명으로 교체해서 검색
+                    let dambo = cDambo.trim() === "기본계약" ? sDambo : cDambo + " " + sDambo; 
+                    let amtNum = parseAmt(amtStr);
+                    let targetKey = "";
+
+                    // [규칙 5, 6 필터] 181일 이상 제외
+                    if (dambo.includes("181일이상")) return;
+
+                    // 사망 규칙
+                    if(dambo.includes("질병사망") || dambo.includes("상해사망") || dambo.includes("재해사망")) {
+                        if(prod.includes("종신") || comp.includes("생명") || comp.includes("라이프")) {
+                            if(dambo.includes("질병")) c.tempDieD = (c.tempDieD || 0) + amtNum;
+                            else c.tempDieS = (c.tempDieS || 0) + amtNum;
+                        } else {
+                            targetKey = dambo.includes("질병") ? "d_dieD_" : "d_dieS_";
+                        }
+                    }
+                    // 장해 규칙
+                    else if(dambo.includes("후유장애") || dambo.includes("후유장해")) {
+                        if(dambo.includes("3%")) targetKey = dambo.includes("질병") ? "d_disD_" : "d_disS_";
+                    }
+                    // 입원 규칙
+                    else if((dambo.includes("입원일당") || dambo.includes("입원비") || dambo.includes("입원통원")) && !dambo.includes("간병인")) {
+                        let prefix = dambo.includes("질병") ? "d" : "s";
+                        if(dambo.includes("수술")) targetKey = prefix === "d" ? "d_opHospD_" : "d_opHospS_";
+                        else if(dambo.includes("상급1인실")) targetKey = prefix === "d" ? "d_1inD_" : "d_1inS_";
+                        else if(dambo.includes("중환자실")) targetKey = prefix === "d" ? "d_icuD_" : "d_icuS_";
+                        else targetKey = prefix === "d" ? "d_hospD_" : "d_hospS_";
+                    }
+                    // 간병인 규칙 (직접지원 텍스트 처리)
+                    else if(dambo.includes("간병인")) {
+                        let isSupport = dambo.includes("직접") || dambo.includes("직접지원") || dambo.includes("지원비");
+                        let prefix = dambo.includes("질병") ? "d_careD_" : "d_careS_";
+                        if(isSupport) c.coverages[prefix + "text"] = "지원";
+                        else c.coverages[prefix + "sum"] = (c.coverages[prefix + "sum"] || 0) + amtNum;
+                    }
+                    // 수술비 규칙 (1~4종 가장 큰 값 할당)
+                    else if(dambo.includes("수술비") && !dambo.includes("입원")) {
+                        let prefix = dambo.includes("질병") ? "D_" : "S_";
+                        let jongMatch = dambo.match(/(\d+)종/g);
+                        if(jongMatch) {
+                            let maxJong = Math.max(...jongMatch.map(m => parseInt(m)));
+                            targetKey = `d_op${maxJong}${prefix}`;
+                        } else if(dambo.includes("상급")) targetKey = "d_opHigh" + prefix;
+                        else if(dambo.includes("종합")) targetKey = "d_opGen" + prefix;
+                        else if (!dambo.includes("암") && !dambo.includes("뇌") && !dambo.includes("심장")) targetKey = "d_opNorm" + prefix;
+                    }
+                    // 통합치료비
+                    else if(dambo.includes("통합치료비")) {
+                        targetKey = dambo.includes("질병") ? "d_totD_" : "d_totS_";
+                    }
+                    // 기타 진단비
+                    else if (dambo.includes("암수술") && !dambo.includes("유사암")) targetKey = "d_cancer_op_";
+                    else if (dambo.includes("암진단") && !dambo.includes("유사암")) targetKey = "d_cancer_";
+                    else if (dambo.includes("유사암") || dambo.includes("기타피부암")) targetKey = "d_similar_";
+                    else if (dambo.includes("뇌혈관")) targetKey = "d_brain_";
+                    else if (dambo.includes("허혈성")) targetKey = "d_heart_";
+                    else if (dambo.includes("심근경색")) targetKey = "d_ami_";
+                    else if (dambo.includes("골절진단") || dambo.includes("골절")) targetKey = "d_fracture_";
+                    else if (dambo.includes("배상")) targetKey = "d_liab_";
+
+                    if (targetKey) c.coverages[targetKey] = formatAmt(amtNum);
+                }
+            });
+
+            // 3. 종신 사망금액 차액 계산 및 분할
+            rawContracts.forEach(c => {
+                if(c.tempDieD > 0 || c.tempDieS > 0) {
+                    let d = c.tempDieD || 0; let s = c.tempDieS || 0;
+                    let minVal = Math.min(d, s);
+                    if(d > 0 && s === 0) minVal = d;
+                    if(s > 0 && d === 0) minVal = s;
+                    c.coverages.d_life_ = formatAmt(minVal);
+                    if(d > s && s > 0) c.coverages.d_dieD_ = formatAmt(d - s);
+                    if(s > d && d > 0) c.coverages.d_dieS_ = formatAmt(s - d);
+                }
+            });
+
+            if (rawContracts.length === 0) {
+                alert("추출된 계약 정보가 없습니다. 엑셀 원문을 다운받아 구조를 확인하세요.");
                 document.getElementById('loadingOverlay').style.display = 'none';
+                return;
             }
+
+            processMappedData(rawContracts);
+            document.getElementById('loadingOverlay').style.display = 'none';
         }
 
         // ==========================================
@@ -590,7 +657,6 @@ ${promptContext.substring(0, 40000)}
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
-            // 모든 셀 텍스트 초기화
             for(let i=1; i<=5; i++) {
                 if(document.getElementById(`comp${i}`)) document.getElementById(`comp${i}`).innerText = "";
                 if(document.getElementById(`prod${i}`)) document.getElementById(`prod${i}`).innerText = "";
@@ -669,7 +735,7 @@ ${promptContext.substring(0, 40000)}
                     if(document.getElementById(`date${idNum}`)) document.getElementById(`date${idNum}`).innerText = contract.date;
                     
                     let termStr = `${contract.payTerm}/${contract.maturity}`;
-                    if (contract.payTerm === "갱신형" || contract.hasRenewableRider) termStr = `갱신형/${contract.maturity}`;
+                    if (contract.hasRenewableRider) termStr = `갱신형/${contract.maturity}`;
                     if(document.getElementById(`term${idNum}`)) document.getElementById(`term${idNum}`).innerText = termStr;
 
                     const premEl = document.getElementById(`prem${idNum}`);
@@ -720,7 +786,6 @@ ${promptContext.substring(0, 40000)}
                 document.getElementById('totalPremiumCell').innerText = formatAmt(currentPageSum);
             }
             
-            // 페이지 렌더링 후 가로 합계 자동 계산
             calculateRowSums();
         }
 
@@ -759,16 +824,12 @@ ${promptContext.substring(0, 40000)}
             }
         }
 
-        // ==========================================
-        // 추출 원본 엑셀 다운로드 (정렬된 8열 데이터 확인용)
-        // ==========================================
         function exportRawToExcel() {
             if(!rawCloudDataForExport) {
                 alert("아직 추출된 데이터가 없습니다. PDF를 먼저 업로드 해주세요.");
                 return;
             }
             const wb = XLSX.utils.book_new();
-            
             for (const [sheetName, dataRows] of Object.entries(rawCloudDataForExport)) {
                 if(dataRows.length > 0) {
                     const ws = XLSX.utils.aoa_to_sheet(dataRows);
@@ -817,13 +878,24 @@ ${promptContext.substring(0, 40000)}
             XLSX.writeFile(wb, `잇츠리온_보장분석표_${dateStr}_${currentPage}P.xlsx`);
         }
 
+        // ==========================================
+        // 실손 세대 판별 및 정밀 검수용 보조 AI
+        // ==========================================
         async function runAIVerification() {
             if (processedContracts.length === 0) return alert("먼저 PDF 원본 데이터를 업로드하세요.");
             const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-            document.getElementById('progressTitle').innerText = "AI 정밀 오류 검수 중...";
+            document.getElementById('progressTitle').innerText = "AI 실손/오류 정밀 검수 중...";
             document.getElementById('loadingOverlay').style.display = 'flex';
 
-            const prompt = `당신은 최고 수준의 보험 보장분석 검수 AI입니다. 아래 데이터에서 논리적 누락/오류를 검수하여 같은 형태의 JSON으로 반환하세요. \n\n${JSON.stringify(processedContracts)}`;
+            const prompt = `
+당신은 최고 수준의 보험 보장분석 검수 AI입니다.
+아래 1차로 맵핑된 데이터(JSON)를 검토하세요.
+[요청사항]
+1. 각 계약의 가입일자를 확인하고, '실손' 관련 내용이 있다면 "silbiGen" 속성에 실비 세대(1세대~4세대 등)를 기입하세요.
+2. 금액이나 담보 맵핑에 명백한 누락이나 오류가 있다면 수정하세요.
+3. 결과를 반드시 JSON 포맷으로만 반환하세요. 마크다운(\`\`\`)은 금지합니다.
+
+${JSON.stringify(processedContracts)}`;
 
             try {
                 const res = await fetch(AI_PROXY_URL, { method: 'POST', body: JSON.stringify({ prompt: prompt }) });
@@ -831,12 +903,14 @@ ${promptContext.substring(0, 40000)}
                 
                 let cleanJson = aiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
                 cleanJson = cleanJson.replace(/[\x00-\x1F\x7F-\x9F]/g, " "); 
-                let startIndex = cleanJson.indexOf('{');
-                let endIndex = cleanJson.lastIndexOf('}');
+                let startIndex = cleanJson.indexOf('[');
+                let endIndex = cleanJson.lastIndexOf(']');
                 if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
                 
-                processMappedData(JSON.parse(cleanJson));
-                alert("AI 검수 완료.");
+                let verifiedContracts = JSON.parse(cleanJson);
+                processedContracts = verifiedContracts; // AI 검수결과로 덮어쓰기
+                renderPage(); // 검수된 데이터로 화면 다시 그리기
+                alert("AI 검수 및 실손 세대 맵핑이 완료되었습니다.");
             } catch(e) {
                 alert("AI 검수 오류: " + e.message);
             } finally {
