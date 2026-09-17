@@ -46,7 +46,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span class="font-bold text-blue-600">(수정 완료)</span> 페이지 이동 시 사용자 수기 입력 내용 완벽 유지 기능 탑재
+                <span class="font-bold text-blue-600">(수정 완료)</span> 페이지 수기 입력 내역 실시간 저장 및 총보험료 원단위 완벽 합산
             </p>
         </div>
         
@@ -335,11 +335,8 @@
         let totalPages = 1;
         const itemsPerPage = 5;
 
-        // ★ 새로 추가된 수기 입력내역 저장용 객체 ★
-        let pageEdits = {};
-
         // ==========================================
-        // 마우스 및 엑셀 키보드 이동 로직
+        // 1. 마우스 및 엑셀 키보드 이동 로직 (버그 픽스)
         // ==========================================
         document.addEventListener('keydown', function(e) {
             if (!e.target.classList.contains('editable-cell')) return;
@@ -383,19 +380,56 @@
             }
         });
 
+        // 🚨 실시간 양방향 데이터 바인딩 (수기 입력 영구 보존) 🚨
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.setAttribute('contenteditable', 'true');
-            cell.addEventListener('input', calculateRowSums);
+            cell.addEventListener('input', function(e) {
+                const isSummaryPage = (totalPages > 1 && currentPage === totalPages);
+                
+                if (!isSummaryPage && e.target.id) {
+                    const match = e.target.id.match(/^(.+?)(\d)$/);
+                    if (match) {
+                        const key = match[1];
+                        const colIdx = parseInt(match[2]) - 1;
+                        const contractIdx = (currentPage - 1) * itemsPerPage + colIdx;
+                        
+                        if (!processedContracts[contractIdx]) {
+                            processedContracts[contractIdx] = {
+                                comp: "", prod: "", date: "", payCycle: "", payTerm: "", maturity: "", premium: "",
+                                hasRenewableRider: false, isPaidUp: false, silbiGen: "", coverages: {}
+                            };
+                        }
+                        
+                        const val = e.target.innerText.trim();
+                        if (key === 'comp') processedContracts[contractIdx].comp = val;
+                        else if (key === 'prod') processedContracts[contractIdx].prod = val;
+                        else if (key === 'date') processedContracts[contractIdx].date = val;
+                        else if (key === 'term') { /* ignore */ }
+                        else if (key === 'prem') {
+                            processedContracts[contractIdx].premium = val;
+                            processedContracts[contractIdx].isPaidUp = val.includes('완료');
+                        }
+                        else if (key === 'silbi') processedContracts[contractIdx].silbiGen = val;
+                        else {
+                            if (!processedContracts[contractIdx].coverages) processedContracts[contractIdx].coverages = {};
+                            processedContracts[contractIdx].coverages[key] = val;
+                        }
+                    }
+                }
+                
+                calculateRowSums();
+                calculateTotalPremium();
+            });
+            
             cell.addEventListener('paste', function(e) {
                 e.preventDefault();
                 var text = (e.originalEvent || e).clipboardData.getData('text/plain');
                 document.execCommand('insertText', false, text);
-                calculateRowSums();
             });
         });
 
         // ==========================================
-        // 클라우드 서버 통신 및 자바스크립트 즉각 맵핑
+        // 2. 서버 통신 및 자바스크립트 즉각 연산
         // ==========================================
         document.getElementById('pdfUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
@@ -471,6 +505,7 @@
             return num.toLocaleString() + "만";
         }
 
+        // 🚨 보험료 원단위 전용 파서 및 포맷터 탑재 🚨
         function parsePremium(premStr) {
             if (!premStr || premStr === "-" || String(premStr).includes("미제공") || String(premStr).includes("완료") || String(premStr).includes("납입완료")) return 0;
             return parseInt(String(premStr).replace(/[^0-9]/g, ''), 10) || 0;
@@ -481,13 +516,12 @@
         }
 
         // ==========================================
-        // 🚨 순수 자바스크립트 다이렉트 맵핑 (19대 룰 전체 완벽 탑재)
+        // 다이렉트 맵핑 (19대 룰 탑재)
         // ==========================================
         function extractDataDirectly(rawExcelData) {
             let rawContracts = [];
 
             const contractSheet = rawExcelData["전체계약리스트"] || [];
-            
             if (contractSheet.length > 0 && contractSheet[0][0]) {
                 let rawTitle = contractSheet[0][0];
                 let match = rawTitle.match(/([가-힣a-zA-Z]+)(?:\([^\)]+\))?님의/);
@@ -609,7 +643,7 @@
         }
 
         // ==========================================
-        // 페이징, 합산(Rule 6, 7) 및 실손 병합(Rule 9)
+        // 페이징, 합산 및 실손 병합
         // ==========================================
         function getSilbiGeneration(dateStr) {
             if(!dateStr || dateStr === "-") return "";
@@ -621,13 +655,12 @@
         }
 
         function processMappedData(rawContracts) {
-            pageEdits = {}; // 새로운 문서 로드 시 수기 입력 기록 초기화
             processedContracts = [];
             rawContracts.forEach(curr => {
                 let duplicate = processedContracts.find(p => p.comp === curr.comp && p.prod === curr.prod);
                 if (duplicate) {
                     if (curr.premium.includes("미제공") || curr.premium === "-") {
-                        // 실비보류, AI가 갱신해줌
+                        // 실비보류
                     } else {
                         duplicate.premium = curr.premium; 
                         duplicate.isPaidUp = curr.isPaidUp;
@@ -650,7 +683,6 @@
         function renderPage() {
             document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages}`;
             
-            // 모든 셀 텍스트 초기화
             for(let i=1; i<=5; i++) {
                 if(document.getElementById(`comp${i}`)) document.getElementById(`comp${i}`).innerText = "";
                 if(document.getElementById(`prod${i}`)) document.getElementById(`prod${i}`).innerText = "";
@@ -752,16 +784,17 @@
                     
                     if (contract.coverages) {
                         const cov = contract.coverages;
-                        if(cov.d_life_) document.getElementById(`d_life_${idNum}`).innerText = cov.d_life_;
                         
-                        if(cov.d_careD_sum) document.getElementById(`d_careD_${idNum}`).innerText = formatAmt(cov.d_careD_sum);
-                        else if(cov.d_careD_text) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD_text;
-                        
-                        if(cov.d_careS_sum) document.getElementById(`d_careS_${idNum}`).innerText = formatAmt(cov.d_careS_sum);
-                        else if(cov.d_careS_text) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS_text;
+                        if (cov.d_careD_ !== undefined) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD_;
+                        else if (cov.d_careD_sum) document.getElementById(`d_careD_${idNum}`).innerText = formatAmt(cov.d_careD_sum);
+                        else if (cov.d_careD_text) document.getElementById(`d_careD_${idNum}`).innerText = cov.d_careD_text;
+
+                        if (cov.d_careS_ !== undefined) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS_;
+                        else if (cov.d_careS_sum) document.getElementById(`d_careS_${idNum}`).innerText = formatAmt(cov.d_careS_sum);
+                        else if (cov.d_careS_text) document.getElementById(`d_careS_${idNum}`).innerText = cov.d_careS_text;
 
                         const mappings = [
-                            'd_dieD_', 'd_dieS_', 'd_disD_', 'd_disS_', 'd_hospD_', 'd_hospS_', 'd_1inD_', 'd_1inS_',
+                            'd_life_', 'd_dieD_', 'd_dieS_', 'd_disD_', 'd_disS_', 'd_hospD_', 'd_hospS_', 'd_1inD_', 'd_1inS_',
                             'd_opHospD_', 'd_opHospS_', 'd_icuD_', 'd_icuS_', 'd_op1D_', 'd_op1S_', 'd_op2D_', 'd_op2S_',
                             'd_op3D_', 'd_op3S_', 'd_op4D_', 'd_op4S_', 'd_op5D_', 'd_op5S_', 'd_op6D_', 'd_op6S_',
                             'd_op7D_', 'd_op7S_', 'd_op8D_', 'd_op8S_', 'd_opNormD_', 'd_opNormS_', 'd_opGenD_', 'd_opGenS_',
@@ -776,43 +809,11 @@
                         });
                     }
                 });
-
                 document.getElementById('totalPremiumCell').innerText = formatPremium(currentPageSum);
             }
             
-            // ★ 복원 기능 탑재 ★
-            // 사용자가 수기로 변경하고 지나간 페이지라면 저장된 데이터를 그대로 불러옴
-            if (pageEdits[currentPage]) {
-                const cells = document.querySelectorAll('.editable-cell');
-                pageEdits[currentPage].forEach((val, idx) => {
-                    if (cells[idx]) cells[idx].innerText = val;
-                });
-            } else {
-                // 저장된 내용이 없으면 기본 렌더링된 값을 바탕으로 가로 합계(Rule 6) 자동 계산 실행
-                calculateRowSums();
-            }
-        }
-
-        // ==========================================
-        // ★ 사용자 수기 입력 사항 페이지 저장 로직 ★
-        // ==========================================
-        function savePageEdits() {
-            let currentEdits = [];
-            document.querySelectorAll('.editable-cell').forEach(cell => {
-                currentEdits.push(cell.innerText);
-            });
-            pageEdits[currentPage] = currentEdits;
-        }
-
-        function changePage(step) {
-            savePageEdits(); // 페이지를 벗어나기 전 현재 화면 완벽 저장
-            let newPage = currentPage + step;
-            if(newPage < 1) newPage = 1;
-            if(newPage > totalPages) newPage = totalPages;
-            if(newPage !== currentPage) {
-                currentPage = newPage;
-                renderPage(); // 저장 후 다음 페이지 로드
-            }
+            calculateRowSums();
+            calculateTotalPremium(); // 화면에 렌더링된 값을 기반으로 총합 재계산
         }
 
         function calculateRowSums() {
@@ -840,9 +841,31 @@
             });
         }
 
-        // ==========================================
-        // 엑셀 다운로드 보존
-        // ==========================================
+        // 🚨 렌더링된 셀의 값으로 총 보험료를 실시간 연산 (버그 픽스) 🚨
+        function calculateTotalPremium() {
+            let pagePremiumSum = 0;
+            for(let i=1; i<=5; i++) {
+                const cell = document.getElementById(`prem${i}`);
+                if (cell && cell.innerText) {
+                    pagePremiumSum += parsePremium(cell.innerText);
+                }
+            }
+            const totalCell = document.getElementById('totalPremiumCell');
+            if(totalCell) {
+                totalCell.innerText = formatPremium(pagePremiumSum);
+            }
+        }
+
+        function changePage(step) {
+            let newPage = currentPage + step;
+            if(newPage < 1) newPage = 1;
+            if(newPage > totalPages) newPage = totalPages;
+            if(newPage !== currentPage) {
+                currentPage = newPage;
+                renderPage();
+            }
+        }
+
         function exportRawToExcel() {
             if(!rawCloudDataForExport) {
                 alert("아직 추출된 데이터가 없습니다. PDF를 먼저 업로드 해주세요.");
@@ -855,11 +878,10 @@
                     XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 }
             }
-            XLSX.writeFile(wb, `잇츠리온_클라우드추출원문.xlsx`);
+            XLSX.writeFile(wb, `잇츠리온_원문데이터정렬본.xlsx`);
         }
 
         function exportToExcel() {
-            savePageEdits(); // 다운로드 직전 화면 정보도 저장
             const table = document.getElementById("analysisTable");
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.table_to_sheet(table, {raw: true});
@@ -898,9 +920,6 @@
             XLSX.writeFile(wb, `잇츠리온_보장분석표_${dateStr}_${currentPage}P.xlsx`);
         }
 
-        // ==========================================
-        // AI: 오직 실손 세대 파악 및 누락 검수만 진행
-        // ==========================================
         async function runAIVerification() {
             if (processedContracts.length === 0) return alert("먼저 PDF 원본 데이터를 업로드하세요.");
             const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
@@ -929,7 +948,6 @@ ${JSON.stringify(processedContracts)}`;
                 
                 let verifiedContracts = JSON.parse(cleanJson);
                 processedContracts = verifiedContracts;
-                pageEdits = {}; // AI가 덮어썼으므로 수기 데이터 지움
                 renderPage();
                 alert("AI 검수 및 실손 세대 맵핑이 완료되었습니다.");
             } catch(e) {
