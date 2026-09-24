@@ -297,7 +297,7 @@
                         <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-orange-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
                             <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
                             <h3 class="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition">못 받은 보험금 찾기</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">청구 못한 병원비 확인<br/>(준비 중)</p>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">청구 못한 병원비 확인</p>
                         </div>
 
                         <!-- [8열] 세일즈 교육 (NEW) -->
@@ -738,6 +738,8 @@
                     window.open('db_carts.html', '_blank');
                 } else if (modalId === 'coverageModal') { // 보장분석 새 창 연결
                     window.open('insurance_analysis.html', '_blank');
+                } else if (modalId === 'unclaimedMoneyModal') { // 👈 [추가] 못 받은 보험금 찾기 새 창 연결
+                    window.open('insurance_money.html', '_blank');
                 } else {
                     openModal(modalId); 
                 }
