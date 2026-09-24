@@ -294,10 +294,16 @@
                         </div>
 
                         <!-- [7열] 못 받은 보험금 찾기 (NEW) -->
-                        <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-orange-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                            <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
-                            <h3 class="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition">못 받은 보험금 찾기</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">청구 못한 병원비 확인</p>
+                        <div onclick="checkAuthAndOpen('unclaimedMoneyModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-orange-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                          <!-- 우측 상단 녹색 활성화 깜빡임 불빛 추가 -->
+                           <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
+                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                               <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                           </div>
+    
+                           <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
+                           <h3 class="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition">못 받은 보험금 찾기</h3>
+                           <p class="text-xs text-slate-500 mt-2 leading-relaxed">청구 못한 병원비 확인</p>
                         </div>
 
                         <!-- [8열] 세일즈 교육 (NEW) -->
