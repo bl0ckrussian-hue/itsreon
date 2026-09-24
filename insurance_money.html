@@ -64,6 +64,7 @@
                             <option value="2">2세대 (2009년 8월~2017년 3월 - 10%/20% 공제)</option>
                             <option value="3">3세대 (2017년 4월~2021년 6월 - 급여 10%/비급여 20% 공제)</option>
                             <option value="4">4세대 (2021년 7월 이후 - 급여 20%/비급여 30% 공제)</option>
+                            <option value="5">5세대</option>
                         </select>
                     </div>
                 </div>
@@ -218,7 +219,6 @@
                 alert('PDF 파일만 업로드 가능합니다.');
                 return;
             }
-            // 기존 리스트에 추가하고 화면 갱신
             uploadedFiles = [...uploadedFiles, ...newFiles];
             renderFileList();
         }
@@ -244,7 +244,6 @@
             `).join('');
         }
 
-        // 3. 파일 Base64 변환 유틸
         const toBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -252,7 +251,7 @@
             reader.onerror = error => reject(error);
         });
 
-        // 실손 세대별 공제금 계산기 (이전 로직 유지)
+        // 실손 세대별 공제금 계산기 (5세대 추가 반영)
         function calculateDeduction(cost, type, hospitalName) {
             let deduction = 0;
             let typeNum = parseInt(type);
@@ -264,7 +263,7 @@
                 deduction = isPharmacy ? 8000 : 15000;
                 let percentDeduction = cost * 0.1;
                 deduction = Math.max(deduction, percentDeduction);
-            } else if (typeNum === 4) {
+            } else if (typeNum === 4 || typeNum === 5) { // 5세대 로직 처리
                 deduction = cost * 0.2;
             }
             return Math.min(deduction, cost); 
@@ -286,7 +285,6 @@
             btn.classList.replace('bg-blue-600', 'bg-slate-400');
 
             try {
-                // 배열에 있는 모든 PDF를 Base64로 변환하여 서버에 통째로 전송
                 const base64Files = await Promise.all(uploadedFiles.map(file => toBase64(file)));
                 const CLOUD_RUN_URL = "https://insurancemoney-225817792244.asia-northeast3.run.app";
 
@@ -313,19 +311,34 @@
                 }
 
                 let unclaimedRecords = [];
-                let paidRecords = [];
+                
+                // [수정사항] 기지급 리스트는 매칭 여부에 관계없이 전체 출력하도록 초기화
+                let paidRecords = creditRecords.map(credit => ({
+                    date: credit.date,
+                    hospital: "-", // 매칭 시 병원명 업데이트
+                    company: credit.company,
+                    paidAmount: credit.paidAmount
+                }));
 
                 basicRecords.forEach(basic => {
-                    const matchedCredit = creditRecords.find(credit => credit.date === basic.date);
+                    const bDate = new Date(basic.date);
                     
-                    if (matchedCredit) {
-                        paidRecords.push({
-                            date: basic.date,
-                            hospital: basic.hospital,
-                            company: matchedCredit.company,
-                            paidAmount: matchedCredit.paidAmount
-                        });
+                    // [수정사항] 앞뒤 3일 이내 오차범위 매칭 로직
+                    const matchedIndex = paidRecords.findIndex(credit => {
+                        const cDate = new Date(credit.date);
+                        const diffDays = Math.abs((cDate - bDate) / (1000 * 60 * 60 * 24));
+                        return diffDays <= 3;
+                    });
+                    
+                    if (matchedIndex !== -1) {
+                        // 매칭된 기지급 내역에 병원명 기입 (처음이거나 여러 병원인 경우 합침)
+                        if (paidRecords[matchedIndex].hospital === "-") {
+                            paidRecords[matchedIndex].hospital = basic.hospital;
+                        } else if (!paidRecords[matchedIndex].hospital.includes(basic.hospital)) {
+                            paidRecords[matchedIndex].hospital += `, ${basic.hospital}`;
+                        }
                     } else {
+                        // 앞뒤 3일 이내에도 지급 내역이 없으면 미청구 분류!
                         let deduction = calculateDeduction(basic.cost, silsoneType, basic.hospital);
                         let claimable = basic.cost - deduction;
                         
@@ -397,7 +410,6 @@
             document.getElementById('totalClaimableAmount').innerText = total.toLocaleString() + '원';
         }
 
-        // 셀 수정 시 총합 자동 재계산
         function updateTotal() {
             const rows = document.querySelectorAll('#unclaimedTable tbody tr');
             let newTotal = 0;
