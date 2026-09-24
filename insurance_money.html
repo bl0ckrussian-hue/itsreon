@@ -90,7 +90,7 @@
             <!-- 상단 기능 버튼 -->
             <div class="flex flex-col sm:flex-row gap-3">
                 <a href="https://www.credit4u.or.kr:2443/" target="_blank" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold py-3.5 rounded-xl transition shadow flex items-center justify-center gap-2">
-                    <span>🌐 한국신용정보원 실손지급내역 바로가기 ↗</span>
+                    <span>🌐 한국신용정보원 (실손형)지급내역 바로가기 ↗</span>
                 </a>
                 <button onclick="downloadExcel()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 text-sm font-bold py-3.5 rounded-xl transition shadow flex items-center justify-center gap-2">
                     <span>📊 분석 결과 엑셀로 다운로드</span>
@@ -105,20 +105,20 @@
                 <ol class="list-decimal list-inside text-[13px] text-blue-800 space-y-2 ml-1">
                     <li><strong>기본진료정보 PDF</strong>와 <strong>실손지급전체 PDF</strong> 파일 2개를 모두 아래 점선 영역에 업로드해야 합니다.</li>
                     <li>청구 가능 리스트의 <span class="font-bold text-orange-600">노란색 셀(금액 부분)</span>을 클릭하여 실 결제 금액에 맞게 자유롭게 수정할 수 있습니다.</li>
-                    <li>예상 공제금액이 내가 낸 의료비보다 커서 <strong>청구 가능 금액이 0원인 건은 결과 목록에서 자동으로 배제</strong>됩니다.</li>
+                    <li>최대 청구가능금액은 <strong>실제 치료방식과 급여, 비급여에 따라</strong>달라 질 수 있습니다.</li>
                 </ol>
             </div>
 
             <!-- 파일 업로드 영역 -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-4">
-                    <span>📄</span> 진료기록 & 실손내역 PDF 업로드
+                    <span>📄</span> 기본진료정보 & 보험신용정보조회(실손형)지급전체 PDF 업로드
                 </h3>
                 
                 <div id="dropzone" class="dropzone rounded-xl bg-slate-50 flex flex-col items-center justify-center py-12 px-4 cursor-pointer relative" onclick="document.getElementById('fileInput').click()">
                     <input type="file" id="fileInput" multiple accept="application/pdf" class="hidden" onchange="handleFiles(this.files)">
                     <div class="text-4xl mb-3 text-slate-400">☁️</div>
-                    <p class="text-sm font-bold text-slate-600">클릭하거나 파일 2개(진료, 실손)를 드래그하여 업로드</p>
+                    <p class="text-sm font-bold text-slate-600">클릭하거나 파일 2개(기본진료정보, 보험신용정보조회(실손형)지급전체)를 드래그하여 업로드</p>
                     <p class="text-xs text-slate-400 mt-1">PDF 파일만 지원됩니다.</p>
                 </div>
                 
@@ -131,7 +131,7 @@
                 
                 <!-- 합계 금액 박스 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center flex flex-col items-center justify-center">
-                    <h2 class="text-base font-bold text-orange-600 bg-orange-50 px-4 py-1.5 rounded-full border border-orange-200 mb-4">최대청구가능금액</h2>
+                    <h2 class="text-base font-bold text-orange-600 bg-orange-50 px-4 py-1.5 rounded-full border border-orange-200 mb-4">최대 청구가능 금액</h2>
                     <div id="totalClaimableAmount" class="text-5xl font-black text-slate-900 tracking-tight">0원</div>
                 </div>
 
