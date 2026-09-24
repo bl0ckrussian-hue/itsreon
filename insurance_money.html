@@ -263,35 +263,62 @@
         return Math.min(deduction, cost); 
     }
 
-    async function startAnalysis() {
-        const basicFile = document.getElementById('basicMedFile').files[0];
-        const creditFile = document.getElementById('creditInfoFile').files[0];
-        const silsoneType = document.getElementById('silsoneType').value;
+    // insurance_money.html 내부 startAnalysis() 함수 교체
+async function startAnalysis() {
+    const basicFile = document.getElementById('basicMedFile').files[0];
+    const creditFile = document.getElementById('creditInfoFile').files[0];
+    const silsoneType = document.getElementById('silsoneType').value;
 
-        // 원칙: 실제 개발시 이 부분의 주석을 풀고 PDF 텍스트를 파싱합니다.
-        // if (!basicFile || !creditFile) {
-        //     alert('두 개의 PDF 파일을 모두 업로드 해주세요.');
-        //     return;
-        // }
-        // const basicText = await extractTextFromPDF(basicFile);
-        // const creditText = await extractTextFromPDF(creditFile);
-        // const basicRecords = parseBasicMedData(basicText);
-        // const creditRecords = parseCreditData(creditText);
+    if (!basicFile || !creditFile) {
+        alert('두 개의 PDF 파일을 모두 업로드 해주세요.');
+        return;
+    }
 
-        // 시연용 모의 데이터 로드
-        const basicRecords = parseBasicMedData("");
-        const creditRecords = parseCreditData("");
+    // 버튼 상태 변경
+    const btn = document.querySelector('.btn-analyze');
+    btn.innerText = "데이터 분석 중... (잠시만 기다려주세요)";
+    btn.disabled = true;
+
+    // PDF 파일을 Base64로 변환하는 내부 함수
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+
+    try {
+        const basicBase64 = await toBase64(basicFile);
+        const creditBase64 = await toBase64(creditFile);
+
+        // 알려주신 구글 클라우드 런 API 주소 반영
+        const CLOUD_RUN_URL = "https://insurancemoney-225817792244.asia-northeast3.run.app";
+
+        const response = await fetch(CLOUD_RUN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                files_data: [basicBase64, creditBase64],
+                password: '' 
+            })
+        });
+
+        if (!response.ok) throw new Error("서버 데이터 추출 중 오류가 발생했습니다.");
+        
+        const data = await response.json();
+        
+        // 백엔드에서 파싱되어 돌아온 데이터
+        const basicRecords = data.basicRecords || [];
+        const creditRecords = data.creditRecords || [];
 
         let unclaimedRecords = [];
         let paidRecords = [];
-        let maxClaimableTotal = 0;
 
-        // [원칙 5] 진료 시작일 = 원사고발생일시 매칭 분류
+        // 추출된 데이터로 기지급 및 미청구 분리 매칭
         basicRecords.forEach(basic => {
             const matchedCredit = creditRecords.find(credit => credit.date === basic.date);
             
             if (matchedCredit) {
-                // 기지급 데이터
                 paidRecords.push({
                     date: basic.date,
                     hospital: basic.hospital,
@@ -299,7 +326,6 @@
                     paidAmount: matchedCredit.paidAmount
                 });
             } else {
-                // 미청구 데이터 (청구 가능)
                 let deduction = calculateDeduction(basic.cost, silsoneType, basic.hospital);
                 let claimable = basic.cost - deduction;
                 
@@ -317,11 +343,20 @@
             }
         });
 
-        // [원칙 8] 같은 병원, 약국끼리 정렬
+        // 병원 이름 오름차순 정렬
         unclaimedRecords.sort((a, b) => a.hospital.localeCompare(b.hospital));
 
+        // 화면 렌더링 호출
         renderTables(unclaimedRecords, paidRecords);
+
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        // 버튼 원상복구
+        btn.innerText = "데이터 분석 및 매칭 시작";
+        btn.disabled = false;
     }
+}
 
     function renderTables(unclaimed, paid) {
         document.getElementById('dashboardSection').style.display = 'block';
