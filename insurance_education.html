@@ -1,1 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>잇츠리온 (ItsRion) - 세일즈 교육 센터</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #F8F9FA; color: #1E293B; }
+        .tab-active { border-bottom: 3px solid #2563EB; color: #1E40AF; font-weight: 800; }
+        .tab-inactive { border-bottom: 3px solid transparent; color: #64748B; font-weight: 600; }
+        .tab-inactive:hover { color: #334155; border-bottom: 3px solid #CBD5E1; }
+        .filter-active { background-color: #1E293B; color: white; }
+        .filter-inactive { background-color: #F1F5F9; color: #475569; }
+        .filter-inactive:hover { background-color: #E2E8F0; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
 
+    <!-- 상단 헤더 -->
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded">교육센터</span>
+                    <h1 class="font-black text-xl sm:text-2xl tracking-tighter text-white">
+                        It's RION <span class="font-medium text-slate-400 text-sm ml-2 hidden sm:inline-block">세일즈 교육 엔진</span>
+                    </h1>
+                </div>
+                <div>
+                    <button onclick="window.close()" class="text-sm font-bold text-slate-300 hover:text-white transition bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
+                        창 닫기 ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 탭 네비게이션 -->
+    <div class="bg-white border-b border-slate-200 sticky top-16 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button onclick="switchMainTab('video')" id="tabVideo" class="tab-active py-4 px-2 text-lg transition duration-200">
+                    🎬 세일즈 교육 영상
+                </button>
+                <button onclick="switchMainTab('material')" id="tabMaterial" class="tab-inactive py-4 px-2 text-lg transition duration-200">
+                    📂 세일즈 자료실
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- ==================== [탭 1: 세일즈 교육 영상] ==================== -->
+        <div id="sectionVideo" class="block animate-fade-in">
+            <!-- 서브 카테고리 필터 -->
+            <div class="flex flex-wrap gap-2 mb-8">
+                <button onclick="filterVideos('all')" id="vFilter-all" class="filter-active px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">전체 보기</button>
+                <button onclick="filterVideos('corporate')" id="vFilter-corporate" class="filter-inactive px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">법인 세일즈</button>
+                <button onclick="filterVideos('protection')" id="vFilter-protection" class="filter-inactive px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">보장성 세일즈</button>
+            </div>
+
+            <!-- 동영상 카드 그리드 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="videoGrid">
+                
+                <!-- 비디오 카드 1 (법인) -->
+                <div class="video-card corporate bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group">
+                    <div class="aspect-video bg-slate-800 relative overflow-hidden">
+                        <!-- 썸네일 이미지 영역 -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60 z-10"></div>
+                        <img src="https://via.placeholder.com/640x360/1E293B/FFFFFF?text=Corporate+Sales+1" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded z-20">법인 세일즈</span>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 text-base mb-2 line-clamp-2">중소기업 CEO를 위한 가지급금 해결 및 법인 컨설팅 실전</h3>
+                        <p class="text-xs text-slate-500 mb-4 line-clamp-2">대표이사의 리스크 관리와 가업승계를 위한 핵심 법인 영업 노하우를 공개합니다.</p>
+                        <!-- 네이버 BOX 링크 연동 버튼 -->
+                        <a href="https://box.naver.com/YOUR_LINK_HERE" target="_blank" class="block w-full text-center bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 font-bold py-2.5 rounded-lg text-sm border border-emerald-200 transition duration-300">
+                            네이버BOX 재생 ▶
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 비디오 카드 2 (보장성) -->
+                <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group">
+                    <div class="aspect-video bg-slate-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60 z-10"></div>
+                        <img src="https://via.placeholder.com/640x360/0F172A/FFFFFF?text=Protection+Sales+1" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 left-3 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded z-20">보장성 세일즈</span>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 text-base mb-2 line-clamp-2">3대 질병(암, 뇌, 심장) 완벽 분석 및 고객 맞춤 화법</h3>
+                        <p class="text-xs text-slate-500 mb-4 line-clamp-2">진단비 분쟁 사례를 통한 필요성 환기 및 효과적인 클로징 기법.</p>
+                        <a href="https://box.naver.com/YOUR_LINK_HERE" target="_blank" class="block w-full text-center bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 font-bold py-2.5 rounded-lg text-sm border border-emerald-200 transition duration-300">
+                            네이버BOX 재생 ▶
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 비디오 카드 3 (법인) -->
+                <div class="video-card corporate bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group">
+                    <div class="aspect-video bg-slate-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60 z-10"></div>
+                        <img src="https://via.placeholder.com/640x360/1E293B/FFFFFF?text=Corporate+Sales+2" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded z-20">법인 세일즈</span>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 text-base mb-2 line-clamp-2">임원 퇴직금 규정 정비와 단체보험 접근법</h3>
+                        <p class="text-xs text-slate-500 mb-4 line-clamp-2">세법 개정에 따른 퇴직금 규정 변경 및 법인 자금 활용 플랜.</p>
+                        <a href="https://box.naver.com/YOUR_LINK_HERE" target="_blank" class="block w-full text-center bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 font-bold py-2.5 rounded-lg text-sm border border-emerald-200 transition duration-300">
+                            네이버BOX 재생 ▶
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==================== [탭 2: 세일즈 자료실] ==================== -->
+        <div id="sectionMaterial" class="hidden animate-fade-in">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <!-- 카테고리 필터 -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterBoard('전체')" class="board-filter bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">전체</button>
+                    <button onclick="filterBoard('생명보험')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">생명보험</button>
+                    <button onclick="filterBoard('손해보험')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">손해보험</button>
+                    <button onclick="filterBoard('종신')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">종신</button>
+                    <button onclick="filterBoard('연금')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">연금</button>
+                    <button onclick="filterBoard('저축')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">저축</button>
+                    <button onclick="filterBoard('소개')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">소개</button>
+                </div>
+                
+                <!-- 구글 드라이브 업로드 버튼 -->
+                <button onclick="openUploadModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    자료 올리기 (Google Drive)
+                </button>
+            </div>
+
+            <!-- 자료실 게시판 테이블 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                                <th class="p-4 font-bold text-center w-16">번호</th>
+                                <th class="p-4 font-bold w-24 text-center">분류</th>
+                                <th class="p-4 font-bold">자료 제목</th>
+                                <th class="p-4 font-bold w-32 text-center">등록일</th>
+                                <th class="p-4 font-bold w-32 text-center">다운로드</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boardBody" class="text-sm">
+                            <!-- 게시판 목록 예시 -->
+                            <tr class="border-b border-slate-100 hover:bg-slate-50 transition" data-category="종신">
+                                <td class="p-4 text-center text-slate-500">3</td>
+                                <td class="p-4 text-center"><span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-1 rounded">종신</span></td>
+                                <td class="p-4 font-medium text-slate-800">CEO 정기/종신보험 브리핑용 PPT 템플릿</td>
+                                <td class="p-4 text-center text-slate-500">2026.10.12</td>
+                                <td class="p-4 text-center">
+                                    <a href="https://drive.google.com/YOUR_LINK" target="_blank" class="inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition">Drive 받기</a>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50 transition" data-category="손해보험">
+                                <td class="p-4 text-center text-slate-500">2</td>
+                                <td class="p-4 text-center"><span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded">손해보험</span></td>
+                                <td class="p-4 font-medium text-slate-800">2026년 하반기 운전자보험 개정 약관 비교표</td>
+                                <td class="p-4 text-center text-slate-500">2026.10.10</td>
+                                <td class="p-4 text-center">
+                                    <a href="https://drive.google.com/YOUR_LINK" target="_blank" class="inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition">Drive 받기</a>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50 transition" data-category="소개">
+                                <td class="p-4 text-center text-slate-500">1</td>
+                                <td class="p-4 text-center"><span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded">소개</span></td>
+                                <td class="p-4 font-medium text-slate-800">지사 소개 및 VIP 고객용 브로셔 PDF</td>
+                                <td class="p-4 text-center text-slate-500">2026.10.05</td>
+                                <td class="p-4 text-center">
+                                    <a href="https://drive.google.com/YOUR_LINK" target="_blank" class="inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition">Drive 받기</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 구글 드라이브 자료 업로드 모달 -->
+    <div id="uploadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 mb-4">새 세일즈 자료 등록</h3>
+            <form onsubmit="submitUpload(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">카테고리</label>
+                    <select class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                        <option value="">분류 선택</option>
+                        <option value="생명보험">생명보험</option>
+                        <option value="손해보험">손해보험</option>
+                        <option value="종신">종신</option>
+                        <option value="연금">연금</option>
+                        <option value="저축">저축</option>
+                        <option value="소개">소개</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">자료 제목</label>
+                    <input type="text" placeholder="제목을 입력하세요" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">구글 드라이브 공유 링크</label>
+                    <input type="url" placeholder="https://drive.google.com/..." required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <p class="text-[10px] text-slate-500 mt-1">* 드라이브에서 '링크가 있는 모든 사용자가 볼 수 있음'으로 설정 후 복사해주세요.</p>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition mt-2">
+                    자료 등록하기
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 1. 메인 탭 전환 로직
+        function switchMainTab(tabName) {
+            const tabVideo = document.getElementById('tabVideo');
+            const tabMaterial = document.getElementById('tabMaterial');
+            const secVideo = document.getElementById('sectionVideo');
+            const secMaterial = document.getElementById('sectionMaterial');
+
+            if (tabName === 'video') {
+                tabVideo.className = 'tab-active py-4 px-2 text-lg transition duration-200';
+                tabMaterial.className = 'tab-inactive py-4 px-2 text-lg transition duration-200';
+                secVideo.classList.remove('hidden');
+                secMaterial.classList.add('hidden');
+            } else {
+                tabMaterial.className = 'tab-active py-4 px-2 text-lg transition duration-200';
+                tabVideo.className = 'tab-inactive py-4 px-2 text-lg transition duration-200';
+                secMaterial.classList.remove('hidden');
+                secVideo.classList.add('hidden');
+            }
+        }
+
+        // 2. 비디오 카테고리 필터
+        function filterVideos(type) {
+            // 버튼 스타일 업데이트
+            ['all', 'corporate', 'protection'].forEach(id => {
+                const btn = document.getElementById(`vFilter-${id}`);
+                if(id === type) {
+                    btn.className = 'filter-active px-5 py-2 rounded-full text-sm font-bold transition shadow-sm';
+                } else {
+                    btn.className = 'filter-inactive px-5 py-2 rounded-full text-sm font-bold transition shadow-sm';
+                }
+            });
+
+            // 카드 필터링
+            const cards = document.querySelectorAll('.video-card');
+            cards.forEach(card => {
+                if (type === 'all') {
+                    card.style.display = 'block';
+                } else if (type === 'corporate' && card.classList.contains('corporate')) {
+                    card.style.display = 'block';
+                } else if (type === 'protection' && card.classList.contains('protection')) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // 3. 게시판 카테고리 필터
+        function filterBoard(category) {
+            // 버튼 스타일 업데이트
+            const buttons = document.querySelectorAll('.board-filter');
+            buttons.forEach(btn => {
+                if(btn.innerText === category) {
+                    btn.className = 'board-filter bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm';
+                } else {
+                    btn.className = 'board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold';
+                }
+            });
+
+            // 테이블 로우 필터링
+            const rows = document.querySelectorAll('#boardBody tr');
+            rows.forEach(row => {
+                if (category === '전체' || row.dataset.category === category) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // 4. 업로드 모달 제어
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+        
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        }
+
+        function submitUpload(e) {
+            e.preventDefault();
+            alert("구글 드라이브 링크가 포함된 세일즈 자료가 성공적으로 등록되었습니다.");
+            closeUploadModal();
+            // 실제 구현 시 Google Apps Script 또는 DB 연동 로직 추가
+        }
+    </script>
+</body>
+</html>
