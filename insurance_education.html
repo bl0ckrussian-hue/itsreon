@@ -199,6 +199,7 @@
                     </div>
                 </div>
 
+                <!-- 법인 세일즈 타이틀 -->
                 <div class="col-span-full flex items-center py-6 mt-4 corporate-divider">
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                     <span class="flex-shrink-0 mx-4 text-slate-800 font-black text-xl tracking-tight text-blue-600">법인 세일즈 영상</span>
@@ -309,6 +310,11 @@
             
             <!-- 1. 입력 폼 컨테이너 -->
             <form id="uploadFormContainer" class="space-y-4 text-sm block">
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
+                    <p class="text-xs text-blue-800 font-bold leading-relaxed">
+                        아래 첨부된 파일은 잇츠리온 공식 구글 드라이브(세일즈자료 폴더)에 자동으로 저장되며 게시판에 즉시 노출됩니다.
+                    </p>
+                </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">카테고리</label>
                     <select id="uploadCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" required>
@@ -348,10 +354,19 @@
 
     <script>
         // 메인 홈페이지 서버 (GAS 연동용)
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbxU4uLbgfl_TsIlciCAUs0fQo-dOZX-Urje-cS1odaWOjpPCsaUtyIpcOCQR9dHebR8/exec";
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzNW_PNYQVF3HRE1316WMQZBPsvGOr-nsgMUfnaFKIMAlVsJTY3FoVmVZNENnhfCSVr/exec";
 
-        // --- 1. 자료실 로컬 게시판 연동 ---
-        let boardData = JSON.parse(localStorage.getItem('rion_board_data')) || [];
+        // --- 1. 자료실 게시판 로컬 데이터베이스 및 새 폴더 주소 적용 ---
+        let boardData = JSON.parse(localStorage.getItem('rion_board_data')) || [
+            { 
+                id: 1, 
+                category: '소개', 
+                title: '세일즈 자료실 이용 안내 (기본)', 
+                fileName: '새로 만들어진 폴더 이동 링크.txt',
+                downloadUrl: 'https://drive.google.com/drive/folders/1OmKNF_eQa-4kOYNciaCWhgtpPI6skJ_E?usp=sharing', // 새 폴더 주소 반영
+                date: '2026.10.12' 
+            }
+        ];
 
         function renderBoard(filterCat = '전체') {
             const tbody = document.getElementById('boardBody');
@@ -389,7 +404,6 @@
             });
         }
 
-        // 관리자 삭제 로직
         function handleDeleteBoardItem(id) {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if (loggedUser !== '김성철' && loggedUser !== '관리자') {
@@ -415,7 +429,6 @@
         }
 
         document.addEventListener('click', function(e) {
-            // 영상 재생 클릭 감지
             const videoCard = e.target.closest('[data-video-url]');
             if (videoCard) {
                 if (!checkIsLoggedIn()) {
@@ -429,7 +442,6 @@
                 return;
             }
 
-            // 자료실 다운로드 버튼 클릭 감지
             const downloadBtn = e.target.closest('.download-btn[data-download-url]');
             if (downloadBtn) {
                 if (!checkIsLoggedIn()) {
@@ -441,7 +453,6 @@
                 return;
             }
 
-            // 관리자 전용 삭제 버튼 클릭 감지
             const deleteBtn = e.target.closest('.delete-btn[data-delete-id]');
             if (deleteBtn) {
                 const id = parseInt(deleteBtn.getAttribute('data-delete-id'));
@@ -469,7 +480,7 @@
             if(confirm('이 파일을 컴퓨터로 다운로드 하시겠습니까?')) {
                 const item = boardData.find(d => d.id === id);
                 if(item && item.downloadUrl) {
-                    window.location.href = item.downloadUrl; // 구글 서버에서 PC로 다이렉트 다운로드 실행
+                    window.location.href = item.downloadUrl; 
                     document.getElementById('fileDownloadModal').classList.add('hidden');
                 } else {
                     alert('다운로드 링크를 찾을 수 없습니다.');
@@ -506,7 +517,6 @@
 
             const file = fileInput.files[0];
             
-            // 10MB 용량 제한
             if(file.size > 10 * 1024 * 1024) {
                 alert("시스템 한도 초과: 10MB 이하의 파일만 업로드 가능합니다.");
                 return;
@@ -521,7 +531,6 @@
             const percentText = document.getElementById('progressPercentText');
             const statusText = document.getElementById('progressStatusText');
             
-            // 가상 로딩 애니메이션 (최대 90% 대기)
             const interval = setInterval(() => {
                 if (progress < 90) {
                     progress += Math.floor(Math.random() * 10) + 2;
@@ -531,7 +540,6 @@
                 }
             }, 300);
 
-            // 파일을 Base64로 읽어서 구글 서버(GAS)에 전송
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const base64Data = e.target.result.split(',')[1];
@@ -583,7 +591,7 @@
                 category: category, 
                 title: title, 
                 fileName: fileName,
-                downloadUrl: downloadUrl, // GAS에서 뱉어낸 다이렉트 다운로드 주소
+                downloadUrl: downloadUrl,
                 date: dateString
             };
 
