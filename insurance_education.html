@@ -55,7 +55,6 @@
         
         <!-- ==================== [탭 1: 세일즈 교육 영상] ==================== -->
         <div id="sectionVideo" class="block animate-fade-in">
-            <!-- 서브 카테고리 필터 -->
             <div class="flex flex-wrap gap-2 mb-4">
                 <button onclick="filterVideos('protection')" id="vFilter-protection" class="filter-active px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">보장성 세일즈</button>
                 <button onclick="filterVideos('corporate')" id="vFilter-corporate" class="filter-inactive px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">법인 세일즈</button>
@@ -64,7 +63,7 @@
             <!-- 동영상 카드 그리드 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="videoGrid">
                 
-                <!-- 중분류 타이틀 영역 : 보장성 세일즈 -->
+                <!-- 보장성 세일즈 타이틀 -->
                 <div class="col-span-full flex items-center py-6 protection-divider">
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                     <span class="flex-shrink-0 mx-4 text-slate-800 font-black text-xl tracking-tight text-rose-600">보장성 세일즈 영상</span>
@@ -73,12 +72,10 @@
 
                 <!-- 1. 보장성 세일즈: 세일즈북 활용 part 1 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1GZrlL0PPV7yHT2HdCU55vQssB2sUoUt3/view')">
+                     data-video-url="https://drive.google.com/file/d/1GZrlL0PPV7yHT2HdCU55vQssB2sUoUt3/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1GZrlL0PPV7yHT2HdCU55vQssB2sUoUt3" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
-                        <!-- 썸네일 중앙 재생 버튼 아이콘 -->
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -86,17 +83,16 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온 세일즈북 활용 part 1</h3>
+                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온의 세일즈북 활용 part 1.mp4</h3>
                     </div>
                 </div>
 
                 <!-- 2. 보장성 세일즈: 세일즈북 활용 part 2 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1OaG_-7AHSMyQON3_tcvEUTC4MURyrT00/view')">
+                     data-video-url="https://drive.google.com/file/d/1OaG_-7AHSMyQON3_tcvEUTC4MURyrT00/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1OaG_-7AHSMyQON3_tcvEUTC4MURyrT00" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -104,17 +100,16 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온 세일즈북 활용 part 2</h3>
+                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온의 세일즈북 활용 part 2.mp4</h3>
                     </div>
                 </div>
 
                 <!-- 3. 보장성 세일즈: 세일즈북 활용 part 3 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1bGMdY_RlgPowa_5YMhTTYA6cC-3tDwJA/view')">
+                     data-video-url="https://drive.google.com/file/d/1bGMdY_RlgPowa_5YMhTTYA6cC-3tDwJA/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1bGMdY_RlgPowa_5YMhTTYA6cC-3tDwJA" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -122,17 +117,16 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온 세일즈북 활용part 3</h3>
+                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온의 세일즈북 활용part 3.mp4</h3>
                     </div>
                 </div>
 
                 <!-- 4. 보장성 세일즈: 세일즈북 활용 part 4 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1aGrWk51g8ivb5WKFAATNlZLYhA1Jp6Nm/view')">
+                     data-video-url="https://drive.google.com/file/d/1aGrWk51g8ivb5WKFAATNlZLYhA1Jp6Nm/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1aGrWk51g8ivb5WKFAATNlZLYhA1Jp6Nm" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -140,17 +134,16 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온 세일즈북 활용 part 4</h3>
+                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온의 세일즈북 활용 part 4.mp4</h3>
                     </div>
                 </div>
 
                 <!-- 5. 보장성 세일즈: 세일즈북 활용 part 5 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1tltHWHdPi870EhEXozgllpP1_PPk3Yj9/view')">
+                     data-video-url="https://drive.google.com/file/d/1tltHWHdPi870EhEXozgllpP1_PPk3Yj9/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1tltHWHdPi870EhEXozgllpP1_PPk3Yj9" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -158,17 +151,16 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온 세일즈북 활용 part 5</h3>
+                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">잇츠리온의 세일즈북 활용 part 5.mp4</h3>
                     </div>
                 </div>
 
                 <!-- 6. 보장성 세일즈: 종신연금변액 1 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1ZYuWcCSQ6K5lh9TEu3J6X3pktUKLwEzx/view')">
+                     data-video-url="https://drive.google.com/file/d/1ZYuWcCSQ6K5lh9TEu3J6X3pktUKLwEzx/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1ZYuWcCSQ6K5lh9TEu3J6X3pktUKLwEzx" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -182,11 +174,10 @@
 
                 <!-- 7. 보장성 세일즈: 종신연금변액 2 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="playVideo('https://drive.google.com/file/d/1h0g8LAo-vJ3MesHgLY_I7b6g2k_OQzW3/view')">
+                     data-video-url="https://drive.google.com/file/d/1h0g8LAo-vJ3MesHgLY_I7b6g2k_OQzW3/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1h0g8LAo-vJ3MesHgLY_I7b6g2k_OQzW3" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        
                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                             <div class="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white text-slate-800 transition-all duration-300">
                                 <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -198,14 +189,13 @@
                     </div>
                 </div>
 
-                <!-- 중분류 타이틀 영역 : 법인 세일즈 -->
+                <!-- 법인 세일즈 타이틀 -->
                 <div class="col-span-full flex items-center py-6 mt-4 corporate-divider">
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                     <span class="flex-shrink-0 mx-4 text-slate-800 font-black text-xl tracking-tight text-blue-600">법인 세일즈 영상</span>
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                 </div>
 
-                <!-- 법인 세일즈 준비 중 안내 텍스트 -->
                 <div class="col-span-full video-card corporate py-12 text-center bg-slate-100 rounded-2xl border border-slate-200 border-dashed">
                     <div class="text-4xl mb-3">🎬</div>
                     <h3 class="text-lg font-bold text-slate-600">법인 세일즈 영상은 아직 준비 중입니다.</h3>
@@ -227,10 +217,11 @@
                     <button onclick="filterBoard('저축')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">저축</button>
                     <button onclick="filterBoard('소개')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">소개</button>
                 </div>
-                <button onclick="openUploadModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
-                    자료 올리기 (Google Drive)
+                <button onclick="checkAuthAndUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
+                    자료 올리기 (게시판 등록)
                 </button>
             </div>
+            
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <table class="w-full text-left border-collapse">
                      <thead>
@@ -243,15 +234,14 @@
                         </tr>
                     </thead>
                     <tbody id="boardBody" class="text-sm">
-                        <!-- 데이터 예시 -->
+                        <!-- 자바스크립트로 데이터가 자동 렌더링 됩니다 -->
                     </tbody>
                 </table>
             </div>
         </div>
-
     </main>
 
-    <!-- 동영상 인앱 플레이어 모달 (새창 방지 및 UI 제거) -->
+    <!-- 동영상 인앱 플레이어 모달 -->
     <div id="videoModal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
         <div class="w-full max-w-5xl flex justify-end mb-3">
             <button onclick="closeVideoModal()" class="text-white/70 hover:text-white font-bold text-lg flex items-center gap-2 transition">
@@ -263,17 +253,15 @@
         </div>
     </div>
 
-    <!-- 비회원 재생 차단 안내 모달 -->
+    <!-- 비회원 재생/다운로드 차단 안내 모달 -->
     <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
             <button onclick="document.getElementById('authModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            
             <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">🔒</div>
             <h3 class="text-xl font-bold text-slate-900">로그인 필요</h3>
             <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                현재 비로그인 상태입니다.<br>교육 영상 재생은 <strong>정식 인가된 잇츠리온 회원</strong>만 가능합니다.<br>메인 홈페이지에서 로그인 후 이용해주세요.
+                현재 비로그인 상태입니다.<br>영상 시청 및 자료실 이용은 <strong>정식 인가된 잇츠리온 회원</strong>만 가능합니다.<br>메인 홈페이지에서 로그인 후 이용해주세요.
             </p>
-            
             <div class="mt-6 flex flex-col gap-2">
                 <button onclick="window.close()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition">
                     창 닫고 로그인하러 가기
@@ -282,7 +270,7 @@
         </div>
     </div>
 
-    <!-- 구글 드라이브 자료 업로드 모달 -->
+    <!-- 자료 업로드(등록) 폼 모달 -->
     <div id="uploadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -290,7 +278,7 @@
             <form onsubmit="submitUpload(event)" class="space-y-4 text-sm">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">카테고리</label>
-                    <select class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                    <select id="uploadCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" required>
                         <option value="">분류 선택</option>
                         <option value="생명보험">생명보험</option>
                         <option value="손해보험">손해보험</option>
@@ -302,41 +290,140 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">자료 제목</label>
-                    <input type="text" placeholder="제목을 입력하세요" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <input type="text" id="uploadTitle" placeholder="제목을 입력하세요" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">구글 드라이브 공유 링크</label>
-                    <input type="url" placeholder="https://drive.google.com/..." required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
-                    <p class="text-[10px] text-slate-500 mt-1">* 드라이브에서 '링크가 있는 모든 사용자가 볼 수 있음'으로 설정 후 복사해주세요.</p>
+                    <input type="url" id="uploadUrl" placeholder="https://drive.google.com/..." required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition mt-2">
-                    자료 등록하기
+                    게시판에 등록하기
                 </button>
             </form>
         </div>
     </div>
 
     <script>
-        // --- 비회원 재생 차단 & 인앱 플레이어 로직 ---
-        function playVideo(videoUrl) {
+        // --- 1. 게시판 로컬 데이터베이스 연동 기능 ---
+        // 요청하신 폴더 링크를 초기 기본 데이터로 세팅해두었습니다.
+        let boardData = JSON.parse(localStorage.getItem('rion_board_data')) || [
+            { id: 1, category: '전체', title: '잇츠리온 지사 통합 세일즈 자료실 (구글 드라이브 통합 폴더)', date: '2026.10.12', url: 'https://drive.google.com/drive/folders/1CNGyYJXHcjsw5XFHnDawSepLC43qrDOA?usp=sharing' }
+        ];
+
+        // 게시판 목록 화면에 그리기
+        function renderBoard(filterCat = '전체') {
+            const tbody = document.getElementById('boardBody');
+            tbody.innerHTML = '';
+            
+            let filtered = filterCat === '전체' ? boardData : boardData.filter(item => item.category === filterCat || item.category === '전체');
+            
+            // 최신 글이 위로 올라오도록 정렬 후 출력
+            filtered.sort((a,b) => b.id - a.id).forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-100 hover:bg-slate-50 transition';
+                row.setAttribute('data-category', item.category);
+                
+                // 카테고리별 색상 매칭
+                let colorCls = "bg-blue-100 text-blue-700";
+                if(item.category==='종신') colorCls = "bg-purple-100 text-purple-700";
+                if(item.category==='손해보험') colorCls = "bg-rose-100 text-rose-700";
+                if(item.category==='생명보험') colorCls = "bg-emerald-100 text-emerald-700";
+
+                row.innerHTML = `
+                    <td class="p-4 text-center text-slate-500">${filtered.length - index}</td>
+                    <td class="p-4 text-center"><span class="${colorCls} text-[10px] font-bold px-2 py-1 rounded">${item.category}</span></td>
+                    <td class="p-4 font-medium text-slate-800">${item.title}</td>
+                    <td class="p-4 text-center text-slate-500">${item.date}</td>
+                    <td class="p-4 text-center">
+                        <button data-download-url="${item.url}" class="download-btn inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm">Drive 열기</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // --- 2. 🔒 강력한 이벤트 위임 권한 체크 (비회원 원천 차단) ---
+        document.addEventListener('click', function(e) {
+            const videoCard = e.target.closest('[data-video-url]');
+            if (videoCard) {
+                handleSecureAccess(videoCard.getAttribute('data-video-url'), 'video');
+                return;
+            }
+            const downloadBtn = e.target.closest('[data-download-url]');
+            if (downloadBtn) {
+                handleSecureAccess(downloadBtn.getAttribute('data-download-url'), 'material');
+                return;
+            }
+        });
+
+        // 실제 권한 인증 로직
+        function handleSecureAccess(url, type) {
             const loggedUser = localStorage.getItem('rion_logged_user');
             
-            if (loggedUser) {
-                // 구글 드라이브의 /view URL을 /preview로 변환하여 UI 제거
-                const previewUrl = videoUrl.replace('/view', '/preview');
+            // ⭐️ 엄격한 방어막: 값이 비어있거나 없으면 즉시 모달 띄우고 재생 중단
+            if (!loggedUser || loggedUser === "null" || loggedUser === "undefined" || loggedUser.trim() === "") {
+                document.getElementById('authModal').classList.remove('hidden');
+                return; 
+            }
+
+            // 회원일 경우 정상 처리
+            if (type === 'video') {
+                const previewUrl = url.replace('/view', '/preview'); 
                 document.getElementById('videoIframe').src = previewUrl;
                 document.getElementById('videoModal').classList.remove('hidden');
-            } else {
-                document.getElementById('authModal').classList.remove('hidden');
+            } else if (type === 'material') {
+                window.open(url, '_blank');
             }
         }
 
-        function closeVideoModal() {
-            document.getElementById('videoModal').classList.add('hidden');
-            document.getElementById('videoIframe').src = ''; // 창 닫을 때 영상 소리 정지
+        // 업로드 버튼 권한 체크
+        function checkAuthAndUpload() {
+            const loggedUser = localStorage.getItem('rion_logged_user');
+            if (!loggedUser || loggedUser.trim() === "") {
+                document.getElementById('authModal').classList.remove('hidden');
+            } else {
+                document.getElementById('uploadModal').classList.remove('hidden');
+            }
         }
 
-        // --- 탭 전환 로직 ---
+        // --- 3. 모달 및 필터 제어 로직 ---
+        function closeVideoModal() {
+            document.getElementById('videoModal').classList.add('hidden');
+            document.getElementById('videoIframe').src = ''; // 닫을때 소리 정지
+        }
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        }
+
+        // 새 자료 등록 폼 서밋 시 데이터 저장 및 UI 즉시 업데이트
+        function submitUpload(e) {
+            e.preventDefault();
+            const category = document.getElementById('uploadCategory').value;
+            const title = document.getElementById('uploadTitle').value;
+            const url = document.getElementById('uploadUrl').value;
+            
+            const today = new Date();
+            const dateString = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+
+            const newItem = {
+                id: boardData.length ? Math.max(...boardData.map(d => d.id)) + 1 : 1,
+                category, title, url, date: dateString
+            };
+
+            boardData.push(newItem);
+            localStorage.setItem('rion_board_data', JSON.stringify(boardData));
+
+            alert("게시판에 성공적으로 등록되었습니다.");
+            
+            // 입력 폼 초기화
+            document.getElementById('uploadCategory').value = "";
+            document.getElementById('uploadTitle').value = "";
+            document.getElementById('uploadUrl').value = "";
+            
+            closeUploadModal();
+            renderBoard(); // 게시판 즉시 새로고침
+        }
+
         function switchMainTab(tabName) {
             const tabVideo = document.getElementById('tabVideo');
             const tabMaterial = document.getElementById('tabMaterial');
@@ -353,10 +440,10 @@
                 tabVideo.className = 'tab-inactive py-4 px-2 text-lg transition duration-200';
                 secMaterial.classList.remove('hidden');
                 secVideo.classList.add('hidden');
+                renderBoard(); // 자료실 진입 시 게시판 렌더링
             }
         }
 
-        // --- 비디오 카테고리 필터 ---
         function filterVideos(type) {
             ['protection', 'corporate'].forEach(id => {
                 const btn = document.getElementById(`vFilter-${id}`);
@@ -390,7 +477,6 @@
             });
         }
         
-        // --- 자료실 게시판 필터 및 모달 ---
         function filterBoard(category) {
             const buttons = document.querySelectorAll('.board-filter');
             buttons.forEach(btn => {
@@ -400,32 +486,13 @@
                     btn.className = 'board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold';
                 }
             });
-
-            const rows = document.querySelectorAll('#boardBody tr');
-            rows.forEach(row => {
-                if (category === '전체' || row.dataset.category === category) {
-                    row.style.display = 'table-row';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+            renderBoard(category);
         }
 
-        function openUploadModal() {
-            document.getElementById('uploadModal').classList.remove('hidden');
-        }
-        function closeUploadModal() {
-            document.getElementById('uploadModal').classList.add('hidden');
-        }
-        function submitUpload(e) {
-            e.preventDefault();
-            alert("구글 드라이브 링크가 포함된 세일즈 자료가 성공적으로 등록되었습니다.");
-            closeUploadModal();
-        }
-
-        // 페이지 최초 진입 시 '보장성 세일즈' 화면을 기본으로 띄우기
+        // 페이지 최초 진입 시 기본 세팅
         document.addEventListener('DOMContentLoaded', () => {
             filterVideos('protection');
+            renderBoard('전체');
         });
     </script>
 </body>
