@@ -15,7 +15,7 @@
         .filter-inactive { background-color: #F1F5F9; color: #475569; }
         .filter-inactive:hover { background-color: #E2E8F0; }
         
-        /* 커스텀 파일 업로드 버튼 스타일 */
+        /* 커스텀 파일 업로드 폼 디자인 */
         input[type="file"]::file-selector-button {
             border: 1px solid #CBD5E1;
             padding: 0.4rem 0.8rem;
@@ -77,6 +77,7 @@
                 <button onclick="filterVideos('corporate')" id="vFilter-corporate" class="filter-inactive px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">법인 세일즈</button>
             </div>
 
+            <!-- 동영상 카드 그리드 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="videoGrid">
                 
                 <div class="col-span-full flex items-center py-6 protection-divider">
@@ -85,9 +86,9 @@
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                 </div>
 
-                <!-- 1. 보장성 세일즈: 세일즈북 활용 part 1 -->
+                <!-- 보장성 세일즈 영상 리스트 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1GZrlL0PPV7yHT2HdCU55vQssB2sUoUt3/view')">
+                     data-video-url="https://drive.google.com/file/d/1GZrlL0PPV7yHT2HdCU55vQssB2sUoUt3/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1GZrlL0PPV7yHT2HdCU55vQssB2sUoUt3" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -102,9 +103,8 @@
                     </div>
                 </div>
 
-                <!-- 2. 보장성 세일즈: 세일즈북 활용 part 2 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1OaG_-7AHSMyQON3_tcvEUTC4MURyrT00/view')">
+                     data-video-url="https://drive.google.com/file/d/1OaG_-7AHSMyQON3_tcvEUTC4MURyrT00/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1OaG_-7AHSMyQON3_tcvEUTC4MURyrT00" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -119,9 +119,8 @@
                     </div>
                 </div>
 
-                <!-- 3. 보장성 세일즈: 세일즈북 활용 part 3 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1bGMdY_RlgPowa_5YMhTTYA6cC-3tDwJA/view')">
+                     data-video-url="https://drive.google.com/file/d/1bGMdY_RlgPowa_5YMhTTYA6cC-3tDwJA/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1bGMdY_RlgPowa_5YMhTTYA6cC-3tDwJA" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -136,9 +135,8 @@
                     </div>
                 </div>
 
-                <!-- 4. 보장성 세일즈: 세일즈북 활용 part 4 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1aGrWk51g8ivb5WKFAATNlZLYhA1Jp6Nm/view')">
+                     data-video-url="https://drive.google.com/file/d/1aGrWk51g8ivb5WKFAATNlZLYhA1Jp6Nm/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1aGrWk51g8ivb5WKFAATNlZLYhA1Jp6Nm" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -153,9 +151,8 @@
                     </div>
                 </div>
 
-                <!-- 5. 보장성 세일즈: 세일즈북 활용 part 5 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1tltHWHdPi870EhEXozgllpP1_PPk3Yj9/view')">
+                     data-video-url="https://drive.google.com/file/d/1tltHWHdPi870EhEXozgllpP1_PPk3Yj9/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1tltHWHdPi870EhEXozgllpP1_PPk3Yj9" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -170,9 +167,8 @@
                     </div>
                 </div>
 
-                <!-- 6. 보장성 세일즈: 종신연금변액 1 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1ZYuWcCSQ6K5lh9TEu3J6X3pktUKLwEzx/view')">
+                     data-video-url="https://drive.google.com/file/d/1ZYuWcCSQ6K5lh9TEu3J6X3pktUKLwEzx/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1ZYuWcCSQ6K5lh9TEu3J6X3pktUKLwEzx" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -187,9 +183,8 @@
                     </div>
                 </div>
 
-                <!-- 7. 보장성 세일즈: 종신연금변액 2 -->
                 <div class="video-card protection bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer" 
-                     onclick="handleSecureVideo('https://drive.google.com/file/d/1h0g8LAo-vJ3MesHgLY_I7b6g2k_OQzW3/view')">
+                     data-video-url="https://drive.google.com/file/d/1h0g8LAo-vJ3MesHgLY_I7b6g2k_OQzW3/view">
                     <div class="aspect-video bg-slate-800 relative overflow-hidden">
                         <div class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-all z-10"></div>
                         <img src="https://drive.google.com/thumbnail?id=1h0g8LAo-vJ3MesHgLY_I7b6g2k_OQzW3" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -232,10 +227,10 @@
                     <button onclick="filterBoard('저축')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">저축</button>
                     <button onclick="filterBoard('소개')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">소개</button>
                 </div>
-                <!-- 구글 드라이브라는 문구 제거, 파일 업로드 UI 제공 -->
+                
                 <button onclick="checkAuthAndUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    자료 올리기
+                    내 PC 자료 올리기
                 </button>
             </div>
             
@@ -247,7 +242,8 @@
                             <th class="p-4 font-bold w-24 text-center">분류</th>
                             <th class="p-4 font-bold">자료 제목</th>
                             <th class="p-4 font-bold w-32 text-center">등록일</th>
-                            <th class="p-4 font-bold w-32 text-center">다운로드</th>
+                            <!-- [수정됨] 관리자 삭제 버튼 배치를 위해 헤더 넓이 조정 -->
+                            <th class="p-4 font-bold w-40 text-center">다운로드 / 관리</th>
                         </tr>
                     </thead>
                     <tbody id="boardBody" class="text-sm">
@@ -270,7 +266,7 @@
         </div>
     </div>
 
-    <!-- 비회원 재생/다운로드 차단 안내 모달 -->
+    <!-- 비회원 원천 차단 안내 모달 -->
     <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
             <button onclick="document.getElementById('authModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -287,11 +283,31 @@
         </div>
     </div>
 
-    <!-- 자료 업로드(등록) 및 진행 상태 모달 -->
+    <!-- 자료 직접 다운로드 안내 모달 -->
+    <div id="fileDownloadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeFileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-3xl mb-3 text-blue-500">📄</div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">첨부 파일 확인</h3>
+            <p class="text-xs text-slate-500 mb-4">아래 파일명을 클릭하여 컴퓨터로 다운로드 하세요.</p>
+            
+            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <span id="dlFileName" class="text-sm font-bold text-blue-600 underline cursor-pointer hover:text-blue-800 transition break-all"></span>
+            </div>
+            
+            <div class="mt-6 flex flex-col gap-2">
+                <button onclick="closeFileModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자료 실제 업로드(등록) 폼 및 진행 상태 모달 -->
     <div id="uploadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button id="closeUploadBtn" onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900 mb-4">새 세일즈 자료 등록</h3>
+            <h3 class="text-xl font-bold text-slate-900 mb-4">PC 세일즈 자료 직접 업로드</h3>
             
             <!-- 1. 입력 폼 컨테이너 -->
             <form id="uploadFormContainer" class="space-y-4 text-sm block">
@@ -308,46 +324,53 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">자료 제목</label>
-                    <input type="text" id="uploadTitle" placeholder="제목을 입력하세요 (예: 2026 보장분석표)" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <label class="block font-bold text-slate-700 mb-1">게시글 자료 제목</label>
+                    <input type="text" id="uploadTitle" placeholder="예: 2026 하반기 보장분석표" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">파일 첨부</label>
-                    <!-- 사용자에게는 드라이브 링크가 아닌 파일 첨부로만 보임 -->
+                    <label class="block font-bold text-slate-700 mb-1">실제 파일 선택 (내 컴퓨터)</label>
                     <input type="file" id="uploadFile" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-slate-600 bg-white" required>
-                    <p class="text-[10px] text-slate-500 mt-1">PDF, Excel, Word, PPT 파일 지원</p>
+                    <p class="text-[10px] text-slate-500 mt-1">* 최대 2MB까지 업로드 가능 (PDF, Excel, PPT, JPG 등 지원)</p>
                 </div>
                 <button type="button" onclick="startSimulatedUpload()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition mt-2">
-                    게시판에 등록하기
+                    자료 서버에 업로드하기
                 </button>
             </form>
 
             <!-- 2. 진행 상태 프로그래스 바 컨테이너 (기본 숨김) -->
             <div id="uploadProgressContainer" class="hidden py-4">
-                <p class="text-sm font-bold text-slate-700 mb-3" id="progressStatusText">파일을 서버로 암호화 전송 중입니다...</p>
+                <p class="text-sm font-bold text-slate-700 mb-3" id="progressStatusText">파일을 서버에 업로드 중입니다...</p>
                 <div class="w-full bg-slate-200 rounded-full h-3.5 mb-2 overflow-hidden">
                     <div id="progressBar" class="bg-blue-600 h-3.5 rounded-full transition-all duration-200" style="width: 0%"></div>
                 </div>
                 <p class="text-xs text-right font-bold text-blue-600" id="progressPercentText">0%</p>
             </div>
-
         </div>
     </div>
 
     <script>
-        // --- 1. 자료실 게시판 로컬 데이터베이스 연동 기능 ---
-        // 사용자가 요청한 구글 드라이브 폴더를 1번 디폴트 자료로 설정
+        // --- 1. 자료실 게시판 데이터 연동 및 렌더링 ---
         let boardData = JSON.parse(localStorage.getItem('rion_board_data')) || [
-            { id: 1, category: '소개', title: '잇츠리온 지사 통합 세일즈 자료실 폴더', date: '2026.10.12', url: 'https://drive.google.com/drive/folders/1CNGyYJXHcjsw5XFHnDawSepLC43qrDOA?usp=sharing' }
+            { 
+                id: 1, 
+                category: '소개', 
+                title: '잇츠리온 지사 통합 세일즈 자료실 안내문', 
+                fileName: '잇츠리온_자료실_이용안내.txt',
+                fileData: 'data:text/plain;charset=utf-8,안녕하세요.%20잇츠리온%20지사%20자료실입니다.%20앞으로%20이곳에%20자료를%20직접%20올리고%20다운로드%20받으실%20수%20있습니다.',
+                date: '2026.10.12' 
+            }
         ];
 
-        // 게시판 목록 화면 렌더링
         function renderBoard(filterCat = '전체') {
             const tbody = document.getElementById('boardBody');
             tbody.innerHTML = '';
             
             let filtered = filterCat === '전체' ? boardData : boardData.filter(item => item.category === filterCat || item.category === '전체');
             
+            const loggedUser = localStorage.getItem('rion_logged_user');
+            // ⭐️ 관리자(지사장님) 권한 확인 변수 (김성철 또는 관리자로 로그인 시 true)
+            const isAdmin = (loggedUser === '김성철' || loggedUser === '관리자');
+
             // 최신 글이 위로 올라오도록 정렬
             filtered.sort((a,b) => b.id - a.id).forEach((item, index) => {
                 const row = document.createElement('tr');
@@ -359,22 +382,28 @@
                 if(item.category==='생명보험') colorCls = "bg-emerald-100 text-emerald-700";
                 if(item.category==='연금') colorCls = "bg-amber-100 text-amber-700";
 
+                // 기본 다운로드 버튼
+                let actionButtons = `<button data-download-url="${item.id}" class="download-btn inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm">내려받기</button>`;
+                
+                // 관리자일 경우 삭제 버튼 추가
+                if (isAdmin) {
+                    actionButtons += ` <button data-delete-id="${item.id}" class="delete-btn inline-block bg-white border border-rose-300 text-rose-500 hover:bg-rose-50 hover:text-rose-600 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm ml-1">삭제</button>`;
+                }
+
                 row.innerHTML = `
                     <td class="p-4 text-center text-slate-500">${filtered.length - index}</td>
                     <td class="p-4 text-center"><span class="${colorCls} text-[10px] font-bold px-2 py-1 rounded">${item.category}</span></td>
-                    <td class="p-4 font-medium text-slate-800" onclick="handleSecureMaterial('${item.url}')">${item.title}</td>
+                    <td class="p-4 font-medium text-slate-800" onclick="openFileModal(${item.id})">${item.title}</td>
                     <td class="p-4 text-center text-slate-500">${item.date}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="handleSecureMaterial('${item.url}')" class="inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm">
-                            다운로드
-                        </button>
+                    <td class="p-4 text-center whitespace-nowrap">
+                        ${actionButtons}
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // --- 2. 🔒 강력한 비회원 차단 로직 (최우선 확인) ---
+        // --- 2. 🔒 강력한 비회원 차단 로직 및 이벤트 위임 ---
         function checkIsLoggedIn() {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if (!loggedUser || loggedUser === "null" || loggedUser === "undefined" || loggedUser.trim() === "") {
@@ -383,29 +412,102 @@
             return true;
         }
 
+        document.addEventListener('click', function(e) {
+            // 1. 영상 재생 클릭 감지
+            const videoCard = e.target.closest('[data-video-url]');
+            if (videoCard) {
+                handleSecureVideo(videoCard.getAttribute('data-video-url'));
+                return;
+            }
+
+            // 2. 자료실 다운로드 버튼 클릭 감지
+            const downloadBtn = e.target.closest('.download-btn[data-download-url]');
+            if (downloadBtn) {
+                const id = parseInt(downloadBtn.getAttribute('data-download-url'));
+                openFileModal(id);
+                return;
+            }
+
+            // 3. 관리자 전용 삭제 버튼 클릭 감지
+            const deleteBtn = e.target.closest('.delete-btn[data-delete-id]');
+            if (deleteBtn) {
+                const id = parseInt(deleteBtn.getAttribute('data-delete-id'));
+                handleDeleteBoardItem(id);
+                return;
+            }
+        });
+
         // 영상 클릭 시 권한 체크 및 실행
         function handleSecureVideo(videoUrl) {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
                 return;
             }
-            // 회원인 경우만 플레이어 띄우기
             const previewUrl = videoUrl.replace('/view', '/preview'); 
             document.getElementById('videoIframe').src = previewUrl;
             document.getElementById('videoModal').classList.remove('hidden');
         }
 
-        // 자료실 다운로드 클릭 시 권한 체크 및 실행
-        function handleSecureMaterial(downloadUrl) {
+        // --- [신규] 관리자 전용 삭제 기능 ---
+        function handleDeleteBoardItem(id) {
+            const loggedUser = localStorage.getItem('rion_logged_user');
+            // 보안을 위해 클릭 이벤트 안에서도 한 번 더 권한을 확인합니다.
+            if (loggedUser !== '김성철' && loggedUser !== '관리자') {
+                alert('홈페이지 관리자만 삭제할 수 있습니다.');
+                return;
+            }
+            
+            if (confirm('이 자료를 게시판에서 정말 삭제하시겠습니까?')) {
+                boardData = boardData.filter(item => item.id !== id);
+                localStorage.setItem('rion_board_data', JSON.stringify(boardData));
+                alert('삭제되었습니다.');
+                
+                // 현재 활성화된 필터 유지하며 리렌더링
+                const activeFilterBtn = document.querySelector('.board-filter.bg-slate-800');
+                const currentFilter = activeFilterBtn ? activeFilterBtn.innerText : '전체';
+                renderBoard(currentFilter);
+            }
+        }
+
+        // --- 자료실 파일 다운로드 및 모달 로직 ---
+        function openFileModal(id) {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
                 return;
             }
-            // 회원인 경우 새창으로 다운로드 링크 열기
-            window.open(downloadUrl, '_blank');
+            
+            const item = boardData.find(d => d.id === id);
+            if(item) {
+                const fileNameEl = document.getElementById('dlFileName');
+                fileNameEl.innerText = item.fileName || "첨부파일.bin";
+                fileNameEl.onclick = () => promptDownload(item.id);
+                document.getElementById('fileDownloadModal').classList.remove('hidden');
+            }
         }
 
-        // --- 3. 📂 파일 업로드 진행률 애니메이션 및 자동 등록 ---
+        function promptDownload(id) {
+            if(confirm('이 파일을 컴퓨터로 다운로드 하시겠습니까?')) {
+                const item = boardData.find(d => d.id === id);
+                if(item && item.fileData) {
+                    const a = document.createElement('a');
+                    a.href = item.fileData;
+                    a.download = item.fileName || '다운로드파일';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    document.getElementById('fileDownloadModal').classList.add('hidden');
+                } else {
+                    alert('파일 데이터를 찾을 수 없습니다.');
+                }
+            }
+        }
+        
+        function closeFileModal() {
+            document.getElementById('fileDownloadModal').classList.add('hidden');
+        }
+
+        // --- 3. 📂 파일 실제 업로드 및 진행률 팝업 기능 ---
         function checkAuthAndUpload() {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -417,6 +519,8 @@
         }
 
         function startSimulatedUpload() {
+            if (!checkIsLoggedIn()) return;
+            
             const category = document.getElementById('uploadCategory').value;
             const title = document.getElementById('uploadTitle').value;
             const fileInput = document.getElementById('uploadFile');
@@ -426,74 +530,79 @@
                 return;
             }
 
-            const fileName = fileInput.files[0].name;
-
-            // 폼 숨기고 프로그래스 바 표시
-            document.getElementById('uploadFormContainer').classList.add('hidden');
-            document.getElementById('uploadProgressContainer').classList.remove('hidden');
-            document.getElementById('closeUploadBtn').classList.add('hidden'); // 업로드 중 닫기 방지
-
-            const bar = document.getElementById('progressBar');
-            const percentText = document.getElementById('progressPercentText');
-            const statusText = document.getElementById('progressStatusText');
+            const file = fileInput.files[0];
             
-            let progress = 0;
-            
-            // 파일 업로드가 진행되는 것처럼 시각적 연출 (실제로는 백엔드 연동 영역)
-            const interval = setInterval(() => {
-                progress += Math.floor(Math.random() * 15) + 5; // 5~20%씩 증가
+            if(file.size > 2 * 1024 * 1024) {
+                alert("현재 테스트 서버 환경에서는 2MB 이하의 파일만 업로드 가능합니다.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileDataUrl = e.target.result;
                 
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    
-                    bar.style.width = '100%';
-                    percentText.innerText = '100%';
-                    statusText.innerText = '✅ 업로드가 완료되었습니다!';
-                    statusText.className = 'text-sm font-bold text-blue-600 mb-3';
-                    
-                    // 완료 후 0.8초 뒤에 게시판 리스트에 등록 처리
-                    setTimeout(() => {
-                        finishUploadAndSave(category, title, fileName);
-                    }, 800);
-                } else {
-                    bar.style.width = progress + '%';
-                    percentText.innerText = progress + '%';
-                }
-            }, 300);
+                document.getElementById('uploadFormContainer').classList.add('hidden');
+                document.getElementById('uploadProgressContainer').classList.remove('hidden');
+                document.getElementById('closeUploadBtn').classList.add('hidden');
+                
+                let progress = 0;
+                const bar = document.getElementById('progressBar');
+                const percentText = document.getElementById('progressPercentText');
+                const statusText = document.getElementById('progressStatusText');
+                
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 15) + 10;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        
+                        bar.style.width = '100%';
+                        percentText.innerText = '100%';
+                        statusText.innerText = '✅ 서버 업로드가 완료되었습니다!';
+                        statusText.className = 'text-sm font-bold text-blue-600 mb-3';
+                        
+                        setTimeout(() => {
+                            finishUploadAndSave(category, title, file.name, fileDataUrl);
+                        }, 800);
+                    } else {
+                        bar.style.width = progress + '%';
+                        percentText.innerText = progress + '%';
+                    }
+                }, 200);
+            };
+            reader.readAsDataURL(file);
         }
 
-        function finishUploadAndSave(category, title, fileName) {
+        function finishUploadAndSave(category, title, fileName, fileDataUrl) {
             const today = new Date();
             const dateString = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
 
-            // 사용자가 올린 파일을 목록 최상단에 추가 (임시 링크 할당)
             const newItem = {
                 id: boardData.length ? Math.max(...boardData.map(d => d.id)) + 1 : 1,
                 category: category, 
-                title: `${title} (${fileName})`, 
-                url: 'https://drive.google.com/drive/folders/1CNGyYJXHcjsw5XFHnDawSepLC43qrDOA?usp=sharing', // 업로드 시 드라이브 기본 폴더로 연결
+                title: title, 
+                fileName: fileName,
+                fileData: fileDataUrl,
                 date: dateString
             };
 
             boardData.push(newItem);
             localStorage.setItem('rion_board_data', JSON.stringify(boardData));
 
-            alert("자료가 시스템 서버 및 보안 드라이브에 성공적으로 등록되었습니다.");
+            alert("자료가 시스템 서버에 성공적으로 등록되었습니다.");
             
-            // 입력 폼 초기화 및 모달 닫기
             document.getElementById('uploadCategory').value = "";
             document.getElementById('uploadTitle').value = "";
             document.getElementById('uploadFile').value = "";
             
             closeUploadModal();
-            renderBoard(); // 게시판 즉시 새로고침
+            renderBoard(); 
         }
 
         function closeUploadModal() {
             document.getElementById('uploadModal').classList.add('hidden');
             document.getElementById('closeUploadBtn').classList.remove('hidden');
-            document.getElementById('progressStatusText').innerText = '파일을 서버로 암호화 전송 중입니다...';
+            document.getElementById('progressStatusText').innerText = '파일을 서버에 업로드 중입니다...';
             document.getElementById('progressStatusText').className = 'text-sm font-bold text-slate-700 mb-3';
             document.getElementById('progressBar').style.width = '0%';
         }
@@ -501,7 +610,7 @@
         // --- 4. 탭 및 필터 기타 제어 ---
         function closeVideoModal() {
             document.getElementById('videoModal').classList.add('hidden');
-            document.getElementById('videoIframe').src = ''; // 창 닫을 때 영상 소리 정지
+            document.getElementById('videoIframe').src = ''; 
         }
 
         function switchMainTab(tabName) {
@@ -520,7 +629,10 @@
                 tabVideo.className = 'tab-inactive py-4 px-2 text-lg transition duration-200';
                 secMaterial.classList.remove('hidden');
                 secVideo.classList.add('hidden');
-                renderBoard(); // 자료실 진입 시 게시판 렌더링
+                
+                const activeFilterBtn = document.querySelector('.board-filter.bg-slate-800');
+                const currentFilter = activeFilterBtn ? activeFilterBtn.innerText : '전체';
+                renderBoard(currentFilter);
             }
         }
 
@@ -555,18 +667,6 @@
                     card.style.display = 'none';
                 }
             });
-        }
-        
-        function filterBoard(category) {
-            const buttons = document.querySelectorAll('.board-filter');
-            buttons.forEach(btn => {
-                if(btn.innerText === category) {
-                    btn.className = 'board-filter bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm';
-                } else {
-                    btn.className = 'board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold';
-                }
-            });
-            renderBoard(category);
         }
 
         // 페이지 최초 진입 시 기본 세팅
