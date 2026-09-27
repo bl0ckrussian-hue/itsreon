@@ -427,18 +427,21 @@
             });
         }
 
-        async function handleDeleteBoardItem(id) {
+       async function handleDeleteBoardItem(id) {
             const loggedUser = localStorage.getItem('rion_logged_user');
-            if (loggedUser !== '김성철' && loggedUser !== '관리자') {
-                alert('홈페이지 관리자만 삭제할 수 있습니다.');
+            const loggedUserRole = localStorage.getItem('rion_logged_role') || '일반';
+            
+            if (!loggedUserRole.includes('관리자')) {
+                alert('게시판 관리자만 삭제할 수 있습니다.');
                 return;
             }
             if (confirm('구글 시트에서 이 자료를 영구 삭제하시겠습니까?')) {
                 try {
+                    // ⭐️ 핵심 수정: 서버로 삭제 명령을 보낼 때 '누가(userId)' 지우는지 이름을 명확히 보냅니다.
                     const res = await fetch(USER_DB_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: "deleteBoard", id: id })
+                        body: JSON.stringify({ action: "deleteBoard", id: id, userId: loggedUser })
                     });
                     const result = await res.json();
                     if(result.success) {
@@ -448,7 +451,7 @@
                         alert("삭제 실패: " + result.message);
                     }
                 } catch(e) {
-                    alert("서버 통신 오류가 발생했습니다.");
+                    alert("서버 통신 오류가 발생했습니다. 잠시 후 시도해주세요.");
                 }
             }
         }
