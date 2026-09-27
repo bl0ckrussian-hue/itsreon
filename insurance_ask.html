@@ -46,7 +46,7 @@
         <!-- [우측 2/3] 상/하단 분할 영역 -->
         <section class="w-full md:w-2/3 flex flex-col gap-6 overflow-hidden h-full">
             
-            <!-- ⭐️ 상단: 자문 문의 게시판 (기존) -->
+            <!-- ⭐️ 상단: 자문 문의 게시판 -->
             <div class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 flex-1 overflow-hidden min-h-[300px]">
                 <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-shrink-0">
                     <div>
@@ -62,14 +62,13 @@
                 </div>
             </div>
 
-            <!-- ⭐️ 하단: 자문위원 전용 정보공유 자료실 (신규 추가) -->
+            <!-- ⭐️ 하단: 자문위원 전용 정보공유 자료실 -->
             <div class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 flex-1 overflow-hidden min-h-[300px]">
                 <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-shrink-0">
                     <div>
                         <h2 class="font-black text-slate-800 flex items-center gap-2"><span class="text-emerald-500">■</span> <span id="infoBoardTitle">자문위원 정보공유</span></h2>
                         <p class="text-[11px] text-slate-500 mt-1">자문위원이 공유하는 전문 지식 및 자료 게시판입니다.</p>
                     </div>
-                    <!-- 이 버튼은 자문관리자 권한이 있는 사람만 노출 -->
                     <button id="infoUploadBtn" onclick="openInfoUploadModal()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded shadow transition">
                         📂 자료 공유하기
                     </button>
@@ -105,24 +104,45 @@
                 <h3 class="font-black text-slate-800 flex items-center gap-2" id="detailModalTitle">게시물 내용</h3>
                 <button onclick="closeModal('postDetailModal')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
             </div>
+            
             <div class="p-6 overflow-y-auto custom-scrollbar flex-grow">
+                <!-- 본문 헤더 -->
                 <div class="flex items-center gap-3 mb-2">
                     <span id="detailModalStatus" class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">대기중</span>
-                    <h2 class="text-xl font-bold text-slate-900" id="detailModalSubject"></h2>
+                    <h2 class="text-xl font-bold text-slate-900" id="detailModalSubject">게시물 제목</h2>
                 </div>
                 <div class="flex items-center gap-4 text-xs text-slate-500 font-medium pb-4 border-b border-slate-100 mb-4">
-                    <span id="detailModalAuthor"></span><span id="detailModalDate"></span>
+                    <span id="detailModalAuthor">작성자</span>
+                    <span id="detailModalDate">날짜</span>
                 </div>
-                <div class="text-sm text-slate-700 leading-relaxed whitespace-pre-line mb-6 min-h-[100px]" id="detailModalContent"></div>
-                <div id="detailModalFileArea" class="hidden bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6 flex justify-between items-center">
-                    <div class="flex items-center gap-2 overflow-hidden"><span class="text-blue-500 font-bold">📎</span><span id="detailModalFileName" class="text-xs font-medium text-slate-700 truncate w-48"></span></div>
-                    <button id="detailModalFileBtn" class="text-xs font-bold text-blue-600 hover:underline">다운로드</button>
+
+                <!-- 본문 내용 -->
+                <div class="text-sm text-slate-700 leading-relaxed whitespace-pre-line mb-6 min-h-[100px]" id="detailModalContent">
+                    내용이 표시됩니다.
                 </div>
+
+                <!-- ⭐️ 파일 다운로드 및 본인 삭제 버튼 영역 -->
+                <div id="detailModalFileArea" class="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6 flex justify-between items-center hidden">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-blue-500 font-bold" id="detailModalFileIcon"></span>
+                        <span id="detailModalFileName" class="text-xs font-medium text-slate-700 truncate w-48"></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="detailModalFileBtn" class="hidden text-xs font-bold text-blue-600 hover:underline border border-blue-200 px-3 py-1 rounded bg-white">다운로드</button>
+                        <button id="detailModalDeleteBtn" class="hidden text-xs font-bold text-rose-500 hover:text-rose-700 border border-rose-200 px-3 py-1 rounded bg-white transition">🗑️ 삭제</button>
+                    </div>
+                </div>
+
+                <!-- 댓글(답변) 리스트 영역 -->
                 <div class="mb-4">
                     <h4 class="font-bold text-sm text-slate-800 mb-3 border-b pb-2">답변 및 의견</h4>
-                    <div id="detailModalReplyArea" class="space-y-3 bg-slate-50 rounded-lg p-4 text-sm text-slate-700 whitespace-pre-line border border-slate-100 min-h-[50px]"></div>
+                    <div id="detailModalReplyArea" class="space-y-3 bg-slate-50 rounded-lg p-4 text-sm text-slate-700 whitespace-pre-line border border-slate-100 min-h-[50px]">
+                        아직 등록된 답변이 없습니다.
+                    </div>
                 </div>
             </div>
+
+            <!-- 댓글(답변) 입력 폼 -->
             <div class="p-4 border-t border-slate-100 bg-slate-50">
                 <form id="replyForm" onsubmit="submitReply(event)" class="flex gap-2">
                     <textarea id="replyContent" rows="2" placeholder="회원이라면 누구나 답변이나 의견을 남길 수 있습니다." required class="flex-grow px-3 py-2 border border-slate-300 rounded focus:border-blue-500 outline-none resize-none text-xs custom-scrollbar"></textarea>
@@ -213,7 +233,7 @@
         </div>
     </div>
 
-    <!-- ⭐️ (하단 정보공유용) 자료 업로드 모달 신규 추가 -->
+    <!-- (하단 정보공유용) 자료 업로드 모달 -->
     <div id="infoUploadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl relative">
             <button onclick="closeInfoUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -255,7 +275,7 @@
 
     <script>
         // ⭐️ 앱스 스크립트 웹앱 주소 입력 필수!
-        const ASK_DB_URL = "https://script.google.com/macros/s/AKfycbxwQOuqglTiOQryy_iPfSeeNYvALxBv1rH_D9-w89eK-Wv4LBE_O0HiJf-hr2ZpGoa-CQ/exec";
+        const ASK_DB_URL = "여기에_앱스크립트_URL을_넣으세요";
 
         const loggedUser = localStorage.getItem('rion_logged_user');
         const loggedRole = localStorage.getItem('rion_logged_role') || ''; 
@@ -264,7 +284,7 @@
 
         let boardData = []; 
         let advisorData = [];
-        let infoBoardData = []; // ⭐️ 정보공유 게시판 데이터
+        let infoBoardData = []; 
 
         let currentDetailRowIdx = null;
         let currentDetailFileId = null;
@@ -282,7 +302,7 @@
             
             if (isAdmin) {
                 document.getElementById('adminControls').classList.remove('hidden');
-                document.getElementById('infoUploadBtn').classList.remove('hidden'); // 하단 업로드 버튼 노출
+                document.getElementById('infoUploadBtn').classList.remove('hidden'); 
             }
             loadAllData();
         };
@@ -300,7 +320,7 @@
                 if(result.success) {
                     boardData = result.boardData || [];
                     advisorData = result.advisorData || [];
-                    infoBoardData = result.infoBoardData || []; // 하단 게시판
+                    infoBoardData = result.infoBoardData || []; 
                     
                     renderBoard(); renderAdvisors(); renderInfoBoard();
                     
@@ -326,7 +346,6 @@
             });
         }
 
-        // 상단 문의 게시판 렌더링
         function renderBoard() {
             const listArea = document.getElementById('boardListArea');
             listArea.innerHTML = '';
@@ -339,7 +358,9 @@
                 
                 const div = document.createElement('div');
                 div.className = 'border border-slate-200 rounded-lg overflow-hidden bg-white hover:border-blue-300 transition cursor-pointer p-3.5';
-                div.onclick = () => openPostDetail(item.rowIdx, isSecret, item.author, item.password);
+                
+                // 클릭 시 모달창 열기 함수에 속성 전달
+                div.onclick = () => openPostDetail(item.rowIdx);
                 div.innerHTML = `
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-3 overflow-hidden">
@@ -355,7 +376,6 @@
             });
         }
 
-        // ⭐️ 하단 정보공유 게시판 렌더링
         function renderInfoBoard() {
             const tbody = document.getElementById('infoBoardBody');
             tbody.innerHTML = '';
@@ -397,17 +417,20 @@
             else { container.classList.add('hidden'); document.getElementById('postPassword').required = false; document.getElementById('postPassword').value = ''; }
         }
 
-        function openPostDetail(rowIdx, isSecret, authorName, truePassword) {
+        // ⭐️ 게시물 상세 보기
+        function openPostDetail(rowIdx) {
             const item = boardData.find(d => d.rowIdx === rowIdx);
             if (!item) return;
 
             const isAdmin = loggedRole.includes(`자문관리자(${expertType})`) || loggedRole === '최고관리자' || loggedUser === '김성철';
-            const isOwner = loggedUser === authorName;
+            const isOwner = loggedUser === item.author;
+            const isSecret = item.isSecret === true || String(item.isSecret).toLowerCase() === 'true';
 
+            // 비밀글 검증
             if (isSecret && !isOwner && !isAdmin) {
-                const inputPw = prompt("🔒 이 글은 비밀글입니다. 작성 시 입력한 비밀번호를 입력해주세요.");
+                const inputPw = prompt("🔒 이 글은 비밀글입니다. 작성 시 입력한 비밀번호 4자리를 입력해주세요.");
                 if (inputPw === null) return; 
-                if (inputPw !== String(truePassword)) { alert("비밀번호가 일치하지 않습니다."); return; }
+                if (inputPw !== String(item.password)) { alert("비밀번호가 일치하지 않습니다."); return; }
             }
 
             activePostRowIdx = rowIdx;
@@ -420,13 +443,41 @@
             document.getElementById('detailModalDate').innerText = item.date;
             document.getElementById('detailModalContent').innerText = item.content;
 
+            // 다운로드 및 삭제 버튼 렌더링
             const fileArea = document.getElementById('detailModalFileArea');
+            const fileBtn = document.getElementById('detailModalFileBtn');
+            const deleteBtn = document.getElementById('detailModalDeleteBtn');
+            const fileIcon = document.getElementById('detailModalFileIcon');
+            const fileNameText = document.getElementById('detailModalFileName');
+
+            // 1. 파일 세팅 유무
             if (item.fileData && item.fileData.url) {
                 fileArea.classList.remove('hidden');
-                document.getElementById('detailModalFileName').innerText = item.fileData.name;
-                document.getElementById('detailModalFileBtn').onclick = () => window.open(item.fileData.url, '_blank');
-            } else { fileArea.classList.add('hidden'); }
+                fileIcon.innerText = "📎";
+                fileNameText.innerText = item.fileData.name;
+                fileBtn.classList.remove('hidden');
+                fileBtn.onclick = () => window.open(item.fileData.url, '_blank');
+            } else {
+                fileArea.classList.remove('hidden');
+                fileIcon.innerText = "📄";
+                fileNameText.innerText = "첨부파일 없음";
+                fileBtn.classList.add('hidden');
+            }
 
+            // 2. 삭제 권한 노출
+            if (isOwner || isAdmin) {
+                deleteBtn.classList.remove('hidden');
+                deleteBtn.onclick = () => deletePost(item.rowIdx, item.fileData ? item.fileData.id : null);
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+            
+            // 만약 첨부파일도 없고 삭제권한도 없으면 해당 바 자체를 숨김
+            if (!(item.fileData && item.fileData.url) && !(isOwner || isAdmin)) {
+                fileArea.classList.add('hidden');
+            }
+
+            // 댓글 세팅
             const replyArea = document.getElementById('detailModalReplyArea');
             if (item.adminReply) {
                 replyArea.innerHTML = '';
@@ -468,7 +519,7 @@
         // =====================================
         function openWriteModal() {
             document.getElementById('askFormContainer').reset();
-            cancelUpload(); openModal('writeModal');
+            cancelUpload(); togglePasswordField(); openModal('writeModal');
         }
         function closeWriteModal() {
             closeModal('writeModal'); document.getElementById('askFormContainer').classList.remove('hidden'); document.getElementById('uploadProgressContainer').classList.add('hidden');
@@ -521,8 +572,20 @@
             } catch(e) { clearInterval(interval); alert("통신 오류 발생"); closeWriteModal(); }
         }
 
+        // ⭐️ 작성자/관리자 게시글 및 파일 삭제
+        async function deletePost(rowIdx, fileId) {
+            if (!confirm("게시글과 연결된 첨부파일을 영구 삭제하시겠습니까?")) return;
+            try {
+                const res = await fetch(ASK_DB_URL, {
+                    method: "POST", body: JSON.stringify({ action: "deleteAskPost", expertType: expertType, rowIdx: rowIdx, fileId: fileId })
+                });
+                const result = await res.json();
+                if (result.success) { alert("삭제 완료"); closeModal('postDetailModal'); loadAllData(); }
+            } catch(e) { alert("삭제 실패"); }
+        }
+
         // =====================================
-        // ⭐️ 하단 정보공유 자료 업로드
+        // 하단 정보공유 자료 업로드
         // =====================================
         function openInfoUploadModal() {
             document.getElementById('infoFormContainer').reset();
@@ -583,7 +646,72 @@
             } catch(e) { alert("삭제 실패"); }
         }
         
-        // (자문위원 소개 로직은 이전과 동일하게 유지됨 - 코드 길이 제약으로 요약본만 적습니다. 위 코드에 모두 포함됨)
+        // 자문위원 프로필 스크립트 모음
+        function openAdvisorDetail(adv) {
+            document.getElementById('detailName').innerText = adv.name;
+            document.getElementById('detailHistory').innerText = adv.history;
+            document.getElementById('detailSpecialty').innerText = adv.specialty;
+            let photoHtml = `👤`;
+            if (adv.photoData && adv.photoData.id) {
+                photoHtml = `<img src="https://drive.google.com/thumbnail?id=${adv.photoData.id}&sz=w400" class="w-full h-full object-cover">`;
+            }
+            document.getElementById('detailPhotoContainer').innerHTML = photoHtml;
+            const canDelete = (loggedUser === adv.authorId || loggedRole.includes(`자문관리자(${expertType})`) || loggedRole === '최고관리자' || loggedUser === '김성철');
+            if (canDelete) {
+                document.getElementById('detailDeleteBtnContainer').classList.remove('hidden');
+                currentDetailRowIdx = adv.rowIdx;
+                currentDetailFileId = adv.photoData ? adv.photoData.id : null;
+            } else { document.getElementById('detailDeleteBtnContainer').classList.add('hidden'); }
+            openModal('advisorViewModal');
+        }
+
+        function openAdvisorRegModal() { document.getElementById('advRegForm').reset(); cancelAdvPhoto(); openModal('advisorRegModal'); }
+        function handleAdvPhotoSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('advPhotoStatus').classList.remove('hidden');
+                document.getElementById('advPhotoFileName').innerText = file.name;
+                document.getElementById('advPhotoName').value = file.name;
+                document.getElementById('advPhotoMime').value = file.type;
+                document.getElementById('advPhotoBase64').value = e.target.result.split(',')[1];
+            };
+            reader.readAsDataURL(file);
+        }
+        function cancelAdvPhoto() { document.getElementById('advPhotoFile').value = ''; document.getElementById('advPhotoStatus').classList.add('hidden'); document.getElementById('advPhotoBase64').value = ''; document.getElementById('advPhotoName').value = ''; }
+
+        async function submitAdvisorReg(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitAdvBtn');
+            btn.innerText = "저장 중..."; btn.disabled = true;
+
+            const base64Data = document.getElementById('advPhotoBase64').value;
+            const hasFile = base64Data && base64Data.length > 0;
+            const payload = {
+                action: "registerAdvisor", expertType: expertType,
+                name: document.getElementById('regAdvName').value,
+                history: document.getElementById('regAdvHistory').value,
+                specialty: document.getElementById('regAdvSpecialty').value, authorId: loggedUser,
+                fileName: hasFile ? document.getElementById('advPhotoName').value : "",
+                mimeType: hasFile ? document.getElementById('advPhotoMime').value : "", fileData: hasFile ? base64Data : ""
+            };
+            try {
+                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify(payload) });
+                const result = await res.json();
+                if(result.success) { alert("프로필이 등록되었습니다."); closeModal('advisorRegModal'); loadAllData(); } else { alert("등록 실패"); }
+            } catch(e) { alert("오류 발생"); }
+            btn.innerText = "저장 및 반영"; btn.disabled = false;
+        }
+
+        async function deleteAdvisorProfile() {
+            if(!confirm("자문위원 프로필과 사진을 영구 삭제하시겠습니까?")) return;
+            try {
+                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify({ action: "deleteAdvisor", expertType: expertType, rowIdx: currentDetailRowIdx, fileId: currentDetailFileId }) });
+                const result = await res.json();
+                if(result.success) { alert("삭제 완료되었습니다."); closeModal('advisorViewModal'); loadAllData(); }
+            } catch(e) { alert("삭제 실패"); }
+        }
     </script>
 </body>
 </html>
