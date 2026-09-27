@@ -218,6 +218,7 @@
         <!-- ==================== [탭 2: 세일즈 자료실] ==================== -->
         <div id="sectionMaterial" class="hidden animate-fade-in">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <!-- 원칙에 따른 7개 카테고리 적용 -->
                 <div class="flex flex-wrap gap-2">
                     <button onclick="filterBoard('전체')" class="board-filter bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">전체</button>
                     <button onclick="filterBoard('생명보험')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">생명보험</button>
@@ -225,7 +226,8 @@
                     <button onclick="filterBoard('종신')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">종신</button>
                     <button onclick="filterBoard('연금')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">연금</button>
                     <button onclick="filterBoard('저축')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">저축</button>
-                    <button onclick="filterBoard('소개')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">소개</button>
+                    <button onclick="filterBoard('고객관리')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">고객관리</button>
+                    <button onclick="filterBoard('소개요청')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">소개요청</button>
                 </div>
                 
                 <button onclick="checkAuthAndUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
@@ -246,7 +248,7 @@
                         </tr>
                     </thead>
                     <tbody id="boardBody" class="text-sm">
-                        <!-- 자바스크립트로 자동 렌더링 -->
+                        <!-- 구글 시트에서 불러온 데이터 자동 렌더링 -->
                     </tbody>
                 </table>
             </div>
@@ -270,9 +272,9 @@
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
             <button onclick="document.getElementById('authModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-3">🔒</div>
-            <h3 class="text-xl font-bold text-slate-900">로그인 필요</h3>
+            <h3 class="text-xl font-bold text-slate-900">승인된 회원 전용</h3>
             <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                현재 비로그인 상태입니다.<br>영상 시청 및 자료실 이용은 <strong>정식 인가된 잇츠리온 회원</strong>만 가능합니다.<br>메인 홈페이지에서 로그인 후 이용해주세요.
+                현재 비로그인 상태이거나 미승인 상태입니다.<br>영상 시청 및 자료실 이용은 <strong>정식 승인된 잇츠리온 회원</strong>만 가능합니다.<br>메인 홈페이지에서 로그인 및 승인 확인 후 이용해주세요.
             </p>
             <div class="mt-6 flex flex-col gap-2">
                 <button onclick="window.close()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition">
@@ -308,11 +310,10 @@
             <button id="closeUploadBtn" onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 mb-4">PC 세일즈 자료 직접 업로드</h3>
             
-            <!-- 1. 입력 폼 컨테이너 -->
             <form id="uploadFormContainer" class="space-y-4 text-sm block">
                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
                     <p class="text-xs text-blue-800 font-bold leading-relaxed">
-                        아래 첨부된 파일은 잇츠리온 공식 구글 드라이브(세일즈자료 폴더)에 자동으로 저장되며 게시판에 즉시 노출됩니다.
+                        아래 첨부된 파일은 잇츠리온 공식 구글 드라이브(세일즈자료 폴더)에 자동으로 저장되며 <strong>모든 회원의 게시판에 실시간으로 공유</strong>됩니다.
                     </p>
                 </div>
                 <div>
@@ -324,7 +325,8 @@
                         <option value="종신">종신</option>
                         <option value="연금">연금</option>
                         <option value="저축">저축</option>
-                        <option value="소개">소개</option>
+                        <option value="고객관리">고객관리</option>
+                        <option value="소개요청">소개요청</option>
                     </select>
                 </div>
                 <div>
@@ -341,9 +343,8 @@
                 </button>
             </form>
 
-            <!-- 2. 진행 상태 프로그래스 바 컨테이너 (기본 숨김) -->
             <div id="uploadProgressContainer" class="hidden py-4">
-                <p class="text-sm font-bold text-slate-700 mb-3" id="progressStatusText">파일을 구글 보안서버에 업로드 중입니다...</p>
+                <p class="text-sm font-bold text-slate-700 mb-3" id="progressStatusText">파일을 구글 시트 및 드라이브에 동기화 중입니다...</p>
                 <div class="w-full bg-slate-200 rounded-full h-3.5 mb-2 overflow-hidden">
                     <div id="progressBar" class="bg-blue-600 h-3.5 rounded-full transition-all duration-200" style="width: 0%"></div>
                 </div>
@@ -354,19 +355,29 @@
 
     <script>
         // 메인 홈페이지 서버 (GAS 연동용)
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbxU4uLbgfl_TsIlciCAUs0fQo-dOZX-Urje-cS1odaWOjpPCsaUtyIpcOCQR9dHebR8/exec";
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzzb_3bARtY5PGqQLoHDKawwNbZloQ5u4VFNx8qjrLzHXJyaZpj2lJu0IYtIfK0RCGf/exec";
 
-        // --- 1. 자료실 게시판 로컬 데이터베이스 및 새 폴더 주소 적용 ---
-        let boardData = JSON.parse(localStorage.getItem('rion_board_data')) || [
-            { 
-                id: 1, 
-                category: '소개', 
-                title: '세일즈 자료실 이용 안내 (기본)', 
-                fileName: '새로 만들어진 폴더 이동 링크.txt',
-                downloadUrl: 'https://drive.google.com/drive/folders/1OmKNF_eQa-4kOYNciaCWhgtpPI6skJ_E?usp=sharing', // 새 폴더 주소 반영
-                date: '2026.10.12' 
+        let boardData = [];
+
+        // --- 구글 시트에서 실시간으로 데이터 불러오기 ---
+        async function loadBoardData() {
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "getBoard" })
+                });
+                const result = await res.json();
+                if(result.success) {
+                    boardData = result.data;
+                    const activeFilterBtn = document.querySelector('.board-filter.bg-slate-800');
+                    const currentFilter = activeFilterBtn ? activeFilterBtn.innerText : '전체';
+                    renderBoard(currentFilter);
+                }
+            } catch(e) {
+                console.error("게시판 목록을 불러오지 못했습니다.", e);
             }
-        ];
+        }
 
         function renderBoard(filterCat = '전체') {
             const tbody = document.getElementById('boardBody');
@@ -377,6 +388,7 @@
             const loggedUser = localStorage.getItem('rion_logged_user');
             const isAdmin = (loggedUser === '김성철' || loggedUser === '관리자');
 
+            // 내림차순 정렬 (최신글 위로)
             filtered.sort((a,b) => b.id - a.id).forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer';
@@ -386,6 +398,9 @@
                 if(item.category==='손해보험') colorCls = "bg-rose-100 text-rose-700";
                 if(item.category==='생명보험') colorCls = "bg-emerald-100 text-emerald-700";
                 if(item.category==='연금') colorCls = "bg-amber-100 text-amber-700";
+                if(item.category==='저축') colorCls = "bg-teal-100 text-teal-700";
+                if(item.category==='고객관리') colorCls = "bg-indigo-100 text-indigo-700";
+                if(item.category==='소개요청') colorCls = "bg-pink-100 text-pink-700";
 
                 let actionButtons = `<button data-download-url="${item.id}" class="download-btn inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm">내려받기</button>`;
                 
@@ -404,22 +419,34 @@
             });
         }
 
-        function handleDeleteBoardItem(id) {
+        // --- 관리자 게시물 삭제 통신 ---
+        async function handleDeleteBoardItem(id) {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if (loggedUser !== '김성철' && loggedUser !== '관리자') {
                 alert('홈페이지 관리자만 삭제할 수 있습니다.');
                 return;
             }
-            if (confirm('이 자료를 게시판에서 정말 삭제하시겠습니까?')) {
-                boardData = boardData.filter(item => item.id !== id);
-                localStorage.setItem('rion_board_data', JSON.stringify(boardData));
-                alert('삭제되었습니다.');
-                const activeFilterBtn = document.querySelector('.board-filter.bg-slate-800');
-                renderBoard(activeFilterBtn ? activeFilterBtn.innerText : '전체');
+            if (confirm('구글 시트에서 이 자료를 영구 삭제하시겠습니까?')) {
+                try {
+                    const res = await fetch(USER_DB_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: "deleteBoard", id: id })
+                    });
+                    const result = await res.json();
+                    if(result.success) {
+                        alert('삭제되었습니다.');
+                        loadBoardData(); // 서버에서 데이터 다시 불러오기
+                    } else {
+                        alert("삭제 실패: " + result.message);
+                    }
+                } catch(e) {
+                    alert("서버 통신 오류가 발생했습니다.");
+                }
             }
         }
 
-        // --- 2. 🔒 강력한 비회원 차단 로직 (최우선 확인) ---
+        // --- 2. 🔒 비회원 차단 확인 ---
         function checkIsLoggedIn() {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if (!loggedUser || loggedUser === "null" || loggedUser === "undefined" || loggedUser.trim() === "") {
@@ -461,7 +488,7 @@
             }
         });
 
-        // --- 자료실 다운로드 팝업 및 실제 PC 다운로드 로직 ---
+        // --- 자료실 다운로드 ---
         function openFileModal(id) {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -492,7 +519,7 @@
             document.getElementById('fileDownloadModal').classList.add('hidden');
         }
 
-        // --- 3. 📂 파일 실제 구글서버(GAS) 연동 업로드 ---
+        // --- 3. 📂 파일 업로드 (백엔드 승인 검증 연동) ---
         function checkAuthAndUpload() {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -505,6 +532,7 @@
 
         async function startRealUpload() {
             if (!checkIsLoggedIn()) return;
+            const loggedUser = localStorage.getItem('rion_logged_user');
             
             const category = document.getElementById('uploadCategory').value;
             const title = document.getElementById('uploadTitle').value;
@@ -516,9 +544,8 @@
             }
 
             const file = fileInput.files[0];
-            
             if(file.size > 10 * 1024 * 1024) {
-                alert("시스템 한도 초과: 10MB 이하의 파일만 업로드 가능합니다.");
+                alert("시스템 한도 초과: 10MB 이하의 파일만 자동 업로드 가능합니다.");
                 return;
             }
 
@@ -549,7 +576,10 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ 
-                            action: "upload", 
+                            action: "uploadBoard", 
+                            userId: loggedUser, 
+                            category: category,
+                            title: title,
                             fileName: file.name, 
                             mimeType: file.type, 
                             base64: base64Data 
@@ -557,17 +587,21 @@
                     });
                     
                     const result = await res.json();
-                    
                     clearInterval(interval);
                     
                     if(result.success) {
                         bar.style.width = '100%';
                         percentText.innerText = '100%';
-                        statusText.innerText = '✅ 업로드 및 게시판 등록 완료!';
+                        statusText.innerText = '✅ 구글 시트 게시판 실시간 등록 완료!';
                         statusText.className = 'text-sm font-bold text-blue-600 mb-3';
                         
                         setTimeout(() => {
-                            finishUploadAndSave(category, title, file.name, result.downloadUrl);
+                            alert("자료가 시스템 서버에 성공적으로 등록되었습니다.");
+                            document.getElementById('uploadCategory').value = "";
+                            document.getElementById('uploadTitle').value = "";
+                            document.getElementById('uploadFile').value = "";
+                            closeUploadModal();
+                            loadBoardData(); // 구글 시트에서 최신 상태 다시 불러오기
                         }, 800);
                     } else {
                         alert("업로드 실패: " + result.message);
@@ -575,43 +609,17 @@
                     }
                 } catch (error) {
                     clearInterval(interval);
-                    alert("서버 통신 중 오류가 발생했습니다. (앱스 스크립트 연결 확인 필요)");
+                    alert("서버 통신 중 오류가 발생했습니다.");
                     closeUploadModal();
                 }
             };
             reader.readAsDataURL(file);
         }
 
-        function finishUploadAndSave(category, title, fileName, downloadUrl) {
-            const today = new Date();
-            const dateString = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-
-            const newItem = {
-                id: boardData.length ? Math.max(...boardData.map(d => d.id)) + 1 : 1,
-                category: category, 
-                title: title, 
-                fileName: fileName,
-                downloadUrl: downloadUrl,
-                date: dateString
-            };
-
-            boardData.push(newItem);
-            localStorage.setItem('rion_board_data', JSON.stringify(boardData));
-
-            alert("자료가 시스템 서버에 성공적으로 등록되었습니다.");
-            
-            document.getElementById('uploadCategory').value = "";
-            document.getElementById('uploadTitle').value = "";
-            document.getElementById('uploadFile').value = "";
-            
-            closeUploadModal();
-            renderBoard(); 
-        }
-
         function closeUploadModal() {
             document.getElementById('uploadModal').classList.add('hidden');
             document.getElementById('closeUploadBtn').classList.remove('hidden');
-            document.getElementById('progressStatusText').innerText = '파일을 서버에 업로드 중입니다...';
+            document.getElementById('progressStatusText').innerText = '파일을 구글 시트 및 드라이브에 동기화 중입니다...';
             document.getElementById('progressStatusText').className = 'text-sm font-bold text-slate-700 mb-3';
             document.getElementById('progressBar').style.width = '0%';
         }
@@ -699,7 +707,8 @@
                 statusEl.classList.remove('hidden');
             }
             filterVideos('protection');
-            renderBoard('전체');
+            // 구글 시트에서 최신 데이터를 실시간으로 가져옴
+            loadBoardData(); 
         });
     </script>
 </body>
