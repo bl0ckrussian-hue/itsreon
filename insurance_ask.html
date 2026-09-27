@@ -1,1 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>잇츠리온 - 전문가 자문센터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #F8F9FA; }
+        .tab-btn.active { border-bottom: 2px solid #2563EB; color: #1E40AF; font-weight: bold; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
 
+    <header class="bg-slate-900 text-white p-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold" id="headerTitle">전문가 자문센터</h1>
+            <button onclick="window.close()" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded">닫기</button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full p-4 mt-4">
+        <!-- 탭 메뉴 -->
+        <div class="flex border-b border-slate-300 mb-6">
+            <button onclick="switchTab('intro')" id="tabIntro" class="tab-btn active w-1/2 py-3 text-center text-slate-600">자문위원 소개</button>
+            <button onclick="switchTab('board')" id="tabBoard" class="tab-btn w-1/2 py-3 text-center text-slate-600">자문하기 (게시판)</button>
+        </div>
+
+        <!-- [탭1] 자문위원 소개 영역 -->
+        <section id="sectionIntro" class="block">
+            <div class="bg-white rounded-xl shadow p-6 text-center border border-slate-200">
+                <!-- 이미지 폴더에 업로드된 사진을 구글 드라이브나 스크립트를 통해 불러와 표시 -->
+                <div class="w-32 h-32 mx-auto bg-slate-200 rounded-full mb-4 overflow-hidden border-2 border-blue-100 flex items-center justify-center">
+                    <span class="text-4xl text-slate-400">👤</span>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900 mb-1" id="expertName">불러오는 중...</h2>
+                <p class="text-sm text-blue-600 font-semibold mb-4" id="expertTypeBadge"></p>
+                <div class="text-left bg-slate-50 p-4 rounded-lg text-sm text-slate-700 space-y-2">
+                    <p><strong>주요 이력:</strong> <span id="expertHistory">데이터를 불러오는 중입니다...</span></p>
+                    <p><strong>전문 분야:</strong> <span id="expertSpecialty">데이터를 불러오는 중입니다...</span></p>
+                </div>
+                <!-- 관리자 전용 수정 버튼 -->
+                <div id="adminEditBtn" class="hidden mt-4 text-right">
+                    <button class="bg-slate-800 text-white text-xs px-3 py-1.5 rounded">프로필 수정 (관리자)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- [탭2] 자문하기 게시판 영역 -->
+        <section id="sectionBoard" class="hidden">
+            <div class="bg-white rounded-xl shadow p-6 border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold">자문 문의 게시판</h2>
+                    <button onclick="openWriteModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded shadow">글쓰기</button>
+                </div>
+                
+                <!-- 게시글 목록 (예시 틀) -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-t border-b border-slate-200">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold text-center w-16">번호</th>
+                                <th class="px-4 py-3 font-semibold">제목</th>
+                                <th class="px-4 py-3 font-semibold text-center w-24">작성자</th>
+                                <th class="px-4 py-3 font-semibold text-center w-24">상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boardList">
+                            <!-- JS를 통해 구글시트 내용을 불러와서 추가함 -->
+                            <tr>
+                                <td colspan="4" class="px-4 py-6 text-center text-slate-400">데이터를 불러오는 중입니다...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 글쓰기 모달 -->
+    <div id="writeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button onclick="closeWriteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            <h3 class="text-lg font-bold text-slate-900 mb-4" id="modalTitle">자문 글쓰기</h3>
+            
+            <form onsubmit="submitPost(event)" class="space-y-4 text-sm">
+                <div>
+                    <input type="text" id="postTitle" placeholder="제목을 입력하세요" required class="w-full px-3 py-2 border rounded focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <textarea id="postContent" rows="6" placeholder="자문 내용을 상세히 입력하세요." required class="w-full px-3 py-2 border rounded focus:border-blue-500 outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">관련 파일 첨부 (선택)</label>
+                    <input type="file" id="postFile" class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <div class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                    <input type="checkbox" id="isSecret" class="w-4 h-4 text-blue-600">
+                    <label for="isSecret" class="text-slate-700 font-semibold cursor-pointer">🔒 관리자와 작성자만 보는 비밀글로 작성</label>
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded shadow hover:bg-blue-700">등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 현재 로그인된 유저 확인
+        const loggedUser = localStorage.getItem('rion_logged_user');
+        
+        // URL에서 어떤 자문단인지 파악 (?type=변호사)
+        const urlParams = new URLSearchParams(window.location.search);
+        const expertType = urlParams.get('type') || '자문';
+
+        document.getElementById('headerTitle').innerText = `${expertType} 자문센터`;
+        document.getElementById('expertTypeBadge').innerText = `잇츠리온 ${expertType} 자문단`;
+        document.getElementById('modalTitle').innerText = `[${expertType}] 자문 신청하기`;
+
+        // 권한 검사 (외부에서 URL만 치고 들어올 경우 차단)
+        window.onload = function() {
+            if (!loggedUser) {
+                alert("회원만 접근 가능합니다. 메인페이지에서 로그인 해주세요.");
+                window.close();
+            }
+            // 여기서 구글 앱스 스크립트로 데이터를 비동기 요청하여 프로필과 게시글을 로드해야 합니다.
+        };
+
+        function switchTab(tab) {
+            document.getElementById('tabIntro').classList.remove('active');
+            document.getElementById('tabBoard').classList.remove('active');
+            document.getElementById('sectionIntro').classList.add('hidden');
+            document.getElementById('sectionBoard').classList.add('hidden');
+
+            if (tab === 'intro') {
+                document.getElementById('tabIntro').classList.add('active');
+                document.getElementById('sectionIntro').classList.remove('hidden');
+            } else {
+                document.getElementById('tabBoard').classList.add('active');
+                document.getElementById('sectionBoard').classList.remove('hidden');
+            }
+        }
+
+        function openWriteModal() {
+            document.getElementById('writeModal').classList.remove('hidden');
+        }
+        function closeWriteModal() {
+            document.getElementById('writeModal').classList.add('hidden');
+        }
+
+        function submitPost(e) {
+            e.preventDefault();
+            // 입력값 확인 및 전송 로직 (Apps Script 연동 필요)
+            alert("게시글이 성공적으로 등록되었습니다.\n(실제 DB 연동은 앱스 스크립트 연결이 필요합니다.)");
+            closeWriteModal();
+        }
+    </script>
+</body>
+</html>
