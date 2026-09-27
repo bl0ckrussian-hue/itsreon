@@ -605,5 +605,37 @@
             loadAssignedDBs(); 
         }
     </script>
+    <!-- 🛡️ 보안: 우클릭, 드래그, 소스보기(F12) 차단 스크립트 -->
+    <script>
+        // 1. 마우스 우클릭 금지
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // 2. 마우스 드래그(블록 지정) 금지
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+
+        // 3. 키보드 단축키 (F12, Ctrl+U 소스보기, Ctrl+C 복사 등) 금지
+        document.addEventListener('keydown', function(e) {
+            // F12 개발자 도구 차단
+            if (e.key === 'F12') {
+                e.preventDefault();
+            }
+            // Ctrl + Shift + I (개발자 도구 단축키) 차단
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+                e.preventDefault();
+            }
+            // Ctrl + U (페이지 소스 보기) 차단
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+                e.preventDefault();
+            }
+            // Ctrl + C (복사하기) 차단
+            if (e.ctrlKey && (e.key === 'C' || e.key === 'c')) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
