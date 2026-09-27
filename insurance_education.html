@@ -15,7 +15,6 @@
         .filter-inactive { background-color: #F1F5F9; color: #475569; }
         .filter-inactive:hover { background-color: #E2E8F0; }
         
-        /* 커스텀 파일 업로드 폼 디자인 */
         input[type="file"]::file-selector-button {
             border: 1px solid #CBD5E1;
             padding: 0.4rem 0.8rem;
@@ -35,7 +34,6 @@
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50">
 
-    <!-- 상단 헤더 -->
     <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -55,7 +53,6 @@
         </div>
     </header>
 
-    <!-- 메인 탭 네비게이션 -->
     <div class="bg-white border-b border-slate-200 sticky top-16 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex space-x-8">
@@ -79,7 +76,6 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="videoGrid">
-                
                 <div class="col-span-full flex items-center py-6 protection-divider">
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                     <span class="flex-shrink-0 mx-4 text-slate-800 font-black text-xl tracking-tight text-rose-600">보장성 세일즈 영상</span>
@@ -198,6 +194,7 @@
                     </div>
                 </div>
 
+                <!-- 법인 세일즈 타이틀 -->
                 <div class="col-span-full flex items-center py-6 mt-4 corporate-divider">
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                     <span class="flex-shrink-0 mx-4 text-slate-800 font-black text-xl tracking-tight text-blue-600">법인 세일즈 영상</span>
@@ -209,14 +206,13 @@
                     <h3 class="text-lg font-bold text-slate-600">법인 세일즈 영상은 아직 준비 중입니다.</h3>
                     <p class="text-sm text-slate-400 mt-2">유익한 강의로 곧 찾아뵙겠습니다.</p>
                 </div>
-
             </div>
         </div>
 
         <!-- ==================== [탭 2: 세일즈 자료실] ==================== -->
         <div id="sectionMaterial" class="hidden animate-fade-in">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <!-- ⭐️ 카테고리 9개 전면 교체 -->
+                <!-- 카테고리 9개 버튼 -->
                 <div class="flex flex-wrap gap-2">
                     <button onclick="filterBoard('전체')" class="board-filter bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">전체</button>
                     <button onclick="filterBoard('세일즈(상담)자료')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">세일즈(상담)자료</button>
@@ -243,7 +239,6 @@
                             <th class="p-4 font-bold text-center w-16">번호</th>
                             <th class="p-4 font-bold w-24 text-center">분류</th>
                             <th class="p-4 font-bold">자료 제목</th>
-                            <!-- ⭐️ 글쓴이 열 추가 -->
                             <th class="p-4 font-bold w-24 text-center">글쓴이</th>
                             <th class="p-4 font-bold w-28 text-center">등록일</th>
                             <th class="p-4 font-bold w-32 text-center">다운로드/관리</th>
@@ -315,13 +310,12 @@
             <form id="uploadFormContainer" class="space-y-4 text-sm block">
                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
                     <p class="text-xs text-blue-800 font-bold leading-relaxed">
-                        아래 첨부된 파일은 잇츠리온 공식 구글 드라이브(세일즈자료 폴더)에 자동으로 저장되며 <strong>모든 회원의 게시판에 실시간으로 공유</strong>됩니다.
+                        아래 첨부된 파일은 잇츠리온 공식 구글 드라이브에 저장되며 <strong>모든 회원의 게시판에 공유</strong>됩니다.
                     </p>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">카테고리</label>
                     <select id="uploadCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" required>
-                        <!-- ⭐️ 셀렉트 옵션 9개 전면 교체 -->
                         <option value="">분류 선택</option>
                         <option value="세일즈(상담)자료">세일즈(상담)자료</option>
                         <option value="TA자료">TA자료</option>
@@ -337,6 +331,11 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">게시글 자료 제목</label>
                     <input type="text" id="uploadTitle" placeholder="예: 2026 하반기 보장분석표" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500">
+                </div>
+                <!-- ⭐️ 내용 작성 (설명) 필드 신규 추가 -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">내용 작성 (설명)</label>
+                    <textarea id="uploadDescription" rows="3" placeholder="자료에 대한 간단한 설명을 입력하세요." required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">실제 파일 선택 (내 컴퓨터)</label>
@@ -359,12 +358,10 @@
     </div>
 
     <script>
-        // 메인 홈페이지 서버 (GAS 연동용)
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbxciSSQEVBsQJn2MilW466ns96VFb9EsDHi-r65oeMv5OCELK-Y3GhMnIaP5fk2w_xq/exec";
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycby2nv1joyuZ7MFPsdUKK9bhgwRhnJuWQd3kRFErZRLUmZfkbyHHevt5_Fl-RLKWbgEh/exec";
 
         let boardData = [];
 
-        // --- 구글 시트에서 실시간으로 데이터 불러오기 ---
         async function loadBoardData() {
             try {
                 const res = await fetch(USER_DB_URL, {
@@ -393,12 +390,10 @@
             const loggedUser = localStorage.getItem('rion_logged_user');
             const isAdmin = (loggedUser === '김성철' || loggedUser === '관리자');
 
-            // 내림차순 정렬 (최신글 위로)
             filtered.sort((a,b) => b.id - a.id).forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer';
                 
-                // ⭐️ 9개 카테고리에 맞는 뱃지 색상 매핑
                 let colorCls = "bg-blue-100 text-blue-700";
                 if(item.category==='세일즈(상담)자료') colorCls = "bg-indigo-100 text-indigo-700";
                 if(item.category==='TA자료') colorCls = "bg-pink-100 text-pink-700";
@@ -416,20 +411,22 @@
                     actionButtons += ` <button data-delete-id="${item.id}" class="delete-btn inline-block bg-white border border-rose-300 text-rose-500 hover:bg-rose-50 hover:text-rose-600 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm ml-1">삭제</button>`;
                 }
 
-                // ⭐️ 글쓴이 열(author) 반영하여 화면에 렌더링
+                // ⭐️ 제목 밑에 설명(description)이 표시되도록 UI 개선
                 row.innerHTML = `
-                    <td class="p-4 text-center text-slate-500">${filtered.length - index}</td>
-                    <td class="p-4 text-center"><span class="${colorCls} text-[10px] font-bold px-2 py-1 rounded">${item.category}</span></td>
-                    <td class="p-4 font-medium text-slate-800" onclick="openFileModal(${item.id})">${item.title}</td>
-                    <td class="p-4 text-center font-bold text-slate-600">${item.author || '관리자'}</td>
-                    <td class="p-4 text-center text-slate-500">${item.date}</td>
-                    <td class="p-4 text-center whitespace-nowrap">${actionButtons}</td>
+                    <td class="p-4 text-center text-slate-500 align-middle">${filtered.length - index}</td>
+                    <td class="p-4 text-center align-middle"><span class="${colorCls} text-[10px] font-bold px-2 py-1 rounded">${item.category}</span></td>
+                    <td class="p-4 cursor-pointer group align-middle" onclick="openFileModal(${item.id})">
+                        <div class="font-bold text-slate-800 group-hover:text-blue-600 transition">${item.title}</div>
+                        <div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">${item.description ? item.description : ''}</div>
+                    </td>
+                    <td class="p-4 text-center font-bold text-slate-600 align-middle">${item.author || '관리자'}</td>
+                    <td class="p-4 text-center text-slate-500 align-middle">${item.date}</td>
+                    <td class="p-4 text-center whitespace-nowrap align-middle">${actionButtons}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // --- 관리자 게시물 삭제 통신 ---
         async function handleDeleteBoardItem(id) {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if (loggedUser !== '김성철' && loggedUser !== '관리자') {
@@ -456,7 +453,6 @@
             }
         }
 
-        // --- 2. 🔒 비회원 차단 확인 ---
         function checkIsLoggedIn() {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if (!loggedUser || loggedUser === "null" || loggedUser === "undefined" || loggedUser.trim() === "") {
@@ -498,7 +494,6 @@
             }
         });
 
-        // --- 자료실 다운로드 ---
         function openFileModal(id) {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -529,7 +524,6 @@
             document.getElementById('fileDownloadModal').classList.add('hidden');
         }
 
-        // --- 3. 📂 파일 업로드 (백엔드 승인 검증 연동) ---
         function checkAuthAndUpload() {
             if (!checkIsLoggedIn()) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -542,15 +536,15 @@
 
         async function startRealUpload() {
             if (!checkIsLoggedIn()) return;
-            // ⭐️ 업로드 시 글쓴이의 이름(loggedUser)을 가져옵니다.
             const loggedUser = localStorage.getItem('rion_logged_user');
             
             const category = document.getElementById('uploadCategory').value;
             const title = document.getElementById('uploadTitle').value;
+            const description = document.getElementById('uploadDescription').value; // ⭐️ 설명 추가
             const fileInput = document.getElementById('uploadFile');
 
-            if (!category || !title || fileInput.files.length === 0) {
-                alert("카테고리, 제목, 파일을 모두 선택해주세요.");
+            if (!category || !title || !description || fileInput.files.length === 0) {
+                alert("카테고리, 제목, 설명, 파일을 모두 입력/선택해주세요.");
                 return;
             }
 
@@ -588,9 +582,10 @@
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ 
                             action: "uploadBoard", 
-                            userId: loggedUser, // 이 이름이 구글 시트 H열에 저장됩니다.
+                            userId: loggedUser, 
                             category: category,
                             title: title,
+                            description: description, // ⭐️ 설명 데이터 전송
                             fileName: file.name, 
                             mimeType: file.type, 
                             base64: base64Data 
@@ -610,9 +605,10 @@
                             alert("자료가 시스템 서버에 성공적으로 등록되었습니다.");
                             document.getElementById('uploadCategory').value = "";
                             document.getElementById('uploadTitle').value = "";
+                            document.getElementById('uploadDescription').value = ""; // ⭐️ 설명 초기화
                             document.getElementById('uploadFile').value = "";
                             closeUploadModal();
-                            loadBoardData(); // 구글 시트에서 최신 상태 다시 불러오기
+                            loadBoardData(); 
                         }, 800);
                     } else {
                         alert("업로드 실패: " + result.message);
@@ -635,7 +631,6 @@
             document.getElementById('progressBar').style.width = '0%';
         }
 
-        // --- 4. 탭 및 필터 기타 제어 ---
         function closeVideoModal() {
             document.getElementById('videoModal').classList.add('hidden');
             document.getElementById('videoIframe').src = ''; 
@@ -709,7 +704,6 @@
             renderBoard(category);
         }
 
-        // 페이지 최초 진입 시 기본 세팅
         document.addEventListener('DOMContentLoaded', () => {
             const loggedUser = localStorage.getItem('rion_logged_user');
             if(loggedUser && loggedUser !== "null" && loggedUser.trim() !== "") {
@@ -718,7 +712,6 @@
                 statusEl.classList.remove('hidden');
             }
             filterVideos('protection');
-            // 구글 시트에서 최신 데이터를 실시간으로 가져옴
             loadBoardData(); 
         });
     </script>
