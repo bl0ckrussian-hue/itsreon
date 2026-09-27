@@ -812,6 +812,11 @@
                 
                 if (data.success) {
                     currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+                    
+                    // ⭐️ 이 두 줄이 반드시 있어야 브라우저가 관리자임을 기억합니다!
+                    localStorage.setItem('rion_logged_user', data.name);
+                    localStorage.setItem('rion_logged_role', data.role); 
+                    
                     updateLoginUI();
                     closeModal('loginModal');
                     if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
