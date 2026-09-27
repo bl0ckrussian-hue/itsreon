@@ -78,7 +78,6 @@
                 <button onclick="filterVideos('corporate')" id="vFilter-corporate" class="filter-inactive px-5 py-2 rounded-full text-sm font-bold transition shadow-sm">법인 세일즈</button>
             </div>
 
-            <!-- 동영상 카드 그리드 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="videoGrid">
                 
                 <div class="col-span-full flex items-center py-6 protection-divider">
@@ -199,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- 법인 세일즈 타이틀 -->
                 <div class="col-span-full flex items-center py-6 mt-4 corporate-divider">
                     <div class="flex-grow border-t-2 border-slate-300"></div>
                     <span class="flex-shrink-0 mx-4 text-slate-800 font-black text-xl tracking-tight text-blue-600">법인 세일즈 영상</span>
@@ -218,21 +216,23 @@
         <!-- ==================== [탭 2: 세일즈 자료실] ==================== -->
         <div id="sectionMaterial" class="hidden animate-fade-in">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <!-- 원칙에 따른 7개 카테고리 적용 -->
+                <!-- ⭐️ 카테고리 9개 전면 교체 -->
                 <div class="flex flex-wrap gap-2">
                     <button onclick="filterBoard('전체')" class="board-filter bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">전체</button>
-                    <button onclick="filterBoard('생명보험')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">생명보험</button>
-                    <button onclick="filterBoard('손해보험')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">손해보험</button>
+                    <button onclick="filterBoard('세일즈(상담)자료')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">세일즈(상담)자료</button>
+                    <button onclick="filterBoard('TA자료')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">TA자료</button>
+                    <button onclick="filterBoard('고객관리')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">고객관리</button>
+                    <button onclick="filterBoard('장기(보장성)')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">장기(보장성)</button>
                     <button onclick="filterBoard('종신')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">종신</button>
                     <button onclick="filterBoard('연금')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">연금</button>
                     <button onclick="filterBoard('저축')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">저축</button>
-                    <button onclick="filterBoard('고객관리')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">고객관리</button>
-                    <button onclick="filterBoard('소개요청')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">소개요청</button>
+                    <button onclick="filterBoard('변액')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">변액</button>
+                    <button onclick="filterBoard('자격증')" class="board-filter bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold">자격증</button>
                 </div>
                 
-                <button onclick="checkAuthAndUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
+                <button onclick="checkAuthAndUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2 flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    내 PC 자료 올리기
+                    자료 올리기
                 </button>
             </div>
             
@@ -243,8 +243,10 @@
                             <th class="p-4 font-bold text-center w-16">번호</th>
                             <th class="p-4 font-bold w-24 text-center">분류</th>
                             <th class="p-4 font-bold">자료 제목</th>
-                            <th class="p-4 font-bold w-32 text-center">등록일</th>
-                            <th class="p-4 font-bold w-40 text-center">다운로드/관리</th>
+                            <!-- ⭐️ 글쓴이 열 추가 -->
+                            <th class="p-4 font-bold w-24 text-center">글쓴이</th>
+                            <th class="p-4 font-bold w-28 text-center">등록일</th>
+                            <th class="p-4 font-bold w-32 text-center">다운로드/관리</th>
                         </tr>
                     </thead>
                     <tbody id="boardBody" class="text-sm">
@@ -319,14 +321,17 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">카테고리</label>
                     <select id="uploadCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                        <!-- ⭐️ 셀렉트 옵션 9개 전면 교체 -->
                         <option value="">분류 선택</option>
-                        <option value="생명보험">생명보험</option>
-                        <option value="손해보험">손해보험</option>
+                        <option value="세일즈(상담)자료">세일즈(상담)자료</option>
+                        <option value="TA자료">TA자료</option>
+                        <option value="고객관리">고객관리</option>
+                        <option value="장기(보장성)">장기(보장성)</option>
                         <option value="종신">종신</option>
                         <option value="연금">연금</option>
                         <option value="저축">저축</option>
-                        <option value="고객관리">고객관리</option>
-                        <option value="소개요청">소개요청</option>
+                        <option value="변액">변액</option>
+                        <option value="자격증">자격증</option>
                     </select>
                 </div>
                 <div>
@@ -355,7 +360,7 @@
 
     <script>
         // 메인 홈페이지 서버 (GAS 연동용)
-        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbwE1mXSWtcbu9fHkAqvY4YJ3t1B_KStbnzGK4aSO_jODpvwM0E8sgp1bPyKPy-W9aeT/exec";
+        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbxciSSQEVBsQJn2MilW466ns96VFb9EsDHi-r65oeMv5OCELK-Y3GhMnIaP5fk2w_xq/exec";
 
         let boardData = [];
 
@@ -393,14 +398,17 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer';
                 
+                // ⭐️ 9개 카테고리에 맞는 뱃지 색상 매핑
                 let colorCls = "bg-blue-100 text-blue-700";
-                if(item.category==='종신') colorCls = "bg-purple-100 text-purple-700";
-                if(item.category==='손해보험') colorCls = "bg-rose-100 text-rose-700";
-                if(item.category==='생명보험') colorCls = "bg-emerald-100 text-emerald-700";
+                if(item.category==='세일즈(상담)자료') colorCls = "bg-indigo-100 text-indigo-700";
+                if(item.category==='TA자료') colorCls = "bg-pink-100 text-pink-700";
+                if(item.category==='고객관리') colorCls = "bg-purple-100 text-purple-700";
+                if(item.category==='장기(보장성)') colorCls = "bg-rose-100 text-rose-700";
+                if(item.category==='종신') colorCls = "bg-slate-200 text-slate-700";
                 if(item.category==='연금') colorCls = "bg-amber-100 text-amber-700";
-                if(item.category==='저축') colorCls = "bg-teal-100 text-teal-700";
-                if(item.category==='고객관리') colorCls = "bg-indigo-100 text-indigo-700";
-                if(item.category==='소개요청') colorCls = "bg-pink-100 text-pink-700";
+                if(item.category==='저축') colorCls = "bg-emerald-100 text-emerald-700";
+                if(item.category==='변액') colorCls = "bg-cyan-100 text-cyan-700";
+                if(item.category==='자격증') colorCls = "bg-fuchsia-100 text-fuchsia-700";
 
                 let actionButtons = `<button data-download-url="${item.id}" class="download-btn inline-block bg-white border border-slate-300 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm">내려받기</button>`;
                 
@@ -408,10 +416,12 @@
                     actionButtons += ` <button data-delete-id="${item.id}" class="delete-btn inline-block bg-white border border-rose-300 text-rose-500 hover:bg-rose-50 hover:text-rose-600 px-3 py-1.5 rounded text-xs font-bold transition shadow-sm ml-1">삭제</button>`;
                 }
 
+                // ⭐️ 글쓴이 열(author) 반영하여 화면에 렌더링
                 row.innerHTML = `
                     <td class="p-4 text-center text-slate-500">${filtered.length - index}</td>
                     <td class="p-4 text-center"><span class="${colorCls} text-[10px] font-bold px-2 py-1 rounded">${item.category}</span></td>
                     <td class="p-4 font-medium text-slate-800" onclick="openFileModal(${item.id})">${item.title}</td>
+                    <td class="p-4 text-center font-bold text-slate-600">${item.author || '관리자'}</td>
                     <td class="p-4 text-center text-slate-500">${item.date}</td>
                     <td class="p-4 text-center whitespace-nowrap">${actionButtons}</td>
                 `;
@@ -436,7 +446,7 @@
                     const result = await res.json();
                     if(result.success) {
                         alert('삭제되었습니다.');
-                        loadBoardData(); // 서버에서 데이터 다시 불러오기
+                        loadBoardData(); 
                     } else {
                         alert("삭제 실패: " + result.message);
                     }
@@ -532,6 +542,7 @@
 
         async function startRealUpload() {
             if (!checkIsLoggedIn()) return;
+            // ⭐️ 업로드 시 글쓴이의 이름(loggedUser)을 가져옵니다.
             const loggedUser = localStorage.getItem('rion_logged_user');
             
             const category = document.getElementById('uploadCategory').value;
@@ -577,7 +588,7 @@
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ 
                             action: "uploadBoard", 
-                            userId: loggedUser, 
+                            userId: loggedUser, // 이 이름이 구글 시트 H열에 저장됩니다.
                             category: category,
                             title: title,
                             fileName: file.name, 
