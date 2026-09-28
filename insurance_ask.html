@@ -709,8 +709,8 @@
             } catch(e) { alert("오류 발생"); }
             btn.innerText = "저장 및 반영"; btn.disabled = false;
         }
-
-       async function deleteAdvisorProfile() {
+        
+        async function deleteAdvisorProfile() {
             if(!confirm("자문위원 프로필과 사진을 영구 삭제하시겠습니까?")) return;
             
             // 💡 삭제 버튼 비활성화 (중복 클릭 방지)
