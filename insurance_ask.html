@@ -710,13 +710,41 @@
             btn.innerText = "저장 및 반영"; btn.disabled = false;
         }
 
-        async function deleteAdvisorProfile() {
+       async function deleteAdvisorProfile() {
             if(!confirm("자문위원 프로필과 사진을 영구 삭제하시겠습니까?")) return;
+            
+            // 💡 삭제 버튼 비활성화 (중복 클릭 방지)
+            const delBtnContainer = document.getElementById('detailDeleteBtnContainer');
+            const originalHtml = delBtnContainer.innerHTML;
+            delBtnContainer.innerHTML = '<button class="w-full bg-slate-200 text-slate-500 text-xs font-bold py-2 rounded cursor-not-allowed">삭제 처리 중...</button>';
+
             try {
-                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify({ action: "deleteAdvisor", expertType: expertType, rowIdx: currentDetailRowIdx, fileId: currentDetailFileId }) });
+                // 💡 수정: headers 규격을 명시하여 구글 앱스크립트 서버 오류(CORS) 방지
+                const res = await fetch(ASK_DB_URL, { 
+                    method: "POST", 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ 
+                        action: "deleteAdvisor", 
+                        expertType: expertType, 
+                        rowIdx: currentDetailRowIdx, 
+                        fileId: currentDetailFileId 
+                    }) 
+                });
+                
                 const result = await res.json();
-                if(result.success) { alert("삭제 완료되었습니다."); closeModal('advisorViewModal'); loadAllData(); }
-            } catch(e) { alert("삭제 실패"); }
+                
+                if(result.success) { 
+                    alert("삭제 완료되었습니다."); 
+                    closeModal('advisorViewModal'); 
+                    loadAllData(); // 화면 즉시 갱신
+                } else {
+                    alert("삭제 실패: " + result.message);
+                    delBtnContainer.innerHTML = originalHtml; // 롤백
+                }
+            } catch(e) { 
+                alert("삭제 중 통신 오류가 발생했습니다."); 
+                delBtnContainer.innerHTML = originalHtml; // 롤백
+            }
         }
     </script>
      <!-- 🛡️ 보안: 우클릭, 드래그, 소스보기(F12) 차단 스크립트 -->
