@@ -978,44 +978,59 @@
            }
        }
 
-       async function submitLogin() {
-           const userId = document.getElementById('loginId').value.trim(); 
-           const loginPw = document.getElementById('loginPw').value.trim();
+       async function submitLogin(forceLogin = false) {
+            const userId = document.getElementById('loginId').value.trim(); 
+            const loginPw = document.getElementById('loginPw').value.trim();
 
-           if (!userId || !loginPw) {
-               alert("이름과 사번을 입력해주세요."); return;
-           }
+            if (!userId || !loginPw) {
+                alert("이름과 사번을 입력해주세요."); return;
+            }
 
-           const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
-           btn.innerText = "로그인 중...";
+            const btn = document.getElementById('loginModal').querySelector('button[onclick="submitLogin()"]');
+            btn.innerText = "로그인 중...";
 
-           try {
-               const res = await fetch(USER_DB_URL, {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                   body: JSON.stringify({ action: "login", userId: userId, password: loginPw })
-               });
-               const data = await res.json();
-               
-               if (data.success) {
-                  currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
-                  
-                  localStorage.setItem('rion_logged_user', data.name);
-                  localStorage.setItem('rion_logged_role', data.role); 
-                  
-                  updateLoginUI();
-                  closeModal('loginModal');
-                  if(currentUser.status === '승인') alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
-                   else alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
-               } else {
-                  alert(data.message);
-               }
-           } catch (e) {
-               alert("로그인 통신 오류가 발생했습니다.");
-           } finally {
-               btn.innerText = "로그인 하기";
-           }
-       }
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    // ⭐️ 강제 로그인 옵션(force) 추가 전송
+                    body: JSON.stringify({ action: "login", userId: userId, password: loginPw, force: forceLogin })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                   currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+                   
+                   localStorage.setItem('rion_logged_user', data.name);
+                   if(data.role) localStorage.setItem('rion_logged_role', data.role); 
+                   // ⭐️ 고유 세션 ID 저장 (자동 로그아웃 감지용)
+                   if(data.sessionId) localStorage.setItem('rion_session_id', data.sessionId);
+                   
+                   updateLoginUI();
+                   closeModal('loginModal');
+                   
+                   if(currentUser.status === '승인') {
+                       alert(`환영합니다! ${currentUser.name}님, 정상 승인되었습니다.`);
+                       startSessionCheck(); // ⭐️ 주기적인 로그인 상태 체크 시작
+                   } else {
+                       alert('로그인 되었습니다. 현재 관리자 승인 대기 중입니다.');
+                   }
+                } 
+                // ⭐️ 이미 로그인 되어 있는 경우 확인창 띄우기
+                else if (data.alreadyLoggedIn) {
+                   btn.innerText = "로그인 하기";
+                   if (confirm("기존 로그인을 로그아웃 하시겠습니까?\n확인을 누르시면 기존 자리에서 자동 로그아웃됩니다.")) {
+                       submitLogin(true); // 강제 로그인 재실행
+                   }
+                } else {
+                   alert(data.message);
+                   btn.innerText = "로그인 하기";
+                }
+            } catch (e) {
+                alert("로그인 통신 오류가 발생했습니다.");
+                btn.innerText = "로그인 하기";
+            }
+        }
 
        async function submitWithdraw() {
            const userId = document.getElementById('withdrawId').value.trim();
@@ -1086,13 +1101,57 @@
            }
        }
 
-       function logoutUser() {
-           currentUser = { isLoggedIn: false, name: '', status: '' };
-          localStorage.removeItem('rion_logged_user');
-           updateLoginUI();
-           alert('로그아웃 되었습니다.');
-       }
+      function logoutUser() {
+            currentUser = { isLoggedIn: false, name: '', status: '' };
+            localStorage.removeItem('rion_logged_user');
+            localStorage.removeItem('rion_logged_role');
+            localStorage.removeItem('rion_session_id'); // ⭐️ 세션 삭제
+            
+            if (typeof sessionCheckTimer !== 'undefined' && sessionCheckTimer) {
+                clearInterval(sessionCheckTimer); // ⭐️ 세션 체크 중지
+            }
+            
+            updateLoginUI();
+            alert('로그아웃 되었습니다.');
+        }
+      // --- ⭐️ 다중 접속 감지 및 자동 로그아웃 엔진 ---
+      let sessionCheckTimer = null;
 
+      function startSessionCheck() {
+          if (sessionCheckTimer) clearInterval(sessionCheckTimer);
+            
+          // 30초마다 1번씩 백그라운드에서 서버와 통신하여 현재 세션이 유효한지 확인합니다.
+          sessionCheckTimer = setInterval(async () => {
+              if (!currentUser.isLoggedIn) return;
+                
+              const currentSession = localStorage.getItem('rion_session_id');
+              if (!currentSession) return;
+
+              try {
+                  const res = await fetch(USER_DB_URL, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                      body: JSON.stringify({ action: "checkSession", userId: currentUser.name, sessionId: currentSession })
+                  });
+                  const data = await res.json();
+                    
+                  // 서버에서 세션 만료(다른 기기에서 로그인됨) 응답이 오면
+                  if (data.sessionExpired) {
+                      clearInterval(sessionCheckTimer);
+                      alert("다른 기기에서 로그인이 발생하여 자동으로 로그아웃 되었습니다.");
+                        
+                      // 로그아웃 처리
+                      currentUser = { isLoggedIn: false, name: '', status: '' };
+                      localStorage.removeItem('rion_logged_user');
+                      localStorage.removeItem('rion_logged_role');
+                      localStorage.removeItem('rion_session_id');
+                      updateLoginUI();
+                  }
+              } catch (e) {
+                  // 백그라운드 통신 오류는 사용자에게 알리지 않고 무시
+              }
+          }, 30000); // 30초 간격
+        }
    </script>
 <!-- 🛡️ 보안: 우클릭, 드래그, 소스보기(F12) 차단 스크립트 -->
    <script>
@@ -1125,6 +1184,7 @@
               e.preventDefault();
            }
        });
+       
    </script>   
 </body>
 </html>
