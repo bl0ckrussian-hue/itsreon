@@ -812,34 +812,39 @@
        }
 
        function checkAuthAndOpen(modalId) {
-           // 1. 비회원 기능
-           if (modalId === 'indemnityCalcModal') {
-              window.open('silbi_calculator.html', '_blank'); return;
-           }
-           if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal' || modalId === 'coverageModal') {
-              openModal('comingSoonModal'); return;
-           }
-           
-           // 2. 회원 기능
-           if (!currentUser.isLoggedIn) {
-               alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
-               openModal('loginModal');
-           } else if (currentUser.status !== '승인') {
-               alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
-           } else {
-              localStorage.setItem('rion_logged_user', currentUser.name); 
-             
-               if (modalId === 'dbAssignPage') {
-                  window.open('db_assign.html', '_blank'); 
-               } else if (modalId === 'dutyModal') {
-                  window.open('duty_analysis.html', '_blank');
-               } else if (modalId === 'contractDashboardModal') {
-                  window.open('db_carts.html', '_blank');
-               } else {
-                  openModal(modalId); 
-               }
-           }
-       }
+            // 1. 비회원 기능
+            if (modalId === 'indemnityCalcModal') {
+               window.open('silbi_calculator.html', '_blank'); return;
+            }
+            // coverageModal(보장분석)을 여기서 빼고 아래 회원 전용 기능으로 이동시켰습니다.
+            if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal') {
+               openModal('comingSoonModal'); return;
+            }
+            
+            // 2. 회원 기능
+            if (!currentUser.isLoggedIn) {
+                alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
+                openModal('loginModal');
+            } else if (currentUser.status !== '승인') {
+                alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용하실 수 있습니다.');
+            } else {
+               localStorage.setItem('rion_logged_user', currentUser.name); 
+              
+                if (modalId === 'dbAssignPage') {
+                   window.open('db_assign.html', '_blank'); 
+                } else if (modalId === 'dutyModal') {
+                   window.open('duty_analysis.html', '_blank');
+                } else if (modalId === 'contractDashboardModal') {
+                   window.open('db_carts.html', '_blank');
+                } else if (modalId === 'coverageModal') { // 👈 AI보장분석 새 창 연결 완벽 복구
+                   window.open('insurance_analysis.html', '_blank');
+                } else if (modalId === 'unclaimedMoneyModal') { 
+                   window.open('insurance_money.html', '_blank');
+                } else {
+                   openModal(modalId); 
+                }
+            }
+        }
 
        // ⭐️ 회원정보 창 띄우기 (이름만 표시하고 비밀번호 요구)
        function openMemberInfo() {
