@@ -643,7 +643,7 @@ ${markdownRows}
             }
 
             try {
-                progressText.innerText = `☁️ 클라우드로 여러 개의 파일을 안전하게 병합 전송 중입니다...`;
+                progressText.innerText = `☁️ 여러 개의 파일을 안전하게 병합 전송 중입니다...`;
                 startFakeProgress(0, 30, 200); 
 
                 const fileDataArray = [];
@@ -651,7 +651,7 @@ ${markdownRows}
                     fileDataArray.push(await getBase64(selectedPdfFiles[i]));
                 }
 
-                progressText.innerText = "⚙️ [클라우드] 암호 해제 및 멀티 엑셀 파일 병합 중...";
+                progressText.innerText = "⚙️ 데이터 분석 중...";
                 startFakeProgress(30, 60, 300); 
 
                 const response = await fetch(CLOUD_FUNCTION_URL, {
@@ -714,7 +714,7 @@ ${markdownRows}
                     </div>
                 `;
 
-                progressText.innerText = "🤖 AI 감독관이 3중 교차 검증을 통해 심사 보고서를 작성 중입니다...";
+                progressText.innerText = "🤖 심사 보고서를 작성 중입니다...";
                 startFakeProgress(60, 95, 800); 
 
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
