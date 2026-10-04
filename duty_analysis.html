@@ -326,7 +326,6 @@
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
 
-            // ⭐️ 6대 중증 질환 키워드 배열
             const critical6Keywords = ["암", "악성신생물", "협심증", "심근경색", "뇌졸중", "뇌출혈", "뇌경색", "간경화", "간경변", "심장판막"];
 
             for (let dis in diseaseAgg) {
@@ -337,7 +336,8 @@
                 let validVisitCnt = 0; 
                 const yearlyVisits = {};
                 let recent3Month = false;
-                let has5YearRecord = false; // 5년 이내 진료기록 여부 확인
+                let hasPriorRecord = false;
+                let has5YearRecord = false; 
                 
                 agg.visitDates.forEach(d => {
                     const diff = diffDaysFn(d);
@@ -346,27 +346,41 @@
                         has5YearRecord = true;
                         const y = d.substring(0, 4);
                         yearlyVisits[y] = (yearlyVisits[y] || 0) + 1;
+                        
+                        if (diff <= 90) recent3Month = true;
+                        else if (diff > 90) hasPriorRecord = true;
                     }
-                    if (diff >= 0 && diff <= 90) recent3Month = true;
                 });
 
-                const validAdmits = agg.admits.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
-                if (validAdmits.length > 0) has5YearRecord = true;
+                const validAdmits = agg.admits.filter(e => {
+                    const diff = diffDaysFn(e.date);
+                    if (diff >= 0 && diff <= 365 * 5) {
+                        has5YearRecord = true;
+                        if (diff <= 90) recent3Month = true;
+                        else if (diff > 90) hasPriorRecord = true;
+                        return true;
+                    }
+                    return false;
+                });
 
                 const validSurgs = agg.surgs.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
                 const validTests = agg.tests.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365);
 
-                // ⭐️ 6대 질병 필터링 (5년 이내 통원 또는 입원 기록이 있는 경우에만)
                 let isCritical6 = false;
                 if (has5YearRecord) {
                     for (let kw of critical6Keywords) {
                         if (dis.includes(kw)) {
                             isCritical6 = true;
-                            isTarget = true; // 강제 포함
+                            isTarget = true;
                             reason.push("6대질병 치료력");
                             break;
                         }
                     }
+                }
+
+                let isSimplified3MonthNew = false;
+                if (recent3Month && !hasPriorRecord) {
+                    isSimplified3MonthNew = true;
                 }
 
                 if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
@@ -376,6 +390,10 @@
                 if (validVisitCnt >= 7) { isTarget = true; reason.push("7일이상치료"); }
                 if (agg.totalMedDays >= 30) { isTarget = true; reason.push("30일이상투약"); }
 
+                if (isSimplified3MonthNew) {
+                    reason.push("간편심사_3개월신규");
+                }
+
                 if (!isTarget) continue;
 
                 let visitStr = `${validVisitCnt}회`;
@@ -384,15 +402,15 @@
                     visitStr = `${validVisitCnt}회<br>(${yearList})`;
                 }
 
-                const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
-                const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
+                const allDates = [...agg.visitDates.filter(d => diffDaysFn(d) >= 0 && diffDaysFn(d) <= 365 * 5), ...validAdmits.map(a => a.date)].sort();
+                const firstDate = allDates.length > 0 ? allDates[0] : "-";
+                const lastDate = allDates.length > 0 ? allDates[allDates.length - 1] : "-";
                 
                 const fDateFmt = firstDate || "-";
                 const lDateFmt = lastDate || "-";
                 
                 const hospitalsStr = agg.hospitals.join(', ');
                 
-                // 중복 제거 후 합치기
                 const uniqueReasons = [...new Set(reason)];
                 const reasonStr = uniqueReasons.join(', ');
 
@@ -403,16 +421,24 @@
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
                 let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
 
-                const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
+                const medNamesStr = agg.medNames.length > 0 ? `[처방] ${agg.medNames.join(', ')}` : "";
 
-                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
+                // 1. 메인 행 출력 (약물을 제거하고 병명만 표기)
+                markdownRows += `| ${dis} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
+
+                // 2. 처방 내역을 하부 행으로 추가하고 나머지 칸은 하이픈(-)으로 통합 기재
+                if (medNamesStr) {
+                    markdownRows += `| ↳ | **${medNamesStr}** | - | - | - | - | - | - | - | - |\n`;
+                }
 
                 validAdmits.forEach(ad => {
-                    markdownRows += `| ↳ | | ${ad.date} | ${ad.date} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
+                    let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
                 });
 
                 validSurgs.forEach(sg => {
-                    markdownRows += `| ↳ | | ${sg.date} | ${sg.date} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
+                    let dFmt = sg.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
                 });
             }
 
@@ -425,13 +451,11 @@
 
 [절대원칙 지침]
 1. [AI 3중 검증 로직]: 
-   - 심사자 A와 B가 제공된 데이터를 분석하여 병명과 약물([처방: 약품명...])의 연관성을 교차로 검증합니다.
-   - 당신(AI 감독관)은 A와 B의 의견을 취합하여, 주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
-   - 유추 기록을 마친 후 처방약 텍스트 \`[처방: ...]\` 원문은 표에서 지웁니다.
-2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
-3. [비고란 출력 원칙]: 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하고 그 외 표현은 금지합니다.
-
-🕒 **분석 요청 시점(대한민국 서울 기준):** ${todayDate}
+   - 하부 행(↳)에 표기된 \`[처방] 약품명...\`을 바탕으로, 주상병과 명백히 다른 별개의 질환 치료목적으로 보이는 약일 경우에만 1열의 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
+   - 분석 후 \`[처방] 약품명...\` 하부 행(↳)은 지우지 말고 그대로 출력하십시오.
+2. [원문 조작 금지]: 추출된 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 처방 내역, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하십시오.
+   👉 **단, 표에 '간편심사_3개월신규'가 적혀있다면 출력 시 '3개월내 내원(신규)'로 글자를 바꾸어 출력하십시오.**
 
 ---
 **[사전 완성된 마크다운 데이터 (AI 교차 검증용 원본)]**
@@ -448,7 +472,7 @@ ${markdownRows}
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- | :---: |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(위 1번 표에서 입원 및 수술 이력이 있는 행(↳ 포함)만 그대로 복사하여 기재. 단순 통원만 있는 건은 제외)*
+*(위 1번 표 전체를 바탕으로, '입원', '수술', '6대질병 치료력' 이력이 있거나 비고란에 '3개월내 내원(신규)'가 포함된 행만 필터링하여 기재하십시오. 기존에 치료받던 단순 통원만 있는 건은 엄격히 제외합니다. 대상이 없으면 '해당 없음'으로 기재하십시오.)*
 `;
             return { prompt, summaryCounts, markdownRows };
         }
@@ -468,8 +492,8 @@ ${markdownRows}
 
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
+            let summaryTab2 = { visit3mCount: 0, surg: 0, admit: 0, med30: 0, visit7: 0 }; 
 
-            // ⭐️ 6대 중증 질환 키워드 배열
             const critical6Keywords = ["암", "악성신생물", "협심증", "심근경색", "뇌졸중", "뇌출혈", "뇌경색", "간경화", "간경변", "심장판막"];
 
             for (let dis in diseaseAgg) {
@@ -479,9 +503,11 @@ ${markdownRows}
 
                 let validVisitCnt = 0; 
                 const yearlyVisits = {};
-                let recent3Month = false;
+                let hasRecent3MonthRecord = false; 
+                let hasPriorRecord = false;   
                 let has5YearRecord = false;
                 
+                // 과거 전체 기록 중 기준일 이전 5년 내역만 검사
                 agg.visitDates.forEach(d => {
                     const diff = diffDaysFn(d);
                     if (diff >= 0 && diff <= 365 * 5) {
@@ -489,17 +515,26 @@ ${markdownRows}
                         has5YearRecord = true;
                         const y = d.substring(0, 4);
                         yearlyVisits[y] = (yearlyVisits[y] || 0) + 1;
+                        
+                        if (diff <= 90) hasRecent3MonthRecord = true;
+                        else if (diff > 90) hasPriorRecord = true;
                     }
-                    if (diff >= 0 && diff <= 90) recent3Month = true;
                 });
 
-                const validAdmits = agg.admits.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
-                if (validAdmits.length > 0) has5YearRecord = true;
+                const validAdmits = agg.admits.filter(e => {
+                    const diff = diffDaysFn(e.date);
+                    if (diff >= 0 && diff <= 365 * 5) {
+                        has5YearRecord = true;
+                        if (diff <= 90) hasRecent3MonthRecord = true;
+                        else if (diff > 90) hasPriorRecord = true;
+                        return true;
+                    }
+                    return false;
+                });
                 
                 const validSurgs = agg.surgs.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
                 const validTests = agg.tests.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365);
 
-                // ⭐️ 6대 질병 필터링
                 let isCritical6 = false;
                 if (has5YearRecord) {
                     for (let kw of critical6Keywords) {
@@ -512,14 +547,39 @@ ${markdownRows}
                     }
                 }
 
-                if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
+                // 3개월 이내에는 있는데 과거 5년간 없었던 질환 = 신규발생
+                let isSimplified3MonthNew = false;
+                if (hasRecent3MonthRecord && !hasPriorRecord) {
+                    isSimplified3MonthNew = true;
+                }
+
+                if (hasRecent3MonthRecord) { isTarget = true; reason.push("3개월내 내원"); }
                 if (validTests.length > 0) { isTarget = true; reason.push("1년내 검사"); }
                 if (validAdmits.length > 0) { isTarget = true; reason.push("입원"); }
                 if (validSurgs.length > 0) { isTarget = true; reason.push("수술"); }
                 if (validVisitCnt >= 7) { isTarget = true; reason.push("7일이상치료"); }
-                if (agg.totalMedDays >= 30) { isTarget = true; reason.push("30일이상투약"); }
 
-                if (!isTarget) continue;
+                let validMedDays = 0;
+                for (let d in agg.meds) {
+                    const diff = diffDaysFn(d);
+                    if (diff >= 0 && diff <= 365 * 5) {
+                        validMedDays += agg.meds[d];
+                    }
+                }
+                if (validMedDays >= 30) { isTarget = true; reason.push("30일이상투약"); }
+
+                if (isSimplified3MonthNew) {
+                    reason.push("간편심사_3개월신규");
+                }
+
+                if (!isTarget || (validVisitCnt === 0 && validAdmits.length === 0)) continue;
+
+                // 기계약 분석 전용 요약 카드 카운트 누적
+                if (hasRecent3MonthRecord) summaryTab2.visit3mCount++;
+                summaryTab2.surg += validSurgs.length;
+                summaryTab2.admit += validAdmits.length;
+                if (validMedDays >= 30) summaryTab2.med30++;
+                if (validVisitCnt >= 7) summaryTab2.visit7++;
 
                 let visitStr = `${validVisitCnt}회`;
                 if (validVisitCnt >= 7 && Object.keys(yearlyVisits).length > 0) {
@@ -527,8 +587,9 @@ ${markdownRows}
                     visitStr = `${validVisitCnt}회<br>(${yearList})`;
                 }
 
-                const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
-                const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
+                const allDates = [...agg.visitDates.filter(d => diffDaysFn(d) >= 0 && diffDaysFn(d) <= 365 * 5), ...validAdmits.map(a => a.date)].sort();
+                const firstDate = allDates.length > 0 ? allDates[0] : "-";
+                const lastDate = allDates.length > 0 ? allDates[allDates.length - 1] : "-";
                 
                 const fDateFmt = firstDate || "-";
                 const lDateFmt = lastDate || "-";
@@ -545,9 +606,12 @@ ${markdownRows}
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
                 let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
 
-                const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
+                markdownRows += `| ${dis} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
 
-                markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
+                const medNamesStr = (validMedDays > 0 && agg.medNames.length > 0) ? `[처방] ${agg.medNames.join(', ')}` : "";
+                if (medNamesStr) {
+                    markdownRows += `| ↳ | **${medNamesStr}** | - | - | - | - | - | - | - | - |\n`;
+                }
 
                 validAdmits.forEach(ad => {
                     let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
@@ -561,16 +625,19 @@ ${markdownRows}
             }
 
             if(markdownRows === "") markdownRows = "| 기계약 고지위반 의심내역 없음 | - | - | - | - | - | - | - | - | - |\n";
-            const targetDateStr = targetKST.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const targetDateStr = targetKST.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
             const prompt = `[시스템 설정 및 역할]
 당신은 최고 수준의 보험 심사 시스템 내 'AI 감독관' 입니다.
-🕒 **분석 요청 시점(청약일 기준):** ${targetDateStr}
+🕒 **분석 요청 시점(입력된 청약일 기준):** ${targetDateStr}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
-1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다.
-2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
-3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하고 그 외 표현은 금지합니다.
+1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다. 
+   - 하부 행(↳)에 표기된 \`[처방] 약품명...\`을 바탕으로 1열의 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
+   - 분석 후 \`[처방] 약품명...\` 하부 행(↳)은 지우지 말고 그대로 출력하십시오.
+2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 처방 내역, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하십시오.
+   👉 **단, 표에 '간편심사_3개월신규'가 적혀있다면 출력 시 '3개월내 내원(신규)'로 글자를 바꾸어 출력하십시오.**
 
 ---
 **[사전 완성된 마크다운 데이터]**
@@ -587,9 +654,9 @@ ${markdownRows}
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- | :---: |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(위 표에서 입원 및 수술 이력이 있는 행만 복사하여 기재 / 단순 통원 제외)*
+*(위 1번 표 전체를 바탕으로, '입원', '수술', '6대질병 치료력' 이력이 있거나 비고란에 '3개월내 내원(신규)'가 포함된 행만 필터링하여 기재하십시오. 기존에 치료받던 단순 통원만 있는 건은 엄격히 제외합니다. 대상이 없으면 '해당 없음'으로 기재하십시오.)*
 `;
-            return prompt;
+            return { prompt, summaryTab2 };
         }
 
         async function callGeminiApi(promptText, key) {
@@ -695,7 +762,41 @@ ${markdownRows}
                     <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${analysisData.detectedInfo.long_term_meds.join('\n') || '없음'}</pre>
                 `;
 
-                document.getElementById('dutySummaryCards').innerHTML = `
+                // ⭐️ 1. 신규 분석 요약 카드 5개 생성 (3개월내 내원 추가)
+                const now = new Date();
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const today = new Date(utc + (9 * 60 * 60 * 1000));
+                let visit3mCountTab1 = 0;
+                
+                for (let dis in analysisData.diseaseAgg) {
+                    let recent3Month = false;
+                    const agg = analysisData.diseaseAgg[dis];
+                    
+                    agg.visitDates.forEach(d => {
+                        if (!d || d.length < 8) return;
+                        const dt = new Date(parseInt(d.substring(0, 4)), parseInt(d.substring(5, 7)) - 1, parseInt(d.substring(8, 10)));
+                        const diffDays = Math.floor((today.getTime() - dt.getTime()) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 0 && diffDays <= 90) recent3Month = true;
+                    });
+                    
+                    agg.admits.forEach(a => {
+                        const d = a.date;
+                        if (!d || d.length < 8) return;
+                        const dt = new Date(parseInt(d.substring(0, 4)), parseInt(d.substring(5, 7)) - 1, parseInt(d.substring(8, 10)));
+                        const diffDays = Math.floor((today.getTime() - dt.getTime()) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 0 && diffDays <= 90) recent3Month = true;
+                    });
+                    
+                    if (recent3Month) visit3mCountTab1++;
+                }
+
+                const summaryCardsEl = document.getElementById('dutySummaryCards');
+                summaryCardsEl.className = "grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs flex-shrink-0";
+                summaryCardsEl.innerHTML = `
+                    <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-amber-600 block">3개월내 내원</span>
+                        <span class="text-lg font-black text-amber-700 mt-0.5 block">${visit3mCountTab1} 건</span>
+                    </div>
                     <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
                         <span class="text-[10px] font-bold text-rose-600 block">수술/시술</span>
                         <span class="text-lg font-black text-rose-700 mt-0.5 block">${summaryCounts.surg} 건</span>
@@ -720,6 +821,7 @@ ${markdownRows}
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
                 currentTab1Markdown = aiMarkdown1;
 
+                // ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 5개 카드 삽입)
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
                     let fullOldMarkdown = "";
@@ -732,15 +834,40 @@ ${markdownRows}
                             
                             progressText.innerText = `⏳ 계약 #${c + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
                             
-                            const promptTab2 = buildViolationCheckPrompt(analysisData, targetDateObj, fileNames);
+                            const { prompt: promptTab2, summaryTab2 } = buildViolationCheckPrompt(analysisData, targetDateObj, fileNames);
                             const aiRespOld = await callGeminiApi(promptTab2, "");
                             
-                            fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
+                            const cardsHtml = `
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs mb-4">
+                                <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-100 text-center shadow-sm">
+                                    <span class="text-[10px] font-bold text-amber-600 block">3개월내 내원</span>
+                                    <span class="text-lg font-black text-amber-700 mt-0.5 block">${summaryTab2.visit3mCount} 건</span>
+                                </div>
+                                <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
+                                    <span class="text-[10px] font-bold text-rose-600 block">수술/시술</span>
+                                    <span class="text-lg font-black text-rose-700 mt-0.5 block">${summaryTab2.surg} 건</span>
+                                </div>
+                                <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100 text-center shadow-sm">
+                                    <span class="text-[10px] font-bold text-blue-600 block">입원</span>
+                                    <span class="text-lg font-black text-blue-700 mt-0.5 block">${summaryTab2.admit} 건</span>
+                                </div>
+                                <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 text-center shadow-sm">
+                                    <span class="text-[10px] font-bold text-emerald-600 block">30일 이상 투약</span>
+                                    <span class="text-lg font-black text-emerald-700 mt-0.5 block">${summaryTab2.med30} 건</span>
+                                </div>
+                                <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 text-center shadow-sm">
+                                    <span class="text-[10px] font-bold text-indigo-600 block">7일 이상 치료</span>
+                                    <span class="text-lg font-black text-indigo-700 mt-0.5 block">${summaryTab2.visit7} 건</span>
+                                </div>
+                            </div>`;
+
+                            fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + cardsHtml + "\n\n" + aiRespOld + "\n\n---";
                         }
                     }
                     currentTab2Markdown = fullOldMarkdown;
                     document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>`;
                     document.getElementById('dutyAiReportBox2').innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
+                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 화면에 강제 노출
                     document.getElementById('tab2Content').classList.add('hidden');
                 } else {
                     currentTab2Markdown = "";
