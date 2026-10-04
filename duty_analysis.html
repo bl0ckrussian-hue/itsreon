@@ -740,7 +740,40 @@ ${markdownRows}
                     <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${analysisData.detectedInfo.long_term_meds.join('\n') || '없음'}</pre>
                 `;
 
-                document.getElementById('dutySummaryCards').innerHTML = `
+                const now = new Date();
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const today = new Date(utc + (9 * 60 * 60 * 1000));
+                let visit3mCount = 0;
+                
+                for (let dis in analysisData.diseaseAgg) {
+                    let recent3Month = false;
+                    const agg = analysisData.diseaseAgg[dis];
+                    
+                    agg.visitDates.forEach(d => {
+                        if (!d || d.length < 8) return;
+                        const dt = new Date(parseInt(d.substring(0, 4)), parseInt(d.substring(5, 7)) - 1, parseInt(d.substring(8, 10)));
+                        const diffDays = Math.floor((today.getTime() - dt.getTime()) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 0 && diffDays <= 90) recent3Month = true;
+                    });
+                    
+                    agg.admits.forEach(a => {
+                        const d = a.date;
+                        if (!d || d.length < 8) return;
+                        const dt = new Date(parseInt(d.substring(0, 4)), parseInt(d.substring(5, 7)) - 1, parseInt(d.substring(8, 10)));
+                        const diffDays = Math.floor((today.getTime() - dt.getTime()) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 0 && diffDays <= 90) recent3Month = true;
+                    });
+                    
+                    if (recent3Month) visit3mCount++;
+                }
+
+                const summaryCardsEl = document.getElementById('dutySummaryCards');
+                summaryCardsEl.className = "grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs flex-shrink-0";
+                summaryCardsEl.innerHTML = `
+                    <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-100 text-center shadow-sm">
+                        <span class="text-[10px] font-bold text-amber-600 block">3개월내 내원</span>
+                        <span class="text-lg font-black text-amber-700 mt-0.5 block">${visit3mCount} 건</span>
+                    </div>
                     <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
                         <span class="text-[10px] font-bold text-rose-600 block">수술/시술</span>
                         <span class="text-lg font-black text-rose-700 mt-0.5 block">${summaryCounts.surg} 건</span>
@@ -787,8 +820,9 @@ ${markdownRows}
                         }
                     }
                     currentTab2Markdown = fullOldMarkdown;
-                    document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>`;
+                    document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600">계약 체결일(청약일) 기준으로 고지위반 사항을 점검하였습니다.</p>`;
                     document.getElementById('dutyAiReportBox2').innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
+                    document.getElementById('dutyAiReportBox2').classList.remove('hidden');
                     document.getElementById('tab2Content').classList.add('hidden');
                 } else {
                     currentTab2Markdown = "";
