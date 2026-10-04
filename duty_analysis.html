@@ -821,10 +821,14 @@ ${markdownRows}
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
                 currentTab1Markdown = aiMarkdown1;
 
-                // ⭐️ 핵심 1: 홈페이지 화면에서 [처방] 내역 열을 가로로 하나로 통합(colspan=9)해주는 마법의 로직!
+                // ⭐️ 핵심 1: 신규심사 홈페이지 화면에서 [처방] 내역 열을 가로로 하나로 통합(colspan=9)
                 let htmlView1 = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
-                htmlView1 = htmlView1.replace(/<td>↳<\/td>\s*<td>(.*?)\[처방\](.*?)<\/td>(\s*<td>.*?<\/td>){8}/g, '<td>↳</td><td colspan="9" style="text-align:left;">$1[처방]$2</td>');
-
+                htmlView1 = htmlView1.replace(/<tr>\s*<td[^>]*>↳<\/td>\s*<td[^>]*>(.*?)<\/td>(?:\s*<td[^>]*>.*?<\/td>){8}\s*<\/tr>/g, function(match, p1) {
+                    if (p1.includes('[처방]')) {
+                        return `<tr><td style="text-align:center;">↳</td><td colspan="9" style="text-align:left;">${p1}</td></tr>`;
+                    }
+                    return match;
+                });
                 // ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 변수 에러 완전 제거)
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
@@ -877,9 +881,14 @@ ${markdownRows}
                     }
                     currentTab2Markdown = fullOldMarkdown;
                     
+                    // ⭐️ 핵심 2: 기계약 탭 홈페이지 화면에서도 처방내역 열 병합 강력 적용
                     let htmlView2 = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
-                    // ⭐️ 기계약 탭 홈페이지 화면에서도 처방내역 열 병합 적용
-                    htmlView2 = htmlView2.replace(/<td>↳<\/td>\s*<td>(.*?)\[처방\](.*?)<\/td>(\s*<td>.*?<\/td>){8}/g, '<td>↳</td><td colspan="9" style="text-align:left;">$1[처방]$2</td>');
+                    htmlView2 = htmlView2.replace(/<tr>\s*<td[^>]*>↳<\/td>\s*<td[^>]*>(.*?)<\/td>(?:\s*<td[^>]*>.*?<\/td>){8}\s*<\/tr>/g, function(match, p1) {
+                        if (p1.includes('[처방]')) {
+                            return `<tr><td style="text-align:center;">↳</td><td colspan="9" style="text-align:left;">${p1}</td></tr>`;
+                        }
+                        return match;
+                    });
 
                     document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600 mb-4">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>` + fullOldCardsHtml;
                     document.getElementById('dutyAiReportBox2').innerHTML = htmlView2;
