@@ -762,7 +762,7 @@ ${markdownRows}
                     <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 text-[10px]">\n${analysisData.detectedInfo.long_term_meds.join('\n') || '없음'}</pre>
                 `;
 
-                // ⭐️ 1. 신규 분석 요약 카드 5개 생성 (3개월내 내원 추가)
+               // ⭐️ 1. 신규 분석 요약 카드 5개 생성 (3개월내 내원 추가)
                 const now = new Date();
                 const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
                 const today = new Date(utc + (9 * 60 * 60 * 1000));
@@ -821,30 +821,33 @@ ${markdownRows}
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
                 currentTab1Markdown = aiMarkdown1;
 
-                // ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 5개 카드 삽입)
-                c// ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 5개 카드 삽입)
+                // ⭐️ 핵심 1: 홈페이지 화면에서 [처방] 내역 열을 가로로 하나로 통합(colspan=9)해주는 마법의 로직!
+                let htmlView1 = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
+                htmlView1 = htmlView1.replace(/<td>↳<\/td>\s*<td>(.*?)\[처방\](.*?)<\/td>(\s*<td>.*?<\/td>){8}/g, '<td>↳</td><td colspan="9" style="text-align:left;">$1[처방]$2</td>');
+
+                // ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 변수 에러 완전 제거)
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
                     let fullOldMarkdown = "";
-                    // ⭐️ 요약 카드를 화면에 직접 뿌리기 위한 HTML 변수 분리
                     let fullOldCardsHtml = ""; 
                     
-                    for (let c = 0; c < contractCount; c++) {
-                        const dateInput = document.getElementById(`contractDate_${c}`);
+                    // 변수 에러(c is not defined)를 막기 위해 변수명을 contractIdx 로 명확히 수정
+                    for (let contractIdx = 0; contractIdx < contractCount; contractIdx++) {
+                        const dateInput = document.getElementById(`contractDate_${contractIdx}`);
                         const dVal = dateInput ? dateInput.value : "";
                         if (dVal) {
                             const parts = dVal.split('-');
                             const targetDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
                             
-                            progressText.innerText = `⏳ 계약 #${c + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
+                            progressText.innerText = `⏳ 계약 #${contractIdx + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
                             
                             const { prompt: promptTab2, summaryTab2 } = buildViolationCheckPrompt(analysisData, targetDateObj, fileNames);
                             const aiRespOld = await callGeminiApi(promptTab2, "");
                             
-                            // ⭐️ 기계약 탭 전용 요약 카드 5종 (AI 마크다운과 분리하여 화면에만 렌더링)
+                            // HTML 태그가 마크다운 코드블럭으로 노출되는 오류를 막기 위해 변수 분리
                             fullOldCardsHtml += `
                             <div class="mb-6">
-                                <h3 class="text-sm font-bold text-slate-800 mb-2">📑 계약 #${c + 1} (청약일: ${dVal}) 요약</h3>
+                                <h3 class="text-sm font-bold text-slate-800 mb-2">📑 계약 #${contractIdx + 1} (청약일: ${dVal}) 요약</h3>
                                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                                     <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-100 text-center shadow-sm">
                                         <span class="text-[10px] font-bold text-amber-600 block">3개월내 내원</span>
@@ -869,14 +872,18 @@ ${markdownRows}
                                 </div>
                             </div>`;
 
-                            // ⭐️ 마크다운 데이터에는 순수 텍스트만 넘겨서 엑셀 다운로드 시 태그 노출 에러 방지
-                            fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
+                            fullOldMarkdown += `\n\n### 📑 계약 #${contractIdx + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
                         }
                     }
                     currentTab2Markdown = fullOldMarkdown;
+                    
+                    let htmlView2 = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
+                    // ⭐️ 기계약 탭 홈페이지 화면에서도 처방내역 열 병합 적용
+                    htmlView2 = htmlView2.replace(/<td>↳<\/td>\s*<td>(.*?)\[처방\](.*?)<\/td>(\s*<td>.*?<\/td>){8}/g, '<td>↳</td><td colspan="9" style="text-align:left;">$1[처방]$2</td>');
+
                     document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600 mb-4">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>` + fullOldCardsHtml;
-                    document.getElementById('dutyAiReportBox2').innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
-                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 화면 노출 강제화
+                    document.getElementById('dutyAiReportBox2').innerHTML = htmlView2;
+                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 기계약 탭 클릭 시 화면 노출 강제 활성화!
                     document.getElementById('tab2Content').classList.add('hidden');
                 } else {
                     currentTab2Markdown = "";
@@ -890,7 +897,8 @@ ${markdownRows}
                 setTimeout(() => {
                     progressArea.classList.add('hidden');
                     resultContainer.classList.remove('hidden');
-                    document.getElementById('dutyAiReportBox1').innerHTML = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
+                    // 수정된 htmlView1 (처방열 병합 버전) 출력
+                    document.getElementById('dutyAiReportBox1').innerHTML = htmlView1;
                     switchResultTab('tab1');
                 }, 500);
 
@@ -907,7 +915,7 @@ ${markdownRows}
             }
         }
 
-        function exportDutyToExcel() {
+       function exportDutyToExcel() {
             const isTab1 = (activeResultTab === 'tab1');
             const mdText = isTab1 ? currentTab1Markdown : currentTab2Markdown;
 
@@ -939,7 +947,8 @@ ${markdownRows}
                 lines.forEach(line => {
                     if (line.includes('|')) {
                         if (line.includes('---')) return;
-                        let rowData = line.trim().split('|').map(c => c.trim().replace(/<br>/g, '\n').replace(/\*\*/g, '')); // 별표 마크다운 제거
+                        // ⭐️ 오류를 일으키던 변수명 c를 colVal 로 변경하여 완전 해결
+                        let rowData = line.trim().split('|').map(colVal => colVal.trim().replace(/<br>/g, '\n').replace(/\*\*/g, ''));
                         if (rowData.length > 0 && rowData[0] === '') rowData.shift();
                         if (rowData.length > 0 && rowData[rowData.length - 1] === '') rowData.pop();
                         if (rowData.length > 0) tableBuffer.push(rowData);
@@ -953,9 +962,8 @@ ${markdownRows}
                                     styleR.push(rIdx === 0 ? {...styleHeader} : {...styleCell});
                                 }
                                 
-                                // ⭐️ 처방 행 병합 로직: 1열이 '↳'이고 2열에 '[처방]'이 포함되어 있으면 나머지 열 병합
+                                // ⭐️ 엑셀 처방 행 병합 로직: 1열이 '↳'이고 2열에 '[처방]'이 포함되어 있으면 2열부터 끝까지를 셀 병합
                                 if (rIdx > 0 && safeR[0].includes('↳') && safeR[1].includes('[처방]')) {
-                                    // 2열부터 끝까지를 빈칸으로 만들고 내용 하나만 둠
                                     for(let i=2; i<colsCount; i++) safeR[i] = "";
                                     merges.push({ s: { r: rows.length, c: 1 }, e: { r: rows.length, c: colsCount - 1 } });
                                 }
@@ -978,7 +986,7 @@ ${markdownRows}
                         let safeR = [], styleR = [];
                         for (let cIdx = 0; cIdx < colsCount; cIdx++) { safeR.push(r[cIdx] || ""); styleR.push(rIdx === 0 ? {...styleHeader} : {...styleCell}); }
                         
-                        // ⭐️ 마지막 테이블 병합 처리
+                        // ⭐️ 마지막 남은 테이블도 병합 처리 확인
                         if (rIdx > 0 && safeR[0].includes('↳') && safeR[1].includes('[처방]')) {
                             for(let i=2; i<colsCount; i++) safeR[i] = "";
                             merges.push({ s: { r: rows.length, c: 1 }, e: { r: rows.length, c: colsCount - 1 } });
@@ -991,14 +999,14 @@ ${markdownRows}
                 const ws = XLSX.utils.aoa_to_sheet(rows);
                 ws['!cols'] = [ {wch: 25}, {wch: 20}, {wch: 12}, {wch: 12}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 30}, {wch: 40}, {wch: 15} ]; 
                 
-                // ⭐️ 워크시트에 병합 정보 추가
+                // ⭐️ 워크시트에 셀 병합 데이터 최종 반영
                 if(merges.length > 0) ws['!merges'] = merges;
                 
                 for (let r = 0; r < rows.length; r++) {
-                    for (let c = 0; c < (rows[r] ? rows[r].length : 0); c++) {
-                        const cellRef = XLSX.utils.encode_cell({c: c, r: r});
+                    for (let cIdx = 0; cIdx < (rows[r] ? rows[r].length : 0); cIdx++) {
+                        const cellRef = XLSX.utils.encode_cell({c: cIdx, r: r});
                         if (!ws[cellRef]) continue;
-                        if (rowStyles[r] && rowStyles[r][c]) ws[cellRef].s = rowStyles[r][c];
+                        if (rowStyles[r] && rowStyles[r][cIdx]) ws[cellRef].s = rowStyles[r][cIdx];
                     }
                 }
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
