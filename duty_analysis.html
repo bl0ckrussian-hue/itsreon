@@ -326,6 +326,7 @@
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
 
+            // ⭐️ 6대 중증 질환 키워드 배열
             const critical6Keywords = ["암", "악성신생물", "협심증", "심근경색", "뇌졸중", "뇌출혈", "뇌경색", "간경화", "간경변", "심장판막"];
 
             for (let dis in diseaseAgg) {
@@ -336,7 +337,7 @@
                 let validVisitCnt = 0; 
                 const yearlyVisits = {};
                 let recent3Month = false;
-                let has5YearRecord = false;
+                let has5YearRecord = false; // 5년 이내 진료기록 여부 확인
                 
                 agg.visitDates.forEach(d => {
                     const diff = diffDaysFn(d);
@@ -350,20 +351,18 @@
                 });
 
                 const validAdmits = agg.admits.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
-                if (validAdmits.length > 0) {
-                    has5YearRecord = true;
-                    validAdmits.forEach(a => { if(diffDaysFn(a.date) <= 90) recent3Month = true; });
-                }
+                if (validAdmits.length > 0) has5YearRecord = true;
 
                 const validSurgs = agg.surgs.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
                 const validTests = agg.tests.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365);
 
+                // ⭐️ 6대 질병 필터링
                 let isCritical6 = false;
                 if (has5YearRecord) {
                     for (let kw of critical6Keywords) {
                         if (dis.includes(kw)) {
                             isCritical6 = true;
-                            isTarget = true;
+                            isTarget = true; // 강제 포함
                             reason.push("6대질병 치료력");
                             break;
                         }
@@ -385,9 +384,8 @@
                     visitStr = `${validVisitCnt}회<br>(${yearList})`;
                 }
 
-                const allDates = [...agg.visitDates.filter(d => diffDaysFn(d) >= 0 && diffDaysFn(d) <= 365 * 5), ...validAdmits.map(a => a.date)].sort();
-                const firstDate = allDates.length > 0 ? allDates[0] : "-";
-                const lastDate = allDates.length > 0 ? allDates[allDates.length - 1] : "-";
+                const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
+                const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
                 
                 const fDateFmt = firstDate || "-";
                 const lDateFmt = lastDate || "-";
@@ -406,22 +404,22 @@
 
                 const medNamesStr = agg.medNames.length > 0 ? `[처방] ${agg.medNames.join(', ')}` : "";
 
-                // 1열 병명 옆에 있던 약물을 제거하고 깔끔하게 병명만 출력
-                markdownRows += `| ${dis} \vert{}${hospitalsStr} | ${fDateFmt} \vert{}${lDateFmt} | ${visitStr} \vert{}${admitStr} | **${mainRowSurg}** \vert{} **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** \vert{} **${costStr}** |\n`;
+                // ⭐️ 메인 행 출력 (처방을 1열에서 제거)
+                markdownRows += `| ${dis} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
 
-                // 처방 내역을 하부 행으로 추가하고 나머지 칸은 하이픈(-)으로 병합 표시
+                // ⭐️ 처방 내역을 완전히 별도의 하부 행으로 추가하고 나머지 칸 병합처리
                 if (medNamesStr) {
                     markdownRows += `| ↳ | **${medNamesStr}** | - | - | - | - | - | - | - | - |\n`;
                 }
 
                 validAdmits.forEach(ad => {
                     let dFmt = ad.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} \vert{} - \vert{}${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
+                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | ${ad.days}일 | 아니오 | - | 입원 상세내역 | - |\n`;
                 });
 
                 validSurgs.forEach(sg => {
                     let dFmt = sg.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-                    markdownRows += `| ↳ | | ${dFmt} \vert{}${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
+                    markdownRows += `| ↳ | | ${dFmt} | ${dFmt} | - | - | 예 | **${sg.name}** | 수술/시술 상세내역 | - |\n`;
                 });
             }
 
@@ -556,6 +554,7 @@ ${markdownRows}
 
                 if (!isTarget || (validVisitCnt === 0 && validAdmits.length === 0)) continue;
 
+                // ⭐️ 통계 누적 (탭2 기계약 전용 요약 카드)
                 if (hasRecent3MonthRecord) summaryTab2.visit3mCount++;
                 summaryTab2.surg += validSurgs.length;
                 summaryTab2.admit += validAdmits.length;
@@ -616,7 +615,7 @@ ${markdownRows}
 1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다. 
    - 하부 행(↳)에 표기된 \`[처방] 약품명...\`을 바탕으로 1열의 병명 아랫줄에 \`<br>**(유추) 질환명**\`을 확정하여 기재합니다.
    - 분석 후 \`[처방] 약품명...\` 하부 행(↳)은 지우지 말고 그대로 출력하십시오.
-2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
+2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 처방 내역, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
 3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하십시오.
    👉 **단, 표에 '간편심사_3개월신규'가 적혀있다면 출력 시 '3개월내 내원(신규)'로 글자를 바꾸어 출력하십시오.**
 
@@ -639,32 +638,6 @@ ${markdownRows}
 `;
             return { prompt, summaryTab2 };
         }
-
-        async function callGeminiApi(promptText, key) {
-            const proxyUrl = "https://script.google.com/macros/s/AKfycbwz9QL6wb6GUlgygtnMOwsvXzbA2eZuhx-JIXQc-1TZCiAWZdV0IUxaqg7GbcMoO72P/exec";
-            try {
-                const res = await fetch(proxyUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ prompt: promptText })
-                });
-                const data = await res.json();
-                if (data && data.candidates && data.candidates.length > 0) {
-                    return data.candidates[0].content.parts[0].text;
-                }
-                throw new Error("분석 응답을 받지 못했습니다.");
-            } catch (e) {
-                throw new Error(e.message);
-            }
-        }
-
-        async function executeCloudAnalysis() {
-            const pdfPassword = document.getElementById('pdfPasswordInput').value.trim();
-
-            if (!selectedPdfFiles || selectedPdfFiles.length === 0) {
-                alert('진료기록 PDF 파일을 먼저 첨부해주세요.');
-                return;
-            }
             
             document.getElementById('emptyState').classList.add('hidden');
             const progressArea = document.getElementById('dutyProgressArea');
@@ -744,6 +717,7 @@ ${markdownRows}
                 `;
 
                 // ⭐️ 1. 신규 분석 요약 카드 5개 생성 (3개월내 내원 추가)
+                // ⭐️ 1. 신규 분석 요약 카드 5개 생성 (3개월내 내원 추가)
                 const now = new Date();
                 const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
                 const today = new Date(utc + (9 * 60 * 60 * 1000));
@@ -796,7 +770,7 @@ ${markdownRows}
                     </div>
                 `;
 
-                progressText.innerText = "🤖 AI 감독관이 3중 교차 검증을 통해 심사 보고서를 작성 중입니다...";
+                progressText.innerText = "🤖 심사 보고서를 작성 중입니다...";
                 startFakeProgress(60, 95, 800); 
 
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
@@ -848,7 +822,7 @@ ${markdownRows}
                     currentTab2Markdown = fullOldMarkdown;
                     document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>`;
                     document.getElementById('dutyAiReportBox2').innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
-                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 화면 노출 강제화
+                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 화면에 강제 노출
                     document.getElementById('tab2Content').classList.add('hidden');
                 } else {
                     currentTab2Markdown = "";
