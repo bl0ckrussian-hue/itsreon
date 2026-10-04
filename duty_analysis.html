@@ -457,8 +457,11 @@ ${markdownRows}
             const { diseaseAgg, summaryCounts } = analysisData || {};
             const now = new Date();
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            
+            // 입력된 계약일을 기준 시점으로 강제 설정
             const targetKST = targetDate ? targetDate : new Date(utc + (9 * 60 * 60 * 1000)); 
 
+            // 계약일 기준으로 과거 며칠 전인지 계산하는 함수 (계약일 이후 미래 데이터는 음수가 됨)
             const diffDaysFn = (dateStr) => {
                 if (!dateStr || dateStr.length < 8) return 9999;
                 const dt = new Date(parseInt(dateStr.substring(0, 4)), parseInt(dateStr.substring(5, 7)) - 1, parseInt(dateStr.substring(8, 10)));
@@ -469,7 +472,7 @@ ${markdownRows}
             const totalCostStr = summaryCounts && summaryCounts.totalCost ? summaryCounts.totalCost.toLocaleString() + "원" : "0원";
             let markdownRows = "";
 
-            // ⭐️ 6대 중증 질환 키워드 배열
+            // 6대 중증 질환 키워드 배열
             const critical6Keywords = ["암", "악성신생물", "협심증", "심근경색", "뇌졸중", "뇌출혈", "뇌경색", "간경화", "간경변", "심장판막"];
 
             for (let dis in diseaseAgg) {
@@ -479,9 +482,13 @@ ${markdownRows}
 
                 let validVisitCnt = 0; 
                 const yearlyVisits = {};
-                let recent3Month = false;
                 let has5YearRecord = false;
                 
+                // 간편심사 3개월 추적을 위한 변수
+                let hasRecent3MonthRecord = false; // 계약일 기준 3개월(90일) 이내
+                let hasPrior1YearRecord = false;   // 계약일 기준 3개월 ~ 과거 1년(365일) 사이
+
+                // 1. 계약일 기준 과거 데이터만 필터링 및 횟수 체크
                 agg.visitDates.forEach(d => {
                     const diff = diffDaysFn(d);
                     if (diff >= 0 && diff <= 365 * 5) {
@@ -489,17 +496,31 @@ ${markdownRows}
                         has5YearRecord = true;
                         const y = d.substring(0, 4);
                         yearlyVisits[y] = (yearlyVisits[y] || 0) + 1;
+                        
+                        // 3개월 이내 내원 vs 과거 1년 내원 이력 분리
+                        if (diff <= 90) {
+                            hasRecent3MonthRecord = true;
+                        } else if (diff > 90 && diff <= 365) {
+                            hasPrior1YearRecord = true;
+                        }
                     }
-                    if (diff >= 0 && diff <= 90) recent3Month = true;
                 });
 
-                const validAdmits = agg.admits.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
-                if (validAdmits.length > 0) has5YearRecord = true;
-                
+                const validAdmits = agg.admits.filter(e => {
+                    const diff = diffDaysFn(e.date);
+                    if (diff >= 0 && diff <= 365 * 5) {
+                        has5YearRecord = true;
+                        if (diff <= 90) hasRecent3MonthRecord = true;
+                        else if (diff > 90 && diff <= 365) hasPrior1YearRecord = true;
+                        return true;
+                    }
+                    return false;
+                });
+
                 const validSurgs = agg.surgs.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365*5);
                 const validTests = agg.tests.filter(e => diffDaysFn(e.date) >= 0 && diffDaysFn(e.date) <= 365);
 
-                // ⭐️ 6대 질병 필터링
+                // 2. 6대 질병 체크
                 let isCritical6 = false;
                 if (has5YearRecord) {
                     for (let kw of critical6Keywords) {
@@ -512,14 +533,36 @@ ${markdownRows}
                     }
                 }
 
-                if (recent3Month) { isTarget = true; reason.push("3개월내 내원"); }
+                // 3. 간편심사 조건: 3개월 내 신규질환 판단 로직 추가
+                let isSimplified3MonthNew = false;
+                if (hasRecent3MonthRecord && !hasPrior1YearRecord) {
+                    isSimplified3MonthNew = true;
+                }
+
+                // 계약일 이전 기준으로 각 항목 타겟팅
+                if (hasRecent3MonthRecord) { isTarget = true; reason.push("3개월내 내원"); }
                 if (validTests.length > 0) { isTarget = true; reason.push("1년내 검사"); }
                 if (validAdmits.length > 0) { isTarget = true; reason.push("입원"); }
                 if (validSurgs.length > 0) { isTarget = true; reason.push("수술"); }
                 if (validVisitCnt >= 7) { isTarget = true; reason.push("7일이상치료"); }
-                if (agg.totalMedDays >= 30) { isTarget = true; reason.push("30일이상투약"); }
 
-                if (!isTarget) continue;
+                // 약물 투약일수 (계약일 이전 데이터만)
+                let validMedDays = 0;
+                for (let d in agg.meds) {
+                    const diff = diffDaysFn(d);
+                    if (diff >= 0 && diff <= 365 * 5) {
+                        validMedDays += agg.meds[d];
+                    }
+                }
+                if (validMedDays >= 30) { isTarget = true; reason.push("30일이상투약"); }
+
+                // ⭐️ 신규 질환인 경우에만 간편심사로 넘기기 위해 특수 태그 삽입
+                if (isSimplified3MonthNew) {
+                    reason.push("간편심사_3개월신규");
+                }
+
+                // 유효 기록이 전혀 없으면 이 질병은 스킵
+                if (!isTarget || (validVisitCnt === 0 && validAdmits.length === 0)) continue;
 
                 let visitStr = `${validVisitCnt}회`;
                 if (validVisitCnt >= 7 && Object.keys(yearlyVisits).length > 0) {
@@ -527,8 +570,9 @@ ${markdownRows}
                     visitStr = `${validVisitCnt}회<br>(${yearList})`;
                 }
 
-                const firstDate = agg.visitDates.length > 0 ? agg.visitDates[0] : (validAdmits.length > 0 ? validAdmits[0].date : "");
-                const lastDate = agg.visitDates.length > 0 ? agg.visitDates[agg.visitDates.length - 1] : "";
+                const allDates = [...agg.visitDates.filter(d => diffDaysFn(d) >= 0 && diffDaysFn(d) <= 365 * 5), ...validAdmits.map(a => a.date)].sort();
+                const firstDate = allDates.length > 0 ? allDates[0] : "-";
+                const lastDate = allDates.length > 0 ? allDates[allDates.length - 1] : "-";
                 
                 const fDateFmt = firstDate || "-";
                 const lDateFmt = lastDate || "-";
@@ -545,7 +589,7 @@ ${markdownRows}
                 let admitStr = totalAdmitDays > 0 ? `${totalAdmitDays}일` : "-";
                 let costStr = agg.totalCost > 0 ? agg.totalCost.toLocaleString() + "원" : "0원";
 
-                const medNamesStr = agg.medNames.length > 0 ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
+                const medNamesStr = (validMedDays > 0 && agg.medNames.length > 0) ? `<br>[처방: ${agg.medNames.join(', ')}]` : "";
 
                 markdownRows += `| ${dis}${medNamesStr} | ${hospitalsStr} | ${fDateFmt} | ${lDateFmt} | ${visitStr} | ${admitStr} | **${mainRowSurg}** | **${mainRowSurgName}** | **<span style="color:${isCritical6 ? 'red' : 'inherit'}">${reasonStr}</span>** | **${costStr}** |\n`;
 
@@ -561,16 +605,17 @@ ${markdownRows}
             }
 
             if(markdownRows === "") markdownRows = "| 기계약 고지위반 의심내역 없음 | - | - | - | - | - | - | - | - | - |\n";
-            const targetDateStr = targetKST.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const targetDateStr = targetKST.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
             const prompt = `[시스템 설정 및 역할]
 당신은 최고 수준의 보험 심사 시스템 내 'AI 감독관' 입니다.
-🕒 **분석 요청 시점(청약일 기준):** ${targetDateStr}
+🕒 **분석 요청 시점(입력된 청약일 기준):** ${targetDateStr}
 
 🚨 **[절대원칙 - 텍스트 조작 금지]**
 1. [AI 3중 검증 로직]: 두 명의 AI 심사자가 교차 검증을 진행하여 처방 약물을 유추 병명으로 표기합니다.
 2. 아래 [사전 완성된 마크다운 데이터]의 **"수술 및 시술 명칭(띄어쓰기 포함)"**, 횟수, 행 개수, 금액은 100% 동일하게 복사해서 출력하십시오. 절대 요약하거나 임의로 묶지 마십시오.
-3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하고 그 외 표현은 금지합니다.
+3. 비고란의 출력은 "3개월내 내원", "1년내 검사", "입원", "수술", "7일이상치료", "30일이상투약", "6대질병 치료력" 중에서만 표기하십시오.
+   👉 **단, 표에 '간편심사_3개월신규'가 적혀있다면 출력 시 '3개월내 내원(신규)'로 글자를 바꾸어 출력하십시오.**
 
 ---
 **[사전 완성된 마크다운 데이터]**
@@ -587,7 +632,7 @@ ${markdownRows}
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- | :---: |
 
 #### 2️⃣ [간편심사] 유병자(3-N-5) 기준 위반 사항
-*(위 표에서 입원 및 수술 이력이 있는 행만 복사하여 기재 / 단순 통원 제외)*
+*(위 1번 표를 바탕으로, '입원', '수술', '6대질병 치료력' 이력이 있거나 비고란에 '간편심사_3개월신규'가 포함된 행만 기재하십시오. 기존에 치료받던 단순 통원만 있는 건은 엄격히 제외합니다.)*
 `;
             return prompt;
         }
@@ -714,12 +759,15 @@ ${markdownRows}
                     </div>
                 `;
 
+                // (기존 코드)
                 progressText.innerText = "🤖 심사 보고서를 작성 중입니다...";
                 startFakeProgress(60, 95, 800); 
 
+                // 1. 신규 분석보고서 생성 (항상 실행)
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
                 currentTab1Markdown = aiMarkdown1;
 
+                // 2. 기계약(고지위반) 점검보고서 생성 (설정 시에만 실행)
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
                     let fullOldMarkdown = "";
@@ -754,11 +802,13 @@ ${markdownRows}
                 setTimeout(() => {
                     progressArea.classList.add('hidden');
                     resultContainer.classList.remove('hidden');
+                    // 신규 분석보고서 화면 출력
                     document.getElementById('dutyAiReportBox1').innerHTML = window.marked ? window.marked.parse(aiMarkdown1) : `<pre>${aiMarkdown1}</pre>`;
                     switchResultTab('tab1');
                 }, 500);
 
             } catch (error) {
+                // (이하 에러 처리 로직 동일)
                 if(progressTimer) clearInterval(progressTimer);
                 progressArea.classList.add('hidden');
                 document.getElementById('emptyState').classList.remove('hidden'); 
