@@ -822,9 +822,13 @@ ${markdownRows}
                 currentTab1Markdown = aiMarkdown1;
 
                 // ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 5개 카드 삽입)
+                c// ⭐️ 2. 기계약 점검 보고서 생성 (화면 노출 강제화 및 5개 카드 삽입)
                 const contractCount = parseInt(document.getElementById('contractCountInput').value) || 0;
                 if (contractCount > 0) {
                     let fullOldMarkdown = "";
+                    // ⭐️ 요약 카드를 화면에 직접 뿌리기 위한 HTML 변수 분리
+                    let fullOldCardsHtml = ""; 
+                    
                     for (let c = 0; c < contractCount; c++) {
                         const dateInput = document.getElementById(`contractDate_${c}`);
                         const dVal = dateInput ? dateInput.value : "";
@@ -837,37 +841,42 @@ ${markdownRows}
                             const { prompt: promptTab2, summaryTab2 } = buildViolationCheckPrompt(analysisData, targetDateObj, fileNames);
                             const aiRespOld = await callGeminiApi(promptTab2, "");
                             
-                            const cardsHtml = `
-                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs mb-4">
-                                <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-100 text-center shadow-sm">
-                                    <span class="text-[10px] font-bold text-amber-600 block">3개월내 내원</span>
-                                    <span class="text-lg font-black text-amber-700 mt-0.5 block">${summaryTab2.visit3mCount} 건</span>
-                                </div>
-                                <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
-                                    <span class="text-[10px] font-bold text-rose-600 block">수술/시술</span>
-                                    <span class="text-lg font-black text-rose-700 mt-0.5 block">${summaryTab2.surg} 건</span>
-                                </div>
-                                <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100 text-center shadow-sm">
-                                    <span class="text-[10px] font-bold text-blue-600 block">입원</span>
-                                    <span class="text-lg font-black text-blue-700 mt-0.5 block">${summaryTab2.admit} 건</span>
-                                </div>
-                                <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 text-center shadow-sm">
-                                    <span class="text-[10px] font-bold text-emerald-600 block">30일 이상 투약</span>
-                                    <span class="text-lg font-black text-emerald-700 mt-0.5 block">${summaryTab2.med30} 건</span>
-                                </div>
-                                <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 text-center shadow-sm">
-                                    <span class="text-[10px] font-bold text-indigo-600 block">7일 이상 치료</span>
-                                    <span class="text-lg font-black text-indigo-700 mt-0.5 block">${summaryTab2.visit7} 건</span>
+                            // ⭐️ 기계약 탭 전용 요약 카드 5종 (AI 마크다운과 분리하여 화면에만 렌더링)
+                            fullOldCardsHtml += `
+                            <div class="mb-6">
+                                <h3 class="text-sm font-bold text-slate-800 mb-2">📑 계약 #${c + 1} (청약일: ${dVal}) 요약</h3>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                                    <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-100 text-center shadow-sm">
+                                        <span class="text-[10px] font-bold text-amber-600 block">3개월내 내원</span>
+                                        <span class="text-lg font-black text-amber-700 mt-0.5 block">${summaryTab2.visit3mCount} 건</span>
+                                    </div>
+                                    <div class="bg-rose-50 p-3.5 rounded-xl border border-rose-100 text-center shadow-sm">
+                                        <span class="text-[10px] font-bold text-rose-600 block">수술/시술</span>
+                                        <span class="text-lg font-black text-rose-700 mt-0.5 block">${summaryTab2.surg} 건</span>
+                                    </div>
+                                    <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100 text-center shadow-sm">
+                                        <span class="text-[10px] font-bold text-blue-600 block">입원</span>
+                                        <span class="text-lg font-black text-blue-700 mt-0.5 block">${summaryTab2.admit} 건</span>
+                                    </div>
+                                    <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 text-center shadow-sm">
+                                        <span class="text-[10px] font-bold text-emerald-600 block">30일 이상 투약</span>
+                                        <span class="text-lg font-black text-emerald-700 mt-0.5 block">${summaryTab2.med30} 건</span>
+                                    </div>
+                                    <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 text-center shadow-sm">
+                                        <span class="text-[10px] font-bold text-indigo-600 block">7일 이상 치료</span>
+                                        <span class="text-lg font-black text-indigo-700 mt-0.5 block">${summaryTab2.visit7} 건</span>
+                                    </div>
                                 </div>
                             </div>`;
 
-                            fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + cardsHtml + "\n\n" + aiRespOld + "\n\n---";
+                            // ⭐️ 마크다운 데이터에는 순수 텍스트만 넘겨서 엑셀 다운로드 시 태그 노출 에러 방지
+                            fullOldMarkdown += `\n\n### 📑 계약 #${c + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
                         }
                     }
                     currentTab2Markdown = fullOldMarkdown;
-                    document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>`;
+                    document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600 mb-4">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>` + fullOldCardsHtml;
                     document.getElementById('dutyAiReportBox2').innerHTML = window.marked ? window.marked.parse(fullOldMarkdown) : `<pre>${fullOldMarkdown}</pre>`;
-                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 화면에 강제 노출
+                    document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 화면 노출 강제화
                     document.getElementById('tab2Content').classList.add('hidden');
                 } else {
                     currentTab2Markdown = "";
@@ -916,6 +925,7 @@ ${markdownRows}
             const processSection = (lines, sheetName, isOld) => {
                 const rows = [];
                 const rowStyles = []; 
+                const merges = []; // ⭐️ 엑셀 셀 병합 정보를 담을 배열 추가
 
                 if (isOld) {
                     rows.push(["분석 기준일: 기계약 점검"]); rows.push(["주의: 해당 계약일 이후의 진료기록은 제외된 결과입니다."]); rows.push(["--------------------------------------------------"]);
@@ -929,7 +939,7 @@ ${markdownRows}
                 lines.forEach(line => {
                     if (line.includes('|')) {
                         if (line.includes('---')) return;
-                        let rowData = line.trim().split('|').map(c => c.trim().replace(/<br>/g, '\n'));
+                        let rowData = line.trim().split('|').map(c => c.trim().replace(/<br>/g, '\n').replace(/\*\*/g, '')); // 별표 마크다운 제거
                         if (rowData.length > 0 && rowData[0] === '') rowData.shift();
                         if (rowData.length > 0 && rowData[rowData.length - 1] === '') rowData.pop();
                         if (rowData.length > 0) tableBuffer.push(rowData);
@@ -942,6 +952,14 @@ ${markdownRows}
                                     safeR.push(r[cIdx] || "");
                                     styleR.push(rIdx === 0 ? {...styleHeader} : {...styleCell});
                                 }
+                                
+                                // ⭐️ 처방 행 병합 로직: 1열이 '↳'이고 2열에 '[처방]'이 포함되어 있으면 나머지 열 병합
+                                if (rIdx > 0 && safeR[0].includes('↳') && safeR[1].includes('[처방]')) {
+                                    // 2열부터 끝까지를 빈칸으로 만들고 내용 하나만 둠
+                                    for(let i=2; i<colsCount; i++) safeR[i] = "";
+                                    merges.push({ s: { r: rows.length, c: 1 }, e: { r: rows.length, c: colsCount - 1 } });
+                                }
+                                
                                 rows.push(safeR); rowStyles.push(styleR);
                             });
                             rows.push([]); rowStyles.push([]); tableBuffer = [];
@@ -959,12 +977,23 @@ ${markdownRows}
                     tableBuffer.forEach((r, rIdx) => {
                         let safeR = [], styleR = [];
                         for (let cIdx = 0; cIdx < colsCount; cIdx++) { safeR.push(r[cIdx] || ""); styleR.push(rIdx === 0 ? {...styleHeader} : {...styleCell}); }
+                        
+                        // ⭐️ 마지막 테이블 병합 처리
+                        if (rIdx > 0 && safeR[0].includes('↳') && safeR[1].includes('[처방]')) {
+                            for(let i=2; i<colsCount; i++) safeR[i] = "";
+                            merges.push({ s: { r: rows.length, c: 1 }, e: { r: rows.length, c: colsCount - 1 } });
+                        }
+                        
                         rows.push(safeR); rowStyles.push(styleR);
                     });
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
                 ws['!cols'] = [ {wch: 25}, {wch: 20}, {wch: 12}, {wch: 12}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 30}, {wch: 40}, {wch: 15} ]; 
+                
+                // ⭐️ 워크시트에 병합 정보 추가
+                if(merges.length > 0) ws['!merges'] = merges;
+                
                 for (let r = 0; r < rows.length; r++) {
                     for (let c = 0; c < (rows[r] ? rows[r].length : 0); c++) {
                         const cellRef = XLSX.utils.encode_cell({c: c, r: r});
