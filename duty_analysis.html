@@ -74,13 +74,18 @@
             
             <div class="mb-4 flex flex-col sm:flex-row gap-2">
                 <a href="https://www.hira.or.kr/dummy.do?pgmid=HIRAA030009200000&WT.ac=%EB%82%B4%EC%A7%84%EB%A3%8C%EC%A0%95%EB%B3%B4%EC%97%B4%EB%9E%8C%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0" target="_blank" rel="noopener noreferrer" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <span>🌐 건강보험심사평가원 바로가기</span><span>↗</span>
+                    <span>🌐 진료기록확인 바로가기</span><span>↗</span>
                 </a>
+                
+                <!-- ⭐️ 새로 추가된 건강검진결과확인 버튼 -->
+                <a href="https://www.nhis.or.kr/nhis/etc/personalLoginPage.do" target="_blank" rel="noopener noreferrer" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <span>🏥 건강검진결과확인 바로가기</span><span>↗</span>
+                </a>
+
                 <button onclick="downloadParsedRawExcel()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <span>📊 심평원 데이터 원본 엑셀로 다운로드</span>
+                    <span>📊 데이터 원본 다운로드</span>
                 </button>
             </div>
-
             <div class="mb-6 bg-indigo-50 border border-indigo-100 rounded-xl p-5 shadow-sm text-sm text-indigo-900 leading-relaxed">
                 <h3 class="font-extrabold flex items-center gap-2 mb-3 text-indigo-700">
                     <span class="text-lg">💡</span> 주의사항(*결과보고서는 PDF자료를 분석해서 나온 결과로 반드시 검토 바랍니다.) 
@@ -133,7 +138,7 @@
                         <button id="tabBtn2" onclick="switchResultTab('tab2')" class="flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition">🔍 고지위반 점검 (기계약)</button>
                     </div>
                     <button onclick="exportDutyToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm flex items-center justify-center gap-1.5 transition">
-                        <span>💾</span> <span id="excelBtnText">AI 분석보고서 엑셀 다운로드</span>
+                        <span>💾</span> <span id="excelBtnText">AI 분석보고서 다운로드</span>
                     </button>
                 </div>
                 
@@ -142,7 +147,7 @@
                     
                     <div class="border border-slate-200 rounded-xl overflow-hidden text-xs shadow-sm bg-white flex-shrink-0">
                         <button onclick="toggleDebugVisibility()" class="w-full bg-slate-50 hover:bg-slate-100 p-3.5 text-left font-bold text-slate-700 flex justify-between items-center transition">
-                            <span class="flex items-center gap-2"><span>⚡</span> <span>[클라우드 서버 엔진 추출 데이터 확인 (디버그)]</span></span>
+                            <span class="flex items-center gap-2"><span>⚡</span> <span>[추출 데이터 확인 (디버그)]</span></span>
                             <span id="debugToggleIcon">▼</span>
                         </button>
                         <div id="dutyDebugContent" class="hidden p-4 bg-slate-800 text-slate-300 font-mono text-[11px] space-y-2 border-t border-slate-200 custom-scrollbar max-h-64 overflow-y-auto"></div>
@@ -159,7 +164,7 @@
             
             <div id="emptyState" class="flex-grow flex flex-col items-center justify-center text-slate-400">
                 <span class="text-5xl mb-4">🩺</span>
-                <p class="font-medium text-sm">좌측에서 심평원 PDF를 전부 업로드하고 분석을 실행해주세요.</p>
+                <p class="font-medium text-sm">좌측에 (기본, 세부, 처방)PDF 파일을 업로드하고 분석을 실행해주세요.</p>
             </div>
         </main>
     </div>
@@ -209,13 +214,13 @@
                 btn2.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition";
                 tab1Content.classList.remove('hidden');
                 tab2Content.classList.add('hidden');
-                if (excelBtnText) excelBtnText.innerText = "[신규] 분석보고서 엑셀 다운로드";
+                if (excelBtnText) excelBtnText.innerText = "[신규] 분석보고서 다운로드";
             } else {
                 btn2.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-900 text-white transition shadow-sm";
                 btn1.className = "flex-1 sm:flex-none px-4 py-2 font-bold text-xs rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition";
                 tab2Content.classList.remove('hidden');
                 tab1Content.classList.add('hidden');
-                if (excelBtnText) excelBtnText.innerText = "[통합] 고지위반 점검보고서 엑셀 다운로드";
+                if (excelBtnText) excelBtnText.innerText = "[통합] 고지위반 점검보고서 다운로드";
             }
         }
 
@@ -465,7 +470,7 @@ ${markdownRows}
 
 ---
 ### **[최종 심사 보고서]**
-(🚨 반드시 고객 성명을 파일명(${fileNames})에서 찾아 "**OOO님의 보험 가입을 위한 정밀 심사 보고서입니다. (총 내가 낸 의료비: ${totalCostStr})**" 로 시작하십시오. AI 교차 검증 과정은 노출하지 말고 오직 최종 표 2개만 출력하십시오.)
+(🚨 반드시 고객 성명을 파일명(${fileNames})에서 찾아 "**OOO님의 보험 점검을 위한 알릴의무분석 보고서입니다. (총 내가 낸 의료비: ${totalCostStr})**" 로 시작하십시오. AI 교차 검증 과정은 노출하지 말고 오직 최종 표 2개만 출력하십시오.)
 
 #### 1️⃣ [일반심사] 표준 알릴의무 (요약)
 | 질병명 (진단코드) | 병원명 | 최초진료일 | 최종진료일 | 통원(횟수) | 입원(일수) | 수술(여부) | 수술 및 시술 명칭 | 비고 | 내가 낸 의료비 |
@@ -710,7 +715,7 @@ ${markdownRows}
             }
 
             try {
-                progressText.innerText = `☁️ 여러 개의 파일을 안전하게 병합 전송 중입니다...`;
+                progressText.innerText = `☁️ 파일을 안전하게 전송 중입니다...`;
                 startFakeProgress(0, 30, 200); 
 
                 const fileDataArray = [];
@@ -737,7 +742,7 @@ ${markdownRows}
                     if (analysisData && analysisData.error && analysisData.error.includes("비밀번호")) {
                         throw new Error("PWD_ERROR");
                     }
-                    throw new Error("클라우드 서버 통신 에러가 발생했습니다.");
+                    throw new Error("서버와 통신 에러가 발생했습니다.");
                 }
                 
                 if (analysisData && analysisData.error) {
@@ -753,7 +758,7 @@ ${markdownRows}
                 const { prompt: promptTab1, summaryCounts, markdownRows } = buildOriginalAnalysisPrompt(analysisData, fileNames);
 
                 document.getElementById('dutyDebugContent').innerHTML = `
-                    <div class="text-amber-400 font-bold mb-2">📊 [클라우드 파이썬 엔진 추출 완료 데이터]</div>
+                    <div class="text-amber-400 font-bold mb-2">📊 [데이터 추출 완료]</div>
                     <div class="text-[10px] text-emerald-300 mb-1">▶ 통원/입원/수술/투약 통합 엑셀 행 (AI에 전달되는 최종 데이터)</div>
                     <pre class="text-slate-300 pl-2 border-l-2 border-slate-600 overflow-x-auto text-[10px]">\n${markdownRows}</pre>
                     <div class="text-[10px] text-rose-300 mt-3 mb-1">▶ 시스템 감지 수술/시술 목록</div>
@@ -815,7 +820,7 @@ ${markdownRows}
                     </div>
                 `;
 
-                progressText.innerText = "🤖 심사 보고서를 작성 중입니다...";
+                progressText.innerText = "🤖 분석 보고서를 작성 중입니다...";
                 startFakeProgress(60, 95, 800); 
 
                 const aiMarkdown1 = await callGeminiApi(promptTab1, "");
@@ -843,7 +848,7 @@ ${markdownRows}
                             const parts = dVal.split('-');
                             const targetDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
                             
-                            progressText.innerText = `⏳ 계약 #${contractIdx + 1} (${dVal}) 기준 시점으로 고지위반 점검 중...`;
+                            progressText.innerText = `⏳ 계약 #${contractIdx + 1} (${dVal}) 기준으로 고지위반 점검 중...`;
                             
                             const { prompt: promptTab2, summaryTab2 } = buildViolationCheckPrompt(analysisData, targetDateObj, fileNames);
                             const aiRespOld = await callGeminiApi(promptTab2, "");
@@ -876,7 +881,7 @@ ${markdownRows}
                                 </div>
                             </div>`;
 
-                            fullOldMarkdown += `\n\n### 📑 계약 #${contractIdx + 1} (청약일: ${dVal})\n> **주의:** 해당 날짜 이후의 진료기록은 분석에서 엄격히 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
+                            fullOldMarkdown += `\n\n### 📑 계약 #${contractIdx + 1} (청약일: ${dVal})\n> **주의:** 포함되지 않은 진료기록은 분석에서 제외되었습니다.\n\n` + aiRespOld + "\n\n---";
                         }
                     }
                     currentTab2Markdown = fullOldMarkdown;
@@ -890,7 +895,7 @@ ${markdownRows}
                         return match;
                     });
 
-                    document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600 mb-4">계약 체결일(청약일) 이전 시점으로 진료기록을 역산하여 고지위반 사항을 점검하였습니다.</p>` + fullOldCardsHtml;
+                    document.getElementById('violationNoticeBox').innerHTML = `<p class="text-blue-600 mb-4">계약 체결일(청약일) 기준으로 고지위반 사항을 점검하였습니다.</p>` + fullOldCardsHtml;
                     document.getElementById('dutyAiReportBox2').innerHTML = htmlView2;
                     document.getElementById('dutyAiReportBox2').classList.remove('hidden'); // ⭐️ 기계약 탭 클릭 시 화면 노출 강제 활성화!
                     document.getElementById('tab2Content').classList.add('hidden');
@@ -945,7 +950,7 @@ ${markdownRows}
                 const merges = []; // ⭐️ 엑셀 셀 병합 정보를 담을 배열 추가
 
                 if (isOld) {
-                    rows.push(["분석 기준일: 기계약 점검"]); rows.push(["주의: 해당 계약일 이후의 진료기록은 제외된 결과입니다."]); rows.push(["--------------------------------------------------"]);
+                    rows.push(["분석 기준일: 기계약 점검"]); rows.push(["주의: 포함되지 않은 진료기록은 제외된 결과입니다."]); rows.push(["--------------------------------------------------"]);
                 } else {
                     rows.push([`분석 일시: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`]); rows.push(["기준일: 현재 (신규가입)"]); rows.push(["--------------------------------------------------"]);
                 }
