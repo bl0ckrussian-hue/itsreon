@@ -634,37 +634,82 @@
             loadAssignedDBs(); 
         }
     </script>
-    <!-- 🛡️ 보안: 우클릭, 드래그, 소스보기(F12) 차단 스크립트 -->
-    <script>
-        // 1. 마우스 우클릭 금지
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
+    <!-- 🛡️ 보안: 캡처 방지, 우클릭, 드래그, 소스보기(F12) 원천 차단 스크립트 -->
+<style>
+    /* 모바일 꾹 누르기(팝업) 및 텍스트 드래그 원천 차단 */
+    body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+    
+    /* 캡처 도구 실행 시 화면 가림막(Blur) 적용 클래스 */
+    .capture-protect-mode {
+        filter: blur(15px) !important;
+        opacity: 0.1 !important;
+        pointer-events: none !important;
+    }
+</style>
+<script>
+    // 1. 마우스 우클릭 금지
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
 
-        // 2. 마우스 드래그(블록 지정) 금지
-        document.addEventListener('selectstart', function(e) {
-            e.preventDefault();
-        });
+    // 2. 마우스 드래그(블록 지정) 및 이미지 드래그 금지
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+    window.addEventListener('dragstart', function(e) { e.preventDefault(); });
 
-        // 3. 키보드 단축키 (F12, Ctrl+U 소스보기, Ctrl+C 복사 등) 금지
-        document.addEventListener('keydown', function(e) {
-            // F12 개발자 도구 차단
-            if (e.key === 'F12') {
-                e.preventDefault();
-            }
-            // Ctrl + Shift + I (개발자 도구 단축키) 차단
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-                e.preventDefault();
-            }
-            // Ctrl + U (페이지 소스 보기) 차단
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault();
-            }
-            // Ctrl + C (복사하기) 차단
-            if (e.ctrlKey && (e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-            }
-        });
-    </script>
+    // 3. 캡처 프로그램 실행 시 화면 포커스를 잃으면 즉시 화면 가림
+    window.addEventListener('blur', function() {
+        document.body.classList.add('capture-protect-mode');
+    });
+
+    // 4. 화면으로 다시 돌아오면 가림막 해제
+    window.addEventListener('focus', function() {
+        document.body.classList.remove('capture-protect-mode');
+    });
+
+    // 5. 복사, 잘라내기 원천 차단 및 클립보드 강제 초기화
+    window.addEventListener('copy', function(e) { 
+        e.preventDefault(); 
+        try { navigator.clipboard.writeText(''); } catch(err) {} 
+    });
+    window.addEventListener('cut', function(e) { e.preventDefault(); });
+
+    // 6. 키보드 단축키 (F12, 소스보기, 복사, 캡처 등) 금지
+    document.addEventListener('keydown', function(e) {
+        // F12 개발자 도구 차단
+        if (e.key === 'F12') {
+            e.preventDefault();
+        }
+        // Ctrl + Shift + I (개발자 도구 단축키) 차단
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+            e.preventDefault();
+        }
+        // Ctrl + U (페이지 소스 보기) 차단
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault();
+        }
+        // Ctrl + C (복사), Ctrl + P (인쇄) 차단 및 클립보드 비우기
+        if (e.ctrlKey && (e.key === 'C' || e.key === 'c' || e.key === 'P' || e.key === 'p')) {
+            e.preventDefault();
+            try { navigator.clipboard.writeText(''); } catch(err) {} 
+        }
+        // PrintScreen, Alt+Shift+S, Win+Shift+S, Cmd+Shift+S 등 캡처 단축키 차단
+        if (
+            e.key === 'PrintScreen' || 
+            e.keyCode === 44 || 
+            (e.altKey && e.shiftKey && (e.key === 's' || e.key === 'S')) || 
+            (e.metaKey && e.shiftKey && (e.key === 's' || e.key === 'S'))
+        ) {
+            e.preventDefault();
+            try { navigator.clipboard.writeText(''); } catch(err) {} // 클립보드 강제 초기화
+            alert('고객 정보 보호를 위해 화면 캡처 및 복사가 금지되어 있습니다.');
+        }
+    });
+</script>
 </body>
 </html>
