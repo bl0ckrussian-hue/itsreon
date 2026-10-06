@@ -705,7 +705,20 @@
            </div>
        </div>
    </div>
-   
+   <!-- ⏳ 세션 연장 경고 모달 (NEW) -->
+    <div id="sessionWarningModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
+            <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto text-3xl mb-4 animate-bounce">⏳</div>
+            <h3 class="text-xl font-bold text-slate-900 mb-2">자동 로그아웃 안내</h3>
+            <p class="text-sm text-slate-600 mb-5 leading-relaxed">
+                오랜 시간 활동이 없어 <span id="logoutCountdown" class="font-bold text-rose-600 text-lg">60</span>초 후<br>자동으로 로그아웃됩니다.
+            </p>
+            <div class="flex gap-2">
+                <button onclick="extendSession()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md">로그인 연장</button>
+                <button onclick="executeLogoutNow()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-lg text-sm transition">즉시 로그아웃</button>
+            </div>
+        </div>
+    </div>
    <script>
        // --- 1. 기본 전역 변수 및 UI 제어 함수 ---
        const USER_DB_URL = "https://script.google.com/macros/s/AKfycbzc6r9WfiqzQ0olUn_7TElKPF6ln-Z33-5ehqr6g65oqpTulbRMM3q_BYXdGLs-40Sh/exec";
@@ -1185,6 +1198,138 @@
            }
        });
        
-   </script>   
+   </script> 
+   // --- ⭐️ [보안 엔진] 다중 창 동기화, 자동 로그아웃 및 🎬 영상 재생 감지 ---
+        let idleTimer = null;
+        let countdownTimer = null;
+        let isVideoPlaying = false; // 영상 재생 상태 추적
+
+        function initSecurityEngine() {
+            const IDLE_TIMEOUT = 29 * 60 * 1000; // 29분 동안 미작동 시 경고창 팝업
+            const COUNTDOWN_TIME = 60; // 경고창 팝업 후 60초 카운트다운
+
+            function startIdleTimer() {
+                clearTimeout(idleTimer);
+                clearInterval(countdownTimer);
+                
+                if (localStorage.getItem('rion_logged_user')) {
+                    idleTimer = setTimeout(() => {
+                        const lastActivity = parseInt(localStorage.getItem('rion_last_activity') || '0', 10);
+                        const now = Date.now();
+                        
+                        // ⭐️ 핵심: 영상이 재생 중이거나, 다른 창에서 활동이 있었다면 타이머 연장
+                        if (isVideoPlaying || (now - lastActivity < IDLE_TIMEOUT)) {
+                            // 영상 재생 중일 경우 현재 시간으로 활동 내역 갱신
+                            if (isVideoPlaying) localStorage.setItem('rion_last_activity', now.toString());
+                            startIdleTimer(); // 조용히 타이머 재시작 (경고창 안 띄움)
+                        } else {
+                            showWarningModal(COUNTDOWN_TIME); // 진짜 방치되었을 때만 팝업
+                        }
+                    }, IDLE_TIMEOUT);
+                }
+            }
+
+            function showWarningModal(seconds) {
+                const modal = document.getElementById('sessionWarningModal');
+                const countEl = document.getElementById('logoutCountdown');
+                if(!modal || !countEl) return;
+                
+                modal.classList.remove('hidden');
+                let timeLeft = seconds;
+                countEl.innerText = timeLeft;
+
+                countdownTimer = setInterval(() => {
+                    timeLeft -= 1;
+                    countEl.innerText = timeLeft;
+                    
+                    const lastActivity = parseInt(localStorage.getItem('rion_last_activity') || '0', 10);
+                    if (Date.now() - lastActivity < 5000) { 
+                        clearInterval(countdownTimer);
+                        modal.classList.add('hidden');
+                        startIdleTimer();
+                        return;
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownTimer);
+                        modal.classList.add('hidden');
+                        logoutUser();
+                        setTimeout(() => alert("시간이 초과되어 안전하게 자동 로그아웃 되었습니다."), 100);
+                    }
+                }, 1000);
+            }
+
+            function resetOnActivity() {
+                const modal = document.getElementById('sessionWarningModal');
+                if (modal && modal.classList.contains('hidden')) {
+                    localStorage.setItem('rion_last_activity', Date.now().toString());
+                    startIdleTimer();
+                }
+            }
+
+            // 1. 일반적인 마우스, 키보드, 화면 터치 활동 감지
+            ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+                document.addEventListener(evt, resetOnActivity, true);
+            });
+
+            // 2. 🎬 HTML5 영상/음성 재생 자동 감지 로직
+            document.addEventListener('play', (e) => {
+                if(e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO') {
+                    isVideoPlaying = true;
+                    resetOnActivity();
+                }
+            }, true);
+            
+            ['pause', 'ended'].forEach(evt => {
+                document.addEventListener(evt, (e) => {
+                    if(e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO') {
+                        isVideoPlaying = false;
+                    }
+                }, true);
+            });
+
+            // 3. 🎬 네이버 드라이브 등 iframe 외부 영상 대응 (세일즈 교육 페이지 예외 처리)
+            // 현재 창의 URL 이름에 'education' 또는 'video'가 포함된 경우
+            // 사용자가 화면을 가만히 보고만 있어도 5분 단위로 마우스를 움직인 것과 동일하게 처리함
+            if (window.location.href.includes('education') || window.location.href.includes('video')) {
+                setInterval(() => {
+                    if (localStorage.getItem('rion_logged_user')) {
+                        localStorage.setItem('rion_last_activity', Date.now().toString());
+                    }
+                }, 5 * 60 * 1000); // 5분마다 자동 생명 연장
+            }
+
+            // 최초 실행 세팅
+            localStorage.setItem('rion_last_activity', Date.now().toString());
+            startIdleTimer();
+
+            // 탭 종료 감지하여 로그인 데이터 강제 파기
+            window.addEventListener('beforeunload', function () {
+                if (localStorage.getItem('rion_logged_user')) {
+                    localStorage.removeItem('rion_logged_user');
+                    localStorage.removeItem('rion_logged_role');
+                    localStorage.removeItem('rion_session_id');
+                }
+            });
+            
+            // 모달창 연장 버튼 클릭 연결
+            window.extendSession = function() {
+                clearInterval(countdownTimer);
+                document.getElementById('sessionWarningModal').classList.add('hidden');
+                localStorage.setItem('rion_last_activity', Date.now().toString());
+                startIdleTimer(); 
+            };
+            
+            // 모달창 즉시 로그아웃 연결
+            window.executeLogoutNow = function() {
+                clearInterval(countdownTimer);
+                document.getElementById('sessionWarningModal').classList.add('hidden');
+                logoutUser();
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initSecurityEngine();
+        });
 </body>
 </html>
