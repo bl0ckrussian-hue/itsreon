@@ -245,6 +245,8 @@
                     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden relative mb-4">
                         <input type="hidden" id="m_custName_${index}" value="${db.customerName}">
                         <div id="m_edit_area_${index}" class="p-4 transition-all bg-white">
+                            
+                            <!-- 1. 상단: 이름 및 기한 -->
                             <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
                                 <div class="flex items-center gap-2">
                                     <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-bold">No.${index + 1}</span>
@@ -253,10 +255,37 @@
                                 <span class="text-rose-600 font-black text-xs bg-rose-50 px-2 py-1 rounded border border-rose-100">${db.timeLimit || '-'}</span>
                             </div>
 
+                            <!-- ⭐️ 새로 추가된 고객 상세 정보 영역 시작 -->
+                            <div class="mb-3 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                                <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                                    <!-- 연락처 (터치 시 전화연결) -->
+                                    <div class="flex flex-col gap-0.5">
+                                        <span class="text-[10px] text-slate-400 font-bold">📞 연락처</span>
+                                        <a href="tel:${db.phone}" class="font-bold text-blue-600 text-[13px] hover:underline">${db.phone || '-'}</a>
+                                    </div>
+                                    <!-- 인적사항 -->
+                                    <div class="flex flex-col gap-0.5">
+                                        <span class="text-[10px] text-slate-400 font-bold">👤 인적사항</span>
+                                        <span class="font-bold text-slate-700 text-[13px]">${db.birth || '-'} / ${db.gender || '-'}</span>
+                                    </div>
+                                </div>
+                                <!-- 지역 -->
+                                <div class="mt-2 pt-2 border-t border-slate-200 flex flex-col gap-0.5">
+                                    <span class="text-[10px] text-slate-400 font-bold">📍 지역</span>
+                                    <span class="font-bold text-slate-700 text-[13px]">
+                                        <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-1 text-[10px]">${db.region || '-'}</span>
+                                        ${db.sido || ''} ${db.gugun || ''} ${db.dong || ''}
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- ⭐️ 고객 상세 정보 영역 끝 -->
+
+                            <!-- 2. 메모 영역 -->
                             <div class="text-xs text-slate-600 mb-4 bg-slate-50 p-2 rounded border border-slate-100 leading-snug">
                                 <span class="font-bold text-slate-500 block mb-1">📝 메모</span>${db.memo || '-'}
                             </div>
 
+                            <!-- 3. 하단 액션 영역 (녹취, TA, 일정, 상태 등) -->
                             <div class="space-y-2 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
                                 
                            <!-- ⭐️ 수정됨: 가로를 100%로 펴서 시간을 확보하고, 우측 끝에 검은색 가림막(w-[45px])을 덮어 새창버튼만 지움 -->
