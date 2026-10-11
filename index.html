@@ -1115,14 +1115,20 @@
        }
 
       function logoutUser() {
+            // ⭐️ 백엔드(구글 시트)에 로그아웃 사실을 알려 세션을 비웁니다.
+            if (currentUser && currentUser.name) {
+                fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "logout", userId: currentUser.name })
+                }).catch(e => console.log(e));
+            }
+
             currentUser = { isLoggedIn: false, name: '', status: '' };
             localStorage.removeItem('rion_logged_user');
             localStorage.removeItem('rion_logged_role');
-            localStorage.removeItem('rion_session_id'); // ⭐️ 세션 삭제
-            
-            if (typeof sessionCheckTimer !== 'undefined' && sessionCheckTimer) {
-                clearInterval(sessionCheckTimer); // ⭐️ 세션 체크 중지
-            }
+            localStorage.removeItem('rion_session_id');
+            localStorage.removeItem('rion_last_activity');
             
             updateLoginUI();
             alert('로그아웃 되었습니다.');
@@ -1269,12 +1275,17 @@
             localStorage.setItem('rion_last_activity', Date.now().toString());
             startIdleTimer();
 
-            // 탭 종료 감지하여 로그인 데이터 강제 파기
+           // 탭 종료 감지하여 로그인 데이터 강제 파기 (서버 세션 삭제 동기화)
             window.addEventListener('beforeunload', function () {
-                if (localStorage.getItem('rion_logged_user')) {
+                const loggedUser = localStorage.getItem('rion_logged_user');
+                if (loggedUser) {
+                    // 창을 닫는 찰나의 순간에 서버로 로그아웃 신호(Beacon)를 쏩니다
+                    navigator.sendBeacon(USER_DB_URL, JSON.stringify({ action: "logout", userId: loggedUser }));
+                    
                     localStorage.removeItem('rion_logged_user');
                     localStorage.removeItem('rion_logged_role');
                     localStorage.removeItem('rion_session_id');
+                    localStorage.removeItem('rion_last_activity');
                 }
             });
             
