@@ -885,7 +885,7 @@
                });
                const data = await res.json();
                
-               if (data.success) {
+               if (data.success || data.alreadyLoggedIn) {
                    document.getElementById('memberInfoAuthStep').classList.add('hidden');
                    document.getElementById('memberInfoEditStep').classList.remove('hidden');
                    document.getElementById('editName').value = currentUser.name;
