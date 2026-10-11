@@ -617,18 +617,23 @@
         </div>
     </div>
 
-    <!-- ⭐️ 비밀번호 찾기 모달 (NEW) -->
+   <!-- 📝 비밀번호 찾기 모달 -->
     <div id="findPwModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('findPwModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900 text-center mb-1">비밀번호 찾기</h3>
-            <p class="text-[11px] text-slate-500 text-center mb-5">가입 당시 입력한 이메일 주소를 입력해주세요.<br>임시 비밀번호를 발송해 드립니다.</p>
-            <div class="space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="findPwEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
-                <button onclick="submitFindPw()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">임시 비밀번호 발송</button>
-                <div class="text-center pt-3 mt-2 border-t border-slate-100">
-                    <button onclick="closeModal('findPwModal'); openModal('loginModal');" class="text-[11px] text-slate-400 hover:text-slate-600 underline">로그인 화면으로 돌아가기</button>
+            <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">비밀번호 찾기</h3>
+            <p class="text-xs text-slate-500 mb-4">가입 시 등록한 이름과 휴대폰 번호를 입력하시면, 등록된 이메일로 임시 비밀번호를 발송해 드립니다.</p>
+            <div class="space-y-3 text-sm">
+                <!-- ⭐️ 이메일 단일 입력에서 이름+휴대폰번호 입력으로 변경 -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-xs">이름</label>
+                    <input id="findPwName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500">
                 </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-xs">휴대폰 번호</label>
+                    <input id="findPwPhone" type="text" placeholder="예: 010-1234-5678" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500">
+                </div>
+                <button onclick="submitFindPassword()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg transition shadow mt-2">임시 비밀번호 발송</button>
             </div>
         </div>
     </div>
@@ -656,37 +661,39 @@
    </div>
    
    <!-- 📝 회원가입 모달 -->
-   <div id="signupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-       <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-           <button onclick="closeModal('signupModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-           <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
-           <div class="space-y-4 text-xs">
-               <div class="grid grid-cols-2 gap-3">
-                  <div><label class="block font-bold text-slate-700 mb-1">이름 (아이디)</label><input id="regName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
-                  <div><label class="block font-bold text-slate-700 mb-1">비밀번호</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
-               </div>
-               <div>
-                   <label class="block font-bold text-slate-700 mb-1">생년월일_성별</label>
-                   <div class="flex items-center gap-2">
-                       <input id="regBirth6" type="text" maxlength="6" placeholder="YYMMDD" class="w-1/2 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center tracking-widest font-mono text-sm">
-                       <span class="text-slate-400 font-bold">-</span>
-                       <input id="regGender1" type="text" maxlength="1" placeholder="1" class="w-10 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center font-bold text-sm">
-                       <span class="text-slate-400 text-lg tracking-widest pt-1">******</span>
-                   </div>
-               </div>
-               <div>
-                   <label class="block font-bold text-slate-700 mb-1">휴대폰 번호 (숫자만 8자리)</label>
-                   <div class="flex items-center gap-2">
-                       <div class="px-3 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm">010</div>
-                       <span class="text-slate-400 font-bold">-</span>
-                       <input id="regPhone8" type="tel" maxlength="8" placeholder="12345678" class="flex-grow px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 tracking-widest font-bold text-sm">
-                   </div>
-               </div>
-               <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
-               <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">가입 신청 완료하기</button>
-           </div>
-       </div>
-   </div>
+    <div id="signupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeModal('signupModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
+            <div class="space-y-4 text-xs">
+                <!-- ⭐️ 아이디와 이름을 각각 입력받도록 레이아웃 분리 -->
+                <div class="grid grid-cols-2 gap-3">
+                   <div><label class="block font-bold text-slate-700 mb-1">아이디</label><input id="regUserId" type="text" placeholder="예: user123" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                   <div><label class="block font-bold text-slate-700 mb-1">이름</label><input id="regName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">생년월일_성별</label>
+                    <div class="flex items-center gap-2">
+                        <input id="regBirth6" type="text" maxlength="6" placeholder="YYMMDD" class="w-1/2 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center tracking-widest font-mono text-sm">
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input id="regGender1" type="text" maxlength="1" placeholder="1" class="w-10 px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 text-center font-bold text-sm">
+                        <span class="text-slate-400 text-lg tracking-widest pt-1">******</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">휴대폰 번호 (숫자만 8자리)</label>
+                    <div class="flex items-center gap-2">
+                        <div class="px-3 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm">010</div>
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input id="regPhone8" type="tel" maxlength="8" placeholder="12345678" class="flex-grow px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 tracking-widest font-bold text-sm">
+                    </div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">가입 신청 완료하기</button>
+            </div>
+        </div>
+    </div>
 
    <!-- 🗑️ 회원탈퇴 모달 -->
    <div id="withdrawModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -926,66 +933,81 @@
            }
        }
 
-       // ⭐️ 비밀번호 찾기 (이메일로 임시비번 발송)
-       async function submitFindPw() {
-           const email = document.getElementById('findPwEmail').value.trim();
-           if (!email) { alert("가입하신 이메일 주소를 입력해주세요."); return; }
-           
-           const btn = document.querySelector('#findPwModal button[onclick="submitFindPw()"]');
-           btn.innerText = "발송 중...";
-           
-           try {
-               const res = await fetch(USER_DB_URL, {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                   body: JSON.stringify({ action: "findPassword", email: email })
-               });
-               const data = await res.json();
-               alert(data.message);
-               if (data.success) {
-                   closeModal('findPwModal');
-                   openModal('loginModal');
-               }
-           } catch (e) {
-               alert("통신 오류가 발생했습니다. 나중에 다시 시도해주세요.");
-           } finally {
-               btn.innerText = "임시 비밀번호 발송";
-           }
-       }
+       async function submitFindPassword() {
+            const name = document.getElementById('findPwName').value.trim();
+            const phone = document.getElementById('findPwPhone').value.trim();
+            
+            if (!name || !phone) {
+                alert("이름과 휴대폰 번호를 모두 입력해주세요."); return;
+            }
 
+            const btn = document.querySelector('#findPwModal button[onclick="submitFindPassword()"]');
+            btn.innerText = "발송 중...";
+
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    // ⭐️ 이메일 대신 이름과 휴대폰번호를 서버로 전송
+                    body: JSON.stringify({ action: "findPassword", name: name, phone: phone })
+                });
+                const data = await res.json();
+                
+                alert(data.message);
+                if (data.success) {
+                    closeModal('findPwModal');
+                    document.getElementById('findPwName').value = '';
+                    document.getElementById('findPwPhone').value = '';
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "임시 비밀번호 발송";
+            }
+        }
        async function submitSignup() {
-           const name = document.getElementById('regName').value.trim();
-           const empId = document.getElementById('regEmpId').value.trim();
-           const birth6 = document.getElementById('regBirth6').value.trim();
-           const gender1 = document.getElementById('regGender1').value.trim();
-           const phone8 = document.getElementById('regPhone8').value.trim();
-           const email = document.getElementById('regEmail').value.trim();
+            const userId = document.getElementById('regUserId').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const empId = document.getElementById('regEmpId').value.trim();
+            const birth6 = document.getElementById('regBirth6').value.trim();
+            const gender1 = document.getElementById('regGender1').value.trim();
+            const phone8 = document.getElementById('regPhone8').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
 
-           if (!name || !empId || birth6.length !== 6 || !gender1 || phone8.length < 7 || !email) {
-               alert("모든 정보를 올바른 양식으로 입력해주세요.\n(생년월일 6자리, 휴대폰 8자리 필수)"); return;
-           }
+            if (!userId || !name || !empId || !birth6 || !gender1 || !phone8 || !email) {
+                alert("모든 항목을 입력해주세요."); return;
+            }
 
-           const btn = document.getElementById('signupModal').querySelector('button');
-           btn.innerText = "신청 중...";
+            const phone = "010-" + phone8.substring(0,4) + "-" + phone8.substring(4);
+            const btn = document.querySelector('#signupModal button[onclick="submitSignup()"]');
+            btn.innerText = "가입 신청 중...";
 
-           try {
-               const res = await fetch(USER_DB_URL, {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                   body: JSON.stringify({ action: "signup", userId: name, name, empId, birth6, gender1, phone: `010${phone8}`, email })
-               });
-               const data = await res.json();
-              alert(data.message);
-               if (data.success) {
-                  closeModal('signupModal');
-                  openModal('loginModal');
-               }
-           } catch (e) {
-               alert("통신 오류가 발생했습니다. 다시 시도해주세요.");
-           } finally {
-               btn.innerText = "가입 신청 완료하기";
-           }
-       }
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    // ⭐️ userId와 name 데이터를 분리하여 서버로 전송
+                    body: JSON.stringify({ action: "signup", userId: userId, name: name, empId: empId, birth6: birth6, gender1: gender1, phone: phone, email: email })
+                });
+                const data = await res.json();
+                alert(data.message);
+                
+                if(data.success) {
+                    closeModal('signupModal');
+                    document.getElementById('regUserId').value = '';
+                    document.getElementById('regName').value = '';
+                    document.getElementById('regEmpId').value = '';
+                    document.getElementById('regBirth6').value = '';
+                    document.getElementById('regGender1').value = '';
+                    document.getElementById('regPhone8').value = '';
+                    document.getElementById('regEmail').value = '';
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다.");
+            } finally {
+                btn.innerText = "가입 신청 완료하기";
+            }
+        }
 
        async function submitLogin(forceLogin = false) {
             const userId = document.getElementById('loginId').value.trim(); 
