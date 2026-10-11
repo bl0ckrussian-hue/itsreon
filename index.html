@@ -47,6 +47,7 @@
                     <button id="navIntro" onclick="switchView('intro')" class="hover:text-white transition text-blue-400 font-bold">잇츠리온</button>
                     <button id="navWorkspace" onclick="switchView('workspace')" class="hover:text-white transition">업무센터</button>
                     <button id="navExpert" onclick="switchView('expert')" class="hover:text-white transition text-slate-400">자문센터</button>
+                    <button onclick="window.open('insurance_education.html', '_blank')" class="hover:text-white transition text-slate-400">교육센터</button>
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
                 
@@ -308,16 +309,11 @@
                           <p class="text-xs text-slate-500 mt-2 leading-relaxed">청구 못한 병원비 확인</p>
                        </div>
 
-                       <!-- ⭐️ [8열] 세일즈 교육 (원본 유지) -->
-                        <div onclick="window.open('insurance_education.html', '_blank')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-cyan-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                           <!-- 우측 상단 녹색 활성화 깜빡임 불빛 추가 -->
-                           <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
-                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                               <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                           </div>
-                           <div class="text-4xl mb-3 group-hover:scale-110 transition transform">🎬</div>
-                           <h3 class="text-lg font-bold text-slate-800 group-hover:text-cyan-600 transition">세일즈 교육</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">교육 영상 및 자료</p>
+                       <!-- [8열] 서비스 출시 예정 --> 
+                       <div onclick="checkAuthAndOpen('comingSoonModal')" class="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group opacity-80 hover:opacity-100 shadow-sm relative overflow-hidden">
+                           <div class="text-4xl mb-3 opacity-60 group-hover:scale-105 transition transform">🎬</div>
+                           <h3 class="text-base font-bold text-slate-700">서비스 출시 예정</h3>
+                           <p class="text-xs text-slate-500 mt-2 leading-relaxed">신규 스마트 영업 지원 도구가<br/>곧 순차적으로 업데이트됩니다.</p>
                        </div>
 
                        <!-- [9열] 내 보험 찾아줌 -->
