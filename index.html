@@ -1125,7 +1125,12 @@
             localStorage.removeItem('rion_logged_role');
             localStorage.removeItem('rion_session_id');
             localStorage.removeItem('rion_last_activity');
-            
+
+            const loginIdInput = document.getElementById('loginId');
+            const loginPwInput = document.getElementById('loginPw');
+            if (loginIdInput) loginIdInput.value = '';
+            if (loginPwInput) loginPwInput.value = '';
+          
             updateLoginUI();
             alert('로그아웃 되었습니다.');
         }
