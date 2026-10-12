@@ -853,15 +853,15 @@
                localStorage.setItem('rion_logged_user', currentUser.name); 
               
                 if (modalId === 'dbAssignPage') {
-                   window.open('db_assign.html', '_blank'); 
+                   window.open('db_assign.html', 'eduWindow'); 
                 } else if (modalId === 'dutyModal') {
                    window.open('duty_analysis.html', '_blank');
                 } else if (modalId === 'contractDashboardModal') {
-                   window.open('db_carts.html', '_blank');
+                   window.open('db_carts.html', 'eduWindow');
                 } else if (modalId === 'coverageModal') { // 👈 AI보장분석 새 창 연결 완벽 복구
                    window.open('insurance_analysis.html', '_blank');
                 } else if (modalId === 'unclaimedMoneyModal') { 
-                   window.open('insurance_money.html', '_blank');
+                   window.open('insurance_money.html', 'eduWindow');
                 } else {
                    openModal(modalId); 
                 }
