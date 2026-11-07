@@ -51,27 +51,30 @@
                     <button onclick="openModal('contactModal')" class="hover:text-white transition text-slate-400">문의하기</button>
                 </nav>
                 
-                <!-- 우측 사용자 프로필 -->
-                <div class="flex items-center space-x-3">
+                <!-- 우측 사용자 프로필 (데이텀과 동일한 구성 + 모바일 줄바꿈 깨짐 방지) -->
+                <div class="flex items-center space-x-2 shrink-0">
                     <!-- 비로그인 상태 UI -->
-                    <div id="loggedOutUI" class="flex space-x-2">
-                       <button onclick="openModal('loginModal')" class="text-xs font-bold text-slate-300 hover:text-white transition">로그인</button>
-                       <button onclick="openModal('signupModal')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-md">회원가입</button>
+                    <div id="loggedOutUI" class="flex items-center space-x-1.5 sm:space-x-2.5 text-[11px] sm:text-xs whitespace-nowrap">
+                       <button onclick="openModal('loginModal')" class="bg-blue-600 hover:bg-blue-500 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-lg font-bold text-white transition shadow-md">로그인</button>
+                       <button onclick="openModal('findIdModal')" class="text-slate-300 hover:text-white transition">아이디찾기</button>
+                       <span class="text-slate-600">|</span>
+                       <button onclick="openModal('findPwModal')" class="text-slate-300 hover:text-white transition">비번찾기</button>
+                       <span class="text-slate-600">|</span>
+                       <button onclick="openModal('signupModal')" class="font-bold text-blue-400 hover:text-blue-300 transition">회원가입</button>
                     </div>
                     <!-- 로그인 완료 상태 UI -->
-                    <div id="loggedInUI" class="hidden flex items-center space-x-3">
-                        <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
+                    <div id="loggedInUI" class="hidden flex items-center space-x-2 sm:space-x-3 whitespace-nowrap">
+                        <div class="flex items-center space-x-1.5 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700 text-[11px] sm:text-xs">
                            <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                            <span id="displayUserName" class="font-bold text-slate-200">사용자</span>
+                           <span id="displayUserName" class="font-bold text-slate-200">사용자</span>
                            <span id="displayUserStatus" class="text-amber-400 font-semibold">(승인대기)</span>
                        </div>
-                       <div class="flex items-center space-x-2">
-                           <button onclick="logoutUser()" class="text-[11px] text-slate-400 hover:text-white underline">로그아웃</button>
+                       <div class="flex items-center space-x-1.5 sm:space-x-2 text-[11px]">
+                           <button onclick="logoutUser()" class="text-slate-400 hover:text-white underline">로그아웃</button>
                            <span class="text-slate-600 text-[10px]">|</span>
-                           <!-- ⭐️ 회원정보 버튼 추가 -->
-                           <button onclick="openMemberInfo()" class="text-[11px] text-slate-400 hover:text-white underline">회원정보</button>
+                           <button onclick="openMemberInfo()" class="text-slate-400 hover:text-white underline">회원정보</button>
                            <span class="text-slate-600 text-[10px]">|</span>
-                           <button onclick="openModal('withdrawModal')" class="text-[11px] text-rose-400 hover:text-rose-300 underline">회원탈퇴</button>
+                           <button onclick="openModal('withdrawModal')" class="text-rose-400 hover:text-rose-300 underline">회원탈퇴</button>
                        </div>
                     </div>
                 </div>
@@ -615,14 +618,33 @@
         </div>
     </div>
 
-   <!-- 📝 비밀번호 찾기 모달 -->
+   <!-- 📝 아이디 찾기 모달 (신규 추가 - 데이텀 동일) -->
+    <div id="findIdModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('findIdModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">아이디 찾기</h3>
+            <p class="text-xs text-slate-500 mb-4">가입 시 등록한 이름과 휴대폰 번호를 입력하시면, 등록된 이메일로 로그인 아이디를 발송해 드립니다.</p>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-xs">이름</label>
+                    <input id="findIdName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-xs">휴대폰 번호</label>
+                    <input id="findIdPhone" type="text" placeholder="예: 010-1234-5678" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500">
+                </div>
+                <button id="findIdSubmitBtn" onclick="submitFindId()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow mt-2">이메일로 아이디 받기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📝 비밀번호 찾기 모달 -->
     <div id="findPwModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
             <button onclick="closeModal('findPwModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">비밀번호 찾기</h3>
             <p class="text-xs text-slate-500 mb-4">가입 시 등록한 이름과 휴대폰 번호를 입력하시면, 등록된 이메일로 임시 비밀번호를 발송해 드립니다.</p>
             <div class="space-y-3 text-sm">
-                <!-- ⭐️ 이메일 단일 입력에서 이름+휴대폰번호 입력으로 변경 -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1 text-xs">이름</label>
                     <input id="findPwName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500">
@@ -636,26 +658,26 @@
         </div>
     </div>
 
-   <!-- 🔑 로그인 모달 -->
-   <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-       <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
-           <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-           <h3 class="text-xl font-bold text-slate-900 text-center mb-1">잇츠리온 로그인</h3>
-           <p class="text-[11px] text-slate-500 text-center mb-5">등록된 아이디와 비번으로 로그인하세요.</p>
-           <div class="space-y-3 text-xs">
-               <div><label class="block font-bold text-slate-700 mb-1">아이디</label><input id="loginId" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
-              <div><label class="block font-bold text-slate-700 mb-1">비밀번호</label><input id="loginPw" type="password" placeholder="예: 12345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
-               <button onclick="submitLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">로그인 하기</button>
-               <div class="flex justify-between items-center pt-3 mt-2 border-t border-slate-100">
-                   <!-- ⭐️ 비밀번호 찾기 기능 버튼 -->
-                   <button onclick="closeModal('loginModal'); openModal('findPwModal');" class="text-[11px] text-slate-500 underline">비밀번호 찾기</button>
-                   <div>
-                       <span class="text-[11px] text-slate-400">아직 계정이 없으신가요?</span>
-                       <button onclick="closeModal('loginModal'); openModal('signupModal');" class="text-xs font-black text-blue-600 hover:text-blue-800 transition ml-1">회원가입 →</button>
-                   </div>
-               </div>
-           </div>
-       </div>
+    <!-- 🔑 로그인 모달 (데이텀과 동일하게 아이디 로그인 및 하단 아이디찾기/비번찾기/회원가입 배치) -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            <h3 class="text-xl font-bold text-slate-900 text-center mb-1">잇츠리온 로그인</h3>
+            <p class="text-[11px] text-slate-500 text-center mb-5">등록된 아이디와 비밀번호로 로그인하세요.</p>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">아이디</label><input id="loginId" type="text" placeholder="아이디 입력" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호</label><input id="loginPw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter') submitLogin()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <button onclick="submitLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm mt-2 transition shadow">로그인 하기</button>
+                <div class="flex items-center justify-center space-x-3 pt-3 mt-2 border-t border-slate-100 text-slate-500 whitespace-nowrap">
+                    <button onclick="closeModal('loginModal'); openModal('findIdModal');" class="hover:underline">아이디 찾기</button>
+                    <span class="text-slate-300">|</span>
+                    <button onclick="closeModal('loginModal'); openModal('findPwModal');" class="hover:underline">비밀번호 찾기</button>
+                    <span class="text-slate-300">|</span>
+                    <button onclick="closeModal('loginModal'); openModal('signupModal');" class="font-black text-blue-600 hover:text-blue-800">회원가입</button>
+                </div>
+            </div>
+        </div>
+    </div>
    </div>
    
    <!-- 📝 회원가입 모달 -->
@@ -982,7 +1004,34 @@
                btn.innerText = "회원정보 수정 완료";
            }
        }
-
+       // ⭐️ 아이디 찾기 전송 함수 추가
+        async function submitFindId() {
+            const name = document.getElementById('findIdName').value.trim();
+            const phone = document.getElementById('findIdPhone').value.trim();
+            if (!name || !phone) {
+                alert("이름과 휴대폰 번호를 모두 입력해주세요."); return;
+            }
+            const btn = document.getElementById('findIdSubmitBtn');
+            btn.innerText = "발송 중...";
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "findId", name: name, phone: phone })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    closeModal('findIdModal');
+                    document.getElementById('findIdName').value = '';
+                    document.getElementById('findIdPhone').value = '';
+                }
+            } catch (e) {
+                alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            } finally {
+                btn.innerText = "이메일로 아이디 받기";
+            }
+        }
        async function submitFindPassword() {
             const name = document.getElementById('findPwName').value.trim();
             const phone = document.getElementById('findPwPhone').value.trim();
