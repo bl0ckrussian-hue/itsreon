@@ -242,9 +242,10 @@
                 // 📱 2. 모바일 뷰
                 // ==========================================
                 mobileHtml += `
-                    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden relative mb-4">
-                        <input type="hidden" id="m_custName_${index}" value="${db.customerName}">
-                        <div id="m_edit_area_${index}" class="p-4 transition-all bg-white">
+                    <!-- ⭐️ 모바일 뷰 녹취 영역만 데이텀의 다이렉트 재생 엔진으로 교체 -->
+                                <div class="w-full mb-1">
+                                    ${buildMobileAudioHtml(db.audioUrl, index)}
+                                </div>
                             
                             <!-- 1. 상단: 이름 및 기한 -->
                             <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
@@ -710,6 +711,80 @@
             alert('고객 정보 보호를 위해 화면 캡처 및 복사가 금지되어 있습니다.');
         }
     });
+    // ⭐️ 데이텀에서 차용한 휴대폰 전용 무로그인 다이렉트 녹취 재생 엔진
+        function extractDriveFileId(url) {
+            if (!url) return "";
+            const match1 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match1 && match1[1]) return match1[1];
+            const match2 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (match2 && match2[1]) return match2[1];
+            return "";
+        }
+
+        function buildMobileAudioHtml(rawUrl, index) {
+            const fileId = extractDriveFileId(rawUrl);
+            if (!fileId) {
+                return `
+                    <div class="w-full flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">🎧 녹취</span>
+                        <div class="flex-grow w-full h-10 rounded border border-slate-300 bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-bold">녹취 없음</div>
+                    </div>
+                `;
+            }
+            return `
+                <div id="m_audio_box_${index}" class="w-full bg-white p-2 rounded-lg border border-slate-300 shadow-sm">
+                    <button type="button" id="m_audio_btn_${index}" onclick="playMobileAudio('${fileId}', ${index})" class="w-full bg-blue-600 active:bg-blue-700 text-white font-bold py-2 px-3 rounded text-xs flex items-center justify-center gap-1.5 shadow-sm transition">
+                        <span>🎧 터치하여 녹취 바로듣기</span>
+                    </button>
+                    <div id="m_audio_player_wrap_${index}" class="hidden mt-1"></div>
+                </div>
+            `;
+        }
+
+        async function playMobileAudio(fileId, index) {
+            const btn = document.getElementById(`m_audio_btn_${index}`);
+            const wrap = document.getElementById(`m_audio_player_wrap_${index}`);
+            if (!btn || !wrap) return;
+
+            btn.disabled = true;
+            btn.innerText = "⏳ 녹취 불러오는 중... (1~2초 소요)";
+            btn.className = "w-full bg-slate-500 text-white font-bold py-2 px-3 rounded text-xs flex items-center justify-center gap-1.5";
+
+            try {
+                const res = await fetch(`${GAS_WEBAPP_URL}?mode=getAudio&fileId=${encodeURIComponent(fileId)}`);
+                const data = await res.json();
+
+                if (data.success && data.base64) {
+                    const byteChars = atob(data.base64);
+                    const byteNumbers = new Array(byteChars.length);
+                    for (let i = 0; i < byteChars.length; i++) {
+                        byteNumbers[i] = byteChars.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: data.mimeType || 'audio/mp4' });
+                    const audioBlobUrl = URL.createObjectURL(blob);
+
+                    btn.classList.add('hidden');
+                    wrap.classList.remove('hidden');
+                    wrap.innerHTML = `
+                        <audio id="m_audio_el_${index}" controls controlsList="nodownload" autoplay playsinline class="w-full h-10">
+                            <source src="${audioBlobUrl}" type="${data.mimeType || 'audio/mp4'}">
+                        </audio>
+                    `;
+                    const audioEl = document.getElementById(`m_audio_el_${index}`);
+                    if (audioEl) audioEl.play().catch(() => {});
+                } else {
+                    alert("녹취 로드 실패: " + (data.error || "파일을 찾을 수 없습니다."));
+                    btn.disabled = false;
+                    btn.innerText = "🎧 다시 시도하기";
+                }
+            } catch (err) {
+                alert("통신 오류가 발생했습니다. 다시 눌러주세요.");
+                btn.disabled = false;
+                btn.innerText = "🎧 터치하여 녹취 바로듣기";
+                btn.className = "w-full bg-blue-600 text-white font-bold py-2 px-3 rounded text-xs flex items-center justify-center gap-1.5";
+            }
+        }
 </script>
 </body>
 </html>
