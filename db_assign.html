@@ -169,8 +169,8 @@
                 const valNote = db.note || '';
                 const valSchedule = db.schedule || '';
 
-          // ==========================================
-                // 💻 1. 데스크톱 뷰
+                // ==========================================
+                // 💻 1. 데스크톱(PC) 전용 뷰
                 // ==========================================
                 desktopHtml += `
                     <tr class="bg-slate-50 font-medium border-b border-slate-200 hover:bg-slate-100 transition">
@@ -195,7 +195,6 @@
                             <input type="hidden" id="custName_${index}" value="${db.customerName}">
                             <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
                                 
-                           <!-- ⭐️ 수정됨: 가로를 100%로 펴서 시간을 확보하고, 우측 끝에 검은색 가림막(w-[45px])을 덮어 새창버튼만 지움 -->
                                 <div class="w-[20%] shrink-0 flex items-center pl-1">
                                     <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight mr-1.5">🎧 녹취</span>
                                     <div class="flex-grow w-full relative overflow-hidden h-10 rounded border border-slate-300 shadow-sm bg-[#141414]">
@@ -239,103 +238,92 @@
                 `;
 
                 // ==========================================
-                // 📱 2. 모바일 뷰
+                // 📱 2. 모바일(휴대폰) 전용 뷰 (누락되었던 카드 시작 태그 복구 & 이중 녹취 제거)
                 // ==========================================
                 mobileHtml += `
-                    <!-- ⭐️ 모바일 뷰 녹취 영역만 데이텀의 다이렉트 재생 엔진으로 교체 -->
-                                <div class="w-full mb-1">
-                                    ${buildMobileAudioHtml(db.audioUrl, index)}
-                                </div>
-                            
-                            <!-- 1. 상단: 이름 및 기한 -->
-                            <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-bold">No.${index + 1}</span>
-                                    <span class="font-black text-base text-slate-900">${db.customerName || '-'}</span>
-                                </div>
-                                <span class="text-rose-600 font-black text-xs bg-rose-50 px-2 py-1 rounded border border-rose-100">${db.timeLimit || '-'}</span>
+                    <div id="m_edit_area_${index}" class="bg-white rounded-xl shadow-md border border-slate-200 p-4 transition-all">
+                        <input type="hidden" id="m_custName_${index}" value="${db.customerName}">
+                        
+                        <!-- 1. 상단: 이름 및 기한 -->
+                        <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-bold">No.${index + 1}</span>
+                                <span class="font-black text-base text-slate-900">${db.customerName || '-'}</span>
                             </div>
+                            <span class="text-rose-600 font-black text-xs bg-rose-50 px-2 py-1 rounded border border-rose-100">${db.timeLimit || '-'}</span>
+                        </div>
 
-                            <!-- ⭐️ 새로 추가된 고객 상세 정보 영역 시작 -->
-                            <div class="mb-3 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
-                                <div class="grid grid-cols-2 gap-y-2 gap-x-4">
-                                    <!-- 연락처 (터치 시 전화연결) -->
-                                    <div class="flex flex-col gap-0.5">
-                                        <span class="text-[10px] text-slate-400 font-bold">📞 연락처</span>
-                                        <a href="tel:${db.phone}" class="font-bold text-blue-600 text-[13px] hover:underline">${db.phone || '-'}</a>
-                                    </div>
-                                    <!-- 인적사항 -->
-                                    <div class="flex flex-col gap-0.5">
-                                        <span class="text-[10px] text-slate-400 font-bold">👤 인적사항</span>
-                                        <span class="font-bold text-slate-700 text-[13px]">${db.birth || '-'} / ${db.gender || '-'}</span>
-                                    </div>
+                        <!-- 2. 고객 상세 정보 영역 -->
+                        <div class="mb-3 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                            <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                                <div class="flex flex-col gap-0.5">
+                                    <span class="text-[10px] text-slate-400 font-bold">📞 연락처</span>
+                                    <a href="tel:${db.phone}" class="font-bold text-blue-600 text-[13px] hover:underline">${db.phone || '-'}</a>
                                 </div>
-                                <!-- 지역 -->
-                                <div class="mt-2 pt-2 border-t border-slate-200 flex flex-col gap-0.5">
-                                    <span class="text-[10px] text-slate-400 font-bold">📍 지역</span>
-                                    <span class="font-bold text-slate-700 text-[13px]">
-                                        <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-1 text-[10px]">${db.region || '-'}</span>
-                                        ${db.sido || ''} ${db.gugun || ''} ${db.dong || ''}
-                                    </span>
+                                <div class="flex flex-col gap-0.5">
+                                    <span class="text-[10px] text-slate-400 font-bold">👤 인적사항</span>
+                                    <span class="font-bold text-slate-700 text-[13px]">${db.birth || '-'} / ${db.gender || '-'}</span>
                                 </div>
                             </div>
-                            <!-- ⭐️ 고객 상세 정보 영역 끝 -->
+                            <div class="mt-2 pt-2 border-t border-slate-200 flex flex-col gap-0.5">
+                                <span class="text-[10px] text-slate-400 font-bold">📍 지역</span>
+                                <span class="font-bold text-slate-700 text-[13px]">
+                                    <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-1 text-[10px]">${db.region || '-'}</span>
+                                    ${db.sido || ''} ${db.gugun || ''} ${db.dong || ''}
+                                </span>
+                            </div>
+                        </div>
 
-                            <!-- 2. 메모 영역 -->
-                            <div class="text-xs text-slate-600 mb-4 bg-slate-50 p-2 rounded border border-slate-100 leading-snug">
-                                <span class="font-bold text-slate-500 block mb-1">📝 메모</span>${db.memo || '-'}
+                        <!-- 3. 메모 영역 -->
+                        <div class="text-xs text-slate-600 mb-3 bg-slate-50 p-2 rounded border border-slate-100 leading-snug">
+                            <span class="font-bold text-slate-500 block mb-1">📝 메모</span>${db.memo || '-'}
+                        </div>
+
+                        <!-- 4. 하단 액션 영역 (모바일 전용 다이렉트 녹취 1개만 깔끔하게 표시) -->
+                        <div class="space-y-2 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                            <div class="w-full mb-1">
+                                ${buildMobileAudioHtml(db.audioUrl, index)}
                             </div>
 
-                            <!-- 3. 하단 액션 영역 (녹취, TA, 일정, 상태 등) -->
-                            <div class="space-y-2 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
-                                
-                           <!-- ⭐️ 수정됨: 가로를 100%로 펴서 시간을 확보하고, 우측 끝에 검은색 가림막(w-[45px])을 덮어 새창버튼만 지움 -->
-                                <div class="w-full flex items-center gap-2 mb-1">
-                                    <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">🎧 녹취</span>
-                                    <div class="flex-grow w-full relative overflow-hidden h-10 rounded border border-slate-300 shadow-sm bg-[#141414]">
-                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: -20px; left: 0; width: 100%; height: 150px; border: none;" allow="autoplay"></iframe><div class="absolute top-0 right-0 w-[45px] h-full bg-[#141414] z-10"></div>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
-                                    </div>
-                                </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${generateTaSelect(`m_ta1_${index}`, '1차 TA(1일)', valTa1, index, 'm_')}
+                                ${generateTaSelect(`m_ta2_${index}`, '2차 TA(2일)', valTa2, index, 'm_')}
+                                ${generateTaSelect(`m_ta3_${index}`, '3차 TA(3일)', valTa3, index, 'm_')}
+                                ${generateTaSelect(`m_ta4_${index}`, '4차 이상 TA', valTa4, index, 'm_')}
+                            </div>
 
-                                <div class="grid grid-cols-2 gap-2">
-                                    ${generateTaSelect(`m_ta1_${index}`, '1차 TA(1일)', valTa1, index, 'm_')}
-                                    ${generateTaSelect(`m_ta2_${index}`, '2차 TA(2일)', valTa2, index, 'm_')}
-                                    ${generateTaSelect(`m_ta3_${index}`, '3차 TA(3일)', valTa3, index, 'm_')}
-                                    ${generateTaSelect(`m_ta4_${index}`, '4차 이상 TA', valTa4, index, 'm_')}
+                            <div class="flex gap-2 pt-1">
+                                <div class="w-[50%] flex gap-1">
+                                    <input type="text" id="m_schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, 'm_')" placeholder="일정입력(터치)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
                                 </div>
+                                <div class="w-[50%]">
+                                    <select id="m_status_${index}" onchange="handleStatusChange(${index}, 'm_')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
+                                        <option value="" ${valStatus===''?'selected':''}>- 현황 -</option>
+                                        <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
+                                        <option value="상담완료" ${valStatus==='상담완료'?'selected':''}>상담완료</option>
+                                        <option value="계약" ${valStatus==='계약'?'selected':''}>계약</option>
+                                        <option value="장기배양(심사)" ${valStatus==='장기배양(심사)'?'selected':''}>장기배양(심사)</option>
+                                        <option value="거절" ${valStatus==='거절'?'selected':''}>거절</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                                <div class="flex gap-2 pt-1">
-                                    <div class="w-[50%] flex gap-1">
-                                        <input type="text" id="m_schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, 'm_')" placeholder="일정입력(터치)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
-                                    </div>
-                                    <div class="w-[50%]">
-                                        <select id="m_status_${index}" onchange="handleStatusChange(${index}, 'm_')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
-                                            <option value="" ${valStatus===''?'selected':''}>- 현황 -</option>
-                                            <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
-                                            <option value="상담완료" ${valStatus==='상담완료'?'selected':''}>상담완료</option>
-                                            <option value="계약" ${valStatus==='계약'?'selected':''}>계약</option>
-                                            <option value="장기배양(심사)" ${valStatus==='장기배양(심사)'?'selected':''}>장기배양(심사)</option>
-                                            <option value="거절" ${valStatus==='거절'?'selected':''}>거절</option>
-                                        </select>
-                                    </div>
-                                </div>
+                            <div class="flex gap-2 pt-1">
+                                <input type="text" id="m_cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[30%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-center">
+                                <input type="text" id="m_prm_${index}" value="${valPremium}" readonly placeholder="보험료 입력 (터치)" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[70%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-right">
+                            </div>
 
-                                <div class="flex gap-2 pt-1">
-                                    <input type="text" id="m_cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[30%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-center">
-                                    <input type="text" id="m_prm_${index}" value="${valPremium}" readonly placeholder="보험료 입력 (터치)" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[70%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-right">
-                                </div>
-
-                                <div class="pt-1">
-                                    <input type="text" id="m_note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고(특이사항) 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
-                                </div>
+                            <div class="pt-1">
+                                <input type="text" id="m_note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고(특이사항) 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                             </div>
                         </div>
                     </div>
                 `;
             });
 
+            // ⭐️ PC(md 이상: 768px~)에서는 표(Table)만 보이고, 스마트폰(md 미만)에서는 모바일 카드만 보이도록 완벽 분리
             container.innerHTML = `
-                <div class="hidden xl:block bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden min-w-[1400px]">
+                <div class="hidden md:block bg-white rounded-xl shadow-md border border-slate-200 overflow-x-auto min-w-[1400px]">
                     <table class="w-full text-xs text-center border-collapse whitespace-nowrap">
                         <thead class="bg-slate-800 text-white">
                             <tr>
@@ -361,7 +349,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="block xl:hidden flex flex-col gap-4">
+                <div class="block md:hidden flex flex-col gap-4">
                     ${mobileHtml}
                 </div>
             `;
@@ -575,7 +563,7 @@
             const textSpan = document.getElementById('globalSaveText');
             btn.disabled = true; btn.classList.replace('bg-blue-600', 'bg-slate-500');
 
-            const isMobileView = window.innerWidth < 1280;
+            const isMobileView = window.innerWidth < 768;
             const pfx = isMobileView ? 'm_' : '';
 
             let successCount = 0; let failCount = 0;
