@@ -80,6 +80,20 @@
                 </div>
             </div>
         </div>
+        <!-- 📱 모바일 전용 하단 메뉴바 (PC에서는 숨김, 핸드폰에서만 노출) -->
+        <nav class="flex md:hidden items-center justify-around bg-slate-800/95 border-t border-slate-700/80 py-2.5 px-2 text-xs font-bold text-slate-300">
+            <button id="mNavIntro" onclick="switchView('intro')" class="text-blue-400 hover:text-white transition px-2 py-1">잇츠리온</button>
+            <span class="text-slate-600 text-[10px]">|</span>
+            <button id="mNavWorkspace" onclick="switchView('workspace')" class="hover:text-white transition px-2 py-1">업무센터</button>
+            <span class="text-slate-600 text-[10px]">|</span>
+            <button id="mNavExpert" onclick="switchView('expert')" class="hover:text-white transition px-2 py-1">자문센터</button>
+            <span class="text-slate-600 text-[10px]">|</span>
+            <button onclick="window.open('insurance_education.html', '_blank')" class="text-amber-400 hover:text-amber-300 transition px-2 py-1 flex items-center gap-1">
+                <span>🎬 교육센터</span>
+            </button>
+            <span class="text-slate-600 text-[10px]">|</span>
+            <button onclick="openModal('contactModal')" class="hover:text-white transition px-2 py-1">문의</button>
+        </nav>
     </header>
 
     <main class="flex-grow">
