@@ -244,16 +244,32 @@
         </div>
     </main>
 
-    <!-- 모달창들 (영상, 인증, 파일다운, 업로드) -->
-    <div id="videoModal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
-        <div class="w-full max-w-5xl flex justify-end mb-3">
-            <button onclick="closeVideoModal()" class="text-white/70 hover:text-white font-bold text-lg flex items-center gap-2 transition">
-                <span>창 닫기</span><span class="text-2xl">✕</span>
+    <!-- 🎬 영상 재생 모달 (모바일 검은 화면 방지 + 구글 계정 팝업 차단막 + 자체 전체화면 지원) -->
+    <div id="videoModal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-2 sm:p-4">
+        <div class="w-full max-w-5xl flex justify-between items-center mb-2.5 px-1">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleCustomFullscreen()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
+                    <span>⛶ 전체화면 전환</span>
+                </button>
+                <button type="button" onclick="reloadCurrentVideo()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                    🔄 소리만 나올 때 화면 새로고침
+                </button>
+            </div>
+            <button type="button" onclick="closeVideoModal()" class="text-white/80 hover:text-white font-bold text-sm sm:text-base flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                <span>창 닫기</span><span class="text-lg leading-none">✕</span>
             </button>
         </div>
-        <div class="w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl relative">
-            <iframe id="videoIframe" src="" class="w-full h-full border-0" allow="autoplay; fullscreen"></iframe>
+
+        <div id="videoPlayerWrapper" class="w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl relative border border-slate-800">
+            <!-- 동적으로 iframe이 삽입되는 영역 -->
+            <div id="videoIframeHost" class="w-full h-full"></div>
+
+            <!-- 🛡️ 우측 상단 구글 드라이브 '새창 열기(구글 계정 선택 유도)' 버튼 터치 원천 차단 가림막 -->
+            <div class="absolute top-0 right-0 w-20 h-16 z-30 bg-transparent" onclick="event.stopPropagation(); return false;"></div>
         </div>
+        <p class="text-[11px] text-slate-400 mt-2 text-center">
+            💡 모바일에서 화면이 안 나오거나 전체화면이 필요할 때 상단의 <b>[⛶ 전체화면 전환]</b> 또는 <b>[🔄 화면 새로고침]</b>을 눌러주세요.
+        </p>
     </div>
 
     <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -546,9 +562,7 @@
                     return;
                 }
                 const url = videoCard.getAttribute('data-video-url');
-                const previewUrl = url.replace('/view', '/preview'); 
-                document.getElementById('videoIframe').src = previewUrl;
-                document.getElementById('videoModal').classList.remove('hidden');
+                openMobileSafeVideo(url);
                 return;
             }
 
@@ -716,9 +730,80 @@
             document.getElementById('progressBar').style.width = '0%';
         }
 
+        let currentPlayingVideoUrl = "";
+
+        // 모바일 검은 화면(오디오만 재생) 방지를 위해 모달을 먼저 노출한 뒤 iframe을 동적 생성
+        function openMobileSafeVideo(rawUrl) {
+            currentPlayingVideoUrl = rawUrl;
+            const previewUrl = rawUrl.replace('/view', '/preview');
+            const modal = document.getElementById('videoModal');
+            const host = document.getElementById('videoIframeHost');
+
+            host.innerHTML = '';
+            modal.classList.remove('hidden');
+
+            // 모달 레이아웃이 잡힌 직후(100ms) 렌더링하여 모바일 비디오 레이어 누락 방지
+            setTimeout(() => {
+                host.innerHTML = `
+                    <iframe 
+                        id="videoIframe" 
+                        src="${previewUrl}" 
+                        class="w-full h-full border-0" 
+                         style="transform: translateZ(0); -webkit-transform: translateZ(0);"
+                        allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
+                        allowfullscreen 
+                        webkitallowfullscreen 
+                        mozallowfullscreen 
+                        playsinline>
+                    </iframe>
+                `;
+            }, 100);
+        }
+
+        // 소리만 나올 때 즉시 비디오 레이어를 재렌더링하는 함수
+        function reloadCurrentVideo() {
+            if (currentPlayingVideoUrl) {
+                openMobileSafeVideo(currentPlayingVideoUrl);
+            }
+        }
+
+        // 구글 계정 로그인 창 없이 바로 전체화면으로 키워주는 자체 전체화면 함수
+        function toggleCustomFullscreen() {
+            const wrapper = document.getElementById('videoPlayerWrapper');
+            if (!wrapper) return;
+
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                wrapper.classList.remove('fixed', 'inset-0', 'z-50', 'max-w-none', 'h-screen', 'rounded-none');
+            } else {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().catch(() => {});
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else {
+                    // iOS Safari 등 자체 Fullscreen API 제한 환경용 화면 꽉 채우기 모드
+                    wrapper.classList.toggle('fixed');
+                    wrapper.classList.toggle('inset-0');
+                    wrapper.classList.toggle('z-50');
+                    wrapper.classList.toggle('max-w-none');
+                    wrapper.classList.toggle('h-screen');
+                    wrapper.classList.toggle('rounded-none');
+                }
+            }
+        }
+
         function closeVideoModal() {
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+            const wrapper = document.getElementById('videoPlayerWrapper');
+            if (wrapper) {
+                wrapper.classList.remove('fixed', 'inset-0', 'z-50', 'max-w-none', 'h-screen', 'rounded-none');
+            }
             document.getElementById('videoModal').classList.add('hidden');
-            document.getElementById('videoIframe').src = ''; 
+            const host = document.getElementById('videoIframeHost');
+            if (host) host.innerHTML = '';
         }
 
         function switchMainTab(tabName) {
