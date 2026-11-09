@@ -1,1 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>잇츠리온 - 보험금 청구 자동작성 엔진</title>
+  <!-- Pretendard 폰트 적용 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --accent: #2563eb;
+      --bg-gray: #f4f6f8;
+      --card-bg: #f8f9fa;
+      --text-dark: #111827;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+    }
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: var(--text-dark);
+      max-width: 540px;
+      margin: 0 auto;
+      min-height: 100vh;
+      position: relative;
+      padding-bottom: 100px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+
+    /* 상단 네비게이션 헤더 */
+    .app-header {
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--text-dark);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* 진행 상태 바 (프로그레스 바) */
+    .progress-bar-wrap {
+      width: 100%;
+      height: 3px;
+      background-color: var(--border-color);
+      position: sticky;
+      top: 64px;
+      z-index: 99;
+    }
+
+    .progress-bar-fill {
+      width: 33.3%;
+      height: 100%;
+      background-color: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    /* 안내 배너 */
+    .guide-banner {
+      padding: 20px 20px 8px;
+    }
+
+    .guide-banner h1 {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .guide-banner p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* 보험사 카테고리 섹션 */
+    .category-section {
+      padding: 16px 20px;
+    }
+
+    .category-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #4b5563;
+      margin-bottom: 14px;
+    }
+
+    /* 3열 그리드 레이아웃 (첨부 이미지 동일 비율) */
+    .insurer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .insurer-card {
+      background-color: var(--card-bg);
+      border: 2px solid transparent;
+      border-radius: 16px;
+      padding: 18px 8px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+      min-height: 104px;
+      user-select: none;
+    }
+
+    .insurer-card:hover {
+      background-color: #f1f5f9;
+    }
+
+    /* 선택되었을 때 스타일 */
+    .insurer-card.selected {
+      background-color: var(--primary-light);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    }
+
+    .check-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .insurer-card.selected .check-badge {
+      display: flex;
+    }
+
+    /* 보험사 로고 배지 영역 */
+    .logo-box {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: -0.5px;
+      text-align: center;
+    }
+
+    .insurer-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1f2937;
+      text-align: center;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+
+    .insurer-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 하단 고정 실행 바 */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 540px;
+      background: #ffffff;
+      padding: 12px 20px 20px;
+      border-top: 1px solid var(--border-color);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+      z-index: 100;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background-color: var(--primary);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    /* Step 2 화면 전환용 컨테이너 (2단계에서 상세 구현) */
+    #step2-view {
+      display: none;
+      padding: 20px;
+    }
+
+    .selected-summary-box {
+      background: var(--primary-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .selected-summary-box h3 {
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .fax-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .badge-virtual {
+      background: #fef3c7;
+      color: #b45309;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <header class="app-header">
+    <button class="header-btn" onclick="handleBack()" title="이전">&#10094;</button>
+    <div class="header-title" id="header-title">청구할 보험사 선택</div>
+    <button class="header-btn" onclick="window.close()" title="닫기">&#10005;</button>
+  </header>
+
+  <!-- 상단 진행 표시줄 -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar"></div>
+  </div>
+
+  <!-- ================= [STEP 1: 보험사 선택 화면] ================= -->
+  <main id="step1-view">
+    <div class="guide-banner">
+      <h1>어느 보험사에 청구하시나요?</h1>
+      <p>여러 곳을 동시에 선택하면 한 번의 입력으로 모든 청구서가 생성됩니다. (개인정보 비저장)</p>
+    </div>
+
+    <!-- 손해보험사 섹션 -->
+    <section class="category-section">
+      <h2 class="category-title">손해보험사</h2>
+      <div class="insurer-grid" id="non-life-grid"></div>
+    </section>
+
+    <!-- 생명보험사 섹션 -->
+    <section class="category-section">
+      <h2 class="category-title">생명보험사</h2>
+      <div class="insurer-grid" id="life-grid"></div>
+    </section>
+  </main>
+
+  <!-- ================= [STEP 2: 정보 입력 및 서명 화면 (2단계 연동 대기)] ================= -->
+  <main id="step2-view">
+    <div class="selected-summary-box">
+      <h3>선택한 보험사 및 청구 팩스번호 확인</h3>
+      <div id="selected-fax-list"></div>
+    </div>
+    <p style="font-size:14px; color:#4b5563; text-align:center; padding: 30px 0;">
+      여기에 <b>[2단계: 계약자/피보험자/계좌 입력 폼 + 전자서명 패드]</b>가 탑재됩니다.
+    </p>
+  </main>
+
+  <!-- 하단 액션 버튼 -->
+  <div class="bottom-bar">
+    <button class="submit-btn" id="next-btn" disabled onclick="goToStep2()">
+      보험사를 선택해주세요
+    </button>
+  </div>
+
+  <script>
+    /**
+     * 1. 보험사 마스터 데이터베이스 (손해보험 13개사 + 생명보험 20개사)
+     * - faxType: 'fixed'(고정팩스) | 'virtual'(콜센터 1회용 가상팩스 발급 필요)
+     * - pdfFile: forms/ 폴더에 업로드할 양식 PDF 파일명
+     */
+    const INSURER_DB = {
+      nonLife: [
+        { id: 'db_nonlife', name: 'DB손해보험', logoText: 'DB', color: '#00843D', fax: '0505-181-4861', call: '1588-0100', faxType: 'fixed', pdfFile: 'DB손해 보험금청구서.pdf' },
+        { id: 'hyundai', name: '현대해상', logoText: 'H', color: '#EA5504', fax: '0507-774-6060', call: '1588-5656', faxType: 'fixed', pdfFile: '현대해상 보험금청구서.pdf' },
+        { id: 'kb_nonlife', name: 'KB손해보험', logoText: '＊b', color: '#FFBC00', fax: '0505-136-6500', call: '1544-0114', faxType: 'fixed', pdfFile: 'KB손해보험 보험금청구서.pdf' },
+        { id: 'meritz', name: '메리츠화재', logoText: 'meritz', color: '#E60012', fax: '0505-021-3400', call: '1566-7711', faxType: 'fixed', pdfFile: '메리츠화재 보험금청구서.pdf' },
+        { id: 'samsung_fire', name: '삼성화재', logoText: '삼성화재', color: '#034EA2', fax: '0505-161-1199', call: '1588-5114', faxType: 'fixed', pdfFile: '삼성화재 보험금청구서.pdf' },
+        { id: 'hanwha_nonlife', name: '한화손해보험', logoText: 'Hanwha', color: '#F37321', fax: '0502-779-1004', call: '1566-8000', faxType: 'fixed', pdfFile: '한화손해 보험금청구서.pdf' },
+        { id: 'heungkuk_fire', name: '흥국화재', logoText: '■◆', color: '#C8102E', fax: '0504-800-0700', call: '1688-1688', faxType: 'fixed', pdfFile: '흥국화재 보험금청구서.pdf' },
+        { id: 'lotte', name: '롯데손해보험', logoText: 'let:', color: '#111827', fax: '0507-333-9999', call: '1588-3344', faxType: 'fixed', pdfFile: '롯데손해 보험금청구서.pdf' },
+        { id: 'mg_yebyul', name: '예별손해보험', subName: '(구 MG손보)', logoText: '예별', color: '#0095DA', fax: '0505-088-1646', call: '1588-5959', faxType: 'fixed', pdfFile: '예별손햅보험 보험금청구서.pdf' },
+        { id: 'nh_nonlife', name: 'NH농협손해보험', logoText: 'NH', color: '#FDB813', fax: '0505-060-7000', call: '1644-9000', faxType: 'fixed', pdfFile: '농협손해 보험금청구서.pdf' },
+        { id: 'aig', name: 'AIG손해보험', logoText: 'AIG', color: '#00A4E4', fax: '02-2011-4607', call: '1544-2792', faxType: 'fixed', pdfFile: 'aig 보험금청구서.PDF' },
+        { id: 'hana_nonlife', name: '하나손해보험', logoText: '하나', color: '#008485', fax: '0505-152-0698', call: '1566-3000', faxType: 'fixed', pdfFile: '하나손해 보험금청구서.pdf' },
+        { id: 'lina_nonlife', name: '라이나손해보험', subName: '(구 에이스)', logoText: 'LINA', color: '#111827', fax: '02-2127-2308', call: '1566-5800', faxType: 'fixed', pdfFile: '라이나손해 보험금청구서.pdf' },
+        { id: 'axa', name: 'AXA손해보험', logoText: 'AXA', color: '#00008F', fax: '02-3479-2660', call: '1566-1566', faxType: 'fixed', pdfFile: '' },
+        { id: 'shinhan_ez', name: '신한EZ손해보험', logoText: 'S', color: '#0046FF', fax: '02-3782-2890', call: '1544-2580', faxType: 'fixed', pdfFile: '' },
+        { id: 'carrot', name: '캐롯손해보험', logoText: 'G', color: '#FF5000', fax: '02-6959-1600', call: '1566-0300', faxType: 'fixed', pdfFile: '' }
+      ],
+      life: [
+        { id: 'samsung_life', name: '삼성생명', logoText: '삼성생명', color: '#034EA2', fax: '콜센터 가상팩스 발급', call: '1588-3114', faxType: 'virtual', pdfFile: 'samsung_life.pdf' },
+        { id: 'lina_life', name: '라이나생명', logoText: 'LINA', color: '#111827', fax: '02-6944-1200', call: '1588-0058', faxType: 'fixed', pdfFile: 'lina_life.pdf' },
+        { id: 'hanwha_life', name: '한화생명', logoText: 'Hanwha', color: '#F37321', fax: '콜센터 가상팩스 발급', call: '1588-6363', faxType: 'virtual', pdfFile: 'hanwha_life.pdf' },
+        { id: 'shinhan_life', name: '신한라이프', logoText: 'S', color: '#0046FF', fax: '콜센터 가상팩스 발급', call: '1588-5580', faxType: 'virtual', pdfFile: 'shinhan_life.pdf' },
+        { id: 'kyobo_life', name: '교보생명', logoText: '교보', color: '#58A618', fax: '콜센터 가상팩스 발급', call: '1588-1001', faxType: 'virtual', pdfFile: 'kyobo_life.pdf' },
+        { id: 'tongyang_life', name: '동양생명', logoText: '동양생명', color: '#0095DA', fax: '02-3289-5500', call: '1577-1004', faxType: 'fixed', pdfFile: 'tongyang_life.pdf' },
+        { id: 'heungkuk_life', name: '흥국생명', logoText: '■◆', color: '#C8102E', fax: '0504-800-0800', call: '1588-2288', faxType: 'fixed', pdfFile: 'heungkuk_life.pdf' },
+        { id: 'post_ins', name: '우체국보험', logoText: '우체국', color: '#E60012', fax: '0505-005-1261', call: '1599-0100', faxType: 'fixed', pdfFile: 'post_life.pdf' },
+        { id: 'aia_life', name: 'AIA생명', logoText: 'AIA', color: '#D31145', fax: '02-2021-4540', call: '1588-9898', faxType: 'fixed', pdfFile: 'aia_life.pdf' },
+        { id: 'mirae_life', name: '미래에셋생명', logoText: 'MIRAE', color: '#F37321', fax: '콜센터 가상팩스 발급', call: '1588-0220', faxType: 'virtual', pdfFile: 'mirae_life.pdf' },
+        { id: 'abl_life', name: 'ABL생명', logoText: 'ABL', color: '#E64626', fax: '02-3787-8796', call: '1588-6500', faxType: 'fixed', pdfFile: 'abl_life.pdf' },
+        { id: 'nh_life', name: 'NH농협생명', logoText: 'NH', color: '#FDB813', fax: '02-3786-8540', call: '1544-4161', faxType: 'fixed', pdfFile: 'nh_life.pdf' },
+        { id: 'db_life', name: 'DB생명', logoText: 'DB', color: '#00843D', fax: '0505-087-1234', call: '1588-3131', faxType: 'fixed', pdfFile: 'db_life.pdf' },
+        { id: 'kdb_life', name: 'KDB생명', logoText: 'KDB', color: '#0072BC', fax: '02-2669-7930', call: '1588-4040', faxType: 'fixed', pdfFile: 'kdb_life.pdf' },
+        { id: 'metlife', name: '메트라이프생명', logoText: 'MetLife', color: '#007ABC', fax: '02-3469-9700', call: '1588-9600', faxType: 'fixed', pdfFile: 'met_life.pdf' },
+        { id: 'im_life', name: 'iM라이프생명보험', logoText: 'iM', color: '#00B388', fax: '02-2081-2890', call: '1588-4770', faxType: 'fixed', pdfFile: 'im_life.pdf' },
+        { id: 'fubon_life', name: '푸본현대생명', logoText: 'Fubon', color: '#008C95', fax: '02-6925-5400', call: '1577-3311', faxType: 'fixed', pdfFile: 'fubon_life.pdf' },
+        { id: 'ktcu_life', name: '교직원공제회보험', logoText: '교직Life', color: '#1E3A8A', fax: '02-767-0190', call: '1577-3993', faxType: 'fixed', pdfFile: 'ktcu_life.pdf' },
+        { id: 'chubb_life', name: '처브라이프생명', logoText: 'CHUBB', color: '#111827', fax: '02-2142-3090', call: '1599-4600', faxType: 'fixed', pdfFile: 'chubb_life.pdf' },
+        { id: 'kyobo_planet', name: '교보라이프플래닛생명', logoText: 'lifeplanet', color: '#00A3E0', fax: '02-6959-5600', call: '1566-0999', faxType: 'fixed', pdfFile: 'planet_life.pdf' },
+        { id: 'hana_life', name: '하나생명', logoText: '하나', color: '#008485', fax: '02-3709-7900', call: '1577-1112', faxType: 'fixed', pdfFile: 'hana_life.pdf' },
+        { id: 'cardif_life', name: '카디프생명', logoText: 'Cardif', color: '#00965E', fax: '02-3782-2790', call: '1688-1118', faxType: 'fixed', pdfFile: 'cardif_life.pdf' },
+        { id: 'kb_life', name: 'KB라이프생명', logoText: '＊b', color: '#FFBC00', fax: '02-6220-9912', call: '1588-9922', faxType: 'fixed', pdfFile: 'kb_life.pdf' }
+      ]
+    };
+
+    // 선택된 보험사 ID 저장용 Set
+    const selectedInsurerIds = new Set();
+    let currentStep = 1;
+
+    // 2. 그리드 카드 렌더링 함수
+    function renderInsurerGrid() {
+      const nonLifeContainer = document.getElementById('non-life-grid');
+      const lifeContainer = document.getElementById('life-grid');
+
+      nonLifeContainer.innerHTML = INSURER_DB.nonLife.map(item => createCardHTML(item)).join('');
+      lifeContainer.innerHTML = INSURER_DB.life.map(item => createCardHTML(item)).join('');
+    }
+
+    function createCardHTML(item) {
+      const isSelected = selectedInsurerIds.has(item.id) ? 'selected' : '';
+      return `
+        <div class="insurer-card ${isSelected}" id="card-${item.id}" onclick="toggleInsurer('${item.id}')">
+          <div class="check-badge">&#10003;</div>
+          <div class="logo-box" style="color: ${item.color}">${item.logoText}</div>
+          <div class="insurer-name">${item.name}</div>
+          ${item.subName ? `<div class="insurer-sub">${item.subName}</div>` : ''}
+        </div>
+      `;
+    }
+
+    // 3. 보험사 카드 클릭 시 선택/해제 토글
+    function toggleInsurer(id) {
+      const cardEl = document.getElementById(`card-${id}`);
+      if (selectedInsurerIds.has(id)) {
+        selectedInsurerIds.delete(id);
+        cardEl.classList.remove('selected');
+      } else {
+        selectedInsurerIds.add(id);
+        cardEl.classList.add('selected');
+      }
+      updateBottomButton();
+    }
+
+    // 4. 하단 버튼 상태 업데이트
+    function updateBottomButton() {
+      const btn = document.getElementById('next-btn');
+      const count = selectedInsurerIds.size;
+
+      if (count === 0) {
+        btn.disabled = true;
+        btn.textContent = '보험사를 선택해주세요';
+      } else {
+        btn.disabled = false;
+        btn.textContent = `${count}개 보험사 청구서 작성하기`;
+      }
+    }
+
+    // 5. 다음 단계(Step 2)로 이동
+    function goToStep2() {
+      if (selectedInsurerIds.size === 0) return;
+      currentStep = 2;
+
+      document.getElementById('step1-view').style.display = 'none';
+      document.getElementById('step2-view').style.display = 'block';
+      document.getElementById('header-title').textContent = '청구 정보 및 서명 입력';
+      document.getElementById('progress-bar').style.width = '66.6%';
+
+      const allInsurers = [...INSURER_DB.nonLife, ...INSURER_DB.life];
+      const selectedObjects = allInsurers.filter(ins => selectedInsurerIds.has(ins.id));
+
+      const faxListEl = document.getElementById('selected-fax-list');
+      faxListEl.innerHTML = selectedObjects.map(ins => `
+        <div class="fax-item">
+          <div>
+            <strong>${ins.name}</strong>
+            <div style="font-size:11px; color:#6b7280;">콜센터: ${ins.call}</div>
+          </div>
+          <div style="text-align:right;">
+            ${ins.faxType === 'virtual'
+              ? `<span class="badge-virtual">가상팩스 발급필요</span>`
+              : `<strong style="color:#1e3a8a;">FAX: ${ins.fax}</strong>`
+            }
+          </div>
+        </div>
+      `).join('');
+
+      const btn = document.getElementById('next-btn');
+      btn.textContent = '통합 청구서 PDF 생성 및 다운로드';
+      window.scrollTo(0, 0);
+    }
+
+    // 6. 상단 뒤로가기 버튼 처리
+    function handleBack() {
+      if (currentStep === 2) {
+        currentStep = 1;
+        document.getElementById('step2-view').style.display = 'none';
+        document.getElementById('step1-view').style.display = 'block';
+        document.getElementById('header-title').textContent = '청구할 보험사 선택';
+        document.getElementById('progress-bar').style.width = '33.3%';
+        updateBottomButton();
+      } else {
+        window.close();
+      }
+    }
+
+    // 초기 실행
+    renderInsurerGrid();
+  </script>
+</body>
+</html>
