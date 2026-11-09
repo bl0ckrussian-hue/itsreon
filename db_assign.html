@@ -17,14 +17,19 @@
 </head>
 <body class="min-h-screen flex flex-col custom-scrollbar relative">
 
-    <header class="bg-slate-900 text-white p-4 xl:p-5 shadow-md flex justify-between items-center sticky top-0 z-40 w-full xl:min-w-[1400px]">
+    <header class="bg-slate-900 text-white p-4 xl:p-5 shadow-md flex justify-between items-center sticky top-0 z-40 w-full md:min-w-[1400px]">
         <div>
             <h1 class="text-lg xl:text-xl font-black tracking-tight">나의 배정 DB 리스트</h1>
             <p class="text-[10px] xl:text-xs text-slate-400 mt-1">고객 정보 보호를 위해 화면 캡처 및 복사가 금지됩니다.</p>
         </div>
-        <div class="flex items-center gap-2 xl:gap-3">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="agentNameDisplay" class="font-bold text-sm xl:text-lg text-emerald-400">로딩 중...</span>
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="agentNameDisplay" class="font-bold text-xs sm:text-sm xl:text-lg text-emerald-400">로딩 중...</span>
+            </div>
+            <button type="button" onclick="window.close(); if(!window.closed) history.back();" class="text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition bg-slate-800 hover:bg-slate-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-slate-700 whitespace-nowrap shadow-sm">
+                창 닫기 ✕
+            </button>
         </div>
     </header>
 
