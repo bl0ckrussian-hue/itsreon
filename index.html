@@ -526,24 +526,37 @@
         </div>
     </main>
 
-    <!-- 하단 부터 -->
+    <!-- 하단 Footer (사업자 정보 좌측 + 이용규칙/개인정보처리방침 우측 배치) -->
     <footer class="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-            <div>
-                <p class="font-bold text-slate-200 text-sm">잇츠리온</p>
-                <p class="mt-1 text-slate-400">보험설계사를 위한 올인원 비즈니스 플랫폼</p>
-                <p class="mt-1 text-slate-500">대표전화 070-8633-2747 | 이메일 bl0ckrussian@gmail.com</p>
-                <p class="mt-0.5 text-slate-500">© 2026 ItsRion. All rights reserved.</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-left">
+                <!-- 좌측: 사업자 정보 -->
+                <div>
+                    <p class="font-bold text-slate-200 text-sm">잇츠리온 (It's RION)</p>
+                    <p class="mt-1 text-slate-400">보험설계사를 위한 올인원 비즈니스 플랫폼</p>
+                    <p class="mt-1 text-slate-500">대표전화 070-8633-2747 | 이메일 bl0ckrussian@gmail.com</p>
+                    <p class="mt-0.5 text-slate-500">© 2026 ItsRion. All rights reserved.</p>
+                </div>
+                <!-- 우측: 이용규칙 및 개인정보처리방침 확인 버튼 -->
+                <div class="flex flex-col sm:flex-row items-center gap-2.5 self-center md:self-end">
+                    <button type="button" onclick="openPolicyModal('terms')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+                        <span>📜 이용규칙 (이용약관)</span>
+                    </button>
+                    <button type="button" onclick="openPolicyModal('privacy')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-400 font-extrabold border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+                        <span>🛡️ 개인정보처리방침</span>
+                    </button>
+                </div>
             </div>
-            <div class="flex justify-center space-x-4 text-slate-400 text-[11px] pt-2 border-t border-slate-800/80">
+            <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-slate-400 text-[11px] pt-4 border-t border-slate-800/80">
                 <button onclick="switchView('intro')" class="hover:text-white">main</button><span>|</span>
                 <button onclick="switchView('workspace')" class="hover:text-white">업무센터</button><span>|</span>
                 <button onclick="switchView('expert')" class="hover:text-white">자문센터</button><span>|</span>
-                <button onclick="openModal('contactModal')" class="hover:text-white">문의하기</button>
+                <button onclick="openModal('contactModal')" class="hover:text-white">문의하기</button><span>|</span>
+                <button onclick="openPolicyModal('terms')" class="hover:text-white">이용규칙</button><span>|</span>
+                <button onclick="openPolicyModal('privacy')" class="font-bold text-slate-300 hover:text-white">개인정보처리방침</button>
             </div>
         </div>
     </footer>
-
     <!-- ==================== 인터랙티브 기능 모달 ==================== -->
     <div id="expertConsultModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
@@ -680,22 +693,28 @@
     </div>
    </div>
    
-   <!-- 📝 회원가입 모달 -->
+   <!-- 📝 회원가입 모달 (사전 동의 체크 필수 적용) -->
     <div id="signupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('signupModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">잇츠리온 가입 신청</h3>
-            <div class="space-y-4 text-xs">
-                <!-- ⭐️ 아이디와 이름을 각각 입력받도록 레이아웃 분리 -->
+            <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-3">잇츠리온 가입 신청</h3>
+            
+            <!-- 사전 안내 배너 -->
+            <div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                <p class="font-extrabold text-amber-800 mb-0.5">⚠️ 회원가입 및 시스템 이용 사전 안내</p>
+                본 플랫폼은 <b>Google 클라우드 기반</b>으로 운영되며, 제공되는 고객 DB 및 분석 도구의 보안을 위해 아래 <b>이용규칙, 개인정보처리방침, 고객정보 외부 반출 금지 서약</b>을 확인 후 모두 동의하셔야 가입 신청이 가능합니다.
+            </div>
+
+            <div class="space-y-3.5 text-xs">
                 <div class="grid grid-cols-2 gap-3">
                    <div><label class="block font-bold text-slate-700 mb-1">아이디</label><input id="regUserId" type="text" placeholder="예: user123" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
                    <div><label class="block font-bold text-slate-700 mb-1">이름</label><input id="regName" type="text" placeholder="예: 김설계" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                   <div><label class="block font-bold text-slate-700 mb-1">소속 회사명</label><input id="regCompany" type="text" placeholder="예: oo에셋" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
-                   <div><label class="block font-bold text-slate-700 mb-1">소속 지사명</label><input id="regBranch" type="text" placeholder="예: oo지사, 지점, 사업단" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                   <div><label class="block font-bold text-slate-700 mb-1">소속 회사명</label><input id="regCompany" type="text" placeholder="예: 에이플러스에셋" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
+                   <div><label class="block font-bold text-slate-700 mb-1">소속 지사명</label><input id="regBranch" type="text" placeholder="예: 잇츠리온지사" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
                 </div>
-                <div><label class="block font-bold text-slate-700 mb-1">비밀번호</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">비밀번호 (사번)</label><input id="regEmpId" type="text" placeholder="예: WIZ-0001" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 bg-blue-50/30"></div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">생년월일_성별</label>
                     <div class="flex items-center gap-2">
@@ -714,7 +733,42 @@
                     </div>
                 </div>
                 <div><label class="block font-bold text-slate-700 mb-1">이메일</label><input id="regEmail" type="email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500"></div>
-                <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">가입 신청 완료하기</button>
+
+                <!-- ⭐️ 약관 및 개인정보·DB 보안 사전 동의 영역 -->
+                <div class="pt-3 border-t border-slate-200 space-y-2">
+                    <label class="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100/70 transition">
+                        <input type="checkbox" id="regAgreeAll" onchange="toggleRegAgreeAll(this.checked)" class="w-4 h-4 accent-blue-600 rounded cursor-pointer">
+                        <span class="font-black text-blue-900 text-xs">전체 필수 이용규칙 및 개인정보·보안 서약에 모두 동의합니다.</span>
+                    </label>
+
+                    <div class="space-y-1.5 pl-1 text-[11px] text-slate-700">
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2 cursor-pointer font-semibold">
+                                <input type="checkbox" id="regAgreeTerms" onchange="syncRegAgreeState()" class="reg-agree-item w-3.5 h-3.5 accent-slate-800 rounded cursor-pointer">
+                                <span>[필수] 잇츠리온 이용규칙 및 Google 기반 서비스 약관 동의</span>
+                            </label>
+                            <button type="button" onclick="openPolicyModal('terms')" class="text-blue-600 hover:underline font-bold shrink-0 ml-2">[내용보기]</button>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2 cursor-pointer font-semibold">
+                                <input type="checkbox" id="regAgreePrivacy" onchange="syncRegAgreeState()" class="reg-agree-item w-3.5 h-3.5 accent-slate-800 rounded cursor-pointer">
+                                <span>[필수] 개인정보 수집·이용 및 제3자 위탁 처리 동의</span>
+                            </label>
+                            <button type="button" onclick="openPolicyModal('privacy')" class="text-blue-600 hover:underline font-bold shrink-0 ml-2">[내용보기]</button>
+                        </div>
+
+                        <div class="flex items-center justify-between text-rose-700">
+                            <label class="flex items-center gap-2 cursor-pointer font-bold">
+                                <input type="checkbox" id="regAgreeSecurity" onchange="syncRegAgreeState()" class="reg-agree-item w-3.5 h-3.5 accent-rose-600 rounded cursor-pointer">
+                                <span>[필수] 고객 DB 외부 반출·재사용 금지 및 심평원/신용정보원 적법 활용 서약</span>
+                            </label>
+                            <button type="button" onclick="openPolicyModal('security')" class="text-rose-600 hover:underline font-bold shrink-0 ml-2">[서약보기]</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="submitSignup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm mt-2 transition shadow">동의 및 가입 신청 완료하기</button>
             </div>
         </div>
     </div>
@@ -732,6 +786,7 @@
            </div>
        </div>
    </div>
+    
    <!-- ⏳ 세션 연장 경고 모달 (NEW) -->
     <div id="sessionWarningModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
@@ -1067,20 +1122,26 @@
       async function submitSignup() {
             const userId = document.getElementById('regUserId').value.trim();
             const name = document.getElementById('regName').value.trim();
-            
-            // ⭐️ 신규 추가: 회사명 및 지사명 데이터 가져오기
             const company = document.getElementById('regCompany').value.trim();
             const branch = document.getElementById('regBranch').value.trim();
-            
             const empId = document.getElementById('regEmpId').value.trim();
             const birth6 = document.getElementById('regBirth6').value.trim();
             const gender1 = document.getElementById('regGender1').value.trim();
             const phone8 = document.getElementById('regPhone8').value.trim();
             const email = document.getElementById('regEmail').value.trim();
 
-            // ⭐️ 빈칸 검사에 회사명, 지사명 추가
             if (!userId || !name || !company || !branch || !empId || !birth6 || !gender1 || !phone8 || !email) {
-                alert("모든 항목을 입력해주세요."); return;
+                alert("모든 가입 항목을 입력해주세요."); return;
+            }
+
+            // ⭐️ 필수 약관 3가지 동의 체크 여부 확인
+            const chkTerms = document.getElementById('regAgreeTerms').checked;
+            const chkPrivacy = document.getElementById('regAgreePrivacy').checked;
+            const chkSecurity = document.getElementById('regAgreeSecurity').checked;
+
+            if (!chkTerms || !chkPrivacy || !chkSecurity) {
+                alert("이용규칙, 개인정보처리방침 및 고객정보(DB) 보호 서약에 모두 동의(체크)하셔야 회원가입이 가능합니다.");
+                return;
             }
 
             const phone = "010-" + phone8.substring(0,4) + "-" + phone8.substring(4);
@@ -1091,8 +1152,19 @@
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    // ⭐️ payload에 company, branch 추가
-                    body: JSON.stringify({ action: "signup", userId: userId, name: name, company: company, branch: branch, empId: empId, birth6: birth6, gender1: gender1, phone: phone, email: email })
+                    body: JSON.stringify({
+                        action: "signup",
+                        privacyConsent: "동의",
+                        userId: userId,
+                        name: name,
+                        company: company,
+                        branch: branch,
+                        empId: empId,
+                        birth6: birth6,
+                        gender1: gender1,
+                        phone: phone,
+                        email: email
+                    })
                 });
                 const data = await res.json();
                 alert(data.message);
@@ -1108,14 +1180,16 @@
                     document.getElementById('regGender1').value = '';
                     document.getElementById('regPhone8').value = '';
                     document.getElementById('regEmail').value = '';
+                    if (typeof toggleRegAgreeAll === 'function') toggleRegAgreeAll(false);
+                    if (document.getElementById('regAgreeAll')) document.getElementById('regAgreeAll').checked = false;
                 }
             } catch (e) {
                 alert("통신 오류가 발생했습니다.");
             } finally {
-                btn.innerText = "가입 신청 완료하기";
+                btn.innerText = "동의 및 가입 신청 완료하기";
             }
         }
-
+       
        async function submitLogin(forceLogin = false) {
             const userId = document.getElementById('loginId').value.trim(); 
             const loginPw = document.getElementById('loginPw').value.trim();
@@ -1470,6 +1544,175 @@
               e.preventDefault();
            }
        });    
-   </script> 
+   </script>
+    <!-- 📜 이용규칙 / 개인정보처리방침 / DB 보안 서약 열람 모달 -->
+    <div id="policyViewerModal" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 flex flex-col max-h-[88vh] overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <h3 id="policyModalTitle" class="text-base sm:text-lg font-black tracking-tight">잇츠리온 약관 및 정책</h3>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openPolicyInNewWindow()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow">
+                        ↗ 새 창으로 크게 보기
+                    </button>
+                    <button type="button" onclick="closeModal('policyViewerModal')" class="text-slate-400 hover:text-white font-bold text-xl ml-1">✕</button>
+                </div>
+            </div>
+            <div id="policyModalBody" class="p-6 overflow-y-auto custom-scrollbar text-xs text-slate-700 leading-relaxed space-y-4 flex-grow bg-slate-50">
+            </div>
+            <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex justify-end shrink-0">
+                <button type="button" onclick="closeModal('policyViewerModal')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2 rounded-lg text-xs transition">확인 및 닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPolicyType = 'terms';
+
+        const RION_POLICIES = {
+            terms: {
+                title: "잇츠리온(It's RION) 서비스 이용규칙 (이용약관)",
+                html: `
+                    <div class="space-y-4">
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">제1조 (목적 및 Google 기반 플랫폼 고지)</h4>
+                            <p>본 규칙은 잇츠리온(이하 "플랫폼")이 제공하는 보험설계사 전용 영업지원 시스템(고객 DB 배정 관리, AI 알릴의무분석, 보장분석, 못 받은 보험금 탐색기, 세일즈 교육센터, 전문가 자문센터 등)의 이용 조건 및 보안 준수사항을 규정함을 목적으로 합니다. 본 플랫폼은 <b>Google Cloud 및 Google Workspace(Google Sheets, Drive, Calendar 등)</b> 인프라를 기반으로 구동되며, 회원은 가입과 동시에 Google의 클라우드 보안 정책 및 데이터 처리 환경에 동의한 것으로 간주합니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">제2조 (회원가입, 승인 및 계정 보안)</h4>
+                            <p>1. 회원가입은 보험설계사(소속 회사/지사 및 사번 보유자)가 본 이용규칙 및 개인정보처리방침에 사전 동의하고 가입 신청을 완료한 후, 관리자가 최종 <b>'승인'</b>함으로써 효력이 발생합니다.<br>
+                            2. 계정은 1인 1계정을 원칙으로 하며, 동시 접속 감지 엔진을 통해 타 기기 중복 로그인 시 기존 세션은 즉시 강제 종료됩니다. 아이디 및 비밀번호를 타인에게 대여·공유하는 행위는 엄격히 금지됩니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">제3조 (건강보험심사평가원·한국신용정보원 자료 활용 및 무저장 원칙)</h4>
+                            <p>1. 플랫폼 내 <b>[알릴의무분석], [보장분석], [못 받은 보험금 찾기]</b> 기능은 회원이 업로드한 고객의 건강보험심사평가원(기본진료·세부진료·처방조제 내역) 및 한국신용정보원(보험계약·실손지급 내역) PDF 문서를 자동 파싱하여 분석 리포트를 생성하는 보조 도구입니다.<br>
+                            2. <b>[서버 무저장 원칙]</b> 업로드된 모든 PDF 원본 파일과 추출된 개인·민감·신용정보는 클라우드 연산 메모리에서 <b>일회성 휘발성(Zero-Retention)으로만 처리된 후 즉시 자동 파기</b>되며, 플랫폼 자체 서버나 데이터베이스에 일절 저장·보관되지 않습니다.<br>
+                            3. <b>[회원의 적법 동의 확보 의무]</b> 회원은 해당 기능을 사용하기 전, 반드시 정보주체(고객)로부터 「개인정보보호법」 및 「신용정보의 이용 및 보호에 관한 법률」에 따른 적법한 열람·제공 및 분석 동의를 직접 득해야 합니다. 고객의 동의 없이 문서를 무단 열람·업로드하여 발생하는 모든 법적 책임은 전적으로 회원 본인에게 있습니다.<br>
+                            4. AI 및 알고리즘이 도출한 분석 보고서는 영업 참고용 자료이며, 보험사별 인수 기준 및 실제 약관 해석과 차이가 있을 수 있으므로 최종 고지 및 청약 검토의 책임은 담당 설계사에게 있습니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-950">
+                            <h4 class="font-black text-rose-700 text-sm mb-1.5">제4조 (배정 고객 DB 관리 및 외부 반출·재사용 금지)</h4>
+                            <p>1. 플랫폼을 통해 배정된 모든 고객 정보(성명, 연락처, 주소, 생년월일, 상담 녹취파일, 메모 등)는 당해 보험 상담 목적으로만 제한적으로 사용해야 합니다.<br>
+                            2. <b>화면 캡처, 사진 촬영, 인쇄, 복사, 녹취파일 불법 추출, 제3자(타 GA 및 타 설계사 포함)에게 유출·양도·매매하는 행위는 원천 금지</b>됩니다.<br>
+                            3. 배정 기한(24시간~단계별 기한) 초과, '거절', '본인설계사' 등으로 인해 <b>시스템에서 자동 회수(회수완료)된 DB는 즉시 열람 권한이 소멸되며, 회원이 이를 별도 수첩·엑셀·휴대폰에 저장해 두었다가 사후에 재접촉하거나 재사용하는 행위를 절대 금지</b>합니다.<br>
+                            4. 본 조항 위반 적발 시 사전 통보 없이 <b>즉시 회원 자격 박탈 및 DB 배정 영구 중지</b> 처리되며, 「개인정보보호법」 제71조 및 부정경쟁방지법에 의거하여 민·형사상 고소 및 손해배상 청구가 진행됩니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">제5조 (교육 자료 및 저작권 보호)</h4>
+                            <p>세일즈 교육센터의 모든 영상 강의, 세일즈북, 자료실 문서 및 분석 엔진의 UI/알고리즘에 대한 지식재산권은 잇츠리온에 귀속됩니다. 이를 무단 복제, 녹화, 외부 커뮤니티 배포 또는 타 조직 교육용으로 반출하는 행위를 금지합니다.</p>
+                        </div>
+                    </div>
+                `
+            },
+            privacy: {
+                title: "잇츠리온(It's RION) 개인정보처리방침",
+                html: `
+                    <div class="space-y-4">
+                        <p class="text-slate-600">잇츠리온(이하 "플랫폼")은 「개인정보 보호법」 제30조에 따라 회원의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.</p>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">1. 개인정보의 처리 목적</h4>
+                            <p>플랫폼은 다음의 목적을 위하여 최소한의 개인정보를 처리합니다.<br>
+                            ① <b>회원 가입 및 관리:</b> 설계사 본인 식별, 소속 확인, 관리자 가입 승인 심사, 부정 이용 방지 및 단일 세션(중복 로그인 차단) 관리<br>
+                            ② <b>영업지원 서비스 제공:</b> 지역별·한도별 맞춤 고객 DB 자동 배정, 알리고(Aligo) SMS 배정 알림 발송, 상담 현황 및 계약 통계 산출, 지사별 Google 캘린더 상담 일정 자동 연동, 전문가 자문 매칭</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">2. 처리하는 개인정보의 항목</h4>
+                            <p>• <b>필수항목(회원):</b> 아이디, 이름, 소속 회사명, 소속 지사명, 사번(비밀번호), 생년월일(6자리), 성별(1자리), 휴대전화번호, 이메일 주소, 약관 동의 여부<br>
+                            • <b>자동 수집 항목:</b> 접속 세션 ID, 로그인 및 활동 타임스탬프, 서비스 이용 기록<br>
+                            • <b>고객 분석 자료(심평원·신용정보원 PDF) 관련 특칙:</b> 회원이 업무센터 분석 도구에 업로드하는 고객의 진료기록 및 보험계약 PDF 데이터는 브라우저 및 클라우드 연산 컨테이너에서 <b>실시간 분석 후 즉시 휘발(삭제)</b>되며, 플랫폼의 데이터베이스에 저장·수집되지 않습니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">3. 개인정보의 처리 및 보유 기간</h4>
+                            <p>회원의 개인정보는 원칙적으로 <b>회원 탈퇴 시 또는 위촉 계약 해지 시까지</b> 보유·이용하며, 회원이 탈퇴를 요청하거나 개인정보 수집·이용 목적이 달성된 후에는 해당 행(Row) 데이터를 지체 없이 영구 파기합니다. 단, 관계 법령 및 내부 부정사용 감사를 위해 보존할 필요가 있는 경우 일정 기간 보관 후 파기합니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">4. 개인정보 처리의 위탁 및 클라우드 인프라</h4>
+                            <p>플랫폼은 원활한 전산 업무 처리를 위하여 다음과 같이 클라우드 인프라 및 외부 서비스를 활용(위탁)하고 있습니다.<br>
+                            • <b>Google LLC (Google Workspace / Google Cloud):</b> 회원 DB 및 배정 현황 시트 암호화 보관, 녹취/자료실 파일 스트리밍, AI 문서 분석 연산, 캘린더 일정 연동<br>
+                            • <b>알리고 (Aligo / 카페24 연동):</b> 신규 DB 배정 안내 SMS 문자 발송</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">5. 정보주체의 권리·의무 및 행사방법</h4>
+                            <p>회원은 언제든지 상단 메뉴의 <b>[회원정보]</b>를 통해 본인의 개인정보를 열람·정정할 수 있으며, <b>[회원탈퇴]</b>를 통해 개인정보 수집·이용 동의를 철회하고 데이터를 즉시 삭제할 수 있습니다.</p>
+                        </div>
+                        <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 text-sm mb-1.5">6. 개인정보 보호책임자 및 문의처</h4>
+                            <p>• <b>책임자/관리부서:</b> 잇츠리온 운영관리본부 (김성철 지사장)<br>
+                            • <b>연락처:</b> 070-8633-2747 | <b>이메일:</b> bl0ckrussian@gmail.com</p>
+                        </div>
+                    </div>
+                `
+            },
+            security: {
+                title: "고객 정보(DB) 보호 및 민감정보 적법 활용 서약서",
+                html: `
+                    <div class="space-y-4">
+                        <div class="p-4 bg-rose-50 rounded-xl border border-rose-200 text-rose-950 space-y-2.5">
+                            <h4 class="font-black text-rose-700 text-sm">⚠️ [필수 서약] 제공 고객정보 외부 반출·무단 재사용 절대 금지</h4>
+                            <p>1. 본인은 잇츠리온 시스템을 통해 배정받은 모든 고객 DB(이름, 연락처, 주소, 생년월일, 녹취파일, 상담 메모 일체)를 오직 지정된 보험 상담 목적으로만 열람하며, <b>화면 캡처, 사진 촬영, 무단 복제하거나 외부(타사 설계사, 제3자 등)에 유출·매매·공유하지 않을 것</b>을 엄중히 서약합니다.</p>
+                            <p>2. 미작업 기한 경과, 거절, 본인설계사 등으로 인해 <b>시스템에서 회수된 고객 DB를 개인 휴대폰이나 별도 파일에 기록해 두었다가 사후에 연락하거나 재사용하지 않을 것</b>을 서약합니다.</p>
+                            <p>3. 건강보험심사평가원 및 한국신용정보원 자료 분석 기능을 활용할 때에는 <b>반드시 사전에 고객 본인의 명시적 동의를 득한 후 업로드</b>하며, 분석 완료 후 다운로드한 결과 파일 역시 고객 상담 목적 외로 유출하지 않겠습니다.</p>
+                            <p class="font-bold text-rose-700 pt-1">※ 위 서약을 위반할 경우 즉시 계정 영구 정지 및 기배정 DB 전량 회수에 이의를 제기하지 않으며, 「개인정보 보호법」 제71조(5년 이하의 징역 또는 5천만원 이하의 벌금)에 따른 모든 민·형사상 법적 책임을 본인이 전적으로 부담할 것에 동의합니다.</p>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        function openPolicyModal(type) {
+            currentPolicyType = type || 'terms';
+            const policy = RION_POLICIES[currentPolicyType] || RION_POLICIES.terms;
+            document.getElementById('policyModalTitle').innerText = policy.title;
+            document.getElementById('policyModalBody').innerHTML = policy.html;
+            openModal('policyViewerModal');
+        }
+
+        function openPolicyInNewWindow() {
+            const policy = RION_POLICIES[currentPolicyType] || RION_POLICIES.terms;
+            const win = window.open('', '_blank', 'width=820,height=760,scrollbars=yes,resizable=yes');
+            if (!win) {
+                alert('팝업 차단을 해제해 주세요.');
+                return;
+            }
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${policy.title}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); body { font-family: 'Pretendard', sans-serif; }</style>
+                </head>
+                <body class="bg-slate-100 p-6 sm:p-10 text-slate-800">
+                    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 text-white px-6 py-5 flex justify-between items-center">
+                            <div>
+                                <span class="text-[11px] text-blue-400 font-bold">It's RION POLICY</span>
+                                <h1 class="text-lg sm:text-xl font-black mt-0.5">${policy.title}</h1>
+                            </div>
+                            <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-xs font-bold px-3 py-1.5 rounded border border-slate-700">🖨️ 인쇄</button>
+                        </div>
+                        <div class="p-6 text-xs sm:text-sm leading-relaxed">${policy.html}</div>
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 text-right">
+                            <button onclick="window.close()" class="bg-slate-900 text-white text-xs font-bold px-5 py-2 rounded-lg">창 닫기</button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        function toggleRegAgreeAll(checked) {
+            document.querySelectorAll('.reg-agree-item').forEach(el => el.checked = checked);
+        }
+
+        function syncRegAgreeState() {
+            const items = Array.from(document.querySelectorAll('.reg-agree-item'));
+            const allChecked = items.every(el => el.checked);
+            const allBox = document.getElementById('regAgreeAll');
+            if (allBox) allBox.checked = allChecked;
+        }
+    </script>
 </body>
 </html>
