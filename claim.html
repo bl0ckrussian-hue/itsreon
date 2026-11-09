@@ -1837,6 +1837,19 @@
         btn.textContent = originalBtnText;
       }
     }
+
+    function closeWindow() {
+      window.close();
+      setTimeout(() => {
+        window.location.href = './index.html';
+      }, 150);
+    }
+
+    // ★ 페이지가 열릴 때 보험사 카드 그리드를 화면에 그려주는 필수 실행 코드
+    renderInsurerGrid();
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
