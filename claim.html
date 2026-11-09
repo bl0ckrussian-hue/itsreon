@@ -24,57 +24,32 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* 제일 큰 흰 뒷 배경 박스 제거 & 전체 화면 꽉 차게 구성 */
     body {
-      background-color: #f8fafc;
+      background-color: #ffffff;
       color: var(--text-dark);
+      width: 100%;
       min-height: 100vh;
       padding-bottom: 110px;
     }
 
-    /* 전체 컨테이너: 모바일은 540px, PC에서는 1140px 와이드 화면 */
     .app-container {
-      max-width: 540px;
-      margin: 0 auto;
-      background-color: #ffffff;
+      width: 100%;
       min-height: 100vh;
-      box-shadow: 0 0 25px rgba(0,0,0,0.04);
     }
 
-    @media (min-width: 900px) {
-      .app-container {
-        max-width: 1140px;
-      }
-    }
-
-    /* 상단 네비게이션 헤더 */
+    /* 상단 네비게이션 헤더 (컴팩트화) */
     .app-header {
       position: sticky;
       top: 0;
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 20px;
+      padding: 10px 24px;
       border-bottom: 1px solid var(--border-color);
-    }
-
-    .header-btn {
-      background: none;
-      border: none;
-      font-size: 22px;
-      cursor: pointer;
-      color: var(--text-dark);
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-    }
-
-    .header-btn:hover {
-      background-color: #f1f5f9;
     }
 
     .header-title {
@@ -83,33 +58,35 @@
       color: var(--text-dark);
     }
 
-    /* 상단 프로그레스 바 */
-    .progress-bar-wrap {
-      width: 100%;
-      height: 3px;
-      background-color: var(--border-color);
-      position: sticky;
-      top: 64px;
-      z-index: 99;
+    .close-btn {
+      background-color: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
 
-    .progress-bar-fill {
-      width: 50%;
-      height: 100%;
-      background-color: var(--primary);
-      transition: width 0.3s ease;
+    .close-btn:hover {
+      background-color: #e2e8f0;
+      color: #0f172a;
     }
 
-    /* 상단 안내 배너 */
+    /* 상단 안내 배너 (여백 최소화 및 한 줄 배치) */
     .guide-banner {
-      padding: 24px 20px 12px;
+      padding: 12px 24px 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .guide-banner h1 {
-      font-size: 21px;
+      font-size: 19px;
       font-weight: 800;
-      line-height: 1.35;
-      margin-bottom: 6px;
       color: #0f172a;
     }
 
@@ -118,37 +95,49 @@
       color: var(--text-muted);
     }
 
-    /* ★ 핵심: 모바일은 상하 배치, PC(900px 이상)는 좌(생명보험)/우(손해보험) 5:5 분할 */
+    /* 모바일: 상하 배치 / PC(900px 이상): 화면 전체 폭을 사용하여 좌(생명)/우(손해) 5:5 분할 */
     .split-layout {
       display: flex;
       flex-direction: column;
-      gap: 24px;
-      padding: 12px 20px 24px;
+      gap: 28px;
+      padding: 16px 20px 24px;
+      width: 100%;
     }
 
     @media (min-width: 900px) {
+      body {
+        padding-bottom: 76px; /* 하단바 높이만큼만 여백 확보 */
+      }
+
+      .guide-banner {
+        padding: 12px 32px 4px;
+      }
+
+      .app-header {
+        padding: 10px 32px;
+      }
+
       .split-layout {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 36px;
-        padding: 20px 32px 40px;
+        gap: 24px;
+        padding: 8px 32px 16px;
         align-items: start;
       }
 
       .category-panel {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        border-radius: 16px;
+        padding: 16px 20px;
       }
     }
 
     .category-title {
       font-size: 16px;
       font-weight: 800;
-      color: #4b5563;
-      margin-bottom: 14px;
+      color: #374151;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -157,25 +146,32 @@
     .category-badge {
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 99px;
       background-color: #f1f5f9;
       color: #475569;
     }
 
-    /* 3열 그리드 레이아웃 (모바일 & PC 각 패널 내부 공통 3열 유지) */
+    /* 모바일은 3열 유지, PC(900px 이상)는 4열로 표시 */
     .insurer-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 11px;
+      gap: 10px;
     }
 
-    /* 스캔 이미지와 동일한 둥근 사각 카드 디자인 */
+    @media (min-width: 900px) {
+      .insurer-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+    }
+
+    /* 보험사 선택 카드 (6줄이 한 화면에 들어오도록 높이 최적화, 가독성 확대) */
     .insurer-card {
       background-color: var(--card-bg);
       border: 2px solid transparent;
-      border-radius: 16px;
-      padding: 16px 6px 14px;
+      border-radius: 14px;
+      padding: 10px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -183,7 +179,7 @@
       cursor: pointer;
       transition: all 0.16s ease;
       position: relative;
-      min-height: 102px;
+      min-height: 78px;
       user-select: none;
     }
 
@@ -200,14 +196,14 @@
 
     .check-badge {
       position: absolute;
-      top: 7px;
-      right: 7px;
-      width: 20px;
-      height: 20px;
+      top: 6px;
+      right: 6px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background-color: var(--accent);
       color: #fff;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       display: none;
       align-items: center;
@@ -218,53 +214,69 @@
       display: flex;
     }
 
-    /* 각 보험사 심볼 로고 영역 */
     .logo-box {
-      height: 36px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .insurer-name {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 800;
       color: #1f2937;
       text-align: center;
-      line-height: 1.25;
+      line-height: 1.2;
       word-break: keep-all;
       letter-spacing: -0.3px;
     }
 
     .insurer-sub {
-      font-size: 10px;
+      font-size: 10.5px;
       color: #6b7280;
       margin-top: 2px;
       font-weight: 600;
     }
 
-    /* 하단 고정 실행 바 */
+    /* 하단 고정 실행 바 (전체 폭 대응) */
     .bottom-bar {
       position: fixed;
       bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
       width: 100%;
-      max-width: 540px;
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(8px);
       padding: 12px 20px 20px;
       border-top: 1px solid var(--border-color);
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
       z-index: 100;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
     }
 
     @media (min-width: 900px) {
       .bottom-bar {
-        max-width: 1140px;
-        padding: 14px 32px 20px;
+        padding: 14px 40px 20px;
       }
+    }
+
+    .back-step-btn {
+      display: none;
+      padding: 16px 24px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      background-color: #ffffff;
+      color: #334155;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .back-step-btn:hover {
+      background-color: #f8fafc;
     }
 
     .submit-btn {
@@ -293,7 +305,7 @@
     #step2-view {
       display: none;
       padding: 24px 20px;
-      max-width: 720px;
+      max-width: 960px;
       margin: 0 auto;
     }
 
@@ -337,17 +349,11 @@
 <body>
 
   <div class="app-container">
-    <!-- 상단 헤더 -->
+    <!-- 상단 헤더: 좌측 '<' 제거, 우측 '창닫기' 버튼 적용 -->
     <header class="app-header">
-      <button class="header-btn" onclick="handleBack()" title="이전">&#10094;</button>
       <div class="header-title" id="header-title">청구할 보험사 선택</div>
-      <button class="header-btn" onclick="window.close()" title="닫기">&#10005;</button>
+      <button class="close-btn" onclick="closeWindow()">창닫기</button>
     </header>
-
-    <!-- 상단 진행바 -->
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progress-bar"></div>
-    </div>
 
     <!-- ================= [STEP 1: 보험사 선택 화면] ================= -->
     <main id="step1-view">
@@ -356,7 +362,7 @@
         <p>여러 보험사를 동시에 선택하시면 한 번의 정보 입력으로 각각의 청구서가 자동 생성됩니다.</p>
       </div>
 
-      <!-- PC: 좌측 생명보험사 / 우측 손해보험사 분할 | 모바일: 상하 3열 그리드 -->
+      <!-- PC: 좌측 생명보험사 / 우측 손해보험사 전체 폭 분할 | 모바일: 상하 3열 그리드 -->
       <div class="split-layout">
         
         <!-- [좌측 패널] 생명보험사 -->
@@ -393,6 +399,7 @@
 
     <!-- 하단 고정 버튼 -->
     <div class="bottom-bar">
+      <button class="back-step-btn" id="back-step-btn" onclick="backToStep1()">← 보험사 다시 선택</button>
       <button class="submit-btn" id="next-btn" disabled onclick="goToStep2()">
         보험사를 선택해주세요
       </button>
@@ -400,9 +407,6 @@
   </div>
 
   <script>
-    /**
-     * 스캔 이미지와 동일한 브랜드 로고 배지 생성기
-     */
     const LOGO_RENDERER = {
       samsung: (txt) => `<span style="color:#034EA2; font-weight:900; font-size:13px; letter-spacing:-0.5px;">${txt}</span>`,
       lina: () => `<div style="background:#000; color:#fff; font-weight:900; font-size:10px; line-height:1.05; padding:4px 5px; border-radius:3px; position:relative;">LI<br>NA<span style="position:absolute; right:2px; bottom:2px; width:4px; height:8px; background:#f59e0b; transform:skewX(-15deg);"></span></div>`,
@@ -436,11 +440,7 @@
       carrot: () => `<div style="width:26px; height:26px; border-radius:50%; background:#ff5000; color:#fff; font-weight:900; font-size:15px; display:flex; align-items:center; justify-content:center;">G</div>`
     };
 
-    /**
-     * 보험사 마스터 데이터 (스캔 이미지 순서 100% 반영 + forms/ 한글 파일명 매핑)
-     */
     const INSURER_DB = {
-      // 좌측(모바일 상단 또는 하단): 생명보험사 23개 (스캔 이미지 순서 그대로)
       life: [
         { id: 'samsung_life', name: '삼성생명', logo: LOGO_RENDERER.samsung('삼성생명'), fax: '콜센터 가상팩스 발급', call: '1588-3114', faxType: 'virtual', pdfFile: '' },
         { id: 'lina_life', name: '라이나생명', logo: LOGO_RENDERER.lina(), fax: '02-6944-1200', call: '1588-0058', faxType: 'fixed', pdfFile: '' },
@@ -466,7 +466,6 @@
         { id: 'cardif_life', name: '카디프생명', logo: LOGO_RENDERER.cardif(), fax: '02-3782-2790', call: '1688-1118', faxType: 'fixed', pdfFile: '' },
         { id: 'kb_life', name: 'KB라이프생명', logo: LOGO_RENDERER.kb(), fax: '02-6220-9912', call: '1588-9922', faxType: 'fixed', pdfFile: '' }
       ],
-      // 우측: 손해보험사 16개 (스캔 이미지 순서 그대로 + 깃허브 한글 파일명 연결)
       nonLife: [
         { id: 'db_nonlife', name: 'DB손해보험', logo: LOGO_RENDERER.db(), fax: '0505-181-4861', call: '1588-0100', faxType: 'fixed', pdfFile: 'DB손해 보험금청구서.pdf' },
         { id: 'hyundai', name: '현대해상', logo: LOGO_RENDERER.hyundai(), fax: '0507-774-6060', call: '1588-5656', faxType: 'fixed', pdfFile: '현대해상 보험금청구서.pdf' },
@@ -488,7 +487,6 @@
     };
 
     const selectedInsurerIds = new Set();
-    let currentStep = 1;
 
     function renderInsurerGrid() {
       document.getElementById('life-grid').innerHTML = INSURER_DB.life.map(createCardHTML).join('');
@@ -533,12 +531,11 @@
 
     function goToStep2() {
       if (selectedInsurerIds.size === 0) return;
-      currentStep = 2;
 
       document.getElementById('step1-view').style.display = 'none';
       document.getElementById('step2-view').style.display = 'block';
       document.getElementById('header-title').textContent = '청구 정보 및 전자서명 입력';
-      document.getElementById('progress-bar').style.width = '100%';
+      document.getElementById('back-step-btn').style.display = 'block';
 
       const allInsurers = [...INSURER_DB.life, ...INSURER_DB.nonLife];
       const selectedObjects = allInsurers.filter(ins => selectedInsurerIds.has(ins.id));
@@ -562,17 +559,21 @@
       window.scrollTo(0, 0);
     }
 
-    function handleBack() {
-      if (currentStep === 2) {
-        currentStep = 1;
-        document.getElementById('step2-view').style.display = 'none';
-        document.getElementById('step1-view').style.display = 'block';
-        document.getElementById('header-title').textContent = '청구할 보험사 선택';
-        document.getElementById('progress-bar').style.width = '50%';
-        updateBottomButton();
-      } else {
-        window.close();
-      }
+    function backToStep1() {
+      document.getElementById('step2-view').style.display = 'none';
+      document.getElementById('step1-view').style.display = 'block';
+      document.getElementById('header-title').textContent = '청구할 보험사 선택';
+      document.getElementById('back-step-btn').style.display = 'none';
+      updateBottomButton();
+      window.scrollTo(0, 0);
+    }
+
+    function closeWindow() {
+      window.close();
+      // 만약 새 창이 아닌 현재 탭에서 열렸을 경우 홈으로 복귀
+      setTimeout(() => {
+        window.location.href = './index.html';
+      }, 150);
     }
 
     renderInsurerGrid();
