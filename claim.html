@@ -344,6 +344,217 @@
       font-size: 11px;
       font-weight: 700;
     }
+    /* ================= [STEP 2: 폼 & 전자서명 전용 스타일] ================= */
+    .form-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .form-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .form-section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .same-check-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      background: #eff6ff;
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 640px) {
+      .form-grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .form-grid-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .form-label .req {
+      color: #e11d48;
+      margin-left: 2px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #0f172a;
+      background-color: #f8fafc;
+      transition: all 0.15s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .rrn-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rrn-wrap input {
+      text-align: center;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    /* 라디오 및 체크칩 버튼 그룹 */
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip-label {
+      flex: 1;
+      min-width: 80px;
+      text-align: center;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      background: #f8fafc;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .chip-label input {
+      display: none;
+    }
+
+    .chip-label:has(input:checked) {
+      background: var(--primary-light);
+      border-color: var(--accent);
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+    }
+
+    /* 파일 업로드 박스 */
+    .file-upload-box {
+      border: 2px dashed #94a3b8;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .file-upload-box:hover {
+      border-color: var(--accent);
+      background: #eff6ff;
+    }
+
+    .file-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    /* 전자서명 패드 영역 */
+    .signature-container {
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+      touch-action: none; /* 모바일 서명 시 화면 스크롤 방지 */
+    }
+
+    #signature-pad {
+      width: 100%;
+      height: 170px;
+      display: block;
+      cursor: crosshair;
+    }
+
+    .sig-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .copy-fax-btn {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
@@ -388,13 +599,232 @@
 
     <!-- ================= [STEP 2: 정보 입력 및 서명 화면] ================= -->
     <main id="step2-view">
+      <!-- 1. 선택한 보험사 팩스번호 요약 및 가상팩스 직접입력 지원 -->
       <div class="selected-summary-box">
-        <h3>선택한 보험사 및 청구 팩스번호 안내</h3>
+        <h3>🖨️ 선택한 보험사 및 청구 팩스번호 안내</h3>
         <div id="selected-fax-list"></div>
       </div>
-      <div id="step2-form-Placeholder" style="text-align:center; padding: 40px 10px; color:#4b5563; font-size:14px;">
-        1단계 화면 구성이 완료되었습니다.<br>이어서 <b>[2단계: 공통 정보 입력 폼 + 전자서명 패드]</b>가 이 자리에 연결됩니다.
-      </div>
+
+      <form id="claim-master-form" onsubmit="event.preventDefault();">
+        
+        <!-- 2. 피보험자 (다치거나 아픈 분) 인적사항 -->
+        <section class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-title">👤 1. 피보험자 (진료받으신 분) 정보</div>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-group">
+              <label class="form-label">피보험자 성명<span class="req">*</span></label>
+              <input type="text" id="insuredName" class="form-input" placeholder="예: 홍길동" oninput="syncSamePerson()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">피보험자 주민등록번호<span class="req">*</span> <span style="font-size:11px; color:#64748b; font-weight:normal;">(서버 미저장)</span></label>
+              <div class="rrn-wrap">
+                <input type="text" id="insuredRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===6) document.getElementById('insuredRrn2').focus(); syncSamePerson();">
+                <span>-</span>
+                <input type="text" id="insuredRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,''); syncSamePerson();">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">휴대폰 번호<span class="req">*</span></label>
+              <input type="tel" id="insuredPhone" class="form-input" placeholder="010-1234-5678" oninput="autoHyphenPhone(this); syncSamePerson();">
+            </div>
+            <div class="form-group">
+              <label class="form-label">직장명 / 하시는 일(직무)<span class="req">*</span></label>
+              <input type="text" id="insuredJob" class="form-input" placeholder="예: 잇츠리온 / 사무직 (무직, 주부 등)">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">현재 거주지 주소 (선택)</label>
+              <input type="text" id="insuredAddress" class="form-input" placeholder="예: 서울시 강남구 테헤란로 123">
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 보험계약자 및 보험금 수령계좌(수익자) 정보 -->
+        <section class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-title">🏦 2. 계약자 및 보험금 수령 계좌 (수익자)</div>
+            <label class="same-check-label">
+              <input type="checkbox" id="sameAsInsured" checked onchange="syncSamePerson()">
+              <span>계약자·예금주 모두 피보험자 본인과 동일</span>
+            </label>
+          </div>
+
+          <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
+            <div class="form-group">
+              <label class="form-label">보험계약자 성명<span class="req">*</span></label>
+              <input type="text" id="holderName" class="form-input" placeholder="계약자 성명">
+            </div>
+            <div class="form-group">
+              <label class="form-label">보험계약자 주민등록번호<span class="req">*</span></label>
+              <div class="rrn-wrap">
+                <input type="text" id="holderRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                <span>-</span>
+                <input type="text" id="holderRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-3">
+            <div class="form-group">
+              <label class="form-label">지급받을 은행명<span class="req">*</span></label>
+              <select id="bankName" class="form-select">
+                <option value="">은행 선택</option>
+                <option value="국민은행">KB국민은행</option>
+                <option value="신한은행">신한은행</option>
+                <option value="우리은행">우리은행</option>
+                <option value="하나은행">하나은행</option>
+                <option value="농협은행">NH농협은행</option>
+                <option value="기업은행">IBK기업은행</option>
+                <option value="카카오뱅크">카카오뱅크</option>
+                <option value="토스뱅크">토스뱅크</option>
+                <option value="새마을금고">새마을금고</option>
+                <option value="우체국">우체국</option>
+                <option value="SC제일은행">SC제일은행</option>
+                <option value="부산은행">부산은행</option>
+                <option value="대구은행">iM뱅크(대구)</option>
+                <option value="광주은행">광주은행</option>
+                <option value="경남은행">경남은행</option>
+                <option value="전북은행">전북은행</option>
+                <option value="신협">신협</option>
+                <option value="수협">수협</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">계좌번호 (숫자만)<span class="req">*</span></label>
+              <input type="text" id="accountNumber" class="form-input" placeholder="- 없이 숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="form-group">
+              <label class="form-label">예금주 성명 (수익자)<span class="req">*</span></label>
+              <input type="text" id="beneficiaryName" class="form-input" placeholder="예금주 성명">
+            </div>
+          </div>
+          <!-- 예금주 주민번호 히든/자동연동 -->
+          <input type="hidden" id="beneficiaryRrn1">
+          <input type="hidden" id="beneficiaryRrn2">
+        </section>
+
+        <!-- 4. 사고 및 진료 내역 -->
+        <section class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-title">🏥 3. 사고 및 병원 진료사항</div>
+          </div>
+
+          <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
+            <div class="form-group">
+              <label class="form-label">사고 유형<span class="req">*</span></label>
+              <div class="chip-group">
+                <label class="chip-label"><input type="radio" name="accidentType" value="질병" checked>질병</label>
+                <label class="chip-label"><input type="radio" name="accidentType" value="상해">상해</label>
+                <label class="chip-label"><input type="radio" name="accidentType" value="교통사고">교통사고</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">청구 구분 / 진료 형태<span class="req">*</span></label>
+              <div class="chip-group">
+                <label class="chip-label"><input type="radio" name="claimCategory" value="신규" checked>신규접수</label>
+                <label class="chip-label"><input type="radio" name="claimCategory" value="추가">추가접수</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-3" style="margin-bottom: 14px;">
+            <div class="form-group">
+              <label class="form-label">사고일 / 최초 내원일<span class="req">*</span></label>
+              <input type="date" id="accidentDate" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">진단명 또는 증상(병명)<span class="req">*</span></label>
+              <input type="text" id="diagnosisName" class="form-input" placeholder="예: 급성 위염, 요추 염좌, 백내장">
+            </div>
+            <div class="form-group">
+              <label class="form-label">병원명 / 진료과</label>
+              <input type="text" id="hospitalName" class="form-input" placeholder="예: 서울대학병원 / 내과">
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
+            <div class="form-group">
+              <label class="form-label">사고(내원) 경위<span class="req">*</span></label>
+              <input type="text" id="accidentDesc" class="form-input" placeholder="예: 복통 및 소화불량 증상으로 내원하여 진료">
+            </div>
+            <div class="form-group">
+              <label class="form-label">사고 장소 (상해사고 시 기재)</label>
+              <input type="text" id="accidentPlace" class="form-input" placeholder="예: 자택 계단, 회사 앞 도로 등">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">청구 담보 선택 (복수선택 가능)</label>
+            <div class="chip-group">
+              <label class="chip-label"><input type="checkbox" name="claimCoverages" value="실손의료비" checked>실손의료비</label>
+              <label class="chip-label"><input type="checkbox" name="claimCoverages" value="통원">통원</label>
+              <label class="chip-label"><input type="checkbox" name="claimCoverages" value="입원">입원일당</label>
+              <label class="chip-label"><input type="checkbox" name="claimCoverages" value="진단">진단비</label>
+              <label class="chip-label"><input type="checkbox" name="claimCoverages" value="수술">수술비</label>
+              <label class="chip-label"><input type="checkbox" name="claimCoverages" value="장해">후유장해</label>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. 구비서류(병원 영수증/진단서/신분증) 첨부 (단일 PDF 자동 병합용) -->
+        <section class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-title">📎 4. 병원 서류 및 신분증 첨부 (선택)</div>
+            <span style="font-size:11px; color:#64748b;">첨부 시 청구서 뒷장에 하나의 PDF로 자동 합쳐집니다</span>
+          </div>
+          <div class="file-upload-box" onclick="document.getElementById('medicalFiles').click()">
+            <input type="file" id="medicalFiles" multiple accept="image/jpeg,image/png,application/pdf" style="display:none;" onchange="handleFileSelect(event)">
+            <div style="font-size:24px; margin-bottom:6px;">📸 📄</div>
+            <div style="font-size:13.5px; font-weight:700; color:#1e293b;">여기를 눌러 병원 서류(사진/PDF)를 등록하세요</div>
+            <div style="font-size:11.5px; color:#64748b; margin-top:4px;">진료비영수증, 진료비세부내역서, 처방전, 진단서 등 다중 선택 가능</div>
+          </div>
+          <div class="file-list" id="attached-file-list"></div>
+        </section>
+
+        <!-- 6. 담당 설계사 / 고객 알림 발송 여부 설정 -->
+        <section class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-title">🔔 5. 청구서 생성 알림 발송 설정 (선택)</div>
+          </div>
+          <div class="form-grid form-grid-2" style="margin-bottom: 12px;">
+            <label class="chip-label" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+              <input type="checkbox" id="notifyCustomer" onchange="toggleNotifyInputs()">
+              <span>📱 고객에게 청구 안내 문자 발송</span>
+            </label>
+            <label class="chip-label" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+              <input type="checkbox" id="notifyPlanner" onchange="toggleNotifyInputs()">
+              <span>💼 담당 설계사에게 접수 알림 발송</span>
+            </label>
+          </div>
+          <div id="planner-Input-wrap" class="form-grid form-grid-2" style="display:none; padding-top:8px; border-top:1px dashed #e2e8f0;">
+            <div class="form-group">
+              <label class="form-label">담당 설계사 성명</label>
+              <input type="text" id="plannerName" class="form-input" placeholder="예: 김성철 지사장">
+            </div>
+            <div class="form-group">
+              <label class="form-label">담당 설계사 휴대폰 번호</label>
+              <input type="tel" id="plannerPhone" class="form-input" placeholder="010-0000-0000" oninput="autoHyphenPhone(this)">
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. 전자서명 패드 (휴대폰 터치 / PC 마우스 서명) -->
+        <section class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-title">✍️ 6. 청구권자(본인) 자필 전자서명<span class="req">*</span></div>
+            <button type="button" onclick="clearSignature()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; color:#334155;">🔄 다시 그리기</button>
+          </div>
+          <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
+            아래 네모 칸에 손가락(모바일) 또는 마우스(PC)로 정자로 서명해 주세요. 개인(신용)정보 필수 동의서 및 청구서 서명란에 일괄 날인됩니다.
+          </p>
+          <div class="signature-container" id="sig-box">
+            <div class="sig-placeholder" id="sig-placeholder">이곳에 서명을 그려주세요</div>
+            <canvas id="signature-pad"></canvas>
+          </div>
+        </section>
+
+      </form>
     </main>
 
     <!-- 하단 고정 버튼 -->
@@ -529,6 +959,11 @@
       }
     }
 
+    // 첨부된 병원서류 파일 배열
+    let attachedMedicalFiles = [];
+    // 서명 패드 상태 변수
+    let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
+
     function goToStep2() {
       if (selectedInsurerIds.size === 0) return;
 
@@ -548,14 +983,36 @@
           </div>
           <div style="text-align:right;">
             ${ins.faxType === 'virtual'
-              ? `<span class="badge-virtual">콜센터 가상팩스 발급필요</span>`
-              : `<strong style="color:#1e3a8a;">FAX: ${ins.fax}</strong>`
+              ? `<div style="display:flex; align-items:center; gap:6px;">
+                   <span class="badge-virtual">가상팩스</span>
+                   <input type="tel" id="virtual-fax-${ins.id}" placeholder="발급받은 팩스번호 입력" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; width:145px;">
+                 </div>`
+              : `<strong style="color:#1e3a8a;">FAX: ${ins.fax}</strong>
+                 <button type="button" class="copy-fax-btn" onclick="copyFaxNumber('${ins.fax}', '${ins.name}')">복사</button>`
             }
           </div>
         </div>
       `).join('');
 
-      document.getElementById('next-btn').textContent = '청구서 PDF 생성 및 다운로드';
+      // 오늘 날짜를 사고일 기본값으로 세팅
+      const accidentDateInput = document.getElementById('accidentDate');
+      if (!accidentDateInput.value) {
+        accidentDateInput.value = new Date().toISOString().split('T')[0];
+      }
+
+      // 잇츠리온 로그인 설계사 이름 자동 세팅
+      const loggedPlanner = localStorage.getItem('rion_logged_user');
+      if (loggedPlanner && document.getElementById('plannerName') && !document.getElementById('plannerName').value) {
+        document.getElementById('plannerName').value = loggedPlanner;
+      }
+
+      // 하단 버튼을 PDF 생성 실행 함수로 변경
+      const nextBtn = document.getElementById('next-btn');
+      nextBtn.textContent = '✨ 청구서 + 첨부서류 통합 PDF 다운로드';
+      nextBtn.onclick = handleGeneratePDF;
+
+      // 서명 캔버스 초기화
+      setTimeout(initSignaturePad, 100);
       window.scrollTo(0, 0);
     }
 
@@ -564,13 +1021,197 @@
       document.getElementById('step1-view').style.display = 'block';
       document.getElementById('header-title').textContent = '청구할 보험사 선택';
       document.getElementById('back-step-btn').style.display = 'none';
+
+      const nextBtn = document.getElementById('next-btn');
+      nextBtn.onclick = goToStep2;
       updateBottomButton();
       window.scrollTo(0, 0);
     }
 
+    // 팩스번호 원터치 복사
+    function copyFaxNumber(fax, name) {
+      navigator.clipboard.writeText(fax).then(() => {
+        alert(`[${name}] 팩스번호(${fax})가 복사되었습니다.`);
+      });
+    }
+
+    // 휴대폰 번호 자동 하이픈(-)
+    function autoHyphenPhone(el) {
+      el.value = el.value
+        .replace(/[^0-9]/g, '')
+        .replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
+    }
+
+    // 피보험자 = 계약자 = 수익자 동일 체크박스 동기화
+    function syncSamePerson() {
+      const isSame = document.getElementById('sameAsInsured').checked;
+      const iName = document.getElementById('insuredName').value;
+      const iRrn1 = document.getElementById('insuredRrn1').value;
+      const iRrn2 = document.getElementById('insuredRrn2').value;
+
+      if (isSame) {
+        document.getElementById('holderName').value = iName;
+        document.getElementById('holderRrn1').value = iRrn1;
+        document.getElementById('holderRrn2').value = iRrn2;
+        document.getElementById('beneficiaryName').value = iName;
+        document.getElementById('beneficiaryRrn1').value = iRrn1;
+        document.getElementById('beneficiaryRrn2').value = iRrn2;
+      }
+    }
+
+    // 알림 설정에 따른 담당자 입력란 토글
+    function toggleNotifyInputs() {
+      const isPlannerChecked = document.getElementById('notifyPlanner').checked;
+      document.getElementById('planner-Input-wrap').style.display = isPlannerChecked ? 'grid' : 'none';
+    }
+
+    // 병원 서류 다중 첨부 처리
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      attachedMedicalFiles = [...attachedMedicalFiles, ...files];
+      renderAttachedFiles();
+    }
+
+    function removeAttachedFile(idx) {
+      attachedMedicalFiles.splice(idx, 1);
+      renderAttachedFiles();
+    }
+
+    function renderAttachedFiles() {
+      const listEl = document.getElementById('attached-file-list');
+      listEl.innerHTML = attachedMedicalFiles.map((file, idx) => `
+        <div class="file-item">
+          <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+          <button type="button" onclick="removeAttachedFile(${idx})" style="border:none; background:none; color:#e11d48; font-weight:800; cursor:pointer;">✕ 삭제</button>
+        </div>
+      `).join('');
+    }
+
+    // 전자서명 캔버스 초기화 및 터치/마우스 드로잉 엔진
+    function initSignaturePad() {
+      sigCanvas = document.getElementById('signature-pad');
+      if (!sigCanvas) return;
+      const rect = sigCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      sigCanvas.width = rect.width * dpr;
+      sigCanvas.height = rect.height * dpr;
+      sigCtx = sigCanvas.getContext('2d');
+      sigCtx.scale(dpr, dpr);
+      sigCtx.lineWidth = 2.8;
+      sigCtx.lineCap = 'round';
+      sigCtx.lineJoin = 'round';
+      sigCtx.strokeStyle = '#0f172a';
+
+      const getPos = (e) => {
+        const r = sigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - r.left, y: clientY - r.top };
+      };
+
+      const startDraw = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        hasSigned = true;
+        document.getElementById('sig-placeholder').style.display = 'none';
+        const pos = getPos(e);
+        sigCtx.beginPath();
+        sigCtx.moveTo(pos.x, pos.y);
+      };
+
+      const moveDraw = (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        sigCtx.lineTo(pos.x, pos.y);
+        sigCtx.stroke();
+      };
+
+      const endDraw = () => {
+        isDrawing = false;
+      };
+
+      sigCanvas.onmousedown = startDraw;
+      sigCanvas.onmousemove = moveDraw;
+      window.addEventListener('mouseup', endDraw);
+
+      sigCanvas.ontouchstart = startDraw;
+      sigCanvas.ontouchmove = moveDraw;
+      sigCanvas.ontouchend = endDraw;
+    }
+
+    function clearSignature() {
+      if (!sigCanvas || !sigCtx) return;
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      hasSigned = false;
+      document.getElementById('sig-placeholder').style.display = 'flex';
+    }
+
+    // 폼 데이터 유효성 검증 및 수집 (3단계 PDF 엔진으로 전달할 객체)
+    function collectFormData() {
+      syncSamePerson();
+      const data = {
+        insuredName: document.getElementById('insuredName').value.trim(),
+        insuredRrn1: document.getElementById('insuredRrn1').value.trim(),
+        insuredRrn2: document.getElementById('insuredRrn2').value.trim(),
+        insuredPhone: document.getElementById('insuredPhone').value.trim(),
+        insuredJob: document.getElementById('insuredJob').value.trim(),
+        insuredAddress: document.getElementById('insuredAddress').value.trim(),
+        holderName: document.getElementById('holderName').value.trim(),
+        holderRrn1: document.getElementById('holderRrn1').value.trim(),
+        holderRrn2: document.getElementById('holderRrn2').value.trim(),
+        bankName: document.getElementById('bankName').value,
+        accountNumber: document.getElementById('accountNumber').value.trim(),
+        beneficiaryName: document.getElementById('beneficiaryName').value.trim(),
+        accidentType: document.querySelector('input[name="accidentType"]:checked')?.value || '질병',
+        claimCategory: document.querySelector('input[name="claimCategory"]:checked')?.value || '신규',
+        accidentDate: document.getElementById('accidentDate').value,
+        diagnosisName: document.getElementById('diagnosisName').value.trim(),
+        hospitalName: document.getElementById('hospitalName').value.trim(),
+        accidentDesc: document.getElementById('accidentDesc').value.trim(),
+        accidentPlace: document.getElementById('accidentPlace').value.trim(),
+        coverages: Array.from(document.querySelectorAll('input[name="claimCoverages"]:checked')).map(el => el.value),
+        notifyCustomer: document.getElementById('notifyCustomer').checked,
+        notifyPlanner: document.getElementById('notifyPlanner').checked,
+        plannerName: document.getElementById('plannerName').value.trim(),
+        plannerPhone: document.getElementById('plannerPhone').value.trim(),
+        signatureDataUrl: hasSigned ? sigCanvas.toDataURL('image/png') : null
+      };
+
+      if (!data.insuredName || data.insuredRrn1.length !== 6 || data.insuredRrn2.length !== 7) {
+        alert('피보험자 성명과 주민등록번호 13자리를 정확히 입력해주세요.');
+        return null;
+      }
+      if (!data.insuredPhone || !data.insuredJob) {
+        alert('피보험자 휴대폰 번호와 직장/직무를 입력해주세요.');
+        return null;
+      }
+      if (!data.bankName || !data.accountNumber || !data.beneficiaryName) {
+        alert('보험금을 지급받을 은행명, 계좌번호, 예금주를 입력해주세요.');
+        return null;
+      }
+      if (!data.diagnosisName || !data.accidentDesc) {
+        alert('진단명(병명)과 사고(내원) 경위를 입력해주세요.');
+        return null;
+      }
+      if (!data.signatureDataUrl) {
+        alert('하단 전자서명란에 자필 서명을 그려주세요.');
+        return null;
+      }
+      return data;
+    }
+
+    // 3단계에서 PDF 자동 생성 엔진이 연결될 메인 트리거 함수
+    async function handleGeneratePDF() {
+      const formData = collectFormData();
+      if (!formData) return;
+
+      alert(`입력 검증 완료!\n선택하신 ${selectedInsurerIds.size}개 보험사 양식에 텍스트 및 전자서명 스탬프를 합성합니다. (3단계 엔진 연결 지점)`);
+    }
+
     function closeWindow() {
       window.close();
-      // 만약 새 창이 아닌 현재 탭에서 열렸을 경우 홈으로 복귀
       setTimeout(() => {
         window.location.href = './index.html';
       }, 150);
