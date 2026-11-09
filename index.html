@@ -288,11 +288,15 @@
                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">전 보험사 약관 검토 및<br/>비교,분석 결과 제공</p>
                        </div>
 
-                        <!-- [5열] 보험청구 -->
-                       <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
-                           <div class="text-4xl mb-3 group-hover:scale-110 transition transform">💰</div>
-                           <h3 class="text-lg font-bold text-slate-800 group-hover:text-emerald-600 transition">보험청구(개발 중)</h3>
-                           <p class="text-xs text-slate-500 mt-2 leading-relaxed">원수사별 청구서 작성 및<br/>보험금 청구 지원 </p>
+                       <!-- [5열] 보험청구 (활성화 완료) -->
+                       <div onclick="checkAuthAndOpen('claimModal')" class="bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-emerald-500 rounded-2xl p-7 text-center transition cursor-pointer flex flex-col items-center justify-center group shadow-sm hover:shadow-md relative overflow-hidden">
+                           <div class="absolute top-4 right-4 flex h-2.5 w-2.5">
+                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                               <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                           </div>
+                           <div class="text-4xl mb-3 group-hover:scale-110 transition transform">📄</div>
+                           <h3 class="text-lg font-bold text-slate-800 group-hover:text-emerald-600 transition">보험금 청구</h3>
+                           <p class="text-xs text-slate-500 mt-2 leading-relaxed">원수사별 보험 청구서 작성 및<br/>청구 지원</p>
                        </div>
 
                        <!-- [6열] 실비마스터 -->
@@ -925,8 +929,8 @@
             if (modalId === 'indemnityCalcModal') {
                window.open('silbi_calculator.html', '_blank'); return;
             }
-            // coverageModal(보장분석)을 여기서 빼고 아래 회원 전용 기능으로 이동시켰습니다.
-            if (modalId === 'claimModal' || modalId === 'comingSoonModal' || modalId === 'termsCloudModal') {
+            // ⭐️ claimModal을 준비중 목록에서 제외!
+            if (modalId === 'comingSoonModal' || modalId === 'termsCloudModal') {
                openModal('comingSoonModal'); return;
             }
             
@@ -943,9 +947,12 @@
                    window.open('db_assign.html', 'eduWindow'); 
                 } else if (modalId === 'dutyModal') {
                    window.open('duty_analysis.html', '_blank');
+                } else if (modalId === 'claimModal') { 
+                   // ⭐️ 보험청구 클릭 시 독립 엔진(claim.html) 새 창으로 실행!
+                   window.open('claim.html', '_blank');
                 } else if (modalId === 'contractDashboardModal') {
                    window.open('db_carts.html', 'eduWindow');
-                } else if (modalId === 'coverageModal') { // 
+                } else if (modalId === 'coverageModal') { 
                    window.open('insurance_analysis.html', '_blank');
                 } else if (modalId === 'unclaimedMoneyModal') { 
                    window.open('insurance_money.html', 'eduWindow');
