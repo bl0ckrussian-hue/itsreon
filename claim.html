@@ -1300,91 +1300,210 @@
      *    1) 모든 동의서 페이지의 '동의함' 네모박스를 찾아 100% 자동 ✔ 체크하고,
      *    2) 각 동의서 하단의 동의일(년/월/일) 및 서명란 위치를 찾아 자동 서명 날인
      */
-    async function autoCheckAllConsentsAndSign(pdfDoc, pdfBytes, data, insurerId) {
+    // ================= [STEP 3: 전 보험사 정밀 좌표 & 줄단위 스마트 스캔 PDF 엔진] =================
+
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    /**
+     * 1. 선명한 3배율 한글 텍스트 스탬핑 함수
+     */
+    async function drawKoreanText(pdfDoc, page, text, x, y, fontSize = 10, isBold = false, color = '#000000') {
+      if (text === undefined || text === null || String(text).trim() === '') return;
+      const str = String(text);
+      const scale = 3;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const fontSpec = `${isBold ? '800' : '600'} ${fontSize * scale}px Pretendard, sans-serif`;
+      ctx.font = fontSpec;
+
+      const metrics = ctx.measureText(str);
+      const textWidth = Math.ceil(metrics.width) + 10;
+      const textHeight = Math.ceil(fontSize * scale * 1.4);
+
+      canvas.width = textWidth;
+      canvas.height = textHeight;
+
+      ctx.font = fontSpec;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(str, 2, textHeight / 2);
+
+      const pngDataUrl = canvas.toDataURL('image/png');
+      const pngImage = await pdfDoc.embedPng(pngDataUrl);
+
+      page.drawImage(pngImage, {
+        x: x,
+        y: y - (textHeight / scale / 2) + (fontSize * 0.32),
+        width: textWidth / scale,
+        height: textHeight / scale
+      });
+    }
+
+    // 체크박스 '✔' 표시 함수
+    async function drawCheckmark(pdfDoc, page, x, y, size = 12.5) {
+      await drawKoreanText(pdfDoc, page, '✔', x, y, size, true, '#000000');
+    }
+
+    // 서명 이미지 안전 날인 헬퍼
+    async function drawSignatureImg(pdfDoc, page, sigImage, x, y, w = 55, h = 24) {
+      if (!sigImage || !page) return;
+      page.drawImage(sigImage, { x, y, width: w, height: h });
+    }
+
+    /**
+     * 2. PDF 페이지의 쪼개진 글자들을 분석하기 쉽게 추출하는 헬퍼
+     */
+    async function extractPageTokens(pdfProxy, pageNumber) {
+      const proxyPage = await pdfProxy.getPage(pageNumber);
+      const textContent = await proxyPage.getTextContent();
+      const raw = textContent.items.map(it => ({
+        str: it.str.trim(),
+        clean: it.str.replace(/\s+/g, ''),
+        x: it.transform[4],
+        y: it.transform[5],
+        w: it.width || (it.str.trim().length * 8),
+        h: it.height || 10
+      })).filter(it => it.clean.length > 0);
+
+      // X좌표 순 정렬
+      raw.sort((a, b) => b.y - a.y || a.x - b.x);
+
+      // 인접한 낱글자('성' + '명', '동' + '의' + '함') 병합 토큰 생성
+      const merged = [];
+      for (const item of raw) {
+        const prev = merged[merged.length - 1];
+        if (prev && Math.abs(prev.y - item.y) <= 3.5 && (item.x - (prev.x + prev.w)) < 14) {
+          prev.str += ' ' + item.str;
+          prev.clean += item.clean;
+          prev.w = (item.x + item.w) - prev.x;
+        } else {
+          merged.push({ ...item });
+        }
+      }
+      return { raw, merged };
+    }
+
+    /**
+     * 3. ★ 전 보험사 2페이지 이후 모든 필수/선택 동의서의
+     *    1) '동의함' 체크박스 전수 ✔ 체크
+     *    2) 하단 작성일자(동의일자) + 피보험자/본인/수익자 성명 및 서명 자동 날인
+     */
+    async function autoCheckAllConsentsAndSign(pdfDoc, pdfBytes, data, insurerId, sigImage) {
       if (!window.pdfjsLib) return;
       const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
       const pdfProxy = await loadingTask.promise;
       const pages = pdfDoc.getPages();
-      const sigImage = data.signatureDataUrl ? await pdfDoc.embedPng(data.signatureDataUrl) : null;
 
-      // 2페이지(index 1)부터 마지막 페이지까지 스캔 (개인정보 동의서 페이지들)
       for (let pIdx = 1; pIdx < pages.length; pIdx++) {
         const pdfPage = pages[pIdx];
-        const proxyPage = await pdfProxy.getPage(pIdx + 1);
-        const textContent = await proxyPage.getTextContent();
-        const items = textContent.items.map(item => ({
-          str: item.str.trim(),
-          x: item.transform[4],
-          y: item.transform[5],
-          w: item.width,
-          h: item.height || 10
-        })).filter(it => it.str.length > 0);
+        const { raw, merged } = await extractPageTokens(pdfProxy, pIdx + 1);
+        const fullText = merged.map(m => m.clean).join('');
 
-        const fullPageText = items.map(i => i.str).join(' ');
-        // 안내문/Q&A 페이지는 건너뛰고 '동의서' 페이지에서만 작동
-        if (!fullPageText.includes('동의') && !fullPageText.includes('수집')) continue;
+        // 안내문/절차안내/Q&A 페이지는 건너뛰고 실제 '동의서' 페이지만 처리
+        const isConsentPage = fullText.includes('동의하십니까') || fullText.includes('동의서') || fullText.includes('수집·이용') || fullText.includes('고유식별정보');
+        if (!isConsentPage) continue;
 
-        for (const item of items) {
-          // (A) '동의함' 텍스트를 찾으면 해당 체크박스에 자동으로 ✔ 표시
-          if (item.str === '동의함' || item.str === '동의함!' || item.str.endsWith('동의함')) {
-            // '동의하지 않음'은 절대 체크하지 않도록 필터링
-            if (item.str.includes('않음')) continue;
+        // (A) '동의함' 찾아서 네모박스에 정확히 ✔ 체크
+        for (const tok of raw) {
+          const c = tok.clean;
+          if (!c.includes('동의함')) continue;
 
-            // 만약 한 아이템에 '동의하지 않음 동의함'이 붙어있는 경우 우측 끝 좌표 계산
-            let checkX = item.x - 13;
-            let checkY = item.y + 1;
-
-            // 삼성화재는 '동의함' 글자 바로 아래 또는 우측에 네모박스가 위치하는 특이 케이스 보정
+          if (c.includes('동의하지않음') || c.includes('동의안함')) {
+            // 한 덩어리에 "□ 동의하지 않음 □ 동의함"이 묶여 있는 경우 우측 '동의함' 앞 박스에 체크
+            const boxX = tok.x + tok.w - 36;
+            await drawCheckmark(pdfDoc, pdfPage, boxX, tok.y + 1, 12);
+          } else {
+            // 단독 '동의함' 토큰인 경우:
+            // 삼성화재는 '동의함' 글자 우측에 네모박스가 있고, 타사는 좌측에 있음
             if (insurerId === 'samsung_fire') {
-              // 삼성화재 동의서는 '동의함' 우측 또는 하단 박스에 체크
-              checkX = item.x + item.w + 4;
-              checkY = item.y;
+              await drawCheckmark(pdfDoc, pdfPage, tok.x + tok.w + 4, tok.y + 1, 12);
+            } else {
+              const offset = (tok.str.startsWith('☐') || tok.str.startsWith('□')) ? 2 : -11;
+              await drawCheckmark(pdfDoc, pdfPage, tok.x + offset, tok.y + 1, 12);
             }
-
-            await drawCheckmark(pdfDoc, pdfPage, checkX, checkY, 12);
-          }
-
-          // (B) 동의서 상단에 '피보험자 :' 빈칸이 있는 양식(현대해상 등) 자동 기입
-          if (item.str.startsWith('피보험자') && item.y > 700 && item.x < 120) {
-            await drawKoreanText(pdfDoc, pdfPage, data.insuredName, item.x + item.w + 12, item.y, 10, true);
-          }
-          if (item.str.includes('생년월일/성별') && item.y > 700) {
-            await drawKoreanText(pdfDoc, pdfPage, `${data.insuredRrn1} / ${data.insuredRrn2.charAt(0)}`, item.x + item.w + 10, item.y, 10, false);
           }
         }
 
-        // (C) 동의서 페이지 하단에 서명란('본인', '피보험자(성명)', '동의자', '작성자')이 있는 페이지 감지하여 날짜·이름·서명 자동 날인
-        const bottomItems = items.filter(it => it.y < 320);
-        const hasSignSection = bottomItems.some(it =>
-          it.str.includes('(서명)') || it.str.includes('서명(인)') || it.str === '서명' || it.str.includes('피보험자(성명)')
+        // 만약 글자가 '동','의','함'으로 쪼개져서 raw에서 못 찾았을 경우 merged에서 재탐색
+        for (const m of merged) {
+          if (m.clean.endsWith('동의함') && !raw.some(r => Math.abs(r.y - m.y) < 4 && r.clean.includes('동의함'))) {
+            const boxX = insurerId === 'samsung_fire' ? (m.x + m.w + 4) : (m.x + m.w - 36);
+            await drawCheckmark(pdfDoc, pdfPage, boxX, m.y + 1, 12);
+          }
+        }
+
+        // (B) 동의서 상단 피보험자 성명/생년월일 빈칸(현대해상 등) 기입
+        for (const m of merged) {
+          if (m.y > 700 && m.clean.startsWith('피보험자') && m.x < 130) {
+            await drawKoreanText(pdfDoc, pdfPage, data.insuredName, m.x + m.w + 12, m.y, 10, true);
+          }
+          if (m.y > 700 && m.clean.includes('생년월일/성별')) {
+            await drawKoreanText(pdfDoc, pdfPage, `${data.insuredRrn1} / ${data.insuredRrn2.charAt(0)}`, m.x + m.w + 10, m.y, 10, false);
+          }
+        }
+
+        // (C) 동의서 하단(y < 290) 날짜 및 서명란 자동 감지 후 날인 (※ 안내문구 철저히 배제)
+        const bottomMerged = merged.filter(m =>
+          m.y < 290 &&
+          !m.clean.includes('※') &&
+          !m.clean.includes('미성년') &&
+          !m.clean.includes('만14세') &&
+          !m.clean.includes('만19세') &&
+          !m.clean.includes('일방의') &&
+          !m.clean.includes('공동으로') &&
+          !m.clean.includes('가정법원') &&
+          !m.clean.includes('범죄') &&
+          !m.clean.includes('콜센터')
         );
 
-        if (hasSignSection) {
-          // 동의일자 자동 기입 ('동의일', '작성일자' 근처 '년', '월', '일' 탐색)
-          const yearLabel = bottomItems.find(it => it.str === '년' || it.str.includes('20') || it.str === 'YYYY/MM/DD');
-          if (yearLabel) {
-            if (yearLabel.str === 'YYYY/MM/DD') {
-              await drawKoreanText(pdfDoc, pdfPage, data.todayDateSlash, yearLabel.x - 5, yearLabel.y, 10, true);
-            } else {
-              // '20   년   월   일' 형태
-              const baseY = yearLabel.y;
-              await drawKoreanText(pdfDoc, pdfPage, data.todayDateFull, yearLabel.x - 35, baseY, 9.5, true);
+        const hasSignArea = bottomMerged.some(m =>
+          m.clean.includes('서명') || m.clean.includes('(인)') || m.clean.includes('동의일') || m.clean.includes('작성일')
+        );
+
+        if (hasSignArea) {
+          // 1) 동의일자 / 작성일자 찍기
+          const slashDateTok = bottomMerged.find(m => m.clean.includes('YYYY/MM/DD'));
+          const dateLabelTok = bottomMerged.find(m => m.clean.includes('동의일') || m.clean.includes('작성일'));
+          const yearTok = raw.find(r => r.y < 290 && r.y > 75 && (r.clean === '년' || r.clean === '20년') && !r.clean.includes('미성년'));
+
+          if (slashDateTok) {
+            await drawKoreanText(pdfDoc, pdfPage, data.todayDateSlash, slashDateTok.x - 2, slashDateTok.y + 12, 10, true);
+          } else if (yearTok) {
+            // '년' 글자 기준 좌측에 연도, 우측에 월/일 배치
+            await drawKoreanText(pdfDoc, pdfPage, data.todayYear, yearTok.x - 28, yearTok.y, 10, true);
+            await drawKoreanText(pdfDoc, pdfPage, data.todayMonth, yearTok.x + 18, yearTok.y, 10, true);
+            await drawKoreanText(pdfDoc, pdfPage, data.todayDay, yearTok.x + 52, yearTok.y, 10, true);
+          } else if (dateLabelTok) {
+            await drawKoreanText(pdfDoc, pdfPage, data.todayDateFull, dateLabelTok.x + dateLabelTok.w + 15, dateLabelTok.y, 10, true);
+          }
+
+          // 2) 본인 / 피보험자 / 수익자 / 동의자 성명 및 서명 날인
+          let signedCount = 0;
+          for (const m of bottomMerged) {
+            if (m.clean.includes('법정대리인') || m.clean.includes('친권자') || m.clean.includes('대리인')) continue;
+
+            if (
+              m.clean.includes('피보험자') ||
+              m.clean.includes('보험수익자') ||
+              m.clean.includes('본인') ||
+              m.clean.includes('동의자') ||
+              m.clean.includes('작성자')
+            ) {
+              const targetName = m.clean.includes('수익자') ? data.beneficiaryName : data.insuredName;
+              await drawKoreanText(pdfDoc, pdfPage, targetName, m.x + m.w + 10, m.y, 10, true);
+              await drawSignatureImg(pdfDoc, pdfPage, sigImage, m.x + m.w + 55, m.y - 8, 52, 22);
+              signedCount++;
             }
           }
 
-          // 피보험자/본인 성명 및 서명 이미지 날인
-          const targetSignLabels = bottomItems.filter(it =>
-            it.str.includes('피보험자') || it.str.includes('본인') || it.str.includes('보험수익자') || it.str.includes('작성자') || it.str.includes('청구권자')
-          );
-
-          if (targetSignLabels.length > 0) {
-            for (const lbl of targetSignLabels) {
-              // 법정대리인 칸은 성인 청구 기준 비워둠
-              if (lbl.str.includes('법정대리인') || lbl.str.includes('친권자')) continue;
-              await drawKoreanText(pdfDoc, pdfPage, data.insuredName, lbl.x + lbl.w + 15, lbl.y, 10, true);
-              if (sigImage) {
-                pdfPage.drawImage(sigImage, { x: lbl.x + lbl.w + 75, y: lbl.y - 8, width: 55, height: 24 });
-              }
+          // 표 형태로 '성명' / '(서명/인)'만 분리되어 있는 양식(KB손보 4페이지 등) 대응
+          if (signedCount === 0) {
+            const firstSignTok = bottomMerged.find(m => m.clean.includes('서명') || m.clean.includes('(인)'));
+            if (firstSignTok) {
+              await drawKoreanText(pdfDoc, pdfPage, data.insuredName, Math.max(55, firstSignTok.x - 55), firstSignTok.y, 10, true);
+              await drawSignatureImg(pdfDoc, pdfPage, sigImage, firstSignTok.x - 5, firstSignTok.y - 8, 52, 22);
             }
           }
         }
@@ -1392,79 +1511,455 @@
     }
 
     /**
-     * 3. 보험사별 1페이지(청구서 본문) 정밀 보정 좌표 데이터베이스
-     *    (업로드해주신 삼성화재 PDF의 오차를 1pt 단위로 역산하여 완벽 수정)
+     * 4. ★ 10개 손해보험사 청구서 본문(1페이지) + 주요 동의서 정밀 좌표 테이블
+     *    (업로드해주신 7개 결과물의 밀림 현상을 각 사 양식 구조에 맞춰 1:1 정밀 보정)
      */
     const PDF_COORD_MAP = {
-      // ★ [삼성화재] 실제 출력본(source 67) 기반 100% 정밀 보정 완료
+      // [1] 삼성화재 (1페이지 계좌위치 및 2~6페이지 동의서 완벽 보정)
       samsung_fire: {
         fields: [
-          // 1. 인적사항
-          { page: 0, key: 'insuredName', x: 145, y: 668, size: 10, bold: true },
-          { page: 0, key: 'insuredRrnFull', x: 355, y: 668, size: 10 },
-          { page: 0, key: 'insuredJob', x: 165, y: 646, size: 9.5 },
-          { page: 0, key: 'holderName', x: 145, y: 625, size: 10 },
-          { page: 0, key: 'holderRrnFull', x: 355, y: 625, size: 10 },
-          { page: 0, key: 'beneficiaryName', x: 145, y: 603, size: 10 },
-          { page: 0, key: 'insuredPhone', x: 145, y: 582, size: 10 },
-          // 2. 사고사항 (사고일 '20 [26]년 [11]월 [09]일' 빈칸 정확히 매핑)
-          { page: 0, key: 'accYearShort', x: 147, y: 477, size: 10 },
-          { page: 0, key: 'accMonth', x: 185, y: 477, size: 10 },
-          { page: 0, key: 'accDay', x: 222, y: 477, size: 10 },
-          { page: 0, key: 'accidentPlace', x: 355, y: 477, size: 9.5 },
-          { page: 0, key: 'accidentDesc', x: 145, y: 454, size: 9.5 },
-          { page: 0, key: 'hospitalName', x: 145, y: 431, size: 9.5 },
-          { page: 0, key: 'diagnosisName', x: 355, y: 431, size: 9.5 },
-          // 3. 보험금 수령 계좌
-          { page: 0, key: 'bankName', x: 195, y: 312, size: 10 },
-          { page: 0, key: 'accountNumber', x: 310, y: 312, size: 10 },
-          { page: 0, key: 'beneficiaryName', x: 475, y: 312, size: 10 },
+          { page: 0, key: 'insuredName', x: 145, y: 691, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 355, y: 691, size: 10 },
+          { page: 0, key: 'insuredJob', x: 165, y: 669, size: 9.5 },
+          { page: 0, key: 'holderName', x: 145, y: 647, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 355, y: 647, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 145, y: 625, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 145, y: 603, size: 10 },
+          { page: 0, key: 'accYearShort', x: 148, y: 499, size: 10 },
+          { page: 0, key: 'accMonth', x: 185, y: 499, size: 10 },
+          { page: 0, key: 'accDay', x: 222, y: 499, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 355, y: 499, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 145, y: 476, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 145, y: 453, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 355, y: 453, size: 9.5 },
+          // 3. 보험금 수령 계좌 (실제 칸 높이 y: 332로 상향 보정)
+          { page: 0, key: 'bankName', x: 195, y: 332, size: 10 },
+          { page: 0, key: 'accountNumber', x: 305, y: 332, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 475, y: 332, size: 10 },
           // 4. 확인사항 하단 작성일 및 피보험자/수익자 성명
-          { page: 0, key: 'todayYear', x: 145, y: 162, size: 10 },
-          { page: 0, key: 'todayMonth', x: 195, y: 162, size: 10 },
-          { page: 0, key: 'todayDay', x: 230, y: 162, size: 10 },
-          { page: 0, key: 'insuredName', x: 195, y: 135, size: 10, bold: true },
-          { page: 0, key: 'beneficiaryName', x: 420, y: 112, size: 10, bold: true }
+          { page: 0, key: 'todayYear', x: 155, y: 175, size: 10 },
+          { page: 0, key: 'todayMonth', x: 205, y: 175, size: 10 },
+          { page: 0, key: 'todayDay', x: 240, y: 175, size: 10 },
+          { page: 0, key: 'insuredName', x: 195, y: 148, size: 10, bold: true },
+          { page: 0, key: 'beneficiaryName', x: 420, y: 124, size: 10, bold: true },
+          // 5페이지(필수동의서 마지막장) & 6페이지(선택동의서) 하단 날짜/성명 고정 매핑
+          { page: 4, key: 'todayYearShort', x: 214, y: 260, size: 10 },
+          { page: 4, key: 'todayMonth', x: 250, y: 260, size: 10 },
+          { page: 4, key: 'todayDay', x: 285, y: 260, size: 10 },
+          { page: 4, key: 'insuredName', x: 195, y: 230, size: 10, bold: true },
+          { page: 4, key: 'beneficiaryName', x: 195, y: 175, size: 10, bold: true },
+          { page: 5, key: 'todayYearShort', x: 214, y: 260, size: 10 },
+          { page: 5, key: 'todayMonth', x: 250, y: 260, size: 10 },
+          { page: 5, key: 'todayDay', x: 285, y: 260, size: 10 },
+          { page: 5, key: 'insuredName', x: 195, y: 230, size: 10, bold: true },
+          { page: 5, key: 'beneficiaryName', x: 195, y: 175, size: 10, bold: true }
         ],
         checks: [
-          // 의료급여 수급권자: 아니요 기본 체크
-          { page: 0, cond: () => true, x: 421, y: 603 },
-          // 보상안내방법: 문자메시지 체크
-          { page: 0, cond: () => true, x: 142, y: 560 },
-          // 사고유형: 상해 / 질병 / 교통상해
-          { page: 0, cond: (d) => d.accidentType === '상해', x: 132, y: 499 },
-          { page: 0, cond: (d) => d.accidentType === '질병', x: 175, y: 499 },
-          { page: 0, cond: (d) => d.accidentType === '교통사고', x: 218, y: 499 },
-          // 청구유형: 최초청구 / 동일사고 추가접수
-          { page: 0, cond: (d) => d.claimCategory === '신규', x: 348, y: 499 },
-          { page: 0, cond: (d) => d.claimCategory === '추가', x: 412, y: 499 },
-          // 청구담보 체크박스 (실손의료비 / 입원일당 / 진단비 / 수술비 / 후유장해)
-          { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 75, y: 352 },
-          { page: 0, cond: (d) => d.coverages.includes('입원'), x: 138, y: 352 },
-          { page: 0, cond: (d) => d.coverages.includes('진단'), x: 192, y: 352 },
-          { page: 0, cond: (d) => d.coverages.includes('수술'), x: 238, y: 352 },
-          { page: 0, cond: (d) => d.coverages.includes('장해'), x: 325, y: 352 },
-          // 삼성화재 2~5페이지 필수/선택 동의서 '동의함' 박스 정밀 고정 체크 추가
-          { page: 1, cond: () => true, x: 522, y: 378 },
-          { page: 1, cond: () => true, x: 522, y: 275 },
-          { page: 1, cond: () => true, x: 522, y: 152 },
-          { page: 3, cond: () => true, x: 522, y: 695 },
-          { page: 3, cond: () => true, x: 522, y: 582 },
-          { page: 3, cond: () => true, x: 522, y: 465 },
-          { page: 3, cond: () => true, x: 522, y: 372 },
-          { page: 4, cond: () => true, x: 522, y: 695 },
-          { page: 4, cond: () => true, x: 522, y: 585 },
-          { page: 4, cond: () => true, x: 522, y: 475 },
-          { page: 5, cond: () => true, x: 522, y: 432 },
-          { page: 5, cond: () => true, x: 522, y: 352 }
+          { page: 0, cond: () => true, x: 421, y: 625 }, // 의료급여: 아니요
+          { page: 0, cond: () => true, x: 142, y: 581 }, // 안내방법: 문자메시지
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 132, y: 521 },
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 175, y: 521 },
+          { page: 0, cond: (d) => d.accidentType === '교통사고', x: 218, y: 521 },
+          { page: 0, cond: (d) => d.claimCategory === '신규', x: 348, y: 521 },
+          { page: 0, cond: (d) => d.claimCategory === '추가', x: 412, y: 521 },
+          { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 75, y: 374 },
+          { page: 0, cond: (d) => d.coverages.includes('입원'), x: 138, y: 374 },
+          { page: 0, cond: (d) => d.coverages.includes('진단'), x: 192, y: 374 },
+          { page: 0, cond: (d) => d.coverages.includes('수술'), x: 238, y: 374 },
+          { page: 0, cond: (d) => d.coverages.includes('장해'), x: 325, y: 374 }
         ],
         signatures: [
-          { page: 0, x: 265, y: 125, w: 55, h: 24 },
-          { page: 0, x: 485, y: 102, w: 55, h: 24 }
+          { page: 0, x: 265, y: 138, w: 55, h: 24 },
+          { page: 0, x: 485, y: 114, w: 55, h: 24 },
+          { page: 4, x: 270, y: 220, w: 55, h: 24 },
+          { page: 4, x: 270, y: 165, w: 55, h: 24 },
+          { page: 5, x: 270, y: 220, w: 55, h: 24 },
+          { page: 5, x: 270, y: 165, w: 55, h: 24 }
         ]
       },
 
-      // ★ [현대해상] 작성예시(source 39) 기반 정밀 좌표
+      // [2] DB손해보험 (source 89~93 기준 정밀 보정)
+      db_nonlife: {
+        fields: [
+          { page: 0, key: 'insuredName', x: 145, y: 706, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 295, y: 706, size: 10 },
+          { page: 0, key: 'insuredJob', x: 440, y: 684, size: 9.5 },
+          { page: 0, key: 'insuredAddress', x: 145, y: 662, size: 9.5 },
+          { page: 0, key: 'insuredPhone', x: 145, y: 615, size: 10 },
+          { page: 0, key: 'accYear', x: 130, y: 502, size: 9.5 },
+          { page: 0, key: 'accMonth', x: 172, y: 502, size: 9.5 },
+          { page: 0, key: 'accDay', x: 202, y: 502, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 375, y: 502, size: 9.5 },
+          { page: 0, key: 'accidentPlace', x: 145, y: 478, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 375, y: 478, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 145, y: 454, size: 9.5 },
+          { page: 0, key: 'bankName', x: 185, y: 326, size: 10 },
+          { page: 0, key: 'accountNumber', x: 315, y: 326, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 485, y: 326, size: 10 },
+          // 1페이지 하단 작성일 및 피보험자/수익자 성명
+          { page: 0, key: 'todayYear', x: 195, y: 192, size: 10 },
+          { page: 0, key: 'todayMonth', x: 245, y: 192, size: 10 },
+          { page: 0, key: 'todayDay', x: 280, y: 192, size: 10 },
+          { page: 0, key: 'insuredName', x: 185, y: 166, size: 10, bold: true },
+          { page: 0, key: 'beneficiaryName', x: 185, y: 120, size: 10, bold: true },
+          // 5페이지 동의서 하단 작성일 및 피보험자/수익자 성명
+          { page: 4, key: 'todayYear', x: 195, y: 232, size: 10 },
+          { page: 4, key: 'todayMonth', x: 245, y: 232, size: 10 },
+          { page: 4, key: 'todayDay', x: 280, y: 232, size: 10 },
+          { page: 4, key: 'insuredName', x: 185, y: 202, size: 10, bold: true },
+          { page: 4, key: 'beneficiaryName', x: 185, y: 152, size: 10, bold: true }
+        ],
+        checks: [
+          { page: 0, cond: () => true, x: 492, y: 706 }, // 의료급여: 비대상
+          { page: 0, cond: () => true, x: 195, y: 638 }, // 보상안내: 피보험자
+          { page: 0, cond: () => true, x: 452, y: 615 }, // 모집인 문자안내: 예
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 125, y: 526 },
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 165, y: 526 },
+          { page: 0, cond: (d) => d.accidentType === '교통사고', x: 205, y: 526 },
+          { page: 0, cond: (d) => d.claimCategory === '신규', x: 375, y: 526 },
+          { page: 0, cond: (d) => d.claimCategory === '추가', x: 435, y: 526 },
+          { page: 0, cond: (d) => d.useAutoTransfer, x: 165, y: 348 }
+        ],
+        signatures: [
+          { page: 0, x: 280, y: 156, w: 55, h: 24 },
+          { page: 0, x: 280, y: 110, w: 55, h: 24 },
+          { page: 4, x: 280, y: 192, w: 55, h: 24 },
+          { page: 4, x: 280, y: 142, w: 55, h: 24 }
+        ]
+      },
+
+      // [3] KB손해보험 (source 97~100 기준 정밀 보정)
+      kb_nonlife: {
+        fields: [
+          { page: 0, key: 'insuredName', x: 160, y: 702, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 350, y: 702, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 160, y: 678, size: 10 },
+          { page: 0, key: 'insuredJob', x: 350, y: 678, size: 9.5 },
+          { page: 0, key: 'insuredAddress', x: 160, y: 655, size: 9.5 },
+          { page: 0, key: 'holderName', x: 160, y: 632, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 350, y: 632, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 160, y: 586, size: 10 },
+          { page: 0, key: 'accYear', x: 140, y: 472, size: 10 },
+          { page: 0, key: 'accMonth', x: 195, y: 472, size: 10 },
+          { page: 0, key: 'accDay', x: 235, y: 472, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 365, y: 472, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 155, y: 445, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 365, y: 445, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 155, y: 418, size: 9.5 },
+          // 4. 보험금 수령 계좌
+          { page: 0, key: 'bankName', x: 160, y: 265, size: 10 },
+          { page: 0, key: 'accountNumber', x: 295, y: 265, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 465, y: 265, size: 10 },
+          // 5. 고객 확인사항 작성일자 및 청구자 성명
+          { page: 0, key: 'todayYear', x: 95, y: 162, size: 10 },
+          { page: 0, key: 'todayMonth', x: 142, y: 162, size: 10 },
+          { page: 0, key: 'todayDay', x: 175, y: 162, size: 10 },
+          { page: 0, key: 'insuredName', x: 245, y: 162, size: 10, bold: true },
+          // 4페이지 동의서 하단 동의자 성명 및 동의일자
+          { page: 3, key: 'insuredName', x: 110, y: 235, size: 10, bold: true },
+          { page: 3, key: 'todayYearShort', x: 272, y: 155, size: 10 },
+          { page: 3, key: 'todayMonth', x: 312, y: 155, size: 10 },
+          { page: 3, key: 'todayDay', x: 350, y: 155, size: 10 }
+        ],
+        checks: [
+          { page: 0, cond: () => true, x: 215, y: 608 }, // 보상안내: 피보험자
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 122, y: 496 },
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 162, y: 496 },
+          { page: 0, cond: (d) => d.accidentType === '교통사고', x: 202, y: 496 },
+          { page: 0, cond: (d) => d.useAutoTransfer, x: 270, y: 290 }
+        ],
+        signatures: [
+          { page: 0, x: 315, y: 152, w: 55, h: 24 },
+          { page: 3, x: 195, y: 225, w: 55, h: 24 }
+        ]
+      },
+
+      // [4] 롯데손해보험 (source 124~129 기준 정밀 보정)
+      lotte: {
+        fields: [
+          { page: 0, key: 'insuredName', x: 155, y: 625, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 315, y: 625, size: 10 },
+          { page: 0, key: 'insuredJob', x: 155, y: 602, size: 9.5 },
+          { page: 0, key: 'holderName', x: 155, y: 578, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 315, y: 578, size: 10 },
+          { page: 0, key: 'insuredName', x: 155, y: 554, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 315, y: 554, size: 10 },
+          // 2. 사고 관련사항 (한 줄 아래로 정확히 보정)
+          { page: 0, key: 'accYear', x: 115, y: 460, size: 9.5 },
+          { page: 0, key: 'accMonth', x: 158, y: 460, size: 9.5 },
+          { page: 0, key: 'accDay', x: 192, y: 460, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 365, y: 460, size: 9.5 },
+          { page: 0, key: 'accidentPlace', x: 135, y: 436, size: 9 },
+          { page: 0, key: 'hospitalName', x: 365, y: 436, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 135, y: 412, size: 9.5 },
+          // 3. 보험금 수령 계좌 (한 줄 아래로 보정)
+          { page: 0, key: 'beneficiaryName', x: 135, y: 256, size: 10 },
+          { page: 0, key: 'beneficiaryRrnFull', x: 315, y: 256, size: 10 },
+          { page: 0, key: 'bankName', x: 135, y: 232, size: 10 },
+          { page: 0, key: 'accountNumber', x: 315, y: 232, size: 10 },
+          // 4. 작성일 및 청구권자 성명
+          { page: 0, key: 'todayYearShort', x: 162, y: 105, size: 10 },
+          { page: 0, key: 'todayMonth', x: 205, y: 105, size: 10 },
+          { page: 0, key: 'todayDay', x: 242, y: 105, size: 10 },
+          { page: 0, key: 'insuredName', x: 385, y: 105, size: 10, bold: true },
+          // 5페이지(필수동의서) & 6페이지(선택동의서) 하단
+          { page: 4, key: 'insuredName', x: 105, y: 145, size: 10, bold: true },
+          { page: 4, key: 'todayDateSlash', x: 440, y: 145, size: 10 },
+          { page: 5, key: 'insuredName', x: 105, y: 225, size: 10, bold: true },
+          { page: 5, key: 'todayDateSlash', x: 440, y: 225, size: 10 }
+        ],
+        checks: [
+          { page: 0, cond: () => true, x: 515, y: 602 },
+          { page: 0, cond: () => true, x: 315, y: 532 },
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 165, y: 484 },
+          { page: 0, cond: (d) => d.accidentType !== '질병', x: 202, y: 484 },
+          { page: 0, cond: (d) => d.useAutoTransfer, x: 175, y: 280 }
+        ],
+        signatures: [
+          { page: 0, x: 475, y: 94, w: 58, h: 25 },
+          { page: 4, x: 165, y: 135, w: 58, h: 25 },
+          { page: 5, x: 165, y: 215, w: 58, h: 25 }
+        ]
+      },
+
+      // [5] 메리츠화재 (source 134~137 기준 정밀 보정)
+      meritz: {
+        fields: [
+          { page: 0, key: 'holderName', x: 155, y: 718, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 365, y: 718, size: 10 },
+          { page: 0, key: 'insuredName', x: 155, y: 694, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 365, y: 694, size: 10 },
+          { page: 0, key: 'insuredJob', x: 155, y: 670, size: 9.5 },
+          { page: 0, key: 'insuredName', x: 155, y: 622, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 365, y: 622, size: 10 },
+          { page: 0, key: 'accYear', x: 145, y: 465, size: 10 },
+          { page: 0, key: 'accMonth', x: 205, y: 465, size: 10 },
+          { page: 0, key: 'accDay', x: 245, y: 465, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 430, y: 465, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 145, y: 435, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 145, y: 405, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 375, y: 405, size: 9.5 },
+          { page: 0, key: 'bankName', x: 145, y: 252, size: 10 },
+          { page: 0, key: 'accountNumber', x: 350, y: 252, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 145, y: 228, size: 10 },
+          { page: 0, key: 'beneficiaryRrnFull', x: 350, y: 228, size: 10 },
+          { page: 0, key: 'todayYear', x: 135, y: 122, size: 10 },
+          { page: 0, key: 'todayMonth', x: 185, y: 122, size: 10 },
+          { page: 0, key: 'todayDay', x: 220, y: 122, size: 10 },
+          { page: 0, key: 'insuredName', x: 385, y: 122, size: 10, bold: true },
+          // 4페이지 동의서 하단 작성일 및 성명
+          { page: 3, key: 'todayYear', x: 105, y: 222, size: 10 },
+          { page: 3, key: 'todayMonth', x: 152, y: 222, size: 10 },
+          { page: 3, key: 'todayDay', x: 185, y: 222, size: 10 },
+          { page: 3, key: 'insuredName', x: 345, y: 222, size: 10, bold: true }
+        ],
+        checks: [
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 132, y: 512 },
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 245, y: 512 },
+          { page: 0, cond: (d) => d.useAutoTransfer, x: 155, y: 278 }
+        ],
+        signatures: [
+          { page: 0, x: 475, y: 112, w: 58, h: 25 },
+          { page: 3, x: 445, y: 212, w: 58, h: 25 }
+        ]
+      },
+
+      // [6] MG손해보험 / 예별손해보험 (source 103~107 기준 정밀 보정)
+      mg_yebyul: {
+        fields: [
+          { page: 0, key: 'insuredName', x: 155, y: 716, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 375, y: 716, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 155, y: 694, size: 10 },
+          { page: 0, key: 'insuredJob', x: 375, y: 694, size: 9.5 },
+          { page: 0, key: 'insuredAddress', x: 155, y: 672, size: 9.5 },
+          { page: 0, key: 'holderName', x: 155, y: 632, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 315, y: 632, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 155, y: 588, size: 10 },
+          { page: 0, key: 'accYear', x: 155, y: 432, size: 10 },
+          { page: 0, key: 'accMonth', x: 205, y: 432, size: 10 },
+          { page: 0, key: 'accDay', x: 240, y: 432, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 415, y: 432, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 155, y: 408, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 155, y: 384, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 355, y: 384, size: 9.5 },
+          { page: 0, key: 'bankName', x: 155, y: 242, size: 10 },
+          { page: 0, key: 'accountNumber', x: 315, y: 242, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 475, y: 242, size: 10 },
+          { page: 0, key: 'todayYearShort', x: 162, y: 155, size: 10 },
+          { page: 0, key: 'todayMonth', x: 202, y: 155, size: 10 },
+          { page: 0, key: 'todayDay', x: 238, y: 155, size: 10 },
+          { page: 0, key: 'insuredName', x: 395, y: 155, size: 10, bold: true },
+          // 5페이지 동의서 하단
+          { page: 4, key: 'todayYear', x: 240, y: 185, size: 10 },
+          { page: 4, key: 'todayMonth', x: 292, y: 185, size: 10 },
+          { page: 4, key: 'todayDay', x: 330, y: 185, size: 10 },
+          { page: 4, key: 'insuredName', x: 425, y: 215, size: 10, bold: true }
+        ],
+        checks: [
+          { page: 0, cond: () => true, x: 470, y: 632 }, // 계약자: 피보험자와 동일
+          { page: 0, cond: () => true, x: 145, y: 610 }, // 보상안내: 피보험자
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 142, y: 505 },
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 345, y: 505 },
+          { page: 0, cond: (d) => !d.useAutoTransfer, x: 185, y: 264 },
+          { page: 0, cond: (d) => d.useAutoTransfer, x: 255, y: 264 }
+        ],
+        signatures: [
+          { page: 0, x: 485, y: 145, w: 58, h: 25 },
+          { page: 4, x: 485, y: 205, w: 58, h: 25 }
+        ]
+      },
+
+      // [7] NH농협손해보험 (source 110~114 기준 정밀 보정)
+      nh_nonlife: {
+        fields: [
+          { page: 0, key: 'holderName', x: 155, y: 715, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 365, y: 715, size: 10 },
+          { page: 0, key: 'insuredName', x: 155, y: 690, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 365, y: 690, size: 10 },
+          { page: 0, key: 'insuredJob', x: 155, y: 665, size: 9.5 },
+          { page: 0, key: 'insuredName', x: 155, y: 592, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 365, y: 592, size: 10 },
+          { page: 0, key: 'accYear', x: 145, y: 445, size: 10 },
+          { page: 0, key: 'accMonth', x: 195, y: 445, size: 10 },
+          { page: 0, key: 'accDay', x: 235, y: 445, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 425, y: 445, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 145, y: 416, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 145, y: 386, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 375, y: 386, size: 9.5 },
+          { page: 0, key: 'bankName', x: 145, y: 278, size: 10 },
+          { page: 0, key: 'accountNumber', x: 145, y: 254, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 325, y: 278, size: 10 },
+          { page: 0, key: 'beneficiaryRrnFull', x: 325, y: 254, size: 10 },
+          { page: 0, key: 'todayYear', x: 125, y: 162, size: 10 },
+          { page: 0, key: 'todayMonth', x: 175, y: 162, size: 10 },
+          { page: 0, key: 'todayDay', x: 215, y: 162, size: 10 },
+          { page: 0, key: 'insuredName', x: 425, y: 162, size: 10, bold: true },
+          // 5페이지 동의서 하단
+          { page: 4, key: 'insuredName', x: 225, y: 225, size: 10, bold: true },
+          { page: 4, key: 'todayYear', x: 415, y: 138, size: 10 },
+          { page: 4, key: 'todayMonth', x: 465, y: 138, size: 10 },
+          { page: 4, key: 'todayDay', x: 505, y: 138, size: 10 }
+        ],
+        checks: [
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 135, y: 472 },
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 185, y: 472 },
+          { page: 0, cond: (d) => d.useAutoTransfer, x: 195, y: 302 }
+        ],
+        signatures: [
+          { page: 0, x: 485, y: 152, w: 58, h: 25 },
+          { page: 4, x: 225, y: 192, w: 58, h: 25 }
+        ]
+      },
+
+      // [8] 라이나손해보험 (source 119~122 기준 정밀 보정)
+      lina_nonlife: {
+        fields: [
+          { page: 0, key: 'holderName', x: 145, y: 632, size: 10 },
+          { page: 0, key: 'holderRrnFull', x: 285, y: 632, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 445, y: 632, size: 9.5 },
+          { page: 0, key: 'insuredName', x: 145, y: 604, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 285, y: 604, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 445, y: 604, size: 9.5 },
+          { page: 0, key: 'insuredAddress', x: 145, y: 578, size: 9 },
+          { page: 0, key: 'insuredJob', x: 445, y: 578, size: 9.5 },
+          { page: 0, key: 'insuredPhone', x: 185, y: 528, size: 10 },
+          { page: 0, key: 'accYearShort', x: 155, y: 410, size: 10 },
+          { page: 0, key: 'accMonth', x: 192, y: 410, size: 10 },
+          { page: 0, key: 'accDay', x: 225, y: 410, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 410, y: 410, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 145, y: 382, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 145, y: 354, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 375, y: 354, size: 9.5 },
+          { page: 0, key: 'beneficiaryName', x: 135, y: 235, size: 10 },
+          { page: 0, key: 'beneficiaryRrnFull', x: 285, y: 235, size: 10 },
+          { page: 0, key: 'insuredJob', x: 455, y: 235, size: 9.5 },
+          { page: 0, key: 'bankName', x: 135, y: 208, size: 10 },
+          { page: 0, key: 'accountNumber', x: 285, y: 208, size: 10 },
+          // 4페이지 동의서 하단 동의일 및 본인 서명
+          { page: 3, key: 'todayYearShort', x: 162, y: 175, size: 10 },
+          { page: 3, key: 'todayMonth', x: 202, y: 175, size: 10 },
+          { page: 3, key: 'todayDay', x: 238, y: 175, size: 10 },
+          { page: 3, key: 'insuredName', x: 155, y: 145, size: 10, bold: true }
+        ],
+        checks: [
+          { page: 0, cond: () => true, x: 472, y: 658 }, // 의료수급권자: 비대상
+          { page: 0, cond: () => true, x: 185, y: 552 }, // 보상안내: 피보험자
+          { page: 0, cond: () => true, x: 135, y: 505 }, // 안내방법: SMS
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 135, y: 435 },
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 185, y: 435 },
+          { page: 0, cond: (d) => d.claimCategory === '신규', x: 410, y: 435 }
+        ],
+        signatures: [
+          { page: 3, x: 245, y: 135, w: 60, h: 25 }
+        ]
+      },
+
+      // [9] AIG손해보험 (source 78~85 기준 스캔본 대응 정밀 좌표)
+      aig: {
+        fields: [
+          { page: 0, key: 'insuredName', x: 135, y: 705, size: 10, bold: true },
+          { page: 0, key: 'insuredRrnFull', x: 355, y: 705, size: 10 },
+          { page: 0, key: 'insuredPhone', x: 135, y: 682, size: 10 },
+          { page: 0, key: 'insuredJob', x: 355, y: 682, size: 9.5 },
+          { page: 0, key: 'beneficiaryName', x: 145, y: 612, size: 10 },
+          { page: 0, key: 'beneficiaryRrnFull', x: 335, y: 612, size: 10 },
+          { page: 0, key: 'accYear', x: 145, y: 445, size: 10 },
+          { page: 0, key: 'accMonth', x: 195, y: 445, size: 10 },
+          { page: 0, key: 'accDay', x: 230, y: 445, size: 10 },
+          { page: 0, key: 'accidentPlace', x: 415, y: 445, size: 9.5 },
+          { page: 0, key: 'accidentDesc', x: 145, y: 420, size: 9.5 },
+          { page: 0, key: 'diagnosisName', x: 145, y: 395, size: 9.5 },
+          { page: 0, key: 'hospitalName', x: 355, y: 395, size: 9.5 },
+          { page: 0, key: 'bankName', x: 125, y: 292, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 265, y: 292, size: 10 },
+          { page: 0, key: 'accountNumber', x: 415, y: 292, size: 10 },
+          { page: 0, key: 'insuredAddress', x: 125, y: 268, size: 9 },
+          { page: 0, key: 'insuredPhone', x: 415, y: 268, size: 10 },
+          // 1페이지 최하단 작성일자 및 수익자 서명
+          { page: 0, key: 'todayYear', x: 115, y: 68, size: 10 },
+          { page: 0, key: 'todayMonth', x: 165, y: 68, size: 10 },
+          { page: 0, key: 'todayDay', x: 200, y: 68, size: 10 },
+          { page: 0, key: 'beneficiaryName', x: 425, y: 68, size: 10, bold: true },
+          // 7페이지(국내 조회동의) 및 8페이지(국외 제공동의) 하단 작성일자/서명
+          { page: 6, key: 'todayYear', x: 225, y: 175, size: 10 },
+          { page: 6, key: 'todayMonth', x: 275, y: 175, size: 10 },
+          { page: 6, key: 'todayDay', x: 310, y: 175, size: 10 },
+          { page: 6, key: 'insuredName', x: 155, y: 145, size: 10, bold: true },
+          { page: 6, key: 'beneficiaryName', x: 155, y: 118, size: 10, bold: true },
+          { page: 7, key: 'todayYear', x: 225, y: 155, size: 10 },
+          { page: 7, key: 'todayMonth', x: 275, y: 155, size: 10 },
+          { page: 7, key: 'todayDay', x: 310, y: 155, size: 10 },
+          { page: 7, key: 'insuredName', x: 155, y: 125, size: 10, bold: true }
+        ],
+        checks: [
+          { page: 0, cond: () => true, x: 222, y: 612 }, // 수익자 상동
+          { page: 0, cond: () => true, x: 145, y: 588 }, // 실제소유자: 예
+          { page: 0, cond: () => true, x: 335, y: 588 }, // 보상안내: 상동
+          { page: 0, cond: (d) => d.accidentType === '질병', x: 125, y: 518 },
+          { page: 0, cond: (d) => d.accidentType === '상해', x: 305, y: 518 },
+          { page: 0, cond: () => true, x: 82, y: 88 },   // 문자/서면 안내 동의
+          // AIG 동의서(4, 6, 7, 8페이지) '동의함' 박스 고정 체크
+          { page: 3, cond: () => true, x: 492, y: 382 },
+          { page: 3, cond: () => true, x: 492, y: 272 },
+          { page: 3, cond: () => true, x: 492, y: 142 },
+          { page: 5, cond: () => true, x: 492, y: 695 },
+          { page: 5, cond: () => true, x: 492, y: 565 },
+          { page: 5, cond: () => true, x: 492, y: 425 },
+          { page: 6, cond: () => true, x: 492, y: 695 },
+          { page: 6, cond: () => true, x: 492, y: 585 },
+          { page: 6, cond: () => true, x: 492, y: 465 },
+          { page: 7, cond: () => true, x: 492, y: 325 },
+          { page: 7, cond: () => true, x: 492, y: 225 }
+        ],
+        signatures: [
+          { page: 0, x: 490, y: 58, w: 58, h: 25 },
+          { page: 6, x: 235, y: 135, w: 55, h: 24 },
+          { page: 6, x: 235, y: 108, w: 55, h: 24 },
+          { page: 7, x: 235, y: 115, w: 55, h: 24 }
+        ]
+      },
+
+      // [10] 현대해상 (작성예시 기준 정밀 좌표)
       hyundai: {
         fields: [
           { page: 0, key: 'insuredName', x: 135, y: 656, size: 10, bold: true },
@@ -1488,98 +1983,40 @@
           { page: 0, key: 'insuredName', x: 385, y: 158, size: 10, bold: true }
         ],
         checks: [
-          { page: 0, cond: () => true, x: 358, y: 636 }, // 의료급여 수급권자: 아니오
-          { page: 0, cond: () => true, x: 135, y: 570 }, // 안내대상: 피보험자
-          { page: 0, cond: () => true, x: 135, y: 550 }, // 안내방법: 문자
-          { page: 0, cond: () => true, x: 442, y: 550 }, // 플래너 문자안내: 예
+          { page: 0, cond: () => true, x: 358, y: 636 },
+          { page: 0, cond: () => true, x: 135, y: 570 },
+          { page: 0, cond: () => true, x: 135, y: 550 },
+          { page: 0, cond: () => true, x: 442, y: 550 },
           { page: 0, cond: (d) => d.claimCategory === '신규', x: 405, y: 504 },
           { page: 0, cond: (d) => d.claimCategory === '추가', x: 465, y: 504 },
           { page: 0, cond: (d) => d.accidentType === '질병', x: 132, y: 485 },
           { page: 0, cond: (d) => d.accidentType === '상해', x: 175, y: 485 },
           { page: 0, cond: (d) => d.accidentType === '교통사고', x: 218, y: 485 },
-          { page: 0, cond: (d) => d.coverages.includes('통원'), x: 452, y: 485 },
-          { page: 0, cond: (d) => d.coverages.includes('입원'), x: 405, y: 485 },
-          { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 132, y: 388 },
-          { page: 0, cond: (d) => d.coverages.includes('입원'), x: 195, y: 388 },
-          { page: 0, cond: (d) => d.coverages.includes('진단'), x: 248, y: 388 },
-          { page: 0, cond: (d) => d.coverages.includes('수술'), x: 295, y: 388 },
           { page: 0, cond: (d) => d.useAutoTransfer, x: 178, y: 288 }
         ],
         signatures: [
           { page: 0, x: 465, y: 145, w: 60, h: 26 }
         ]
-      },
-
-      // ★ [롯데손해보험] 작성예시(source 11) 기반 정밀 좌표
-      lotte: {
-        fields: [
-          { page: 0, key: 'insuredName', x: 155, y: 625, size: 10, bold: true },
-          { page: 0, key: 'insuredRrnFull', x: 315, y: 625, size: 10 },
-          { page: 0, key: 'insuredJob', x: 155, y: 602, size: 9.5 },
-          { page: 0, key: 'holderName', x: 155, y: 578, size: 10 },
-          { page: 0, key: 'holderRrnFull', x: 315, y: 578, size: 10 },
-          { page: 0, key: 'insuredName', x: 155, y: 554, size: 10 },
-          { page: 0, key: 'insuredPhone', x: 315, y: 554, size: 10 },
-          { page: 0, key: 'accYear', x: 115, y: 472, size: 9.5 },
-          { page: 0, key: 'accMonth', x: 158, y: 472, size: 9.5 },
-          { page: 0, key: 'accDay', x: 192, y: 472, size: 9.5 },
-          { page: 0, key: 'diagnosisName', x: 365, y: 472, size: 9.5 },
-          { page: 0, key: 'accidentPlace', x: 135, y: 448, size: 9 },
-          { page: 0, key: 'hospitalName', x: 365, y: 448, size: 9.5 },
-          { page: 0, key: 'accidentDesc', x: 135, y: 425, size: 9.5 },
-          { page: 0, key: 'beneficiaryName', x: 135, y: 272, size: 10 },
-          { page: 0, key: 'beneficiaryRrnFull', x: 315, y: 272, size: 10 },
-          { page: 0, key: 'bankName', x: 135, y: 248, size: 10 },
-          { page: 0, key: 'accountNumber', x: 315, y: 248, size: 10 },
-          { page: 0, key: 'todayYearShort', x: 162, y: 105, size: 10 },
-          { page: 0, key: 'todayMonth', x: 205, y: 105, size: 10 },
-          { page: 0, key: 'todayDay', x: 242, y: 105, size: 10 },
-          { page: 0, key: 'insuredName', x: 375, y: 105, size: 10, bold: true }
-        ],
-        checks: [
-          { page: 0, cond: () => true, x: 515, y: 602 }, // 의료비수급권자: 아니오
-          { page: 0, cond: () => true, x: 315, y: 532 }, // 추가안내: 문자
-          { page: 0, cond: (d) => d.accidentType === '질병', x: 165, y: 492 },
-          { page: 0, cond: (d) => d.accidentType !== '질병', x: 202, y: 492 },
-          { page: 0, cond: (d) => d.claimCategory === '신규', x: 515, y: 425 }, // 추가접수여부: 아니오
-          { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 132, y: 358 },
-          { page: 0, cond: (d) => d.coverages.includes('입원'), x: 205, y: 358 },
-          { page: 0, cond: (d) => d.coverages.includes('진단'), x: 245, y: 358 },
-          { page: 0, cond: (d) => d.coverages.includes('수술'), x: 285, y: 358 },
-          { page: 0, cond: (d) => d.useAutoTransfer, x: 175, y: 294 }
-        ],
-        signatures: [
-          { page: 0, x: 465, y: 92, w: 60, h: 25 }
-        ]
       }
     };
 
     /**
-     * 4. 텍스트 라벨 기반 1페이지(청구서 본문) 자동 추적 스탬핑 엔진
-     *    (메리츠, KB, DB, 농협, 흥국, 하나, 라이나, 예별, AIG 등 양식마다 다른 칸 위치를 글자 인식으로 자동 매핑)
+     * 5. 그 외 보험사(하나손보, 흥국화재, 한화손보 등)를 위한 줄단위 스마트 1페이지 자동 기입기
+     *    (※ 안내문구 오염 방지 필터 적용)
      */
-    async function smartFillFirstPageByLabels(pdfDoc, pdfBytes, data) {
+    async function smartFillFirstPageByLabels(pdfDoc, pdfBytes, data, sigImage) {
       if (!window.pdfjsLib) return;
       const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
       const pdfProxy = await loadingTask.promise;
       const page = pdfDoc.getPages()[0];
-      const proxyPage = await pdfProxy.getPage(1);
-      const textContent = await proxyPage.getTextContent();
+      const { raw, merged } = await extractPageTokens(pdfProxy, 1);
 
-      const items = textContent.items.map(it => ({
-        str: it.str.replace(/\s+/g, ''),
-        raw: it.str.trim(),
-        x: it.transform[4],
-        y: it.transform[5],
-        w: it.width
-      })).filter(it => it.str.length > 0);
-
-      // 특정 키워드를 가진 라벨을 찾아 우측 빈칸에 값을 찍는 헬퍼
-      const fillNextTo = async (keywords, val, offsetX = 45, offsetY = 0, yRange = [0, 900]) => {
+      const fillNextTo = async (keywords, val, offsetX = 28, offsetY = 0, yRange = [0, 900]) => {
         if (!val) return false;
-        const found = items.find(it =>
-          it.y >= yRange[0] && it.y <= yRange[1] &&
-          keywords.some(k => it.str.includes(k))
+        const found = merged.find(m =>
+          m.y >= yRange[0] && m.y <= yRange[1] &&
+          !m.clean.includes('※') &&
+          keywords.some(k => m.clean.includes(k))
         );
         if (found) {
           await drawKoreanText(pdfDoc, page, val, found.x + found.w + offsetX, found.y + offsetY, 9.8, false);
@@ -1588,53 +2025,41 @@
         return false;
       };
 
-      // 상단 인적사항 영역 (y: 520 ~ 780)
-      await fillNextTo(['피보험자'], data.insuredName, 35, 0, [580, 760]);
-      await fillNextTo(['주민번호', '주민등록'], data.insuredRrnFull, 25, 0, [610, 760]);
-      await fillNextTo(['직장', '하시는일', '직업'], data.insuredJob, 25, 0, [560, 720]);
-      await fillNextTo(['계약자'], data.holderName, 35, 0, [540, 680]);
-      await fillNextTo(['휴대전화', '휴대폰', '연락처'], data.insuredPhone, 25, 0, [520, 720]);
+      await fillNextTo(['피보험자'], data.insuredName, 30, 0, [580, 760]);
+      await fillNextTo(['주민번호', '주민등록번호'], data.insuredRrnFull, 20, 0, [600, 760]);
+      await fillNextTo(['직장', '하시는일', '직업'], data.insuredJob, 20, 0, [560, 720]);
+      await fillNextTo(['계약자'], data.holderName, 30, 0, [540, 690]);
+      await fillNextTo(['휴대전화', '휴대폰', '연락처'], data.insuredPhone, 20, 0, [520, 720]);
 
-      // 중단 사고/진료사항 영역 (y: 330 ~ 540)
-      await fillNextTo(['사고일시', '발병일시', '사고(발병)'], data.accidentDate, 30, 0, [420, 560]);
-      await fillNextTo(['사고장소', '장소'], data.accidentPlace, 25, 0, [410, 560]);
-      await fillNextTo(['사고경위', '내원경위', '치료경위', '사고내용'], data.accidentDesc, 30, 0, [380, 520]);
-      await fillNextTo(['진단명', '병명'], data.diagnosisName, 25, 0, [360, 500]);
-      await fillNextTo(['병원명', '진료과'], data.hospitalName, 25, 0, [360, 500]);
+      await fillNextTo(['사고일', '발병일'], data.accidentDate, 25, 0, [420, 560]);
+      await fillNextTo(['사고장소', '장소'], data.accidentPlace, 20, 0, [410, 560]);
+      await fillNextTo(['사고경위', '내원경위', '치료경위', '사고내용'], data.accidentDesc, 25, 0, [380, 520]);
+      await fillNextTo(['진단명', '병명'], data.diagnosisName, 20, 0, [350, 500]);
+      await fillNextTo(['병원명', '진료과'], data.hospitalName, 20, 0, [350, 500]);
 
-      // 하단 계좌 영역 (y: 180 ~ 360)
-      await fillNextTo(['은행명', '금융기관'], data.bankName, 20, 0, [190, 360]);
-      await fillNextTo(['계좌번호'], data.accountNumber, 25, 0, [190, 360]);
-      await fillNextTo(['예금주'], data.beneficiaryName, 20, 0, [190, 360]);
+      await fillNextTo(['은행명', '금융기관'], data.bankName, 18, 0, [190, 360]);
+      await fillNextTo(['계좌번호'], data.accountNumber, 20, 0, [190, 360]);
+      await fillNextTo(['예금주'], data.beneficiaryName, 18, 0, [190, 360]);
 
-      // 자동이체 계좌 체크박스 감지
-      if (data.useAutoTransfer) {
-        const autoItem = items.find(it => it.str.includes('자동이체'));
-        if (autoItem) {
-          await drawCheckmark(pdfDoc, page, autoItem.x - 14, autoItem.y, 12);
-        }
-      }
+      // 1페이지 하단 작성일 및 청구인 서명 (※ 주의사항 문구 제외)
+      const validBottom = merged.filter(m =>
+        m.y < 220 &&
+        !m.clean.includes('※') &&
+        !m.clean.includes('미성년') &&
+        !m.clean.includes('친권자') &&
+        !m.clean.includes('범죄')
+      );
 
-      // 사고유형 체크박스 감지 ('질병', '상해')
-      const accTypeItem = items.find(it => it.y > 400 && it.y < 580 && it.str === data.accidentType);
-      if (accTypeItem) {
-        await drawCheckmark(pdfDoc, page, accTypeItem.x - 12, accTypeItem.y, 12);
-      }
-
-      // 1페이지 최하단 작성일자 및 청구인 서명 (y: 50 ~ 200)
-      const signItem = items.find(it => it.y < 210 && (it.str.includes('서명') || it.str.includes('청구인') || it.str.includes('청구권자') || it.str.includes('작성자')));
-      if (signItem) {
-        await drawKoreanText(pdfDoc, page, data.todayDateFull, 120, signItem.y, 9.5, true);
-        await drawKoreanText(pdfDoc, page, data.insuredName, 340, signItem.y, 10, true);
-        if (data.signatureDataUrl) {
-          const sigImg = await pdfDoc.embedPng(data.signatureDataUrl);
-          page.drawImage(sigImg, { x: 430, y: signItem.y - 10, width: 60, height: 26 });
-        }
+      const signRow = validBottom.find(m => m.clean.includes('서명') || m.clean.includes('청구권자') || m.clean.includes('청구인'));
+      if (signRow) {
+        await drawKoreanText(pdfDoc, page, data.todayDateFull, 140, signRow.y, 10, true);
+        await drawKoreanText(pdfDoc, page, data.insuredName, 355, signRow.y, 10, true);
+        await drawSignatureImg(pdfDoc, page, sigImage, 445, signRow.y - 8, 58, 25);
       }
     }
 
     /**
-     * 5. 첨부된 병원 서류(JPG, PNG, PDF)를 생성된 청구서 뒷장에 병합
+     * 6. 첨부된 병원 서류(JPG, PNG, PDF) 뒷장 병합
      */
     async function appendMedicalFilesToPdf(targetPdfDoc) {
       if (!attachedMedicalFiles || attachedMedicalFiles.length === 0) return;
@@ -1667,7 +2092,7 @@
     }
 
     /**
-     * 6. 양식 PDF가 없는 생명보험사용 표준 통합 청구서 생성기
+     * 7. 양식 PDF가 없는 생명보험사용 표준 통합 청구서 생성기
      */
     async function createStandardClaimPdf(insurer, data) {
       const pdfDoc = await PDFLib.PDFDocument.create();
@@ -1710,17 +2135,17 @@
       await drawKoreanText(pdfDoc, page, '[필수] 보험금 청구를 위한 개인(신용)정보 수집·이용·조회·제공 동의', 52, 365, 10.5, true);
       await drawKoreanText(pdfDoc, page, '✔ 고유식별정보 동의함    ✔ 민감정보 동의함    ✔ 개인(신용)정보 동의함', 52, 315, 10, true);
       await drawKoreanText(pdfDoc, page, `작성일자 : ${data.todayDateFull}`, 52, 260, 10, true);
-      await drawKoreanText(pdfDoc, page, `청구권자(본인) : ${data.insuredName}   (서명)`, 320, 260, 10, true);
+      await drawKoreanText(pdfDoc, page, `청구권자(피보험자/수익자) : ${data.insuredName}   (서명)`, 290, 260, 10, true);
 
       if (data.signatureDataUrl) {
         const sigImg = await pdfDoc.embedPng(data.signatureDataUrl);
-        page.drawImage(sigImg, { x: 455, y: 245, width: 70, height: 32 });
+        page.drawImage(sigImg, { x: 465, y: 245, width: 70, height: 32 });
       }
       return pdfDoc;
     }
 
     /**
-     * 7. 메인 PDF 생성 및 다운로드 실행 함수
+     * 8. 메인 PDF 생성 및 다운로드 실행 함수
      */
     async function handleGeneratePDF() {
       const rawData = collectFormData();
@@ -1729,7 +2154,7 @@
       const btn = document.getElementById('next-btn');
       const originalBtnText = btn.textContent;
       btn.disabled = true;
-      btn.textContent = '⏳ 양식 스캔·동의 체크 및 PDF 병합 중...';
+      btn.textContent = '⏳ 양식 정밀 매핑·동의서 체크 및 PDF 병합 중...';
 
       try {
         const [accY, accM, accD] = (rawData.accidentDate || '2026-01-01').split('-');
@@ -1772,8 +2197,9 @@
               const existingPdfBytes = await response.arrayBuffer();
               pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
               const pages = pdfDoc.getPages();
+              const sigImage = enrichedData.signatureDataUrl ? await pdfDoc.embedPng(enrichedData.signatureDataUrl) : null;
 
-              // 1) 정밀 좌표가 등록된 보험사(삼성화재, 현대해상, 롯데손보)는 전용 좌표로 1페이지 기입
+              // 1) 정밀 좌표가 등록된 보험사는 전용 좌표로 1페이지 및 지정 동의서 기입
               if (PDF_COORD_MAP[ins.id]) {
                 const mapConfig = PDF_COORD_MAP[ins.id];
                 for (const f of mapConfig.fields) {
@@ -1788,21 +2214,20 @@
                     }
                   }
                 }
-                if (enrichedData.signatureDataUrl && mapConfig.signatures) {
-                  const sigImage = await pdfDoc.embedPng(enrichedData.signatureDataUrl);
+                if (sigImage && mapConfig.signatures) {
                   for (const s of mapConfig.signatures) {
                     if (pages[s.page]) {
-                      pages[s.page].drawImage(sigImage, { x: s.x, y: s.y, width: s.w, height: s.h });
+                      await drawSignatureImg(pdfDoc, pages[s.page], sigImage, s.x, s.y, s.w, s.h);
                     }
                   }
                 }
               } else {
-                // 그 외 손해보험사(메리츠, KB, DB, 농협, 흥국, 하나, 라이나 등)는 텍스트 라벨 자동 추적으로 1페이지 기입
-                await smartFillFirstPageByLabels(pdfDoc, existingPdfBytes, enrichedData);
+                // 그 외 손해보험사(하나, 흥국, 한화 등)는 줄단위 스마트 스캔으로 1페이지 기입
+                await smartFillFirstPageByLabels(pdfDoc, existingPdfBytes, enrichedData, sigImage);
               }
 
-              // 2) ★ 전 보험사 공통: 2페이지 이후 모든 필수/선택 동의서의 '동의함' 박스 자동 체크 및 하단 서명 날인
-              await autoCheckAllConsentsAndSign(pdfDoc, existingPdfBytes, enrichedData, ins.id);
+              // 2) 전 보험사 공통: 2페이지 이후 모든 동의서 '동의함' 박스 체크 + 하단 동의일/서명 날인
+              await autoCheckAllConsentsAndSign(pdfDoc, existingPdfBytes, enrichedData, ins.id, sigImage);
 
             } catch (err) {
               console.warn(`${ins.name} 원본 양식 로드 실패, 표준 양식으로 대체:`, err);
@@ -1828,7 +2253,7 @@
           setTimeout(() => URL.revokeObjectURL(downloadUrl), 3000);
         }
 
-        alert(`✅ 총 ${selectedObjects.length}개 보험사의 청구서(필수동의서 전수 체크 포함) 및 첨부서류 통합 PDF 다운로드가 완료되었습니다!`);
+        alert(`✅ 총 ${selectedObjects.length}개 보험사의 청구서(본문+동의서 서명/날짜 완비) 및 첨부서류 통합 PDF 다운로드가 완료되었습니다!`);
       } catch (error) {
         console.error(error);
         alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
@@ -1845,7 +2270,7 @@
       }, 150);
     }
 
-    // ★ 페이지가 열릴 때 보험사 카드 그리드를 화면에 그려주는 필수 실행 코드
+    // 초기 보험사 그리드 렌더링
     renderInsurerGrid();
   </script>
 </body>
