@@ -642,7 +642,7 @@
 
         <!-- 3. 보험계약자 및 보험금 수령계좌(수익자) 정보 -->
         <section class="form-section">
-          <div class="form-section-header">
+          <div class="form-section-header" style="flex-wrap: wrap; gap: 8px;">
             <div class="form-section-title">🏦 2. 계약자 및 보험금 수령 계좌 (수익자)</div>
             <label class="same-check-label">
               <input type="checkbox" id="sameAsInsured" checked onchange="syncSamePerson()">
@@ -665,9 +665,18 @@
             </div>
           </div>
 
-          <div class="form-grid form-grid-3">
+          <!-- ★ 추가됨: 자동이체 계좌로 수령 요청 체크박스 -->
+          <div style="margin-bottom: 14px; padding: 12px 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 800; color: #1e3a8a; cursor: pointer;">
+              <input type="checkbox" id="useAutoTransfer" onchange="toggleAutoTransferAccount()" style="width: 17px; height: 17px; accent-color: #2563eb; cursor: pointer;">
+              <span>💳 기존 보험료 자동이체 계좌로 보험금 수령 요청 (체크 시 계좌번호 입력 생략 가능)</span>
+            </label>
+            <span style="font-size: 11.5px; color: #64748b;">※ 수익자 본인 명의 자동이체 계좌인 경우에만 가능</span>
+          </div>
+
+          <div class="form-grid form-grid-3" id="account-inputs-wrap">
             <div class="form-group">
-              <label class="form-label">지급받을 은행명<span class="req">*</span></label>
+              <label class="form-label">지급받을 은행명<span class="req" id="req-bank">*</span></label>
               <select id="bankName" class="form-select">
                 <option value="">은행 선택</option>
                 <option value="국민은행">KB국민은행</option>
@@ -691,7 +700,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">계좌번호 (숫자만)<span class="req">*</span></label>
+              <label class="form-label">계좌번호 (숫자만)<span class="req" id="req-acc">*</span></label>
               <input type="text" id="accountNumber" class="form-input" placeholder="- 없이 숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
             </div>
             <div class="form-group">
@@ -1148,9 +1157,29 @@
       document.getElementById('sig-placeholder').style.display = 'flex';
     }
 
+    // 자동이체 계좌 체크 시 필수입력(*) 표시 제어 함수
+    function toggleAutoTransferAccount() {
+      const isAuto = document.getElementById('useAutoTransfer').checked;
+      const reqBank = document.getElementById('req-bank');
+      const reqAcc = document.getElementById('req-acc');
+      const accInput = document.getElementById('accountNumber');
+
+      if (isAuto) {
+        if (reqBank) reqBank.style.display = 'none';
+        if (reqAcc) reqAcc.style.display = 'none';
+        accInput.placeholder = '자동이체 계좌 수령 (입력 생략 가능)';
+      } else {
+        if (reqBank) reqBank.style.display = 'inline';
+        if (reqAcc) reqAcc.style.display = 'inline';
+        accInput.placeholder = '- 없이 숫자만 입력';
+      }
+    }
+
     // 폼 데이터 유효성 검증 및 수집 (3단계 PDF 엔진으로 전달할 객체)
     function collectFormData() {
       syncSamePerson();
+      const useAutoTransfer = document.getElementById('useAutoTransfer').checked;
+
       const data = {
         insuredName: document.getElementById('insuredName').value.trim(),
         insuredRrn1: document.getElementById('insuredRrn1').value.trim(),
@@ -1161,9 +1190,12 @@
         holderName: document.getElementById('holderName').value.trim(),
         holderRrn1: document.getElementById('holderRrn1').value.trim(),
         holderRrn2: document.getElementById('holderRrn2').value.trim(),
+        useAutoTransfer: useAutoTransfer, // ★ 3단계 PDF 양식의 '자동이체 계좌 요청' 체크란에 V 표시할 값
         bankName: document.getElementById('bankName').value,
         accountNumber: document.getElementById('accountNumber').value.trim(),
         beneficiaryName: document.getElementById('beneficiaryName').value.trim(),
+        beneficiaryRrn1: document.getElementById('beneficiaryRrn1').value.trim(),
+        beneficiaryRrn2: document.getElementById('beneficiaryRrn2').value.trim(),
         accidentType: document.querySelector('input[name="accidentType"]:checked')?.value || '질병',
         claimCategory: document.querySelector('input[name="claimCategory"]:checked')?.value || '신규',
         accidentDate: document.getElementById('accidentDate').value,
@@ -1187,8 +1219,13 @@
         alert('피보험자 휴대폰 번호와 직장/직무를 입력해주세요.');
         return null;
       }
-      if (!data.bankName || !data.accountNumber || !data.beneficiaryName) {
-        alert('보험금을 지급받을 은행명, 계좌번호, 예금주를 입력해주세요.');
+      // ★ 자동이체 미체크 시에만 은행명/계좌번호 필수 입력 검증
+      if (!data.useAutoTransfer && (!data.bankName || !data.accountNumber)) {
+        alert('보험금을 지급받을 은행명과 계좌번호를 입력하거나, [기존 보험료 자동이체 계좌로 수령 요청]에 체크해주세요.');
+        return null;
+      }
+      if (!data.beneficiaryName) {
+        alert('예금주(수익자) 성명을 입력해주세요.');
         return null;
       }
       if (!data.diagnosisName || !data.accidentDesc) {
