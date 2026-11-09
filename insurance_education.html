@@ -244,32 +244,35 @@
         </div>
     </main>
 
-    <!-- 🎬 영상 재생 모달 (모바일 일반화면 비디오 레이어 강제 활성화 버전) -->
-    <div id="videoModal" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 sm:p-4">
-        <div class="w-full max-w-5xl flex justify-between items-center mb-2.5 px-1">
+    <!-- 🎬 영상 재생 모달 (재생 버튼 먹통 해결 + 모바일 자동 전체화면 + 구글 계정 팝업 차단) -->
+    <div id="videoModal" class="hidden fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-0 sm:p-4">
+        <!-- 상단 컨트롤 바 -->
+        <div class="w-full max-w-5xl flex justify-between items-center px-3 py-2.5 bg-slate-900 sm:bg-transparent border-b border-slate-800 sm:border-0 shrink-0 z-40">
             <div class="flex items-center gap-2">
-                <button type="button" onclick="toggleCustomFullscreen()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
-                    <span>⛶ 전체화면 전환</span>
-                </button>
-                <button type="button" onclick="reloadCurrentVideo()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition">
-                    🔄 화면 깨우기 (새로고침)
+                <button type="button" onclick="toggleCustomFullscreen()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow transition">
+                    ⛶ 화면 크기 전환
                 </button>
             </div>
-            <button type="button" onclick="closeVideoModal()" class="text-white/80 hover:text-white font-bold text-sm sm:text-base flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition">
-                <span>창 닫기</span><span class="text-lg leading-none">✕</span>
+            <button type="button" onclick="closeVideoModal()" class="text-white hover:text-rose-400 font-bold text-xs sm:text-sm flex items-center gap-1.5 bg-slate-800 px-3.5 py-1.5 rounded-lg border border-slate-700 transition">
+                <span>창 닫기</span><span class="text-base leading-none">✕</span>
+            </button>
+        </div>
+
+        <!-- 플레이어 영역: 모바일에서는 화면 꽉 차게(전체화면 효과로 영상 정상 출력), PC에서는 16:9 비율 -->
+        <div id="videoPlayerWrapper" class="w-full max-w-5xl flex-grow sm:flex-grow-0 sm:aspect-video bg-black sm:rounded-xl overflow-hidden shadow-2xl relative">
+            <iframe 
+                id="videoIframe" 
+                src="" 
+                class="w-full h-full border-0 block" 
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+
+            <!-- 🛡️ 우측 상단 구글 드라이브 '새창 열기(구글 계정 로그인 창)' 버튼만 정밀 차단 (재생 버튼은 절대 가리지 않음) -->
+            <div class="absolute top-0 right-0 w-16 h-16 bg-[#141414]/90 z-30 flex items-center justify-center select-none" onclick="event.stopPropagation(); return false;">
+                <span class="text-[10px] text-slate-400 font-bold">RION</span>
             </div>
         </div>
-
-        <!-- 💡 모바일에서 overflow-hidden과 aspect-video 충돌로 화면이 증발하는 현상을 막기 위해 명시적 높이(min-h-[220px] sm:min-h-[480px]) 적용 -->
-        <div id="videoPlayerWrapper" class="w-full max-w-5xl aspect-video min-h-[220px] sm:min-h-[480px] bg-black rounded-lg shadow-2xl relative border border-slate-800 flex items-center justify-center">
-            <div id="videoIframeHost" class="w-full h-full relative z-10"></div>
-
-            <!-- 🛡️ 우측 상단 구글 드라이브 '새창 열기(구글 계정 선택 유도)' 버튼 터치 원천 차단 가림막 -->
-            <div class="absolute top-0 right-0 w-20 h-16 z-30 bg-transparent" onclick="event.stopPropagation(); return false;"></div>
-        </div>
-        <p class="text-[11px] text-slate-400 mt-2 text-center">
-            💡 모바일에서 가로 모드로 넓게 보시려면 상단의 <b>[⛶ 전체화면 전환]</b>을 눌러주세요.
-        </p>
     </div>
 
     <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -734,114 +737,51 @@
 
         let currentPlayingVideoUrl = "";
 
-        // 모바일 일반화면에서도 전체화면과 동일하게 비디오 디코더가 즉시 켜지도록 강제 레이어 활성화
+        // 1. 영상 열기 (주소 뒤에 불필요한 파라미터를 붙이지 않고 순수 /preview 주소만 입력)
         function openMobileSafeVideo(rawUrl) {
-            currentPlayingVideoUrl = rawUrl;
-            const basePreviewUrl = rawUrl.replace('/view', '/preview');
-            // 캐시된 오디오 전용 세션 방지를 위해 타임스탬프 부여
-            const previewUrl = basePreviewUrl + (basePreviewUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
-            
+            const previewUrl = rawUrl.replace('/view', '/preview');
             const modal = document.getElementById('videoModal');
-            const wrapper = document.getElementById('videoPlayerWrapper');
-            const host = document.getElementById('videoIframeHost');
+            const iframe = document.getElementById('videoIframe');
 
-            host.innerHTML = '';
             modal.classList.remove('hidden');
-
-            // 1. 모바일 브라우저가 '전체화면 레이어'로 인식하도록 순간적으로 전체영역 클래스를 부여한 상태에서 iframe 생성
-            wrapper.classList.add('fixed', 'inset-0', 'z-40', 'w-screen', 'h-screen');
-
-            const iframe = document.createElement('iframe');
-            iframe.id = 'videoIframe';
+            // 모달이 열린 직후 순정 preview 주소를 주입하여 재생 버튼 먹통 현상 원천 방지
             iframe.src = previewUrl;
-            iframe.className = 'w-full h-full border-0 block';
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-            iframe.setAttribute('allowfullscreen', 'true');
-            iframe.setAttribute('webkitallowfullscreen', 'true');
-            iframe.setAttribute('playsinline', 'true');
-
-            host.appendChild(iframe);
-
-            // 2. 비디오 레이어가 잡힌 직후 기본 모달 크기로 자연스럽게 복귀 + 강제 리페인트 유도
-            setTimeout(() => {
-                wrapper.classList.remove('fixed', 'inset-0', 'z-40', 'w-screen', 'h-screen');
-                forceVideoLayerRepaint();
-            }, 150);
         }
 
-        // 브라우저가 비디오 화면 레이어를 다시 그리도록 강제 자극하는 함수 (전체화면 전환과 동일한 원리)
-        function forceVideoLayerRepaint() {
-            const wrapper = document.getElementById('videoPlayerWrapper');
-            const iframe = document.getElementById('videoIframe');
-            if (!wrapper || !iframe) return;
-
-            const rect = wrapper.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-                iframe.style.width = (rect.width - 1) + 'px';
-                iframe.style.height = (rect.height - 1) + 'px';
-                void wrapper.offsetHeight; // 브라우저 강제 Reflow
-                setTimeout(() => {
-                    iframe.style.width = '100%';
-                    iframe.style.height = '100%';
-                }, 50);
-            }
-        }
-
-        // [화면 깨우기(새로고침)] 버튼 클릭 시: 전체화면 레이어 자극 후 즉시 화면 복구
-        function reloadCurrentVideo() {
-            const wrapper = document.getElementById('videoPlayerWrapper');
-            const iframe = document.getElementById('videoIframe');
-            if (!wrapper || !iframe) {
-                if (currentPlayingVideoUrl) openMobileSafeVideo(currentPlayingVideoUrl);
-                return;
-            }
-
-            // 순간적으로 전체화면 모드로 확장하여 모바일 GPU 비디오 레이어를 깨운 뒤 0.2초 후 원래 크기로 복원
-            wrapper.classList.add('fixed', 'inset-0', 'z-50', 'max-w-none', 'h-screen', 'rounded-none');
-            void wrapper.offsetHeight;
-
-            setTimeout(() => {
-                wrapper.classList.remove('fixed', 'inset-0', 'z-50', 'max-w-none', 'h-screen', 'rounded-none');
-                forceVideoLayerRepaint();
-            }, 250);
-        }
-
-        // 자체 전체화면 전환 함수 (네이티브 전체화면 + 모바일 화면 꽉 채우기 동시 지원)
+        // 2. 전체화면 전환 버튼
         function toggleCustomFullscreen() {
             const wrapper = document.getElementById('videoPlayerWrapper');
             if (!wrapper) return;
 
-            const isCustomFull = wrapper.classList.contains('fixed');
-
-            if (document.fullscreenElement || document.webkitFullscreenElement || isCustomFull) {
-                if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(() => {});
-                else if (document.webkitExitFullscreen && document.webkitFullscreenElement) document.webkitExitFullscreen();
-                wrapper.classList.remove('fixed', 'inset-0', 'z-50', 'max-w-none', 'h-screen', 'rounded-none');
-                setTimeout(forceVideoLayerRepaint, 100);
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             } else {
-                wrapper.classList.add('fixed', 'inset-0', 'z-50', 'max-w-none', 'h-screen', 'rounded-none');
                 if (wrapper.requestFullscreen) {
                     wrapper.requestFullscreen().catch(() => {});
                 } else if (wrapper.webkitRequestFullscreen) {
                     wrapper.webkitRequestFullscreen();
+                } else {
+                    wrapper.classList.toggle('fixed');
+                    wrapper.classList.toggle('inset-0');
+                    wrapper.classList.toggle('z-50');
+                    wrapper.classList.toggle('max-w-none');
                 }
-                setTimeout(forceVideoLayerRepaint, 100);
             }
         }
 
+        // 3. 영상 모달 닫기
         function closeVideoModal() {
             if (document.fullscreenElement && document.exitFullscreen) {
                 document.exitFullscreen().catch(() => {});
             }
             const wrapper = document.getElementById('videoPlayerWrapper');
             if (wrapper) {
-                wrapper.classList.remove('fixed', 'inset-0', 'z-40', 'z-50', 'w-screen', 'max-w-none', 'h-screen', 'rounded-none');
+                wrapper.classList.remove('fixed', 'inset-0', 'z-50', 'max-w-none');
             }
+            const iframe = document.getElementById('videoIframe');
+            if (iframe) iframe.src = '';
             document.getElementById('videoModal').classList.add('hidden');
-            const host = document.getElementById('videoIframeHost');
-            if (host) host.innerHTML = '';
         }
 
         function switchMainTab(tabName) {
