@@ -1418,10 +1418,34 @@
         const bPh = splitPhone(rawData.beneficiaryPhone);
 
         const enrichedData = {
+          const ageNum = calcKoreanAge(rawData.insuredRrn1, rawData.insuredRrn2);
+        const isSameInsBen = (rawData.insuredName === rawData.beneficiaryName);
+        const isBenHolder = (rawData.beneficiaryName === rawData.holderName);
+        const guardianPerson = (rawData.holderName && rawData.holderName !== rawData.insuredName)
+          ? rawData.holderName
+          : rawData.beneficiaryName;
+
+        const enrichedData = {
           ...rawData,
-          relSelf: rawData.relToInsured || '본인',
-          relToInsured: rawData.relToInsured || '본인',
-          guardianName: rawData.isUnder14 ? (rawData.holderName !== rawData.insuredName ? rawData.holderName : rawData.beneficiaryName) : '',
+          age: ageNum,
+          isUnder14: ageNum < 14,
+          isUnder19: ageNum < 19,
+          isSameInsBen,
+          isBenHolder,
+
+          relSelf: isSameInsBen ? '본인' : (rawData.relToInsured || '본인'),
+          relToInsured: isSameInsBen ? '본인' : (rawData.relToInsured || ''),
+          relIfDiff: isSameInsBen ? '' : (rawData.relToInsured || ''),
+
+          // 보상안내 받으실 분이 피보험자·계약자 외 제3자일 때 또는 기타란 표기용
+          otherNotifyName: (!isSameInsBen && !isBenHolder) ? rawData.beneficiaryName : '',
+          otherNotifyRel: (!isSameInsBen && !isBenHolder) ? (rawData.relToInsured || '') : '',
+          diffNotifyName: !isSameInsBen ? rawData.beneficiaryName : '',
+          diffNotifyRel: !isSameInsBen ? (rawData.relToInsured || '') : '',
+
+          // 연령 기준 법정대리인 성명 자동 분기 (14세 미만 동의서용 / 19세 미만 청구서용)
+          guardianName: ageNum < 14 ? guardianPerson : '',
+          guardianName19: ageNum < 19 ? guardianPerson : '',
 
           insuredPhoneRaw: iPh.raw, insuredPhone1: iPh.p1, insuredPhone2: iPh.p2, insuredPhone3: iPh.p3,
           holderPhoneRaw: hPh.raw, holderPhone1: hPh.p1, holderPhone2: hPh.p2, holderPhone3: hPh.p3,
@@ -1462,7 +1486,9 @@
               const mapCfg = PDF_COORD_MAP[ins.id];
 
               for (const f of mapCfg.fields) {
-                if (pages[f.page]) await drawKoreanText(pdfDoc, pages[f.page], enrichedData[f.key], f.x, f.y, f.size || 9.5, f.bold || false, '#000000', f.spacing || 0);
+                if (!pages[f.page]) continue;
+                if (f.cond && !f.cond(enrichedData)) continue;
+                await drawKoreanText(pdfDoc, pages[f.page], enrichedData[f.key], f.x, f.y, f.size || 9.5, f.bold || false, '#000000', f.spacing || 0);
               }
               if (mapCfg.checks) {
                 for (const c of mapCfg.checks) {
@@ -1472,9 +1498,11 @@
               if (mapCfg.signatures) {
                 for (const s of mapCfg.signatures) {
                   if (!pages[s.page]) continue;
-                  if (s.role === 'guardian' && !enrichedData.isUnder14) continue;
+                  if (s.cond && !s.cond(enrichedData)) continue;
+                  // 별도 cond가 없을 때의 기본 연령 방어 로직
+                  if (!s.cond && s.role === 'guardian' && !enrichedData.isUnder14) continue;
                   let targetSig = s.role ? (embeddedSigs[s.role] || defaultSigImg) : defaultSigImg;
-                  if (s.role === 'insured' && enrichedData.isUnder14) targetSig = embeddedSigs.guardian || defaultSigImg;
+                  if (!s.cond && s.role === 'insured' && enrichedData.isUnder14) targetSig = embeddedSigs.guardian || defaultSigImg;
                   if (targetSig) await drawSignatureImg(pdfDoc, pages[s.page], targetSig, s.x, s.y, s.w, s.h);
                 }
               }
