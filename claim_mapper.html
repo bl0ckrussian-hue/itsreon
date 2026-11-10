@@ -1,1 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>잇츠리온 - 보험사 양식 좌표 마우스 배치기</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="./claim_coords.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+    body { background: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
+    .toolbar {
+      background: #1e293b;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #334155;
+    }
+
+    .btn {
+      background: #334155;
+      color: #fff;
+      border: 1px solid #475569;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:hover { background: #475569; }
+    .btn-green { background: #10b981; border-color: #059669; }
+    .btn-green:hover { background: #059669; }
+    .btn-red { background: #e11d48; border-color: #be123c; }
+
+    .workspace { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar {
+      width: 265px;
+      background: #0f172a;
+      padding: 14px;
+      overflow-y: auto;
+      border-right: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .palette-btn {
+      text-align: left;
+      padding: 8px 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .palette-btn.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+
+    .canvas-area {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+      background: #334155;
+    }
+
+    .pdf-stage {
+      position: relative;
+      background: #fff;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+    }
+
+    .marker-pin {
+      position: absolute;
+      background: rgba(37, 99, 235, 0.9);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transform: translate(0, -100%);
+      border: 1px solid #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="toolbar">
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <strong>🎯 잇츠리온 양식 좌표 배치기</strong>
+      <select id="insurer-select" onchange="loadPdf()" style="padding:6px 12px; border-radius:6px; font-weight:800; color:#0f172a;"></select>
+      <button class="btn" onclick="changePage(-1)">◀ 이전 페이지</button>
+      <span id="page-info" style="font-weight:800; font-size:14px; min-width:65px; text-align:center;">1 / 1 P</span>
+      <button class="btn" onclick="changePage(1)">다음 페이지 ▶</button>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-green" onclick="exportCoords()">📋 현재 보험사 좌표코드 복사 (claim_coords.js용)</button>
+      <button class="btn btn-red" onclick="window.close()">창닫기</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="sidebar" id="palette"></aside>
+    <main class="canvas-area">
+      <div class="pdf-stage">
+        <canvas id="pdf-canvas" style="display:block; cursor:crosshair;"></canvas>
+        <div id="pins-layer"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const PALETTE_ITEMS = [
+      { type: 'field', key: 'insuredName', label: '👤 피보험자 성명' },
+      { type: 'field', key: 'insuredRrnFull', label: '🔢 피보험자 주민번호(전체)' },
+      { type: 'field', key: 'insuredRrn1', label: '🔢 피보험자 생년월일(앞6)' },
+      { type: 'field', key: 'insuredRrn2', label: '🔢 피보험자 주민번호(뒤7)' },
+      { type: 'field', key: 'insuredPhone', label: '📱 휴대폰 번호' },
+      { type: 'field', key: 'insuredJob', label: '💼 직장 / 직무' },
+      { type: 'field', key: 'insuredAddress', label: '🏠 거주지 주소' },
+      { type: 'field', key: 'holderName', label: '👤 계약자 성명' },
+      { type: 'field', key: 'holderRrnFull', label: '🔢 계약자 주민번호(전체)' },
+      { type: 'field', key: 'holderRrn1', label: '🔢 계약자 주민번호(앞6)' },
+      { type: 'field', key: 'holderRrn2', label: '🔢 계약자 주민번호(뒤7)' },
+      { type: 'field', key: 'accYear', label: '📅 사고일(년 4자리)' },
+      { type: 'field', key: 'accYearShort', label: '📅 사고일(년 2자리)' },
+      { type: 'field', key: 'accMonth', label: '📅 사고일(월)' },
+      { type: 'field', key: 'accDay', label: '📅 사고일(일)' },
+      { type: 'field', key: 'accidentDate', label: '📅 사고일(YYYY-MM-DD)' },
+      { type: 'field', key: 'accidentPlace', label: '📍 사고장소' },
+      { type: 'field', key: 'accidentDesc', label: '📝 사고(내원)경위' },
+      { type: 'field', key: 'diagnosisName', label: '🏥 진단명(병명)' },
+      { type: 'field', key: 'hospitalName', label: '🏥 병원명/진료과' },
+      { type: 'field', key: 'bankName', label: '🏦 은행명' },
+      { type: 'field', key: 'accountNumber', label: '💳 계좌번호' },
+      { type: 'field', key: 'beneficiaryName', label: '💰 예금주(수익자) 성명' },
+      { type: 'field', key: 'beneficiaryRrnFull', label: '🔢 예금주 주민번호(전체)' },
+      { type: 'field', key: 'relSelf', label: '🏷️ 관계("본인" 자동출력)' },
+      { type: 'field', key: 'todayYear', label: '📅 작성일(년 4자리)' },
+      { type: 'field', key: 'todayYearShort', label: '📅 작성일(년 2자리)' },
+      { type: 'field', key: 'todayMonth', label: '📅 작성일(월)' },
+      { type: 'field', key: 'todayDay', label: '📅 작성일(일)' },
+      { type: 'field', key: 'todayDateSlash', label: '📅 작성일(YYYY/MM/DD)' },
+      { type: 'check', key: 'always', label: '✔ 동의함/기본 체크(V)' },
+      { type: 'sig', key: 'signature', label: '✍️ 자필 전자서명 도장' }
+    ];
+
+    let pdfDoc = null;
+    let currentInsurer = '';
+    let pageNum = 1;
+    let scale = 1.3;
+    let selectedItem = PALETTE_ITEMS[0];
+    let pageWidthPt = 595.28;
+    let pageHeightPt = 841.89;
+
+    function initMapper() {
+      const sel = document.getElementById('insurer-select');
+      const withPdf = INSURER_DB.nonLife.filter(i => i.pdfFile);
+      sel.innerHTML = withPdf.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+      currentInsurer = sel.value;
+
+      document.getElementById('palette').innerHTML =
+        `<div style="font-size:11.5px; color:#94a3b8; line-height:1.4; margin-bottom:6px;">
+          1) 왼쪽 항목 선택 후 양식 빈칸을 클릭하면 핀이 꽂힙니다.<br>
+          2) 잘못 꽂은 핀은 <b>마우스 우클릭</b>하면 삭제됩니다.<br>
+          3) 완료 후 상단 초록색 복사 버튼을 눌러 <b>claim_coords.js</b>에 붙여넣으세요.
+        </div>` +
+        PALETTE_ITEMS.map((it, idx) => `
+          <button class="palette-btn ${idx === 0 ? 'active' : ''}" onclick="selectItem(${idx}, this)">${it.label}</button>
+        `).join('');
+
+      loadPdf();
+    }
+
+    function selectItem(idx, btn) {
+      selectedItem = PALETTE_ITEMS[idx];
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    async function loadPdf() {
+      currentInsurer = document.getElementById('insurer-select').value;
+      const ins = INSURER_DB.nonLife.find(i => i.id === currentInsurer);
+      if (!ins || !ins.pdfFile) return;
+      pdfDoc = await pdfjsLib.getDocument(encodeURI(`./forms/${ins.pdfFile}`)).promise;
+      pageNum = 1;
+      await renderPage();
+    }
+
+    async function changePage(delta) {
+      if (!pdfDoc) return;
+      const next = pageNum + delta;
+      if (next < 1 || next > pdfDoc.numPages) return;
+      pageNum = next;
+      await renderPage();
+    }
+
+    async function renderPage() {
+      const page = await pdfDoc.getPage(pageNum);
+      pageWidthPt = page.view[2];
+      pageHeightPt = page.view[3];
+
+      const viewport = page.getViewport({ scale });
+      const canvas = document.getElementById('pdf-canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      document.getElementById('page-info').textContent = `${pageNum} / ${pdfDoc.numPages} P`;
+
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      renderPins();
+
+      canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const pdfX = Math.round(((e.clientX - rect.left) / canvas.width) * pageWidthPt);
+        const pdfY = Math.round(((canvas.height - (e.clientY - rect.top)) / canvas.height) * pageHeightPt);
+
+        if (!PDF_COORD_MAP[currentInsurer]) {
+          PDF_COORD_MAP[currentInsurer] = { fields: [], checks: [], signatures: [] };
+        }
+        const cfg = PDF_COORD_MAP[currentInsurer];
+        const pIdx = pageNum - 1;
+
+        if (selectedItem.type === 'field') {
+          cfg.fields.push({ page: pIdx, key: selectedItem.key, x: pdfX, y: pdfY, size: 10 });
+        } else if (selectedItem.type === 'check') {
+          cfg.checks.push({ page: pIdx, cond: () => true, x: pdfX, y: pdfY });
+        } else if (selectedItem.type === 'sig') {
+          cfg.signatures.push({ page: pIdx, x: pdfX, y: pdfY, w: 50, h: 20 });
+        }
+        renderPins();
+      };
+    }
+
+    function renderPins() {
+      const layer = document.getElementById('pins-layer');
+      const canvas = document.getElementById('pdf-canvas');
+      layer.innerHTML = '';
+      const cfg = PDF_COORD_MAP[currentInsurer];
+      if (!cfg) return;
+      const pIdx = pageNum - 1;
+
+      const toScreen = (x, y) => ({
+        left: (x / pageWidthPt) * canvas.width,
+        top: ((pageHeightPt - y) / pageHeightPt) * canvas.height
+      });
+
+      cfg.fields.forEach((f, idx) => {
+        if (f.page !== pIdx) return;
+        const pos = toScreen(f.x, f.y);
+        const pin = document.createElement('div');
+        pin.className = 'marker-pin';
+        pin.style.left = `${pos.left}px`;
+        pin.style.top = `${pos.top}px`;
+        pin.textContent = `${f.key} (${f.x},${f.y})`;
+        pin.title = '우클릭 시 삭제';
+        pin.oncontextmenu = (e) => { e.preventDefault(); cfg.fields.splice(idx, 1); renderPins(); };
+        layer.appendChild(pin);
+      });
+
+      cfg.checks.forEach((c, idx) => {
+        if (c.page !== pIdx) return;
+        const pos = toScreen(c.x, c.y);
+        const pin = document.createElement('div');
+        pin.className = 'marker-pin';
+        pin.style.background = '#059669';
+        pin.style.left = `${pos.left}px`;
+        pin.style.top = `${pos.top}px`;
+        pin.textContent = `✔체크 (${c.x},${c.y})`;
+        pin.title = '우클릭 시 삭제';
+        pin.oncontextmenu = (e) => { e.preventDefault(); cfg.checks.splice(idx, 1); renderPins(); };
+        layer.appendChild(pin);
+      });
+
+      cfg.signatures.forEach((s, idx) => {
+        if (s.page !== pIdx) return;
+        const pos = toScreen(s.x, s.y);
+        const pin = document.createElement('div');
+        pin.className = 'marker-pin';
+        pin.style.background = '#e11d48';
+        pin.style.left = `${pos.left}px`;
+        pin.style.top = `${pos.top}px`;
+        pin.textContent = `✍️서명 (${s.x},${s.y})`;
+        pin.title = '우클릭 시 삭제';
+        pin.oncontextmenu = (e) => { e.preventDefault(); cfg.signatures.splice(idx, 1); renderPins(); };
+        layer.appendChild(pin);
+      });
+    }
+
+    // 기존 조건식(cond)과 굵기(bold) 속성을 유지한 채 코드 블록 추출
+    function exportCoords() {
+      const cfg = PDF_COORD_MAP[currentInsurer];
+      if (!cfg) return;
+
+      const fieldsStr = cfg.fields.map(f => {
+        const boldPart = f.bold ? `, bold: true` : '';
+        return `      { page: ${f.page}, key: '${f.key}', x: ${f.x}, y: ${f.y}, size: ${f.size || 10}${boldPart} }`;
+      }).join(',\n');
+
+      const checksStr = cfg.checks.map(c => {
+        const condSrc = c.cond ? c.cond.toString() : '() => true';
+        return `      { page: ${c.page}, cond: ${condSrc}, x: ${c.x}, y: ${c.y} }`;
+      }).join(',\n');
+
+      const sigsStr = cfg.signatures.map(s =>
+        `      { page: ${s.page}, x: ${s.x}, y: ${s.y}, w: ${s.w || 50}, h: ${s.h || 20} }`
+      ).join(',\n');
+
+      const out = `  ${currentInsurer}: {\n    fields: [\n${fieldsStr}\n    ],\n    checks: [\n${checksStr}\n    ],\n    signatures: [\n${sigsStr}\n    ]\n  },`;
+      navigator.clipboard.writeText(out).then(() => {
+        alert(`✅ [${currentInsurer}] 좌표 코드가 클립보드에 복사되었습니다!\nclaim_coords.js 파일에서 ${currentInsurer}: { ... }, 구간에 그대로 덮어씌우면 영구 반영됩니다.`);
+      });
+    }
+
+    initMapper();
+  </script>
+</body>
+</html>
