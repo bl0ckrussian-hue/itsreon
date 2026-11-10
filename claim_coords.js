@@ -743,39 +743,46 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'accountNumber', x: 150, y: 327, size: 10 },
       { page: 0, key: 'bankName', x: 385, y: 327, size: 10 },
       { page: 0, key: 'beneficiaryName', x: 495, y: 327, size: 10 },
-      { page: 0, key: 'todayYearShort', x: 92, y: 92, size: 10 },
+      // 1P 하단 작성일 4자리 연도 및 청구권자 성명 위치 정렬
+      { page: 0, key: 'todayYear', x: 88, y: 92, size: 10 },
       { page: 0, key: 'todayMonth', x: 155, y: 92, size: 10 },
       { page: 0, key: 'todayDay', x: 215, y: 92, size: 10 },
-      { page: 0, key: 'insuredName', x: 430, y: 92, size: 10, bold: true },
+      { page: 0, key: 'insuredName', x: 425, y: 92, size: 10, bold: true },
+      // 5P 하단 작성일 및 피보험자·보험수익자 동일 행(y: 368) 정렬
       { page: 4, key: 'todayYear', x: 195, y: 410, size: 10 },
       { page: 4, key: 'todayMonth', x: 280, y: 410, size: 10 },
       { page: 4, key: 'todayDay', x: 350, y: 410, size: 10 },
       { page: 4, key: 'insuredName', x: 115, y: 368, size: 10, bold: true },
-      { page: 4, key: 'beneficiaryName', x: 420, y: 358, size: 10, bold: true }
+      { page: 4, key: 'beneficiaryName', x: 415, y: 368, size: 10, bold: true }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 190, y: 615 },
-      { page: 0, cond: () => true, x: 218, y: 525 },
+      { page: 0, cond: () => true, x: 190, y: 615 }, // 보상안내: 피보험자
+      { page: 0, cond: () => true, x: 218, y: 525 }, // 다른 보험사 계약: 없음
       { page: 0, cond: (d) => d.accidentType === '상해', x: 258, y: 486 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 314, y: 486 },
       { page: 0, cond: (d) => d.accidentType === '교통사고', x: 370, y: 486 },
-      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 512, y: 366 },
-      { page: 1, cond: () => true, x: 472, y: 443 },
-      { page: 1, cond: () => true, x: 472, y: 380 },
-      { page: 1, cond: () => true, x: 472, y: 286 },
-      { page: 2, cond: () => true, x: 472, y: 285 },
-      { page: 2, cond: () => true, x: 472, y: 222 },
-      { page: 2, cond: () => true, x: 472, y: 128 },
-      { page: 3, cond: () => true, x: 472, y: 353 },
-      { page: 3, cond: () => true, x: 472, y: 289 },
-      { page: 4, cond: () => true, x: 472, y: 550 },
-      { page: 4, cond: () => true, x: 472, y: 498 },
-      { page: 4, cond: () => true, x: 472, y: 428 }
+      // 1P 청구 담보 체크박스 보강
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 48, y: 366 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 118, y: 366 },
+      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 182, y: 366 },
+      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 498, y: 366 },
+      // 상세동의서 2~5P 우측 빨간 박스 [동의함] 정위치로 이동 (기존 x: 472 → x: 542)
+      { page: 1, cond: () => true, x: 542, y: 443 },
+      { page: 1, cond: () => true, x: 542, y: 380 },
+      { page: 1, cond: () => true, x: 542, y: 286 },
+      { page: 2, cond: () => true, x: 542, y: 285 },
+      { page: 2, cond: () => true, x: 542, y: 222 },
+      { page: 2, cond: () => true, x: 542, y: 128 },
+      { page: 3, cond: () => true, x: 542, y: 353 },
+      { page: 3, cond: () => true, x: 542, y: 289 },
+      { page: 4, cond: () => true, x: 542, y: 550 },
+      { page: 4, cond: () => true, x: 542, y: 498 },
+      { page: 4, cond: () => true, x: 542, y: 428 }
     ],
     signatures: [
-      { page: 0, x: 505, y: 92, w: 50, h: 22 },
-      { page: 4, x: 195, y: 368, w: 50, h: 22 },
-      { page: 4, x: 475, y: 358, w: 50, h: 22 }
+      { page: 0, x: 515, y: 92, w: 50, h: 22 },
+      { page: 4, x: 205, y: 368, w: 50, h: 22 },
+      { page: 4, x: 490, y: 368, w: 50, h: 22 }
     ]
   },
 
