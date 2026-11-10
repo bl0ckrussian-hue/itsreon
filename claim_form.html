@@ -609,7 +609,7 @@
       <!-- 4. 사고 및 진료 내역 -->
       <section class="form-section">
         <div class="form-section-header">
-          <div class="form-section-title">🏥 3. 사고 및 병원 진료사항</div>
+          <div class="form-section-title">🏥 4. 사고 및 병원 진료사항</div>
         </div>
         <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
           <div class="form-group">
@@ -665,10 +665,10 @@
         </div>
       </section>
 
-      <!-- 4. 병원 서류 첨부 -->
+      <!-- 5. 병원 서류 첨부 -->
       <section class="form-section">
         <div class="form-section-header">
-          <div class="form-section-title">📎 4. 병원 서류 및 신분증 첨부 (선택)</div>
+          <div class="form-section-title">📎 5. 병원 서류 및 신분증 첨부 (선택)</div>
           <span style="font-size:11.5px; color:#64748b;">첨부 시 청구서 뒷장에 하나의 PDF로 병합됩니다</span>
         </div>
         <div class="file-upload-box" onclick="document.getElementById('medicalFiles').click()">
@@ -679,10 +679,10 @@
         <div class="file-list" id="attached-file-list"></div>
       </section>
 
-      <!-- 5. 알림 설정 -->
+      <!-- 6. 알림 설정 -->
       <section class="form-section">
         <div class="form-section-header">
-          <div class="form-section-title">🔔 5. 청구서 생성 알림 발송 설정 (선택)</div>
+          <div class="form-section-title">🔔 6. 청구서 생성 알림 발송 설정 (선택)</div>
         </div>
         <div class="form-grid form-grid-2">
           <label class="chip-label"><input type="checkbox" id="notifyCustomer">📱 고객에게 청구 안내 문자 발송</label>
@@ -694,11 +694,11 @@
         </div>
       </section>
 
-      <!-- 6. 동적 다중 자필 전자서명 (청구 시작하기 클릭 시 자동 구성) -->
+      <!-- 7. 동적 다중 자필 전자서명 (청구 시작하기 클릭 시 자동 구성) -->
       <section class="form-section" id="dynamic-sig-section" style="display:none; border:2px solid #2563eb;">
         <div class="form-section-header">
           <div>
-            <div class="form-section-title">✍️ 6. 필수 자필 전자서명 입력<span class="req">*</span></div>
+            <div class="form-section-title">✍️ 7. 필수 자필 전자서명 입력<span class="req">*</span></div>
             <div id="sig-rule-desc" style="font-size:12.5px; color:#2563eb; font-weight:700; margin-top:4px;"></div>
           </div>
         </div>
@@ -1557,15 +1557,12 @@
           subBtn.textContent = '📲 모바일팩스 미설치 시 설치';
           subBtn.onclick = installMobileFaxStore;
         } else {
-          descEl.innerHTML = '청구서 생성이 완료되었습니다. 각 보험사의 <b>[📁 폴더 지정 저장]</b>을 누르면 바탕화면·다운로드 등 원하는 폴더에 바로 저장됩니다.';
+          descEl.innerHTML = '청구서 생성이 완료되었습니다. 각 보험사의 <b>[💾 저장 위치 선택 다운로드]</b>를 누르면 바탕화면·다운로드 등 원하는 폴더에 바로 저장됩니다.';
           subBtn.textContent = generatedPdfFiles.length > 1 ? '⬇️ 전체 일괄 자동 다운로드' : '📁 저장할 폴더/위치 선택하기';
           subBtn.style.background = '#eff6ff';
           subBtn.style.color = '#1e3a8a';
           subBtn.style.borderColor = '#93c5fd';
           subBtn.onclick = saveAllPdfsAction;
-        }
-          // PC에서는 생성 직후 바로 폴더 선택 창을 한 번 띄워주어 편의성 극대화
-          await saveAllPdfsToSelectedFolder();
         }
 
         document.getElementById('done-insurer-actions').innerHTML = doneActionsHtml.join('');
