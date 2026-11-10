@@ -277,6 +277,58 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'accountNumber', x: 260, y: 212, size: 10 },
       { page: 0, key: 'beneficiaryName', x: 485, y: 212, size: 10 },
       { page: 0, key: 'todayYearShort', x: 122, y: 127, size: 10 },
+      { page: 0, key: 'todayMonth', x: 175, y: 127, size: 10 },
+      { page: 0, key: 'todayDay', x: 222, y: 127, size: 10 },
+      { page: 0, key: 'insuredName', x: 432, y: 127, size: 10, bold: true },
+      { page: 1, key: 'insuredName', x: 85, y: 743, size: 10, bold: true },
+      { page: 1, key: 'insuredRrn1', x: 285, y: 743, size: 10 },
+      { page: 2, key: 'insuredName', x: 85, y: 743, size: 10, bold: true },
+      { page: 2, key: 'insuredRrn1', x: 285, y: 743, size: 10 },
+      { page: 3, key: 'insuredName', x: 85, y: 743, size: 10, bold: true },
+      { page: 3, key: 'insuredRrn1', x: 285, y: 743, size: 10 },
+      { page: 4, key: 'insuredName', x: 85, y: 743, size: 10, bold: true },
+      { page: 4, key: 'insuredRrn1', x: 285, y: 743, size: 10 },
+      { page: 4, key: 'todayYear', x: 225, y: 370, size: 10 },
+      { page: 4, key: 'todayMonth', x: 345, y: 370, size: 10 },
+      { page: 4, key: 'todayDay', x: 445, y: 370, size: 10 },
+      { page: 4, key: 'insuredName', x: 335, y: 328, size: 10, bold: true }
+    ],
+    checks: [
+      { page: 0, cond: () => true, x: 326, y: 584 }, // 의료급여: 아니오
+      { page: 0, cond: () => true, x: 525, y: 584 }, // 단체보험 가입여부: 아니오 박스 정위치
+      { page: 0, cond: () => true, x: 138, y: 515 }, // 안내대상: 피보험자
+      { page: 0, cond: () => true, x: 136, y: 492 }, // 안내방법: 문자
+      { page: 0, cond: () => true, x: 482, y: 475 }, // 플래너 문자안내: 예
+      { page: 0, cond: (d) => d.claimCategory === '신규', x: 391, y: 432 },
+      { page: 0, cond: (d) => d.claimCategory === '추가', x: 448, y: 432 },
+      { page: 0, cond: (d) => d.accidentType === '질병', x: 93, y: 410 },
+      { page: 0, cond: (d) => d.accidentType === '상해', x: 136, y: 410 },
+      { page: 0, cond: (d) => d.accidentType === '교통사고', x: 180, y: 410 },
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 392, y: 410 },
+      { page: 0, cond: (d) => d.coverages.includes('통원') || d.coverages.includes('실손의료비'), x: 448, y: 410 },
+      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 84, y: 310 },
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 136, y: 310 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 185, y: 310 },
+      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 230, y: 310 },
+      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 276, y: 310 },
+      { page: 0, cond: (d) => d.useAutoTransfer, x: 136, y: 235 },
+      { page: 1, cond: () => true, x: 515, y: 406 },
+      { page: 1, cond: () => true, x: 515, y: 301 },
+      { page: 1, cond: () => true, x: 515, y: 178 },
+      { page: 2, cond: () => true, x: 515, y: 277 },
+      { page: 2, cond: () => true, x: 515, y: 178 },
+      { page: 3, cond: () => true, x: 515, y: 634 },
+      { page: 3, cond: () => true, x: 515, y: 215 },
+      { page: 3, cond: () => true, x: 515, y: 123 },
+      { page: 4, cond: () => true, x: 515, y: 553 },
+      { page: 4, cond: () => true, x: 515, y: 507 },
+      { page: 4, cond: () => true, x: 515, y: 418 }
+    ],
+    signatures: [
+      { page: 0, x: 522, y: 127, w: 46, h: 20 },
+      { page: 4, x: 508, y: 328, w: 48, h: 20 }
+    ]
+  },
 
   // [5. 메리츠화재]
   meritz: {
