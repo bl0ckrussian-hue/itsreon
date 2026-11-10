@@ -61,9 +61,42 @@
     }
 
     .form-container {
-      max-width: 960px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-main-col {
+      order: 2;
+      min-width: 0;
+    }
+
+    .fax-side-col {
+      order: 1;
+    }
+
+    /* PC 화면(960px 이상): 좌측 입력창 + 우측 보험사/팩스번호 사이드바 배치 */
+    @media (min-width: 960px) {
+      .form-container {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+        align-items: start;
+        padding: 24px 32px;
+      }
+      .form-main-col { order: 1; }
+      .fax-side-col {
+        order: 2;
+        position: sticky;
+        top: 68px;
+      }
+      /* PC 인터넷 환경에서는 모바일팩스 전용 버튼 자동 숨김 */
+      .mobile-only-fax {
+        display: none !important;
+      }
     }
 
     .selected-summary-box {
@@ -71,7 +104,7 @@
       border: 1px solid #bfdbfe;
       border-radius: 14px;
       padding: 18px;
-      margin-bottom: 20px;
+      margin-bottom: 0;
     }
 
     .selected-summary-box h3 {
@@ -377,7 +410,10 @@
 <body>
 
   <header class="app-header">
-    <div class="header-title">청구 정보 및 전자서명 입력</div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div class="header-title">청구 정보 및 전자서명 입력</div>
+      <button type="button" class="fax-app-btn mobile-only-fax" onclick="installMobileFaxStore()" style="margin-left:0;">📲 모바일팩스 앱 설치/열기</button>
+    </div>
     <div style="display:flex; gap:8px;">
       <a href="./claim_mapper.html" target="_blank" class="close-btn" style="background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe;">🎯 좌표 배치기</a>
       <button class="close-btn" onclick="closeWindow()">창닫기</button>
@@ -385,15 +421,18 @@
   </header>
 
   <main class="form-container">
-    <div class="selected-summary-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
-        <h3 style="margin:0;">🖨️ 선택한 보험사 및 청구 팩스번호 안내</h3>
-        <button type="button" class="fax-app-btn" onclick="installMobileFaxStore()">📲 모바일팩스 앱 설치/열기</button>
+    <!-- 우측 사이드바 (모바일에서는 상단 표시): 선택한 보험사 및 청구 팩스번호 안내 -->
+    <aside class="fax-side-col">
+      <div class="selected-summary-box" style="margin-bottom:0;">
+        <h3 style="margin-bottom:12px;">🖨️ 선택한 보험사 및 청구 팩스번호 안내</h3>
+        <div id="selected-fax-list"></div>
       </div>
-      <div id="selected-fax-list"></div>
-    </div>
+    </aside>
 
-    <form id="claim-master-form" onsubmit="event.preventDefault();">
+    <!-- 좌측 메인 영역: 청구 정보 입력 폼 -->
+    <div class="form-main-col">
+      <form id="claim-master-form" onsubmit="event.preventDefault();">
+        
     <!-- 1. 피보험자 정보 -->
       <section class="form-section">
         <div class="form-section-header">
@@ -666,6 +705,7 @@
         <div id="signature-pads-list" style="display:flex; flex-direction:column; gap:16px;"></div>
       </section>
     </form>
+    </div>
   </main>
 
   <div class="bottom-bar">
@@ -674,16 +714,14 @@
     <button class="submit-btn" id="generate-btn" style="display:none; background-color:#059669;" onclick="handleGeneratePDF()">✨ 서명 완료 · 통합 청구서 PDF 다운로드</button>
   </div>
 
-  <!-- 다운로드 완료 & 모바일팩스 앱 원터치 공유 모달 -->
+  <!-- 다운로드 완료 모달 (PC: 폴더 지정 저장 / 모바일: 모바일팩스 원터치 공유) -->
   <div id="done-modal">
     <div class="done-card">
       <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:8px;">✅ 통합 청구서 생성 완료!</h3>
-      <p style="font-size:13px; color:#475569; line-height:1.5; margin-bottom:16px;">
-        기기에 PDF 다운로드가 완료되었습니다. 스마트폰에서는 아래 <b>[모바일팩스로 PDF 바로 보내기]</b>를 누르면 앱에 파일이 즉시 등록됩니다.
-      </p>
+      <p id="done-modal-desc" style="font-size:13px; color:#475569; line-height:1.5; margin-bottom:16px;"></p>
       <div id="done-insurer-actions"></div>
       <div style="display:flex; gap:8px;">
-        <button type="button" onclick="installMobileFaxStore()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:700; font-size:13px; cursor:pointer;">📲 모바일팩스 미설치 시 설치</button>
+        <button type="button" id="done-sub-action-btn" onclick="installMobileFaxStore()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:700; font-size:13px; cursor:pointer;">📲 모바일팩스 미설치 시 설치</button>
         <button type="button" onclick="document.getElementById('done-modal').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--primary); color:#fff; font-weight:800; font-size:13px; cursor:pointer;">확인 및 닫기</button>
       </div>
     </div>
@@ -749,7 +787,7 @@
       }
     }
 
-    // 스마트폰에서 생성된 PDF 파일을 모바일팩스 앱으로 즉시 공유 (팩스번호 자동 복사 동시 수행)
+    // 스마트폰에서 생성된 PDF 파일을 모바일팩스 앱으로 즉시 공유 (원래 있던 함수)
     async function sharePdfToMobileFax(idx, faxNum, insName) {
       if (faxNum && !faxNum.includes('가상팩스')) {
         try { await navigator.clipboard.writeText(faxNum); } catch (e) {}
@@ -770,6 +808,68 @@
       alert(`팩스번호(${faxNum})가 복사되었습니다.\n모바일팩스 앱을 열어 다운로드된 PDF 파일을 첨부해주세요.`);
       installMobileFaxStore();
     }
+
+    // ▼▼▼ [4-① 시작] 여기서부터 새로 추가되는 코드입니다 ▼▼▼
+    function isMobileEnv() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    }
+
+    async function saveSinglePdfWithPicker(idx) {
+      const fileObj = generatedPdfFiles[idx];
+      if (!fileObj) return;
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: fileObj.name,
+            types: [{ description: 'PDF 문서', accept: { 'application/pdf': ['.pdf'] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(fileObj);
+          await writable.close();
+          alert(`✅ 선택한 폴더에 [${fileObj.name}] 저장이 완료되었습니다.`);
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+        }
+      }
+      triggerBrowserDownload(fileObj);
+    }
+
+    async function saveAllPdfsToSelectedFolder() {
+      if (generatedPdfFiles.length === 0) return;
+      if (generatedPdfFiles.length === 1 && window.showSaveFilePicker) {
+        await saveSinglePdfWithPicker(0);
+        return;
+      }
+      if (window.showDirectoryPicker) {
+        try {
+          const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          for (const fileObj of generatedPdfFiles) {
+            const fileHandle = await dirHandle.getFileHandle(fileObj.name, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(fileObj);
+            await writable.close();
+          }
+          alert(`✅ 선택하신 [${dirHandle.name}] 폴더에 총 ${generatedPdfFiles.length}개의 청구서 PDF가 저장되었습니다.`);
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+        }
+      }
+      generatedPdfFiles.forEach(f => triggerBrowserDownload(f));
+    }
+
+    function triggerBrowserDownload(fileObj) {
+      const url = URL.createObjectURL(fileObj);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileObj.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+    // ▲▲▲ [4-① 끝] 바로 아래에 원래 있던 autoHyphenPhone 함수가 이어집니다 ▲▲▲
 
     function autoHyphenPhone(el) {
       el.value = el.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
@@ -1396,33 +1496,50 @@
           const finalBytes = await pdfDoc.save();
           const fileName = `[잇츠리온_보험금청구서]_${ins.name}_${enrichedData.insuredName}.pdf`;
           const blob = new Blob([finalBytes], { type: 'application/pdf' });
-          generatedPdfFiles.push(new File([blob], fileName, { type: 'application/pdf' }));
+          const fileObj = new File([blob], fileName, { type: 'application/pdf' });
+          generatedPdfFiles.push(fileObj);
 
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          // 모바일 환경에서만 기존처럼 즉시 기기 다운로드 수행 (PC는 폴더 선택 창으로 저장)
+          if (isMobileEnv()) {
+            triggerBrowserDownload(fileObj);
+          }
 
           const vFaxInput = document.getElementById(`virtual-fax-${ins.id}`);
           const targetFax = (vFaxInput && vFaxInput.value.trim()) ? vFaxInput.value.trim() : ins.fax;
 
-          doneActionsHtml.push(`
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
-              <div>
-                <div style="font-weight:800; font-size:13.5px;">${ins.name}</div>
-                <div style="font-size:11.5px; color:#1e3a8a; font-weight:700;">FAX: ${targetFax}</div>
+          if (isMobileEnv()) {
+            // 스마트폰: 기존 모바일팩스 바로 보내기 유지
+            doneActionsHtml.push(`
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+                <div>
+                  <div style="font-weight:800; font-size:13.5px;">${ins.name}</div>
+                  <div style="font-size:11.5px; color:#1e3a8a; font-weight:700;">FAX: ${targetFax}</div>
+                </div>
+                <button type="button" onclick="sharePdfToMobileFax(${i}, '${targetFax}', '${ins.name}')" style="background:#2563eb; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
+                  📠 모바일팩스로 바로 보내기
+                </button>
               </div>
-              <button type="button" onclick="sharePdfToMobileFax(${i}, '${targetFax}', '${ins.name}')" style="background:#2563eb; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
-                📠 모바일팩스로 바로 보내기
-              </button>
-            </div>
-          `);
-        }
+            `);
+          } else {
+            // PC 인터넷 환경: 모바일팩스 버튼 제거 + 팩스번호 복사 및 개별 경로 지정 다운로드 버튼 제공
+            doneActionsHtml.push(`
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; gap:8px;">
+                <div>
+                  <div style="font-weight:800; font-size:13.5px;">${ins.name}</div>
+                  <div style="font-size:11.5px; color:#1e3a8a; font-weight:700;">FAX: ${targetFax}</div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  ${!targetFax.includes('가상팩스') ? `<button type="button" onclick="copyFaxNumber('${targetFax}', '${ins.name}')" style="background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; padding:7px 10px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">번호복사</button>` : ''}
+                  <button type="button" onclick="saveSinglePdfWithPicker(${i})" style="background:#0f172a; color:#fff; border:none; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
+                    💾 저장 위치 선택 다운로드
+                  </button>
+                </div>
+              </div>
+            `);
+          }
+        } // <-- for 루프 종료 지점
 
+        // 선택적 알림 발송 (기존 동일)
         if (CLAIM_NOTIFY_GAS_URL && (rawData.notifyCustomer || rawData.notifyPlanner)) {
           fetch(CLAIM_NOTIFY_GAS_URL, {
             method: 'POST',
@@ -1436,6 +1553,24 @@
               insurers: selectedObjects.map(o => `${o.name}(${o.fax})`).join(', ')
             })
           }).catch(() => {});
+        }
+
+        // 모달 하단 버튼 및 안내 문구를 PC / 모바일에 맞춰 설정
+        const descEl = document.getElementById('done-modal-desc');
+        const subBtn = document.getElementById('done-sub-action-btn');
+        if (isMobileEnv()) {
+          descEl.innerHTML = '기기에 PDF 다운로드가 완료되었습니다. 아래 <b>[모바일팩스로 바로 보내기]</b>를 누르면 앱에 파일이 즉시 등록됩니다.';
+          subBtn.textContent = '📲 모바일팩스 미설치 시 설치';
+          subBtn.onclick = installMobileFaxStore;
+        } else {
+          descEl.innerHTML = '청구서 PDF 생성이 완료되었습니다. 저장할 폴더를 직접 지정하여 원하는 위치에 다운로드하세요.';
+          subBtn.textContent = generatedPdfFiles.length > 1 ? '📁 폴더 선택해 전체 일괄 저장' : '📁 저장할 폴더/위치 선택하기';
+          subBtn.style.background = '#eff6ff';
+          subBtn.style.color = '#1e3a8a';
+          subBtn.style.borderColor = '#93c5fd';
+          subBtn.onclick = saveAllPdfsToSelectedFolder;
+          // PC에서는 생성 직후 바로 폴더 선택 창을 한 번 띄워주어 편의성 극대화
+          await saveAllPdfsToSelectedFolder();
         }
 
         document.getElementById('done-insurer-actions').innerHTML = doneActionsHtml.join('');
