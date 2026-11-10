@@ -235,6 +235,7 @@
       renderPins();
 
       canvas.onclick = (e) => {
+        if (justDragged) return;
         const rect = canvas.getBoundingClientRect();
         const pdfX = Math.round(((e.clientX - rect.left) / canvas.width) * pageWidthPt);
         const pdfY = Math.round(((canvas.height - (e.clientY - rect.top)) / canvas.height) * pageHeightPt);
