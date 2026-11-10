@@ -941,6 +941,8 @@
           insuredPhone2: phoneParts[1] || '', // 휴대폰 중간 4자리 (개별 박스용)
           insuredPhone3: phoneParts[2] || '', // 휴대폰 끝 4자리 (개별 박스용)
           insuredRrnFull: `${rawData.insuredRrn1}-${rawData.insuredRrn2}`,
+          holderRrnFull: `${rawData.holderRrn1}-${rawData.holderRrn2}`,
+          beneficiaryRrnFull: `${rawData.beneficiaryRrn1}-${rawData.beneficiaryRrn2}`,
           accYear: accY,
           accYearShort: accY.slice(2),
           accMonth: accM,
@@ -952,8 +954,8 @@
           todayDateFull: `${todayY}년 ${todayM}월 ${todayD}일`,
           todayDateSlash: `${todayY}/${todayM}/${todayD}`,
           hospitalWithDiag: `${rawData.hospitalName} (${rawData.diagnosisName})`,
-          bankName: rawData.useAutoTransfer && !rawData.bankName ? '자동이체계좌' : rawData.bankName,
-          accountNumber: rawData.useAutoTransfer && !rawData.accountNumber ? '자동이체 계좌 요청' : rawData.accountNumber
+          bankName: rawData.useAutoTransfer && !rawData.bankName ? '' : rawData.bankName,
+          accountNumber: rawData.useAutoTransfer && !rawData.accountNumber ? '' : rawData.accountNumber
         };
 
         const doneActionsHtml = [];
