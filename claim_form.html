@@ -814,49 +814,43 @@
       return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     }
 
-    async function saveSinglePdfWithPicker(idx) {
+    // [PC 전용] 윈도우 표준 '다른 이름으로 저장' 창 호출 (바탕화면·다운로드 폴더 제한 없음)
+    async function saveSinglePdfWithPicker(idx, btnEl) {
       const fileObj = generatedPdfFiles[idx];
       if (!fileObj) return;
       if (window.showSaveFilePicker) {
         try {
           const handle = await window.showSaveFilePicker({
+            id: 'rion_claim_pdf',     // 직전에 선택한 저장 폴더를 다음 파일 저장 시에도 자동 기억
+            startIn: 'downloads',
             suggestedName: fileObj.name,
             types: [{ description: 'PDF 문서', accept: { 'application/pdf': ['.pdf'] } }]
           });
           const writable = await handle.createWritable();
           await writable.write(fileObj);
           await writable.close();
-          alert(`✅ 선택한 폴더에 [${fileObj.name}] 저장이 완료되었습니다.`);
+          if (btnEl) {
+            btnEl.textContent = '✅ 저장 완료 (재저장)';
+            btnEl.style.background = '#059669';
+          }
           return;
         } catch (err) {
-          if (err.name === 'AbortError') return;
+          if (err.name === 'AbortError') return; // 창 닫기/취소 시 조용히 종료
         }
       }
       triggerBrowserDownload(fileObj);
     }
 
-    async function saveAllPdfsToSelectedFolder() {
+    // [PC 전용] 모달 하단 버튼 (1개일 땐 폴더 지정 창, 여러 개일 땐 오류 없는 일괄 자동 다운로드)
+    async function saveAllPdfsAction() {
       if (generatedPdfFiles.length === 0) return;
       if (generatedPdfFiles.length === 1 && window.showSaveFilePicker) {
         await saveSinglePdfWithPicker(0);
         return;
       }
-      if (window.showDirectoryPicker) {
-        try {
-          const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-          for (const fileObj of generatedPdfFiles) {
-            const fileHandle = await dirHandle.getFileHandle(fileObj.name, { create: true });
-            const writable = await fileHandle.createWritable();
-            await writable.write(fileObj);
-            await writable.close();
-          }
-          alert(`✅ 선택하신 [${dirHandle.name}] 폴더에 총 ${generatedPdfFiles.length}개의 청구서 PDF가 저장되었습니다.`);
-          return;
-        } catch (err) {
-          if (err.name === 'AbortError') return;
-        }
-      }
-      generatedPdfFiles.forEach(f => triggerBrowserDownload(f));
+      generatedPdfFiles.forEach((f, i) => {
+        setTimeout(() => triggerBrowserDownload(f), i * 250);
+      });
     }
 
     function triggerBrowserDownload(fileObj) {
@@ -1530,7 +1524,7 @@
                 </div>
                 <div style="display:flex; gap:6px;">
                   ${!targetFax.includes('가상팩스') ? `<button type="button" onclick="copyFaxNumber('${targetFax}', '${ins.name}')" style="background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; padding:7px 10px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">번호복사</button>` : ''}
-                  <button type="button" onclick="saveSinglePdfWithPicker(${i})" style="background:#0f172a; color:#fff; border:none; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
+                  <button type="button" onclick="saveSinglePdfWithPicker(${i}, this)" style="background:#0f172a; color:#fff; border:none; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
                     💾 저장 위치 선택 다운로드
                   </button>
                 </div>
@@ -1563,12 +1557,13 @@
           subBtn.textContent = '📲 모바일팩스 미설치 시 설치';
           subBtn.onclick = installMobileFaxStore;
         } else {
-          descEl.innerHTML = '청구서 PDF 생성이 완료되었습니다. 저장할 폴더를 직접 지정하여 원하는 위치에 다운로드하세요.';
-          subBtn.textContent = generatedPdfFiles.length > 1 ? '📁 폴더 선택해 전체 일괄 저장' : '📁 저장할 폴더/위치 선택하기';
+          descEl.innerHTML = '청구서 생성이 완료되었습니다. 각 보험사의 <b>[📁 폴더 지정 저장]</b>을 누르면 바탕화면·다운로드 등 원하는 폴더에 바로 저장됩니다.';
+          subBtn.textContent = generatedPdfFiles.length > 1 ? '⬇️ 전체 일괄 자동 다운로드' : '📁 저장할 폴더/위치 선택하기';
           subBtn.style.background = '#eff6ff';
           subBtn.style.color = '#1e3a8a';
           subBtn.style.borderColor = '#93c5fd';
-          subBtn.onclick = saveAllPdfsToSelectedFolder;
+          subBtn.onclick = saveAllPdfsAction;
+        }
           // PC에서는 생성 직후 바로 폴더 선택 창을 한 번 띄워주어 편의성 극대화
           await saveAllPdfsToSelectedFolder();
         }
