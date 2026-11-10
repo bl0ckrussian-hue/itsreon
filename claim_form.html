@@ -332,7 +332,17 @@
       margin-top: 4px;
     }
 
-    /* 완료 모달 및 PC 우측 스크롤바 적용 */
+    /* 완료 및 모바일팩스 연동 모달 + PC 우측 스크롤바 적용 */
+    #done-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
     .done-card {
       background: #fff;
       border-radius: 20px;
@@ -357,6 +367,10 @@
     #done-insurer-actions::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 6px; }
     #done-insurer-actions::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 6px; }
     #done-insurer-actions::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    .readonly-locked {
+      background-color: #eef2f6 !important;
+      color: #64748b;
     }
   </style>
 </head>
@@ -380,160 +394,46 @@
     </div>
 
     <form id="claim-master-form" onsubmit="event.preventDefault();">
-      <!-- 1. 피보험자 정보 -->
-      <section class="form-section">
-        <div class="form-section-header">
-          <div class="form-section-title">👤 1. 피보험자 (진료받으신 분) 정보</div>
-        </div>
-        <div class="form-grid form-grid-2">
-          <div class="form-group">
-            <label class="form-label">피보험자 성명<span class="req">*</span></label>
-            <input type="text" id="insuredName" class="form-input" placeholder="예: 홍길동" oninput="syncSamePerson()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">피보험자 주민등록번호<span class="req">*</span> <span style="font-size:11px; color:#64748b; font-weight:normal;">(서버 미저장)</span></label>
-            <div class="rrn-wrap">
-              <input type="text" id="insuredRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===6) document.getElementById('insuredRrn2').focus(); syncSamePerson();">
-              <span>-</span>
-              <input type="text" id="insuredRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,''); syncSamePerson();">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">휴대폰 번호<span class="req">*</span></label>
-            <input type="tel" id="insuredPhone" class="form-input" placeholder="010-0000-0000" oninput="autoHyphenPhone(this); syncSamePerson();">
-          </div>
-          <div class="form-group">
-            <label class="form-label">직장명 / 하시는 일(직무)<span class="req">*</span></label>
-            <input type="text" id="insuredJob" class="form-input" placeholder="예: 잇츠리온 / 사무직">
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label class="form-label">현재 거주지 주소 (선택)</label>
-            <input type="text" id="insuredAddress" class="form-input" placeholder="예: 충북 청주시 서원구 ...">
-          </div>
-        </div>
-      </section>
+      /* 완료 및 모바일팩스 연동 모달 + PC 우측 스크롤바 적용 */
+    #done-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .done-card {
+      background: #fff;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+    #done-insurer-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+      max-height: 52vh;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    #done-insurer-actions::-webkit-scrollbar { width: 7px; }
+    #done-insurer-actions::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 6px; }
+    #done-insurer-actions::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 6px; }
+    #done-insurer-actions::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
-      <!-- 2. 계약자 및 수령 계좌 (수익자) -->
-      <section class="form-section">
-        <div class="form-section-header">
-          <div class="form-section-title">🏦 2. 계약자 및 보험금 수령 계좌 (수익자)</div>
-          <label class="same-check-label">
-            <input type="checkbox" id="sameAsInsured" checked onchange="toggleRelationFields()">
-            <span>계약자·수익자(예금주) 모두 피보험자 본인과 동일</span>
-          </label>
-        </div>
-
-        <!-- 동일하지 않을 때(미성년 자녀 청구, 계약자/수익자 상이 등) 상세 입력란 -->
-        <div id="diff-person-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:16px;">
-          <div class="form-grid form-grid-2" style="margin-bottom:12px;">
-            <div class="form-group">
-              <label class="form-label">피보험자와의 관계<span class="req">*</span></label>
-              <input type="text" id="relToInsured" class="form-input" value="본인" placeholder="예: 부, 모, 배우자, 자녀">
-            </div>
-            <div class="form-group">
-              <label class="form-label">계약상 수익자 지정 여부</label>
-              <select id="isBeneficiaryDesignated" class="form-select" onchange="resetSignatureStep()">
-                <option value="yes">수익자 지정됨 (일반)</option>
-                <option value="no">수익자 미지정 (법정상속인/계약자 확인 필요)</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="font-size:13px; font-weight:800; color:#1e3a8a; margin:8px 0;">📋 보험계약자 상세 정보</div>
-          <div class="form-grid form-grid-2" style="margin-bottom:12px;">
-            <div class="form-group">
-              <label class="form-label">계약자 성명<span class="req">*</span></label>
-              <input type="text" id="holderName" class="form-input" oninput="resetSignatureStep()">
-            </div>
-            <div class="form-group">
-              <label class="form-label">계약자 주민등록번호<span class="req">*</span></label>
-              <div class="rrn-wrap">
-                <input type="text" id="holderRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
-                <span>-</span>
-                <input type="text" id="holderRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">계약자 휴대폰</label>
-              <input type="tel" id="holderPhone" class="form-input" placeholder="010-0000-0000" oninput="autoHyphenPhone(this)">
-            </div>
-            <div class="form-group">
-              <label class="form-label">계약자 직장/직무</label>
-              <input type="text" id="holderJob" class="form-input" placeholder="선택 입력">
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label class="form-label">계약자 주소</label>
-              <input type="text" id="holderAddress" class="form-input" placeholder="피보험자와 동일 시 비워두셔도 됩니다">
-            </div>
-          </div>
-
-          <div style="font-size:13px; font-weight:800; color:#1e3a8a; margin:8px 0;">💰 보험금 수익자(예금주) 추가 정보</div>
-          <div class="form-grid form-grid-2">
-            <div class="form-group">
-              <label class="form-label">수익자 주민등록번호<span class="req">*</span></label>
-              <div class="rrn-wrap">
-                <input type="text" id="beneficiaryRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
-                <span>-</span>
-                <input type="text" id="beneficiaryRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">수익자 휴대폰</label>
-              <input type="tel" id="beneficiaryPhone" class="form-input" placeholder="010-0000-0000" oninput="autoHyphenPhone(this)">
-            </div>
-            <div class="form-group">
-              <label class="form-label">수익자 직장/직무</label>
-              <input type="text" id="beneficiaryJob" class="form-input" placeholder="선택 입력">
-            </div>
-            <div class="form-group">
-              <label class="form-label">수익자 주소</label>
-              <input type="text" id="beneficiaryAddress" class="form-input" placeholder="선택 입력">
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 14px; padding: 12px 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 800; color: #1e3a8a; cursor: pointer;">
-            <input type="checkbox" id="useAutoTransfer" onchange="toggleAutoTransferAccount()" style="width: 17px; height: 17px; accent-color: #2563eb;">
-            <span>💳 기존 보험료 자동이체 계좌로 보험금 수령 요청 (체크 시 계좌번호 입력 생략 가능)</span>
-          </label>
-        </div>
-
-        <div class="form-grid form-grid-3">
-          <div class="form-group">
-            <label class="form-label">지급받을 은행명<span class="req" id="req-bank">*</span></label>
-            <select id="bankName" class="form-select">
-              <option value="">은행 선택</option>
-              <option value="국민은행">KB국민은행</option>
-              <option value="신한은행">신한은행</option>
-              <option value="우리은행">우리은행</option>
-              <option value="하나은행">하나은행</option>
-              <option value="농협은행">NH농협은행</option>
-              <option value="기업은행">IBK기업은행</option>
-              <option value="카카오뱅크">카카오뱅크</option>
-              <option value="토스뱅크">토스뱅크</option>
-              <option value="새마을금고">새마을금고</option>
-              <option value="우체국">우체국</option>
-              <option value="SC제일은행">SC제일은행</option>
-              <option value="부산은행">부산은행</option>
-              <option value="대구은행">iM뱅크(대구)</option>
-              <option value="광주은행">광주은행</option>
-              <option value="경남은행">경남은행</option>
-              <option value="전북은행">전북은행</option>
-              <option value="신협">신협</option>
-              <option value="수협">수협</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">계좌번호 (숫자만)<span class="req" id="req-acc">*</span></label>
-            <input type="text" id="accountNumber" class="form-input" placeholder="- 없이 숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
-          </div>
-          <div class="form-group">
-            <label class="form-label">예금주 성명 (수익자)<span class="req">*</span></label>
-            <input type="text" id="beneficiaryName" class="form-input" oninput="resetSignatureStep()">
-          </div>
-        </div>
-      </section>
+    .readonly-locked {
+      background-color: #eef2f6 !important;
+      color: #64748b;
+    }
 
       <!-- 3. 사고 및 진료 내역 -->
       <section class="form-section">
@@ -641,14 +541,6 @@
     <button class="submit-btn" id="start-sig-btn" onclick="prepareSignatureStep()">✍️ 청구 시작하기 (필수 서명란 생성) →</button>
     <button class="submit-btn" id="generate-btn" style="display:none; background-color:#059669;" onclick="handleGeneratePDF()">✨ 서명 완료 · 통합 청구서 PDF 다운로드</button>
   </div>
-      </section>
-    </form>
-  </main>
-
-  <div class="bottom-bar">
-    <button class="back-step-btn" onclick="location.href='./claim.html'">← 보험사 다시 선택</button>
-    <button class="submit-btn" id="generate-btn" onclick="handleGeneratePDF()">✨ 청구서 + 첨부서류 통합 PDF 다운로드</button>
-  </div>
 
   <!-- 다운로드 완료 & 모바일팩스 앱 원터치 공유 모달 -->
   <div id="done-modal">
@@ -751,7 +643,7 @@
       el.value = el.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
     }
 
-    function // 다중 서명 패드 상태 저장소
+    // 다중 서명 패드 상태 저장소
     let sigPadsMap = {};
     let sigStepReady = false;
 
@@ -763,20 +655,70 @@
       document.getElementById('generate-btn').style.display = 'none';
     }
 
+    function setInputLock(ids, locked) {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.readOnly = locked;
+        el.classList.toggle('readonly-locked', locked);
+      });
+    }
+
     function toggleRelationFields() {
-      const isSame = document.getElementById('sameAsInsured').checked;
-      document.getElementById('diff-person-box').style.display = isSame ? 'none' : 'block';
-      if (isSame) {
+      const hSame = document.getElementById('holderSameAsInsured').checked;
+      const bSame = document.getElementById('beneficiarySameAsInsured').checked;
+
+      document.getElementById('holder-extra-box').style.display = hSame ? 'none' : 'block';
+      setInputLock(['holderName', 'holderRrn1', 'holderRrn2'], hSame);
+
+      document.getElementById('beneficiary-extra-box').style.display = bSame ? 'none' : 'block';
+      document.getElementById('ben-same-holder-wrap').style.display = (!bSame && !hSame) ? 'flex' : 'none';
+
+      if (bSame) {
+        document.getElementById('beneficiarySameAsHolder').checked = false;
         document.getElementById('relToInsured').value = '본인';
         document.getElementById('isBeneficiaryDesignated').value = 'yes';
-        syncSamePerson();
+        setInputLock(['beneficiaryName'], true);
+      } else {
+        const bSameH = document.getElementById('beneficiarySameAsHolder').checked;
+        setInputLock(['beneficiaryName', 'beneficiaryRrn1', 'beneficiaryRrn2', 'beneficiaryPhone', 'beneficiaryJob', 'beneficiaryAddress'], bSameH);
       }
+
+      syncSamePerson();
+      resetSignatureStep();
+    }
+
+    function onBeneficiarySameInsuredChange() {
+      if (!document.getElementById('beneficiarySameAsInsured').checked) {
+        // 체크 해제 시 직접 입력하기 편하도록 기존 복사값 비움
+        ['beneficiaryName', 'beneficiaryRrn1', 'beneficiaryRrn2', 'beneficiaryPhone', 'beneficiaryJob', 'beneficiaryAddress'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('relToInsured').value = '';
+      }
+      toggleRelationFields();
+    }
+
+    function onBeneficiarySameHolderChange() {
+      toggleRelationFields();
+      syncHolderToBeneficiary();
+    }
+
+    function syncHolderToBeneficiary() {
+      if (document.getElementById('beneficiarySameAsInsured').checked) return;
+      if (!document.getElementById('beneficiarySameAsHolder').checked) return;
+      document.getElementById('beneficiaryName').value = document.getElementById('holderName').value;
+      document.getElementById('beneficiaryRrn1').value = document.getElementById('holderRrn1').value;
+      document.getElementById('beneficiaryRrn2').value = document.getElementById('holderRrn2').value;
+      document.getElementById('beneficiaryPhone').value = document.getElementById('holderPhone').value;
+      document.getElementById('beneficiaryJob').value = document.getElementById('holderJob').value;
+      document.getElementById('beneficiaryAddress').value = document.getElementById('holderAddress').value;
       resetSignatureStep();
     }
 
     function syncSamePerson() {
       resetSignatureStep();
-      if (!document.getElementById('sameAsInsured').checked) return;
       const iName = document.getElementById('insuredName').value;
       const iRrn1 = document.getElementById('insuredRrn1').value;
       const iRrn2 = document.getElementById('insuredRrn2').value;
@@ -784,19 +726,55 @@
       const iJob = document.getElementById('insuredJob').value;
       const iAddr = document.getElementById('insuredAddress').value;
 
-      document.getElementById('holderName').value = iName;
-      document.getElementById('holderRrn1').value = iRrn1;
-      document.getElementById('holderRrn2').value = iRrn2;
-      document.getElementById('holderPhone').value = iPhone;
-      document.getElementById('holderJob').value = iJob;
-      document.getElementById('holderAddress').value = iAddr;
+      if (document.getElementById('holderSameAsInsured').checked) {
+        document.getElementById('holderName').value = iName;
+        document.getElementById('holderRrn1').value = iRrn1;
+        document.getElementById('holderRrn2').value = iRrn2;
+        document.getElementById('holderPhone').value = iPhone;
+        document.getElementById('holderJob').value = iJob;
+        document.getElementById('holderAddress').value = iAddr;
+      }
 
-      document.getElementById('beneficiaryName').value = iName;
-      document.getElementById('beneficiaryRrn1').value = iRrn1;
-      document.getElementById('beneficiaryRrn2').value = iRrn2;
-      document.getElementById('beneficiaryPhone').value = iPhone;
-      document.getElementById('beneficiaryJob').value = iJob;
-      document.getElementById('beneficiaryAddress').value = iAddr;
+      if (document.getElementById('beneficiarySameAsInsured').checked) {
+        document.getElementById('beneficiaryName').value = iName;
+        document.getElementById('beneficiaryRrn1').value = iRrn1;
+        document.getElementById('beneficiaryRrn2').value = iRrn2;
+        document.getElementById('beneficiaryPhone').value = iPhone;
+        document.getElementById('beneficiaryJob').value = iJob;
+        document.getElementById('beneficiaryAddress').value = iAddr;
+      }
+    }
+
+    // 복구된 UI 제어 및 파일 첨부 함수 5종
+    function toggleNotifyInputs() {
+      const checked = document.getElementById('notifyPlanner').checked;
+      document.getElementById('planner-Input-wrap').style.display = checked ? 'grid' : 'none';
+    }
+
+    function toggleAutoTransferAccount() {
+      const isAuto = document.getElementById('useAutoTransfer').checked;
+      document.getElementById('req-bank').style.display = isAuto ? 'none' : 'inline';
+      document.getElementById('req-acc').style.display = isAuto ? 'none' : 'inline';
+      document.getElementById('accountNumber').placeholder = isAuto ? '자동이체 계좌 수령 (입력 생략 가능)' : '- 없이 숫자만 입력';
+    }
+
+    function handleFileSelect(e) {
+      attachedMedicalFiles = [...attachedMedicalFiles, ...Array.from(e.target.files)];
+      renderAttachedFiles();
+    }
+
+    function removeAttachedFile(idx) {
+      attachedMedicalFiles.splice(idx, 1);
+      renderAttachedFiles();
+    }
+
+    function renderAttachedFiles() {
+      document.getElementById('attached-file-list').innerHTML = attachedMedicalFiles.map((file, idx) => `
+        <div class="file-item">
+          <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+          <button type="button" onclick="removeAttachedFile(${idx})" style="border:none; background:none; color:#e11d48; font-weight:800; cursor:pointer;">✕ 삭제</button>
+        </div>
+      `).join('');
     }
 
     // 주민등록번호 앞6자리 + 뒷첫자리로 만 나이 정확 계산
@@ -823,7 +801,6 @@
       const isUnder14 = age < 14;
       const isNoBeneficiary = document.getElementById('isBeneficiaryDesignated').value === 'no';
 
-      // 역할별 실제 서명해야 할 사람 매핑 (동일 인물이면 1번만 서명하도록 이름 기준 병합)
       const requiredSigners = [];
       const addSigner = (roleKey, roleTitle, personName) => {
         if (!personName) return;
@@ -837,20 +814,16 @@
       };
 
       if (isUnder14) {
-        // 만 14세 미만: 피보험자 본인 서명 제외, 법정대리인(계약자 또는 수익자) 서명 필수
         const guardian = (baseData.holderName && baseData.holderName !== baseData.insuredName)
           ? baseData.holderName
           : baseData.beneficiaryName;
         addSigner('guardian', '친권자/법정대리인', guardian);
         addSigner('beneficiary', '수익자(예금주)', baseData.beneficiaryName);
       } else {
-        // 만 14세 이상: 피보험자 본인 서명 필수
         addSigner('insured', '피보험자(본인)', baseData.insuredName);
-        // 수익자가 피보험자와 다르면 수익자 서명 추가
         if (baseData.beneficiaryName !== baseData.insuredName) {
           addSigner('beneficiary', '보험금 수익자(예금주)', baseData.beneficiaryName);
         }
-        // 수익자 미지정 계약이거나 계약자 서명이 별도 필요한 관계일 때 계약자 서명 추가
         if ((isNoBeneficiary || baseData.beneficiaryName !== baseData.insuredName) && baseData.holderName !== baseData.insuredName) {
           addSigner('holder', '보험계약자', baseData.holderName);
         }
@@ -902,10 +875,10 @@
       canvas.height = rect.height * dpr;
       const ctx = canvas.getContext('2d');
       ctx.scale(dpr, dpr);
-      ctx.lineWidth = 6.5;         // 팩스 전송용 굵은 선 유지
+      ctx.lineWidth = 6.5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#000000'; // 순수 검정색 유지
+      ctx.strokeStyle = '#000000';
 
       const state = { canvas, ctx, hasSigned: false, isDrawing: false, signer };
       sigPadsMap[signer.id] = state;
@@ -920,7 +893,6 @@
         e.preventDefault();
         state.isDrawing = true;
         state.hasSigned = true;
-        // 안내 부제목만 숨기고 흐릿한 성명 워터마크는 헷갈리지 않게 유지 (PDF에는 캡처 안 됨)
         const sub = document.querySelector(`#wm-${signer.id} .sig-watermark-sub`);
         if (sub) sub.style.display = 'none';
         const p = getPos(e);
@@ -982,7 +954,8 @@
     }
 
     function validateBasicInputs() {
-      if (document.getElementById('sameAsInsured').checked) syncSamePerson();
+      syncSamePerson();
+      syncHolderToBeneficiary();
       const useAutoTransfer = document.getElementById('useAutoTransfer').checked;
       const data = {
         insuredName: document.getElementById('insuredName').value.trim(),
@@ -1080,7 +1053,6 @@
       if (text === undefined || text === null || String(text).trim() === '') return;
       const str = String(text);
 
-      // 개별 숫자/글자 박스 간격(spacing)이 설정된 경우 1글자씩 분할 출력
       if (spacing > 0) {
         const chars = str.split('');
         for (let i = 0; i < chars.length; i++) {
@@ -1185,7 +1157,7 @@
       await drawKoreanText(pdfDoc, page, '[필수] 보험금 청구를 위한 개인(신용)정보 수집·이용·조회·제공 동의', 52, 360, 10.5, true);
       await drawKoreanText(pdfDoc, page, '✔ 고유식별정보 동의함    ✔ 민감정보 동의함    ✔ 개인(신용)정보 동의함', 52, 315, 10, true);
       await drawKoreanText(pdfDoc, page, `작성일자 : ${data.todayDateFull}`, 52, 260, 10, true);
-      await drawKoreanText(pdfDoc, page, `청구권자(피보험자/수익자) : ${data.insuredName}   (서명)`, 290, 260, 10, true);
+      await drawKoreanText(pdfDoc, page, `청구권자(피보험자/수익자) : ${data.beneficiaryName}   (서명)`, 290, 260, 10, true);
 
       if (data.signatureDataUrl) {
         const sigImg = await pdfDoc.embedPng(data.signatureDataUrl);
@@ -1211,7 +1183,6 @@
         const todayM = String(now.getMonth() + 1).padStart(2, '0');
         const todayD = String(now.getDate()).padStart(2, '0');
 
-        const phoneParts = rawData.insuredPhone.split('-');
         const splitPhone = (ph) => {
           const p = (ph || '').split('-');
           return { raw: (ph || '').replace(/[^0-9]/g, ''), p1: p[0] || '', p2: p[1] || '', p3: p[2] || '' };
@@ -1256,18 +1227,7 @@
               const existingBytes = await res.arrayBuffer();
               pdfDoc = await PDFLib.PDFDocument.load(existingBytes);
               const pages = pdfDoc.getPages();
-              const sigImg = enrichedData.signatureDataUrl ? await pdfDoc.embedPng(enrichedData.signatureDataUrl) : null;
-              const mapCfg = PDF_COORD_MAP[ins.id];
 
-              for (const f of mapCfg.fields) {
-                if (pages[f.page]) await drawKoreanText(pdfDoc, pages[f.page], enrichedData[f.key], f.x, f.y, f.size || 9.5, f.bold || false, '#000000', f.spacing || 0);
-              }
-              if (mapCfg.checks) {
-                for (const c of mapCfg.checks) {
-                  if (pages[c.page] && c.cond(enrichedData)) await drawCheckmark(pdfDoc, pages[c.page], c.x, c.y, c.size || 11.5);
-                }
-              }
-              // 역할별 서명 PNG 임베딩
               const embeddedSigs = {};
               for (const [rKey, dUrl] of Object.entries(enrichedData.roleSignatures || {})) {
                 if (dUrl) embeddedSigs[rKey] = await pdfDoc.embedPng(dUrl);
@@ -1286,9 +1246,7 @@
               if (mapCfg.signatures) {
                 for (const s of mapCfg.signatures) {
                   if (!pages[s.page]) continue;
-                  // 만 14세 이상일 때는 법정대리인(guardian) 전용 서명칸 비움
                   if (s.role === 'guardian' && !enrichedData.isUnder14) continue;
-                  // 만 14세 미만일 때는 피보험자 서명칸 대신 법정대리인 서명 사용 또는 법정대리인 칸에 날인
                   let targetSig = s.role ? (embeddedSigs[s.role] || defaultSigImg) : defaultSigImg;
                   if (s.role === 'insured' && enrichedData.isUnder14) targetSig = embeddedSigs.guardian || defaultSigImg;
                   if (targetSig) await drawSignatureImg(pdfDoc, pages[s.page], targetSig, s.x, s.y, s.w, s.h);
@@ -1333,7 +1291,6 @@
           `);
         }
 
-        // 선택적 알림 발송 (주민번호·계좌번호 제외 비민감 메타정보만 전송)
         if (CLAIM_NOTIFY_GAS_URL && (rawData.notifyCustomer || rawData.notifyPlanner)) {
           fetch(CLAIM_NOTIFY_GAS_URL, {
             method: 'POST',
