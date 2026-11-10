@@ -256,6 +256,58 @@
       };
     }
 
+    let justDragged = false;
+
+    function attachPinDrag(pin, itemObj, labelPrefix) {
+      pin.onmousedown = (e) => {
+        if (e.button !== 0) return; // 좌클릭만 드래그 허용 (우클릭 삭제 유지)
+        e.stopPropagation();
+        e.preventDefault();
+
+        const canvas = document.getElementById('pdf-canvas');
+        const startMouseX = e.clientX;
+        const startMouseY = e.clientY;
+        const origLeft = parseFloat(pin.style.left);
+        const origTop = parseFloat(pin.style.top);
+        let moved = false;
+
+        pin.classList.add('dragging');
+
+        const onMouseMove = (moveEvent) => {
+          const dx = moveEvent.clientX - startMouseX;
+          const dy = moveEvent.clientY - startMouseY;
+          if (Math.abs(dx) > 1 || Math.abs(dy) > 1) moved = true;
+
+          const newLeft = Math.max(0, Math.min(canvas.width, origLeft + dx));
+          const newTop = Math.max(0, Math.min(canvas.height, origTop + dy));
+
+          pin.style.left = `${newLeft}px`;
+          pin.style.top = `${newTop}px`;
+
+          // 화면 픽셀 좌표를 PDF 포인트(pt) 좌표로 실시간 역산 (소수점 0.5 단위 정밀도 지원)
+          const newPdfX = Math.round(((newLeft / canvas.width) * pageWidthPt) * 2) / 2;
+          const newPdfY = Math.round((((canvas.height - newTop) / canvas.height) * pageHeightPt) * 2) / 2;
+
+          itemObj.x = newPdfX;
+          itemObj.y = newPdfY;
+          pin.textContent = `${labelPrefix} (${itemObj.x},${itemObj.y})`;
+        };
+
+        const onMouseUp = () => {
+          pin.classList.remove('dragging');
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+          if (moved) {
+            justDragged = true;
+            setTimeout(() => { justDragged = false; }, 80);
+          }
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      };
+    }
+
     function renderPins() {
       const layer = document.getElementById('pins-layer');
       const canvas = document.getElementById('pdf-canvas');
@@ -276,8 +328,10 @@
         pin.className = 'marker-pin';
         pin.style.left = `${pos.left}px`;
         pin.style.top = `${pos.top}px`;
-        pin.textContent = `${f.key} (${f.x},${f.y})`;
-        pin.title = '우클릭 시 삭제';
+        const prefix = f.spacing ? `${f.key}[칸:${f.spacing}]` : f.key;
+        pin.textContent = `${prefix} (${f.x},${f.y})`;
+        pin.title = '드래그하여 위치 이동 / 우클릭 시 삭제';
+        attachPinDrag(pin, f, prefix);
         pin.oncontextmenu = (e) => { e.preventDefault(); cfg.fields.splice(idx, 1); renderPins(); };
         layer.appendChild(pin);
       });
@@ -291,7 +345,8 @@
         pin.style.left = `${pos.left}px`;
         pin.style.top = `${pos.top}px`;
         pin.textContent = `✔체크 (${c.x},${c.y})`;
-        pin.title = '우클릭 시 삭제';
+        pin.title = '드래그하여 위치 이동 / 우클릭 시 삭제';
+        attachPinDrag(pin, c, '✔체크');
         pin.oncontextmenu = (e) => { e.preventDefault(); cfg.checks.splice(idx, 1); renderPins(); };
         layer.appendChild(pin);
       });
@@ -305,7 +360,8 @@
         pin.style.left = `${pos.left}px`;
         pin.style.top = `${pos.top}px`;
         pin.textContent = `✍️서명 (${s.x},${s.y})`;
-        pin.title = '우클릭 시 삭제';
+        pin.title = '드래그하여 위치 이동 / 우클릭 시 삭제';
+        attachPinDrag(pin, s, '✍️서명');
         pin.oncontextmenu = (e) => { e.preventDefault(); cfg.signatures.splice(idx, 1); renderPins(); };
         layer.appendChild(pin);
       });
@@ -318,7 +374,8 @@
 
       const fieldsStr = cfg.fields.map(f => {
         const boldPart = f.bold ? `, bold: true` : '';
-        return `      { page: ${f.page}, key: '${f.key}', x: ${f.x}, y: ${f.y}, size: ${f.size || 10}${boldPart} }`;
+        const spacingPart = f.spacing ? `, spacing: ${f.spacing}` : '';
+        return `      { page: ${f.page}, key: '${f.key}', x: ${f.x}, y: ${f.y}, size: ${f.size || 10}${boldPart}${spacingPart} }`;
       }).join(',\n');
 
       const checksStr = cfg.checks.map(c => {
