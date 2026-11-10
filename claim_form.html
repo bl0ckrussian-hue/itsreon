@@ -803,9 +803,19 @@
       return data;
     }
 
-    async function drawKoreanText(pdfDoc, page, text, x, y, fontSize = 9.5, isBold = false, color = '#000000') {
+    async function drawKoreanText(pdfDoc, page, text, x, y, fontSize = 9.5, isBold = false, color = '#000000', spacing = 0) {
       if (text === undefined || text === null || String(text).trim() === '') return;
       const str = String(text);
+
+      // 개별 숫자/글자 박스 간격(spacing)이 설정된 경우 1글자씩 분할 출력
+      if (spacing > 0) {
+        const chars = str.split('');
+        for (let i = 0; i < chars.length; i++) {
+          await drawKoreanText(pdfDoc, page, chars[i], x + (i * spacing), y, fontSize, isBold, color, 0);
+        }
+        return;
+      }
+
       const scale = 3;
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -960,7 +970,7 @@
               const mapCfg = PDF_COORD_MAP[ins.id];
 
               for (const f of mapCfg.fields) {
-                if (pages[f.page]) await drawKoreanText(pdfDoc, pages[f.page], enrichedData[f.key], f.x, f.y, f.size || 9.5, f.bold || false);
+                if (pages[f.page]) await drawKoreanText(pdfDoc, pages[f.page], enrichedData[f.key], f.x, f.y, f.size || 9.5, f.bold || false, '#000000', f.spacing || 0);
               }
               if (mapCfg.checks) {
                 for (const c of mapCfg.checks) {
