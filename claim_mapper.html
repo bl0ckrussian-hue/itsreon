@@ -6,7 +6,9 @@
   <title>잇츠리온 - 보험사 양식 좌표 마우스 배치기</title>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="./claim_coords.js"></script>
+  <script>
+    document.write('<script src="./claim_coords.js?v=' + Date.now() + '"><\/script>');
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
     body { background: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -171,6 +173,11 @@
       { type: 'field', key: 'beneficiaryJob', label: '💼 [수익자] 직장/직무' },
       { type: 'field', key: 'beneficiaryAddress', label: '🏠 [수익자] 주소' },
       { type: 'field', key: 'relToInsured', label: '🏷️ 피보험자와의 관계' },
+      { type: 'field', key: 'relSelf', label: '🏷️ 관계(동일시 "본인" 자동)' },
+      { type: 'field', key: 'relIfDiff', label: '🏷️ 관계(타인청구시만 출력)' },
+      { type: 'field', key: 'otherNotifyName', label: '👤 [기타안내] 제3자 성명' },
+      { type: 'field', key: 'otherNotifyRel', label: '🏷️ [기타안내] 제3자 관계' },
+      { type: 'field', key: 'guardianName19', label: '👪 [법정대리인] 성명(19세미만)' },
 
       // 4. 만14세 미만 시에만 찍히는 법정대리인 성명
       { type: 'field', key: 'guardianName', label: '👪 [법정대리인] 성명(14세미만자동)' },
@@ -376,7 +383,8 @@
         pin.className = 'marker-pin';
         pin.style.left = `${pos.left}px`;
         pin.style.top = `${pos.top}px`;
-        const prefix = f.spacing ? `${f.key}[칸:${f.spacing}]` : f.key;
+        const condTag = f.cond ? (f.cond.toString().includes('!d.isUnder') ? '(성인)' : '(미성년/타인)') : '';
+        const prefix = `${f.key}${condTag}${f.spacing ? `[칸:${f.spacing}]` : ''}`;
         pin.textContent = `${prefix} (${f.x},${f.y})`;
         pin.title = '드래그하여 위치 이동 / 우클릭 시 삭제';
         attachPinDrag(pin, f, prefix);
@@ -385,13 +393,17 @@
       });
 
       // 조건식을 사람이 읽기 쉬운 라벨로 변환
-      const getCheckTag = (c) => {
+     const getCheckTag = (c) => {
         if (c.label) return `✔${c.label}`;
         const src = c.cond ? c.cond.toString() : '';
         if (src.includes('accidentType')) return `✔사고:${src.split("'")[1] || ''}`;
         if (src.includes('claimCategory')) return `✔구분:${src.split("'")[1] || ''}`;
         if (src.includes('coverages')) return `✔담보:${src.split("'")[1] || ''}`;
         if (src.includes('useAutoTransfer')) return '✔자동이체';
+        if (src.includes('isBenHolder') && src.includes('!d.isBenHolder')) return '✔안내:기타';
+        if (src.includes('isBenHolder')) return '✔안내:계약자';
+        if (src.includes('isSameInsBen')) return '✔안내:피보험자(상동)';
+        if (src.includes('isUnder')) return '✔미성년동의';
         return '✔상시체크';
       };
 
@@ -430,30 +442,33 @@
       });
     }
 
-    // 기존 조건식(cond)과 굵기(bold) 속성을 유지한 채 코드 블록 추출
+    // claim_coords.js 원본 구조(cond, role, bold, spacing 등)와 100% 동일한 포맷으로 코드 추출
     function exportCoords() {
       const cfg = PDF_COORD_MAP[currentInsurer];
       if (!cfg) return;
 
       const fieldsStr = cfg.fields.map(f => {
+        const condPart = f.cond ? `, cond: ${f.cond.toString()}` : '';
         const boldPart = f.bold ? `, bold: true` : '';
         const spacingPart = f.spacing ? `, spacing: ${f.spacing}` : '';
-        return `      { page: ${f.page}, key: '${f.key}', x: ${f.x}, y: ${f.y}, size: ${f.size || 10}${boldPart}${spacingPart} }`;
+        return `      { page: ${f.page}, key: '${f.key}'${condPart}, x: ${f.x}, y: ${f.y}, size: ${f.size || 10}${boldPart}${spacingPart} }`;
       }).join(',\n');
 
       const checksStr = cfg.checks.map(c => {
         const condSrc = c.cond ? c.cond.toString() : '() => true';
-        return `      { page: ${c.page}, cond: ${condSrc}, x: ${c.x}, y: ${c.y} }`;
+        const sizePart = c.size ? `, size: ${c.size}` : '';
+        return `      { page: ${c.page}, cond: ${condSrc}, x: ${c.x}, y: ${c.y}${sizePart} }`;
       }).join(',\n');
 
       const sigsStr = cfg.signatures.map(s => {
-        const rolePart = s.role ? `role: '${s.role}', ` : '';
-        return `      { page: ${s.page}, ${rolePart}x: ${s.x}, y: ${s.y}, w: ${s.w || 50}, h: ${s.h || 20} }`;
+        const rolePart = s.role ? `, role: '${s.role}'` : '';
+        const condPart = s.cond ? `, cond: ${s.cond.toString()}` : '';
+        return `      { page: ${s.page}${rolePart}${condPart}, x: ${s.x}, y: ${s.y}, w: ${s.w || 48}, h: ${s.h || 20} }`;
       }).join(',\n');
 
       const out = `  ${currentInsurer}: {\n    fields: [\n${fieldsStr}\n    ],\n    checks: [\n${checksStr}\n    ],\n    signatures: [\n${sigsStr}\n    ]\n  },`;
       navigator.clipboard.writeText(out).then(() => {
-        alert(`✅ [${currentInsurer}] 좌표 코드가 클립보드에 복사되었습니다!\nclaim_coords.js 파일에서 ${currentInsurer}: { ... }, 구간에 그대로 덮어씌우면 영구 반영됩니다.`);
+        alert(`✅ [${currentInsurer}] 좌표 코드가 원본과 동일한 형식으로 복사되었습니다!\nclaim_coords.js 파일에서 ${currentInsurer}: { ... }, 구간에 그대로 덮어씌워 주세요.`);
       });
     }
 
