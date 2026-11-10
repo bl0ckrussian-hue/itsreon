@@ -87,11 +87,18 @@
       font-weight: 800;
       padding: 2px 6px;
       border-radius: 4px;
-      cursor: pointer;
+      cursor: grab;
       user-select: none;
       white-space: nowrap;
       transform: translate(0, -100%);
       border: 1px solid #fff;
+      z-index: 10;
+    }
+    .marker-pin:active, .marker-pin.dragging {
+      cursor: grabbing;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      border-color: #fde047;
     }
   </style>
 </head>
@@ -129,7 +136,11 @@
       { type: 'field', key: 'insuredRrnFull', label: '🔢 피보험자 주민번호(전체)' },
       { type: 'field', key: 'insuredRrn1', label: '🔢 피보험자 생년월일(앞6)' },
       { type: 'field', key: 'insuredRrn2', label: '🔢 피보험자 주민번호(뒤7)' },
-      { type: 'field', key: 'insuredPhone', label: '📱 휴대폰 번호' },
+      { type: 'field', key: 'insuredPhone', label: '📱 휴대폰 번호(전체)' },
+      { type: 'field', key: 'insuredPhoneRaw', label: '📱 휴대폰(하이픈제외 숫자)' },
+      { type: 'field', key: 'insuredPhone1', label: '📱 휴대폰 앞3자리(010)' },
+      { type: 'field', key: 'insuredPhone2', label: '📱 휴대폰 중간4자리' },
+      { type: 'field', key: 'insuredPhone3', label: '📱 휴대폰 끝4자리' },
       { type: 'field', key: 'insuredJob', label: '💼 직장 / 직무' },
       { type: 'field', key: 'insuredAddress', label: '🏠 거주지 주소' },
       { type: 'field', key: 'holderName', label: '👤 계약자 성명' },
