@@ -132,21 +132,50 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const PALETTE_ITEMS = [
-      { type: 'field', key: 'insuredName', label: '👤 피보험자 성명' },
-      { type: 'field', key: 'insuredRrnFull', label: '🔢 피보험자 주민번호(전체)' },
-      { type: 'field', key: 'insuredRrn1', label: '🔢 피보험자 생년월일(앞6)' },
-      { type: 'field', key: 'insuredRrn2', label: '🔢 피보험자 주민번호(뒤7)' },
-      { type: 'field', key: 'insuredPhone', label: '📱 휴대폰 번호(전체)' },
-      { type: 'field', key: 'insuredPhoneRaw', label: '📱 휴대폰(하이픈제외 숫자)' },
-      { type: 'field', key: 'insuredPhone1', label: '📱 휴대폰 앞3자리(010)' },
-      { type: 'field', key: 'insuredPhone2', label: '📱 휴대폰 중간4자리' },
-      { type: 'field', key: 'insuredPhone3', label: '📱 휴대폰 끝4자리' },
-      { type: 'field', key: 'insuredJob', label: '💼 직장 / 직무' },
-      { type: 'field', key: 'insuredAddress', label: '🏠 거주지 주소' },
-      { type: 'field', key: 'holderName', label: '👤 계약자 성명' },
-      { type: 'field', key: 'holderRrnFull', label: '🔢 계약자 주민번호(전체)' },
-      { type: 'field', key: 'holderRrn1', label: '🔢 계약자 주민번호(앞6)' },
-      { type: 'field', key: 'holderRrn2', label: '🔢 계약자 주민번호(뒤7)' },
+      // 1. 피보험자 메뉴
+      { type: 'field', key: 'insuredName', label: '👤 [피보험자] 성명' },
+      { type: 'field', key: 'insuredRrnFull', label: '🔢 [피보험자] 주민번호(전체)' },
+      { type: 'field', key: 'insuredRrn1', label: '🔢 [피보험자] 주민번호(앞6)' },
+      { type: 'field', key: 'insuredRrn2', label: '🔢 [피보험자] 주민번호(뒤7)' },
+      { type: 'field', key: 'insuredPhone', label: '📱 [피보험자] 휴대폰(전체)' },
+      { type: 'field', key: 'insuredPhoneRaw', label: '📱 [피보험자] 휴대폰(숫자만)' },
+      { type: 'field', key: 'insuredPhone1', label: '📱 [피보험자] 휴대폰(앞3)' },
+      { type: 'field', key: 'insuredPhone2', label: '📱 [피보험자] 휴대폰(중간4)' },
+      { type: 'field', key: 'insuredPhone3', label: '📱 [피보험자] 휴대폰(끝4)' },
+      { type: 'field', key: 'insuredJob', label: '💼 [피보험자] 직장/직무' },
+      { type: 'field', key: 'insuredAddress', label: '🏠 [피보험자] 주소' },
+
+      // 2. 보험계약자 메뉴 (피보험자와 동일 구성)
+      { type: 'field', key: 'holderName', label: '👤 [계약자] 성명' },
+      { type: 'field', key: 'holderRrnFull', label: '🔢 [계약자] 주민번호(전체)' },
+      { type: 'field', key: 'holderRrn1', label: '🔢 [계약자] 주민번호(앞6)' },
+      { type: 'field', key: 'holderRrn2', label: '🔢 [계약자] 주민번호(뒤7)' },
+      { type: 'field', key: 'holderPhone', label: '📱 [계약자] 휴대폰(전체)' },
+      { type: 'field', key: 'holderPhoneRaw', label: '📱 [계약자] 휴대폰(숫자만)' },
+      { type: 'field', key: 'holderPhone1', label: '📱 [계약자] 휴대폰(앞3)' },
+      { type: 'field', key: 'holderPhone2', label: '📱 [계약자] 휴대폰(중간4)' },
+      { type: 'field', key: 'holderPhone3', label: '📱 [계약자] 휴대폰(끝4)' },
+      { type: 'field', key: 'holderJob', label: '💼 [계약자] 직장/직무' },
+      { type: 'field', key: 'holderAddress', label: '🏠 [계약자] 주소' },
+
+      // 3. 수익자(예금주) 메뉴 (피보험자와 동일 구성)
+      { type: 'field', key: 'beneficiaryName', label: '💰 [수익자] 성명(예금주)' },
+      { type: 'field', key: 'beneficiaryRrnFull', label: '🔢 [수익자] 주민번호(전체)' },
+      { type: 'field', key: 'beneficiaryRrn1', label: '🔢 [수익자] 주민번호(앞6)' },
+      { type: 'field', key: 'beneficiaryRrn2', label: '🔢 [수익자] 주민번호(뒤7)' },
+      { type: 'field', key: 'beneficiaryPhone', label: '📱 [수익자] 휴대폰(전체)' },
+      { type: 'field', key: 'beneficiaryPhoneRaw', label: '📱 [수익자] 휴대폰(숫자만)' },
+      { type: 'field', key: 'beneficiaryPhone1', label: '📱 [수익자] 휴대폰(앞3)' },
+      { type: 'field', key: 'beneficiaryPhone2', label: '📱 [수익자] 휴대폰(중간4)' },
+      { type: 'field', key: 'beneficiaryPhone3', label: '📱 [수익자] 휴대폰(끝4)' },
+      { type: 'field', key: 'beneficiaryJob', label: '💼 [수익자] 직장/직무' },
+      { type: 'field', key: 'beneficiaryAddress', label: '🏠 [수익자] 주소' },
+      { type: 'field', key: 'relToInsured', label: '🏷️ 피보험자와의 관계' },
+
+      // 4. 만14세 미만 시에만 찍히는 법정대리인 성명
+      { type: 'field', key: 'guardianName', label: '👪 [법정대리인] 성명(14세미만자동)' },
+
+      // 5. 사고·진료·계좌·작성일
       { type: 'field', key: 'accYear', label: '📅 사고일(년 4자리)' },
       { type: 'field', key: 'accYearShort', label: '📅 사고일(년 2자리)' },
       { type: 'field', key: 'accMonth', label: '📅 사고일(월)' },
@@ -156,18 +185,35 @@
       { type: 'field', key: 'accidentDesc', label: '📝 사고(내원)경위' },
       { type: 'field', key: 'diagnosisName', label: '🏥 진단명(병명)' },
       { type: 'field', key: 'hospitalName', label: '🏥 병원명/진료과' },
+      { type: 'field', key: 'hospitalWithDiag', label: '🏥 병원명(진단명포함)' },
       { type: 'field', key: 'bankName', label: '🏦 은행명' },
       { type: 'field', key: 'accountNumber', label: '💳 계좌번호' },
-      { type: 'field', key: 'beneficiaryName', label: '💰 예금주(수익자) 성명' },
-      { type: 'field', key: 'beneficiaryRrnFull', label: '🔢 예금주 주민번호(전체)' },
-      { type: 'field', key: 'relSelf', label: '🏷️ 관계("본인" 자동출력)' },
       { type: 'field', key: 'todayYear', label: '📅 작성일(년 4자리)' },
       { type: 'field', key: 'todayYearShort', label: '📅 작성일(년 2자리)' },
       { type: 'field', key: 'todayMonth', label: '📅 작성일(월)' },
       { type: 'field', key: 'todayDay', label: '📅 작성일(일)' },
       { type: 'field', key: 'todayDateSlash', label: '📅 작성일(YYYY/MM/DD)' },
-      { type: 'check', key: 'always', label: '✔ 동의함/기본 체크(V)' },
-      { type: 'sig', key: 'signature', label: '✍️ 자필 전자서명 도장' }
+
+      // 6. 조건부 연동 체크박스 (사고유형 / 청구구분 / 청구담보 / 기본동의)
+      { type: 'check', key: 'always', label: '✔ [상시체크] 동의함/비대상 등', condStr: '() => true' },
+      { type: 'check', key: 'acc_disease', label: '✔ [사고유형] 질병', condStr: "(d) => d.accidentType === '질병'" },
+      { type: 'check', key: 'acc_injury', label: '✔ [사고유형] 상해', condStr: "(d) => d.accidentType === '상해'" },
+      { type: 'check', key: 'acc_traffic', label: '✔ [사고유형] 교통사고', condStr: "(d) => d.accidentType === '교통사고'" },
+      { type: 'check', key: 'cat_new', label: '✔ [청구구분] 신규(최초)접수', condStr: "(d) => d.claimCategory === '신규'" },
+      { type: 'check', key: 'cat_add', label: '✔ [청구구분] 추가접수', condStr: "(d) => d.claimCategory === '추가'" },
+      { type: 'check', key: 'cov_silson', label: '✔ [청구담보] 실손의료비', condStr: "(d) => d.coverages.includes('실손의료비')" },
+      { type: 'check', key: 'cov_out', label: '✔ [청구담보] 통원', condStr: "(d) => d.coverages.includes('통원')" },
+      { type: 'check', key: 'cov_in', label: '✔ [청구담보] 입원(일당)', condStr: "(d) => d.coverages.includes('입원')" },
+      { type: 'check', key: 'cov_diag', label: '✔ [청구담보] 진단비', condStr: "(d) => d.coverages.includes('진단')" },
+      { type: 'check', key: 'cov_surg', label: '✔ [청구담보] 수술비', condStr: "(d) => d.coverages.includes('수술')" },
+      { type: 'check', key: 'cov_disab', label: '✔ [청구담보] 후유장해', condStr: "(d) => d.coverages.includes('장해')" },
+      { type: 'check', key: 'auto_trans', label: '✔ [계좌] 자동이체계좌 요청', condStr: '(d) => d.useAutoTransfer' },
+
+      // 7. 역할별 전자서명 도장
+      { type: 'sig', role: 'insured', label: '✍️ [서명] 피보험자(본인)' },
+      { type: 'sig', role: 'beneficiary', label: '✍️ [서명] 수익자(청구권자)' },
+      { type: 'sig', role: 'holder', label: '✍️ [서명] 보험계약자' },
+      { type: 'sig', role: 'guardian', label: '✍️ [서명] 법정대리인(14세미만)' }
     ];
 
     let pdfDoc = null;
@@ -249,9 +295,10 @@
         if (selectedItem.type === 'field') {
           cfg.fields.push({ page: pIdx, key: selectedItem.key, x: pdfX, y: pdfY, size: 10 });
         } else if (selectedItem.type === 'check') {
-          cfg.checks.push({ page: pIdx, cond: () => true, x: pdfX, y: pdfY });
+          const condFn = new Function('return ' + selectedItem.condStr)();
+          cfg.checks.push({ page: pIdx, cond: condFn, label: selectedItem.label.replace('✔ ', ''), x: pdfX, y: pdfY });
         } else if (selectedItem.type === 'sig') {
-          cfg.signatures.push({ page: pIdx, x: pdfX, y: pdfY, w: 50, h: 20 });
+          cfg.signatures.push({ page: pIdx, role: selectedItem.role, x: pdfX, y: pdfY, w: 50, h: 20 });
         }
         renderPins();
       };
@@ -337,17 +384,31 @@
         layer.appendChild(pin);
       });
 
+      // 조건식을 사람이 읽기 쉬운 라벨로 변환
+      const getCheckTag = (c) => {
+        if (c.label) return `✔${c.label}`;
+        const src = c.cond ? c.cond.toString() : '';
+        if (src.includes('accidentType')) return `✔사고:${src.split("'")[1] || ''}`;
+        if (src.includes('claimCategory')) return `✔구분:${src.split("'")[1] || ''}`;
+        if (src.includes('coverages')) return `✔담보:${src.split("'")[1] || ''}`;
+        if (src.includes('useAutoTransfer')) return '✔자동이체';
+        return '✔상시체크';
+      };
+
+      const ROLE_KR = { insured: '피보험자', beneficiary: '수익자', holder: '계약자', guardian: '법정대리인' };
+
       cfg.checks.forEach((c, idx) => {
         if (c.page !== pIdx) return;
         const pos = toScreen(c.x, c.y);
         const pin = document.createElement('div');
         pin.className = 'marker-pin';
-        pin.style.background = '#059669';
+        const tag = getCheckTag(c);
+        pin.style.background = tag === '✔상시체크' ? '#059669' : '#d97706'; // 조건부 체크는 주황색 구분
         pin.style.left = `${pos.left}px`;
         pin.style.top = `${pos.top}px`;
-        pin.textContent = `✔체크 (${c.x},${c.y})`;
+        pin.textContent = `${tag} (${c.x},${c.y})`;
         pin.title = '드래그하여 위치 이동 / 우클릭 시 삭제';
-        attachPinDrag(pin, c, '✔체크');
+        attachPinDrag(pin, c, tag);
         pin.oncontextmenu = (e) => { e.preventDefault(); cfg.checks.splice(idx, 1); renderPins(); };
         layer.appendChild(pin);
       });
@@ -360,9 +421,10 @@
         pin.style.background = '#e11d48';
         pin.style.left = `${pos.left}px`;
         pin.style.top = `${pos.top}px`;
-        pin.textContent = `✍️서명 (${s.x},${s.y})`;
+        const roleTag = `✍️서명:${ROLE_KR[s.role] || '공통'}`;
+        pin.textContent = `${roleTag} (${s.x},${s.y})`;
         pin.title = '드래그하여 위치 이동 / 우클릭 시 삭제';
-        attachPinDrag(pin, s, '✍️서명');
+        attachPinDrag(pin, s, roleTag);
         pin.oncontextmenu = (e) => { e.preventDefault(); cfg.signatures.splice(idx, 1); renderPins(); };
         layer.appendChild(pin);
       });
@@ -384,9 +446,10 @@
         return `      { page: ${c.page}, cond: ${condSrc}, x: ${c.x}, y: ${c.y} }`;
       }).join(',\n');
 
-      const sigsStr = cfg.signatures.map(s =>
-        `      { page: ${s.page}, x: ${s.x}, y: ${s.y}, w: ${s.w || 50}, h: ${s.h || 20} }`
-      ).join(',\n');
+      const sigsStr = cfg.signatures.map(s => {
+        const rolePart = s.role ? `role: '${s.role}', ` : '';
+        return `      { page: ${s.page}, ${rolePart}x: ${s.x}, y: ${s.y}, w: ${s.w || 50}, h: ${s.h || 20} }`;
+      }).join(',\n');
 
       const out = `  ${currentInsurer}: {\n    fields: [\n${fieldsStr}\n    ],\n    checks: [\n${checksStr}\n    ],\n    signatures: [\n${sigsStr}\n    ]\n  },`;
       navigator.clipboard.writeText(out).then(() => {
