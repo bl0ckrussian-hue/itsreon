@@ -117,4 +117,932 @@
     }
 
     .fax-app-btn {
-      background: #0f172
+      background: #0f172a;
+      color: #fff;
+      border: none;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    .form-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .form-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .form-section-title { font-size: 16px; font-weight: 800; color: #0f172a; }
+
+    .same-check-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      background: #eff6ff;
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 640px) {
+      .form-grid-2 { grid-template-columns: 1fr 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12.5px; font-weight: 700; color: #334155; }
+    .form-label .req { color: #e11d48; margin-left: 2px; }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+      background-color: #f8fafc;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background-color: #ffffff;
+    }
+
+    .rrn-wrap { display: flex; align-items: center; gap: 8px; }
+    .rrn-wrap input { text-align: center; font-weight: 700; letter-spacing: 1px; }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip-label {
+      flex: 1;
+      min-width: 80px;
+      text-align: center;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      background: #f8fafc;
+      cursor: pointer;
+      user-select: none;
+    }
+    .chip-label input { display: none; }
+    .chip-label:has(input:checked) {
+      background: var(--primary-light);
+      border-color: var(--accent);
+      color: var(--primary);
+    }
+
+    .file-upload-box {
+      border: 2px dashed #94a3b8;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+    }
+    .file-upload-box:hover { border-color: var(--accent); background: #eff6ff; }
+
+    .file-list { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .signature-container {
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #signature-pad { width: 100%; height: 170px; display: block; cursor: crosshair; }
+    .sig-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      padding: 12px 20px 20px;
+      border-top: 1px solid var(--border-color);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .back-step-btn {
+      padding: 16px 22px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      background-color: #ffffff;
+      color: #334155;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .submit-btn {
+      width: 100%;
+      max-width: 740px;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background-color: var(--primary);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .submit-btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+
+    /* 완료 및 모바일팩스 연동 모달 */
+    #done-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .done-card {
+      background: #fff;
+      border-radius: 20px;
+      max-width: 480px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-title">청구 정보 및 전자서명 입력</div>
+    <div style="display:flex; gap:8px;">
+      <a href="./claim_mapper.html" target="_blank" class="close-btn" style="background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe;">🎯 좌표 배치기</a>
+      <button class="close-btn" onclick="closeWindow()">창닫기</button>
+    </div>
+  </header>
+
+  <main class="form-container">
+    <div class="selected-summary-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+        <h3 style="margin:0;">🖨️ 선택한 보험사 및 청구 팩스번호 안내</h3>
+        <button type="button" class="fax-app-btn" onclick="installMobileFaxStore()">📲 모바일팩스 앱 설치/열기</button>
+      </div>
+      <div id="selected-fax-list"></div>
+    </div>
+
+    <form id="claim-master-form" onsubmit="event.preventDefault();">
+      <!-- 1. 피보험자 정보 -->
+      <section class="form-section">
+        <div class="form-section-header">
+          <div class="form-section-title">👤 1. 피보험자 (진료받으신 분) 정보</div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label class="form-label">피보험자 성명<span class="req">*</span></label>
+            <input type="text" id="insuredName" class="form-input" placeholder="예: 홍길동" oninput="syncSamePerson()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">피보험자 주민등록번호<span class="req">*</span> <span style="font-size:11px; color:#64748b; font-weight:normal;">(서버 미저장)</span></label>
+            <div class="rrn-wrap">
+              <input type="text" id="insuredRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===6) document.getElementById('insuredRrn2').focus(); syncSamePerson();">
+              <span>-</span>
+              <input type="text" id="insuredRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,''); syncSamePerson();">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">휴대폰 번호<span class="req">*</span></label>
+            <input type="tel" id="insuredPhone" class="form-input" placeholder="010-0000-0000" oninput="autoHyphenPhone(this); syncSamePerson();">
+          </div>
+          <div class="form-group">
+            <label class="form-label">직장명 / 하시는 일(직무)<span class="req">*</span></label>
+            <input type="text" id="insuredJob" class="form-input" placeholder="예: 잇츠리온 / 사무직">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label">현재 거주지 주소 (선택)</label>
+            <input type="text" id="insuredAddress" class="form-input" placeholder="예: 충북 청주시 서원구 ...">
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 계약자 및 수령 계좌 -->
+      <section class="form-section">
+        <div class="form-section-header">
+          <div class="form-section-title">🏦 2. 계약자 및 보험금 수령 계좌 (수익자)</div>
+          <label class="same-check-label">
+            <input type="checkbox" id="sameAsInsured" checked onchange="syncSamePerson()">
+            <span>계약자·예금주 모두 피보험자 본인과 동일</span>
+          </label>
+        </div>
+
+        <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">보험계약자 성명<span class="req">*</span></label>
+            <input type="text" id="holderName" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">보험계약자 주민등록번호<span class="req">*</span></label>
+            <div class="rrn-wrap">
+              <input type="text" id="holderRrn1" class="form-input" maxlength="6" placeholder="앞 6자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+              <span>-</span>
+              <input type="text" id="holderRrn2" class="form-input" maxlength="7" placeholder="뒤 7자리" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px; padding: 12px 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 800; color: #1e3a8a; cursor: pointer;">
+            <input type="checkbox" id="useAutoTransfer" onchange="toggleAutoTransferAccount()" style="width: 17px; height: 17px; accent-color: #2563eb;">
+            <span>💳 기존 보험료 자동이체 계좌로 보험금 수령 요청 (체크 시 계좌번호 입력 생략 가능)</span>
+          </label>
+        </div>
+
+        <div class="form-grid form-grid-3">
+          <div class="form-group">
+            <label class="form-label">지급받을 은행명<span class="req" id="req-bank">*</span></label>
+            <select id="bankName" class="form-select">
+              <option value="">은행 선택</option>
+              <option value="국민은행">KB국민은행</option>
+              <option value="신한은행">신한은행</option>
+              <option value="우리은행">우리은행</option>
+              <option value="하나은행">하나은행</option>
+              <option value="농협은행">NH농협은행</option>
+              <option value="기업은행">IBK기업은행</option>
+              <option value="카카오뱅크">카카오뱅크</option>
+              <option value="토스뱅크">토스뱅크</option>
+              <option value="새마을금고">새마을금고</option>
+              <option value="우체국">우체국</option>
+              <option value="SC제일은행">SC제일은행</option>
+              <option value="부산은행">부산은행</option>
+              <option value="대구은행">iM뱅크(대구)</option>
+              <option value="광주은행">광주은행</option>
+              <option value="경남은행">경남은행</option>
+              <option value="전북은행">전북은행</option>
+              <option value="신협">신협</option>
+              <option value="수협">수협</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">계좌번호 (숫자만)<span class="req" id="req-acc">*</span></label>
+            <input type="text" id="accountNumber" class="form-input" placeholder="- 없이 숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+          </div>
+          <div class="form-group">
+            <label class="form-label">예금주 성명 (수익자)<span class="req">*</span></label>
+            <input type="text" id="beneficiaryName" class="form-input">
+          </div>
+        </div>
+        <input type="hidden" id="beneficiaryRrn1">
+        <input type="hidden" id="beneficiaryRrn2">
+      </section>
+
+      <!-- 3. 사고 및 진료 내역 -->
+      <section class="form-section">
+        <div class="form-section-header">
+          <div class="form-section-title">🏥 3. 사고 및 병원 진료사항</div>
+        </div>
+        <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">사고 유형<span class="req">*</span></label>
+            <div class="chip-group">
+              <label class="chip-label"><input type="radio" name="accidentType" value="질병" checked>질병</label>
+              <label class="chip-label"><input type="radio" name="accidentType" value="상해">상해</label>
+              <label class="chip-label"><input type="radio" name="accidentType" value="교통사고">교통사고</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">청구 구분<span class="req">*</span></label>
+            <div class="chip-group">
+              <label class="chip-label"><input type="radio" name="claimCategory" value="신규" checked>신규접수</label>
+              <label class="chip-label"><input type="radio" name="claimCategory" value="추가">추가접수</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid form-grid-3" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">사고일 / 최초 내원일<span class="req">*</span></label>
+            <input type="date" id="accidentDate" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">진단명(병명)<span class="req">*</span></label>
+            <input type="text" id="diagnosisName" class="form-input" placeholder="예: 급성 위염, 요추 염좌">
+          </div>
+          <div class="form-group">
+            <label class="form-label">병원명 / 진료과</label>
+            <input type="text" id="hospitalName" class="form-input" placeholder="예: 한국병원 / 내과">
+          </div>
+        </div>
+        <div class="form-grid form-grid-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">사고(내원) 경위<span class="req">*</span></label>
+            <input type="text" id="accidentDesc" class="form-input" placeholder="예: 복통 증상으로 내원하여 진료">
+          </div>
+          <div class="form-group">
+            <label class="form-label">사고 장소 (상해 시)</label>
+            <input type="text" id="accidentPlace" class="form-input" placeholder="예: 자택">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">청구 담보 선택 (복수선택 가능)</label>
+          <div class="chip-group">
+            <label class="chip-label"><input type="checkbox" name="claimCoverages" value="실손의료비" checked>실손의료비</label>
+            <label class="chip-label"><input type="checkbox" name="claimCoverages" value="통원">통원</label>
+            <label class="chip-label"><input type="checkbox" name="claimCoverages" value="입원">입원일당</label>
+            <label class="chip-label"><input type="checkbox" name="claimCoverages" value="진단">진단비</label>
+            <label class="chip-label"><input type="checkbox" name="claimCoverages" value="수술">수술비</label>
+            <label class="chip-label"><input type="checkbox" name="claimCoverages" value="장해">후유장해</label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 병원 서류 첨부 -->
+      <section class="form-section">
+        <div class="form-section-header">
+          <div class="form-section-title">📎 4. 병원 서류 및 신분증 첨부 (선택)</div>
+          <span style="font-size:11.5px; color:#64748b;">첨부 시 청구서 뒷장에 하나의 PDF로 병합됩니다</span>
+        </div>
+        <div class="file-upload-box" onclick="document.getElementById('medicalFiles').click()">
+          <input type="file" id="medicalFiles" multiple accept="image/jpeg,image/png,application/pdf" style="display:none;" onchange="handleFileSelect(event)">
+          <div style="font-size:14px; font-weight:700; color:#1e293b;">📸 여기를 눌러 병원 서류(사진/PDF)를 등록하세요</div>
+          <div style="font-size:11.5px; color:#64748b; margin-top:4px;">영수증, 세부내역서, 처방전, 진단서 등 다중 선택 가능</div>
+        </div>
+        <div class="file-list" id="attached-file-list"></div>
+      </section>
+
+      <!-- 5. 알림 설정 -->
+      <section class="form-section">
+        <div class="form-section-header">
+          <div class="form-section-title">🔔 5. 청구서 생성 알림 발송 설정 (선택)</div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <label class="chip-label"><input type="checkbox" id="notifyCustomer">📱 고객에게 청구 안내 문자 발송</label>
+          <label class="chip-label"><input type="checkbox" id="notifyPlanner" onchange="toggleNotifyInputs()">💼 담당 설계사에게 접수 알림 발송</label>
+        </div>
+        <div id="planner-Input-wrap" class="form-grid form-grid-2" style="display:none; margin-top:12px;">
+          <input type="text" id="plannerName" class="form-input" placeholder="담당 설계사 성명">
+          <input type="tel" id="plannerPhone" class="form-input" placeholder="담당 설계사 연락처" oninput="autoHyphenPhone(this)">
+        </div>
+      </section>
+
+      <!-- 6. 자필 전자서명 -->
+      <section class="form-section">
+        <div class="form-section-header">
+          <div class="form-section-title">✍️ 6. 청구권자(본인) 자필 전자서명<span class="req">*</span></div>
+          <button type="button" onclick="clearSignature()" class="close-btn">🔄 다시 그리기</button>
+        </div>
+        <div class="signature-container">
+          <div class="sig-placeholder" id="sig-placeholder">이곳에 손가락 또는 마우스로 서명을 그려주세요</div>
+          <canvas id="signature-pad"></canvas>
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <div class="bottom-bar">
+    <button class="back-step-btn" onclick="location.href='./claim.html'">← 보험사 다시 선택</button>
+    <button class="submit-btn" id="generate-btn" onclick="handleGeneratePDF()">✨ 청구서 + 첨부서류 통합 PDF 다운로드</button>
+  </div>
+
+  <!-- 다운로드 완료 & 모바일팩스 앱 원터치 공유 모달 -->
+  <div id="done-modal">
+    <div class="done-card">
+      <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:8px;">✅ 통합 청구서 생성 완료!</h3>
+      <p style="font-size:13px; color:#475569; line-height:1.5; margin-bottom:16px;">
+        기기에 PDF 다운로드가 완료되었습니다. 스마트폰에서는 아래 <b>[모바일팩스로 PDF 바로 보내기]</b>를 누르면 앱에 파일이 즉시 등록됩니다.
+      </p>
+      <div id="done-insurer-actions" style="display:flex; flex-direction:column; gap:10px; margin-bottom:18px;"></div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="installMobileFaxStore()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:700; font-size:13px; cursor:pointer;">📲 모바일팩스 미설치 시 설치</button>
+        <button type="button" onclick="document.getElementById('done-modal').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--primary); color:#fff; font-weight:800; font-size:13px; cursor:pointer;">확인 및 닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 알리고/GAS 문자 알림 연동 시 사용할 웹훅 주소 (추후 GAS 배포 URL 입력 시 자동 발송)
+    const CLAIM_NOTIFY_GAS_URL = "";
+
+    const selectedIds = JSON.parse(sessionStorage.getItem('rion_selected_insurers') || '[]');
+    if (selectedIds.length === 0) {
+      alert('선택된 보험사가 없습니다. 보험사 선택 화면으로 이동합니다.');
+      window.location.replace('./claim.html');
+    }
+
+    const allInsurers = [...INSURER_DB.life, ...INSURER_DB.nonLife];
+    const selectedObjects = allInsurers.filter(ins => selectedIds.includes(ins.id));
+
+    let attachedMedicalFiles = [];
+    let generatedPdfFiles = []; // 모바일팩스 Web Share 공유용 메모리 객체
+    let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
+
+    function initPage() {
+      document.getElementById('selected-fax-list').innerHTML = selectedObjects.map(ins => `
+        <div class="fax-item">
+          <div>
+            <strong>${ins.name}</strong>
+            <div style="font-size:11px; color:#6b7280; margin-top:2px;">콜센터: ${ins.call}</div>
+          </div>
+          <div style="display:flex; align-items:center;">
+            ${ins.faxType === 'virtual'
+              ? `<span class="badge-virtual">가상팩스</span>
+                 <input type="tel" id="virtual-fax-${ins.id}" placeholder="발급받은 번호 입력" style="margin-left:6px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; width:135px;">`
+              : `<strong style="color:#1e3a8a;">${ins.fax}</strong>
+                 <button type="button" class="copy-fax-btn" onclick="copyFaxNumber('${ins.fax}', '${ins.name}')">번호복사</button>`
+            }
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('accidentDate').value = new Date().toISOString().split('T')[0];
+
+      const loggedPlanner = localStorage.getItem('rion_logged_user');
+      if (loggedPlanner) document.getElementById('plannerName').value = loggedPlanner;
+
+      setTimeout(initSignaturePad, 100);
+    }
+
+    function copyFaxNumber(fax, name) {
+      navigator.clipboard.writeText(fax).then(() => {
+        alert(`[${name}] 팩스번호(${fax})가 클립보드에 복사되었습니다.`);
+      });
+    }
+
+    // 모바일팩스 앱 실행 또는 미설치 시 스토어 이동
+    function installMobileFaxStore() {
+      const ua = navigator.userAgent;
+      if (/Android/i.test(ua)) {
+        window.location.href = "intent://send#Intent;scheme=mobilefax;package=com.dho.mobilefax;end";
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        window.open("https://apps.apple.com/kr/app/id958704925", "_blank");
+      } else {
+        window.open("https://play.google.com/store/apps/details?id=com.dho.mobilefax", "_blank");
+      }
+    }
+
+    // 스마트폰에서 생성된 PDF 파일을 모바일팩스 앱으로 즉시 공유 (팩스번호 자동 복사 동시 수행)
+    async function sharePdfToMobileFax(idx, faxNum, insName) {
+      if (faxNum && !faxNum.includes('가상팩스')) {
+        try { await navigator.clipboard.writeText(faxNum); } catch (e) {}
+      }
+      const fileObj = generatedPdfFiles[idx];
+      if (fileObj && navigator.canShare && navigator.canShare({ files: [fileObj] })) {
+        try {
+          await navigator.share({
+            title: `${insName} 보험금청구서`,
+            text: `팩스번호(${faxNum})가 복사되었습니다. 공유 목록에서 [모바일팩스]를 선택하세요.`,
+            files: [fileObj]
+          });
+          return;
+        } catch (err) {
+          console.log('공유 취소 또는 실패:', err);
+        }
+      }
+      alert(`팩스번호(${faxNum})가 복사되었습니다.\n모바일팩스 앱을 열어 다운로드된 PDF 파일을 첨부해주세요.`);
+      installMobileFaxStore();
+    }
+
+    function autoHyphenPhone(el) {
+      el.value = el.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
+    }
+
+    function syncSamePerson() {
+      if (!document.getElementById('sameAsInsured').checked) return;
+      const iName = document.getElementById('insuredName').value;
+      const iRrn1 = document.getElementById('insuredRrn1').value;
+      const iRrn2 = document.getElementById('insuredRrn2').value;
+      document.getElementById('holderName').value = iName;
+      document.getElementById('holderRrn1').value = iRrn1;
+      document.getElementById('holderRrn2').value = iRrn2;
+      document.getElementById('beneficiaryName').value = iName;
+      document.getElementById('beneficiaryRrn1').value = iRrn1;
+      document.getElementById('beneficiaryRrn2').value = iRrn2;
+    }
+
+    function toggleNotifyInputs() {
+      const checked = document.getElementById('notifyPlanner').checked;
+      document.getElementById('planner-Input-wrap').style.display = checked ? 'grid' : 'none';
+    }
+
+    function toggleAutoTransferAccount() {
+      const isAuto = document.getElementById('useAutoTransfer').checked;
+      document.getElementById('req-bank').style.display = isAuto ? 'none' : 'inline';
+      document.getElementById('req-acc').style.display = isAuto ? 'none' : 'inline';
+      document.getElementById('accountNumber').placeholder = isAuto ? '자동이체 계좌 수령 (입력 생략 가능)' : '- 없이 숫자만 입력';
+    }
+
+    function handleFileSelect(e) {
+      attachedMedicalFiles = [...attachedMedicalFiles, ...Array.from(e.target.files)];
+      renderAttachedFiles();
+    }
+
+    function removeAttachedFile(idx) {
+      attachedMedicalFiles.splice(idx, 1);
+      renderAttachedFiles();
+    }
+
+    function renderAttachedFiles() {
+      document.getElementById('attached-file-list').innerHTML = attachedMedicalFiles.map((file, idx) => `
+        <div class="file-item">
+          <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+          <button type="button" onclick="removeAttachedFile(${idx})" style="border:none; background:none; color:#e11d48; font-weight:800; cursor:pointer;">✕ 삭제</button>
+        </div>
+      `).join('');
+    }
+
+    function initSignaturePad() {
+      sigCanvas = document.getElementById('signature-pad');
+      if (!sigCanvas) return;
+      const rect = sigCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      sigCanvas.width = rect.width * dpr;
+      sigCanvas.height = rect.height * dpr;
+      sigCtx = sigCanvas.getContext('2d');
+      sigCtx.scale(dpr, dpr);
+      sigCtx.lineWidth = 2.8;
+      sigCtx.lineCap = 'round';
+      sigCtx.lineJoin = 'round';
+      sigCtx.strokeStyle = '#0f172a';
+
+      const getPos = (e) => {
+        const r = sigCanvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: cx - r.left, y: cy - r.top };
+      };
+      const start = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        hasSigned = true;
+        document.getElementById('sig-placeholder').style.display = 'none';
+        const p = getPos(e);
+        sigCtx.beginPath();
+        sigCtx.moveTo(p.x, p.y);
+      };
+      const move = (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const p = getPos(e);
+        sigCtx.lineTo(p.x, p.y);
+        sigCtx.stroke();
+      };
+      const end = () => { isDrawing = false; };
+
+      sigCanvas.onmousedown = start;
+      sigCanvas.onmousemove = move;
+      window.addEventListener('mouseup', end);
+      sigCanvas.ontouchstart = start;
+      sigCanvas.ontouchmove = move;
+      sigCanvas.ontouchend = end;
+    }
+
+    function clearSignature() {
+      if (!sigCanvas || !sigCtx) return;
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      hasSigned = false;
+      document.getElementById('sig-placeholder').style.display = 'flex';
+    }
+
+    function collectFormData() {
+      syncSamePerson();
+      const useAutoTransfer = document.getElementById('useAutoTransfer').checked;
+      const data = {
+        insuredName: document.getElementById('insuredName').value.trim(),
+        insuredRrn1: document.getElementById('insuredRrn1').value.trim(),
+        insuredRrn2: document.getElementById('insuredRrn2').value.trim(),
+        insuredPhone: document.getElementById('insuredPhone').value.trim(),
+        insuredJob: document.getElementById('insuredJob').value.trim(),
+        insuredAddress: document.getElementById('insuredAddress').value.trim(),
+        holderName: document.getElementById('holderName').value.trim(),
+        holderRrn1: document.getElementById('holderRrn1').value.trim(),
+        holderRrn2: document.getElementById('holderRrn2').value.trim(),
+        useAutoTransfer,
+        bankName: document.getElementById('bankName').value,
+        accountNumber: document.getElementById('accountNumber').value.trim(),
+        beneficiaryName: document.getElementById('beneficiaryName').value.trim(),
+        beneficiaryRrn1: document.getElementById('beneficiaryRrn1').value.trim(),
+        beneficiaryRrn2: document.getElementById('beneficiaryRrn2').value.trim(),
+        accidentType: document.querySelector('input[name="accidentType"]:checked')?.value || '질병',
+        claimCategory: document.querySelector('input[name="claimCategory"]:checked')?.value || '신규',
+        accidentDate: document.getElementById('accidentDate').value,
+        diagnosisName: document.getElementById('diagnosisName').value.trim(),
+        hospitalName: document.getElementById('hospitalName').value.trim(),
+        accidentDesc: document.getElementById('accidentDesc').value.trim(),
+        accidentPlace: document.getElementById('accidentPlace').value.trim(),
+        coverages: Array.from(document.querySelectorAll('input[name="claimCoverages"]:checked')).map(el => el.value),
+        notifyCustomer: document.getElementById('notifyCustomer').checked,
+        notifyPlanner: document.getElementById('notifyPlanner').checked,
+        plannerName: document.getElementById('plannerName').value.trim(),
+        plannerPhone: document.getElementById('plannerPhone').value.trim(),
+        signatureDataUrl: hasSigned ? sigCanvas.toDataURL('image/png') : null
+      };
+
+      if (!data.insuredName || data.insuredRrn1.length !== 6 || data.insuredRrn2.length !== 7) {
+        alert('피보험자 성명과 주민등록번호 13자리를 정확히 입력해주세요.'); return null;
+      }
+      if (!data.insuredPhone || !data.insuredJob) {
+        alert('피보험자 휴대폰 번호와 직장/직무를 입력해주세요.'); return null;
+      }
+      if (!data.useAutoTransfer && (!data.bankName || !data.accountNumber)) {
+        alert('은행명과 계좌번호를 입력하거나 [자동이체 계좌로 수령 요청]에 체크해주세요.'); return null;
+      }
+      if (!data.beneficiaryName) {
+        alert('예금주(수익자) 성명을 입력해주세요.'); return null;
+      }
+      if (!data.diagnosisName || !data.accidentDesc) {
+        alert('진단명(병명)과 사고(내원) 경위를 입력해주세요.'); return null;
+      }
+      if (!data.signatureDataUrl) {
+        alert('하단 전자서명란에 자필 서명을 그려주세요.'); return null;
+      }
+      return data;
+    }
+
+    async function drawKoreanText(pdfDoc, page, text, x, y, fontSize = 9.5, isBold = false, color = '#000000') {
+      if (text === undefined || text === null || String(text).trim() === '') return;
+      const str = String(text);
+      const scale = 3;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const fontSpec = `${isBold ? '800' : '600'} ${fontSize * scale}px Pretendard, sans-serif`;
+      ctx.font = fontSpec;
+      const metrics = ctx.measureText(str);
+      const textWidth = Math.ceil(metrics.width) + 8;
+      const textHeight = Math.ceil(fontSize * scale * 1.35);
+      canvas.width = textWidth;
+      canvas.height = textHeight;
+      ctx.font = fontSpec;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(str, 2, textHeight / 2);
+      const pngImage = await pdfDoc.embedPng(canvas.toDataURL('image/png'));
+      page.drawImage(pngImage, { x, y: y - 2, width: textWidth / scale, height: textHeight / scale });
+    }
+
+    async function drawCheckmark(pdfDoc, page, x, y, size = 11.5) {
+      await drawKoreanText(pdfDoc, page, '✔', x, y, size, true, '#000000');
+    }
+
+    async function drawSignatureImg(pdfDoc, page, sigImage, x, y, w = 50, h = 20) {
+      if (!sigImage || !page) return;
+      page.drawImage(sigImage, { x, y: y - 4, width: w, height: h });
+    }
+
+    async function appendMedicalFilesToPdf(targetPdfDoc) {
+      for (const file of attachedMedicalFiles) {
+        const arrayBuffer = await file.arrayBuffer();
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          const copiedPages = await targetPdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
+          copiedPages.forEach((p) => targetPdfDoc.addPage(p));
+        } else if (file.type.startsWith('image/')) {
+          const embeddedImg = (file.type === 'image/png' || file.name.toLowerCase().endsWith('.png'))
+            ? await targetPdfDoc.embedPng(arrayBuffer)
+            : await targetPdfDoc.embedJpg(arrayBuffer);
+          const page = targetPdfDoc.addPage([595.28, 841.89]);
+          const imgDims = embeddedImg.scaleToFit(535, 760);
+          page.drawImage(embeddedImg, {
+            x: (595.28 - imgDims.width) / 2,
+            y: (841.89 - imgDims.height) / 2,
+            width: imgDims.width,
+            height: imgDims.height
+          });
+        }
+      }
+    }
+
+    async function createStandardClaimPdf(insurer, data) {
+      const pdfDoc = await PDFLib.PDFDocument.create();
+      const page = pdfDoc.addPage([595.28, 841.89]);
+      const { rgb } = PDFLib;
+
+      page.drawRectangle({ x: 40, y: 765, width: 515, height: 42, color: rgb(0.12, 0.23, 0.54) });
+      await drawKoreanText(pdfDoc, page, `${insurer.name} 보험금 청구서 (통합양식)`, 55, 780, 15, true, '#ffffff');
+
+      const drawRow = async (y, label1, val1, label2, val2) => {
+        page.drawRectangle({ x: 40, y: y - 10, width: 515, height: 28, borderColor: rgb(0.8, 0.82, 0.85), borderWidth: 1 });
+        page.drawRectangle({ x: 40, y: y - 10, width: 95, height: 28, color: rgb(0.95, 0.96, 0.98) });
+        await drawKoreanText(pdfDoc, page, label1, 48, y, 9.5, true);
+        await drawKoreanText(pdfDoc, page, val1, 145, y, 10, false);
+        if (label2) {
+          page.drawRectangle({ x: 300, y: y - 10, width: 95, height: 28, color: rgb(0.95, 0.96, 0.98) });
+          await drawKoreanText(pdfDoc, page, label2, 308, y, 9.5, true);
+          await drawKoreanText(pdfDoc, page, val2, 405, y, 10, false);
+        }
+      };
+
+      await drawKoreanText(pdfDoc, page, '1. 인적사항 및 보상 안내', 42, 740, 11.5, true);
+      await drawRow(712, '피보험자 성명', data.insuredName, '주민등록번호', data.insuredRrnFull);
+      await drawRow(684, '휴대폰 번호', data.insuredPhone, '직장 / 직무', data.insuredJob);
+      await drawRow(656, '보험계약자', data.holderName, '계약자 주민번호', data.holderRrnFull);
+      await drawRow(628, '거주지 주소', data.insuredAddress || '-', '', '');
+
+      await drawKoreanText(pdfDoc, page, '2. 사고 및 진료 내역', 42, 592, 11.5, true);
+      await drawRow(564, '사고/청구유형', `${data.accidentType} (${data.claimCategory}접수)`, '사고(발병)일', data.accidentDate);
+      await drawRow(536, '진단명(병명)', data.diagnosisName, '병원명/진료과', data.hospitalName || '-');
+      await drawRow(508, '사고(내원)경위', data.accidentDesc, '청구 담보', data.coverages.join(', '));
+
+      await drawKoreanText(pdfDoc, page, '3. 보험금 수령 계좌', 42, 472, 11.5, true);
+      const accText = data.useAutoTransfer && !data.accountNumber ? '[자동이체 계좌 수령 요청]' : data.accountNumber;
+      await drawRow(444, '금융기관(은행)', data.bankName || '자동이체은행', '계좌번호', accText);
+      await drawRow(416, '예금주(수익자)', data.beneficiaryName, '자동이체요청', data.useAutoTransfer ? '✔ 요청함' : '해당없음');
+
+      page.drawRectangle({ x: 40, y: 240, width: 515, height: 145, color: rgb(0.97, 0.98, 0.99), borderColor: rgb(0.8, 0.82, 0.85), borderWidth: 1 });
+      await drawKoreanText(pdfDoc, page, '[필수] 보험금 청구를 위한 개인(신용)정보 수집·이용·조회·제공 동의', 52, 360, 10.5, true);
+      await drawKoreanText(pdfDoc, page, '✔ 고유식별정보 동의함    ✔ 민감정보 동의함    ✔ 개인(신용)정보 동의함', 52, 315, 10, true);
+      await drawKoreanText(pdfDoc, page, `작성일자 : ${data.todayDateFull}`, 52, 260, 10, true);
+      await drawKoreanText(pdfDoc, page, `청구권자(피보험자/수익자) : ${data.insuredName}   (서명)`, 290, 260, 10, true);
+
+      if (data.signatureDataUrl) {
+        const sigImg = await pdfDoc.embedPng(data.signatureDataUrl);
+        page.drawImage(sigImg, { x: 465, y: 250, width: 70, height: 32 });
+      }
+      return pdfDoc;
+    }
+
+    async function handleGeneratePDF() {
+      const rawData = collectFormData();
+      if (!rawData) return;
+
+      const btn = document.getElementById('generate-btn');
+      const origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⏳ 청구서 작성 및 병원서류 병합 중...';
+      generatedPdfFiles = [];
+
+      try {
+        const [accY, accM, accD] = (rawData.accidentDate || '2026-01-01').split('-');
+        const now = new Date();
+        const todayY = String(now.getFullYear());
+        const todayM = String(now.getMonth() + 1).padStart(2, '0');
+        const todayD = String(now.getDate()).padStart(2, '0');
+
+        const enrichedData = {
+          ...rawData,
+          relSelf: '본인',
+          insuredRrnFull: `${rawData.insuredRrn1}-${rawData.insuredRrn2}`,
+          holderRrnFull: `${rawData.holderRrn1}-${rawData.holderRrn2}`,
+          beneficiaryRrnFull: `${rawData.beneficiaryRrn1}-${rawData.beneficiaryRrn2}`,
+          accYear: accY,
+          accYearShort: accY.slice(2),
+          accMonth: accM,
+          accDay: accD,
+          todayYear: todayY,
+          todayYearShort: todayY.slice(2),
+          todayMonth: todayM,
+          todayDay: todayD,
+          todayDateFull: `${todayY}년 ${todayM}월 ${todayD}일`,
+          todayDateSlash: `${todayY}/${todayM}/${todayD}`,
+          hospitalWithDiag: `${rawData.hospitalName} (${rawData.diagnosisName})`,
+          bankName: rawData.useAutoTransfer && !rawData.bankName ? '자동이체계좌' : rawData.bankName,
+          accountNumber: rawData.useAutoTransfer && !rawData.accountNumber ? '자동이체 계좌 요청' : rawData.accountNumber
+        };
+
+        const doneActionsHtml = [];
+
+        for (let i = 0; i < selectedObjects.length; i++) {
+          const ins = selectedObjects[i];
+          let pdfDoc;
+
+          if (ins.pdfFile && PDF_COORD_MAP[ins.id]) {
+            try {
+              const res = await fetch(encodeURI(`./forms/${ins.pdfFile}`));
+              if (!res.ok) throw new Error('PDF 로드 실패');
+              const existingBytes = await res.arrayBuffer();
+              pdfDoc = await PDFLib.PDFDocument.load(existingBytes);
+              const pages = pdfDoc.getPages();
+              const sigImg = enrichedData.signatureDataUrl ? await pdfDoc.embedPng(enrichedData.signatureDataUrl) : null;
+              const mapCfg = PDF_COORD_MAP[ins.id];
+
+              for (const f of mapCfg.fields) {
+                if (pages[f.page]) await drawKoreanText(pdfDoc, pages[f.page], enrichedData[f.key], f.x, f.y, f.size || 9.5, f.bold || false);
+              }
+              if (mapCfg.checks) {
+                for (const c of mapCfg.checks) {
+                  if (pages[c.page] && c.cond(enrichedData)) await drawCheckmark(pdfDoc, pages[c.page], c.x, c.y, c.size || 11.5);
+                }
+              }
+              if (sigImg && mapCfg.signatures) {
+                for (const s of mapCfg.signatures) {
+                  if (pages[s.page]) await drawSignatureImg(pdfDoc, pages[s.page], sigImg, s.x, s.y, s.w, s.h);
+                }
+              }
+            } catch (e) {
+              pdfDoc = await createStandardClaimPdf(ins, enrichedData);
+            }
+          } else {
+            pdfDoc = await createStandardClaimPdf(ins, enrichedData);
+          }
+
+          await appendMedicalFilesToPdf(pdfDoc);
+
+          const finalBytes = await pdfDoc.save();
+          const fileName = `[잇츠리온_보험금청구서]_${ins.name}_${enrichedData.insuredName}.pdf`;
+          const blob = new Blob([finalBytes], { type: 'application/pdf' });
+          generatedPdfFiles.push(new File([blob], fileName, { type: 'application/pdf' }));
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+          const vFaxInput = document.getElementById(`virtual-fax-${ins.id}`);
+          const targetFax = (vFaxInput && vFaxInput.value.trim()) ? vFaxInput.value.trim() : ins.fax;
+
+          doneActionsHtml.push(`
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+              <div>
+                <div style="font-weight:800; font-size:13.5px;">${ins.name}</div>
+                <div style="font-size:11.5px; color:#1e3a8a; font-weight:700;">FAX: ${targetFax}</div>
+              </div>
+              <button type="button" onclick="sharePdfToMobileFax(${i}, '${targetFax}', '${ins.name}')" style="background:#2563eb; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
+                📠 모바일팩스로 바로 보내기
+              </button>
+            </div>
+          `);
+        }
+
+        // 선택적 알림 발송 (주민번호·계좌번호 제외 비민감 메타정보만 전송)
+        if (CLAIM_NOTIFY_GAS_URL && (rawData.notifyCustomer || rawData.notifyPlanner)) {
+          fetch(CLAIM_NOTIFY_GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'claimNotify',
+              insuredName: rawData.insuredName,
+              insuredPhone: rawData.notifyCustomer ? rawData.insuredPhone : '',
+              plannerName: rawData.plannerName,
+              plannerPhone: rawData.notifyPlanner ? rawData.plannerPhone : '',
+              insurers: selectedObjects.map(o => `${o.name}(${o.fax})`).join(', ')
+            })
+          }).catch(() => {});
+        }
+
+        document.getElementById('done-insurer-actions').innerHTML = doneActionsHtml.join('');
+        document.getElementById('done-modal').style.display = 'flex';
+      } catch (err) {
+        alert('PDF 생성 중 오류가 발생했습니다: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    }
+
+    function closeWindow() {
+      window.close();
+      setTimeout(() => { window.location.href = './index.html'; }, 150);
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
