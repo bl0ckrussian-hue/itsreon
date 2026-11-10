@@ -85,15 +85,15 @@ const INSURER_DB = {
 // 보험사별 PDF 정밀 좌표 매핑 테이블
 const PDF_COORD_MAP = {
   // [1. 삼성화재]
-  samsung_fire: {
+    samsung_fire: {
     fields: [
-      { page: 0, key: 'insuredName', x: 130, y: 663, size: 10, bold: true },
-      { page: 0, key: 'insuredRrn1', x: 275, y: 663, size: 10 },
-      { page: 0, key: 'insuredRrn2', x: 342, y: 663, size: 10 },
-      { page: 0, key: 'insuredJob', x: 472, y: 663, size: 9.5 },
-      { page: 0, key: 'holderName', x: 130, y: 643, size: 10 },
-      { page: 0, key: 'holderRrn1', x: 275, y: 643, size: 10 },
-      { page: 0, key: 'holderRrn2', x: 342, y: 643, size: 10 },
+      { page: 0, key: 'insuredName', x: 124.5, y: 659, size: 10, bold: true },
+      { page: 0, key: 'insuredRrn1', x: 269, y: 660, size: 10 },
+      { page: 0, key: 'insuredRrn2', x: 339, y: 660, size: 10 },
+      { page: 0, key: 'insuredJob', x: 471, y: 660.5, size: 9.5 },
+      { page: 0, key: 'holderName', x: 124, y: 639, size: 10 },
+      { page: 0, key: 'holderRrn1', x: 269.5, y: 639, size: 10 },
+      { page: 0, key: 'holderRrn2', x: 338, y: 638.5, size: 10 },
       { page: 0, key: 'beneficiaryName', x: 190, y: 623, size: 10 },
       { page: 0, key: 'insuredPhone', x: 310, y: 623, size: 10 },
       { page: 0, key: 'insuredAddress', x: 280, y: 580, size: 9 },
@@ -104,13 +104,13 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'accidentDesc', x: 130, y: 485, size: 9.5 },
       { page: 0, key: 'hospitalName', x: 130, y: 465, size: 9.5 },
       { page: 0, key: 'diagnosisName', x: 330, y: 465, size: 9.5 },
-      { page: 0, key: 'bankName', x: 185, y: 335, size: 10 },
-      { page: 0, key: 'accountNumber', x: 305, y: 335, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 475, y: 335, size: 10 },
+      { page: 0, key: 'bankName', x: 185, y: 333.5, size: 10 },
+      { page: 0, key: 'accountNumber', x: 302, y: 332.5, size: 10 },
+      { page: 0, key: 'beneficiaryName', x: 470.5, y: 332.5, size: 10 },
       { page: 0, key: 'todayYear', x: 78, y: 175, size: 10 },
       { page: 0, key: 'todayMonth', x: 120, y: 175, size: 10 },
       { page: 0, key: 'todayDay', x: 148, y: 175, size: 10 },
-      { page: 0, key: 'insuredName', x: 425, y: 175, size: 10, bold: true },
+      { page: 0, key: 'insuredName', x: 424, y: 172, size: 10, bold: true },
       { page: 0, key: 'beneficiaryName', x: 425, y: 147, size: 10, bold: true },
       { page: 4, key: 'todayYearShort', x: 116, y: 437, size: 10 },
       { page: 4, key: 'todayMonth', x: 154, y: 437, size: 10 },
@@ -124,18 +124,18 @@ const PDF_COORD_MAP = {
       { page: 5, key: 'beneficiaryName', x: 405, y: 289, size: 10, bold: true }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 525, y: 633 },
-      { page: 0, cond: () => true, x: 192, y: 592 },
-      { page: 0, cond: (d) => d.accidentType === '상해', x: 153, y: 525 },
-      { page: 0, cond: (d) => d.accidentType === '질병', x: 196, y: 525 },
-      { page: 0, cond: (d) => d.accidentType === '교통사고', x: 252, y: 525 },
-      { page: 0, cond: (d) => d.claimCategory === '신규', x: 412, y: 525 },
-      { page: 0, cond: (d) => d.claimCategory === '추가', x: 498, y: 525 },
-      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 101, y: 393 },
-      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 158, y: 393 },
-      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 206, y: 393 },
-      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 254, y: 393 },
-      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 348, y: 393 },
+      { page: 0, cond: () => true, x: 525, y: 631.5 },
+      { page: 0, cond: () => true, x: 192, y: 591 },
+      { page: 0, cond: (d) => d.accidentType === '상해', x: 148.5, y: 525 },
+      { page: 0, cond: (d) => d.accidentType === '질병', x: 190.5, y: 525 },
+      { page: 0, cond: (d) => d.accidentType === '교통사고', x: 248, y: 525 },
+      { page: 0, cond: (d) => d.claimCategory === '신규', x: 410.5, y: 525 },
+      { page: 0, cond: (d) => d.claimCategory === '추가', x: 495.5, y: 525 },
+      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 90, y: 393 },
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 142, y: 393 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 181.5, y: 393 },
+      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 217, y: 394 },
+      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 253.5, y: 394 },
       { page: 1, cond: () => true, x: 496, y: 361 },
       { page: 1, cond: () => true, x: 496, y: 266 },
       { page: 1, cond: () => true, x: 496, y: 170 },
@@ -150,12 +150,12 @@ const PDF_COORD_MAP = {
       { page: 5, cond: () => true, x: 488, y: 386 }
     ],
     signatures: [
-      { page: 0, x: 485, y: 175, w: 46, h: 20 },
-      { page: 0, x: 485, y: 147, w: 46, h: 20 },
-      { page: 4, x: 478, y: 437, w: 46, h: 20 },
-      { page: 4, x: 478, y: 397, w: 46, h: 20 },
-      { page: 5, x: 478, y: 329, w: 46, h: 20 },
-      { page: 5, x: 478, y: 289, w: 46, h: 20 }
+      { page: 0, x: 499, y: 170, w: 46, h: 20 },
+      { page: 0, x: 499, y: 147, w: 46, h: 20 },
+      { page: 4, x: 490.5, y: 436, w: 46, h: 20 },
+      { page: 4, x: 488, y: 398, w: 46, h: 20 },
+      { page: 5, x: 488, y: 329, w: 46, h: 20 },
+      { page: 5, x: 487, y: 289, w: 46, h: 20 }
     ]
   },
 
