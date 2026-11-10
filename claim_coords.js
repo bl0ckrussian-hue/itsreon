@@ -685,122 +685,116 @@ const PDF_COORD_MAP = {
   },
 
   // [10. 하나손해보험]
-  hana_nonlife: {
+    hana_nonlife: {
     fields: [
-      { page: 0, key: 'insuredName', x: 145, y: 650, size: 10, bold: true },
-      { page: 0, key: 'insuredRrnFull', x: 355, y: 650, size: 10 },
-      { page: 0, key: 'insuredJob', x: 355, y: 633, size: 9.5 },
-      { page: 0, key: 'insuredName', x: 145, y: 598, size: 10 },
-      { page: 0, key: 'insuredPhone', x: 355, y: 598, size: 10 },
-      { page: 0, key: 'accidentDate', x: 115, y: 468, size: 10 },
-      { page: 0, key: 'accidentPlace', x: 340, y: 468, size: 9.5 },
-      { page: 0, key: 'accidentDesc', x: 115, y: 451, size: 9.5 },
-      { page: 0, key: 'hospitalName', x: 115, y: 434, size: 9.5 },
-      { page: 0, key: 'diagnosisName', x: 340, y: 434, size: 9.5 },
-      { page: 0, key: 'accountNumber', x: 150, y: 327, size: 10 },
-      { page: 0, key: 'bankName', x: 385, y: 327, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 495, y: 327, size: 10 },
-      // 1P 하단 작성일 인쇄된 '20' 뒤쪽 2자리 연도(todayYearShort)로 수정
-      { page: 0, key: 'todayYearShort', x: 96, y: 92, size: 10 },
-      { page: 0, key: 'todayMonth', x: 155, y: 92, size: 10 },
-      { page: 0, key: 'todayDay', x: 215, y: 92, size: 10 },
-      { page: 0, key: 'insuredName', x: 425, y: 92, size: 10, bold: true },
-      // 5P 하단 작성일 및 피보험자·보험수익자 정렬
+      { page: 0, key: 'insuredName', x: 142.5, y: 647, size: 10, bold: true },
+      { page: 0, key: 'insuredRrnFull', x: 358, y: 647.5, size: 10 },
+      { page: 0, key: 'insuredJob', x: 357.5, y: 630, size: 9.5 },
+      { page: 0, key: 'insuredName', x: 144, y: 595.5, size: 10 },
+      { page: 0, key: 'insuredPhone', x: 357.5, y: 595.5, size: 10 },
+      { page: 0, key: 'accidentDate', x: 105, y: 464, size: 10 },
+      { page: 0, key: 'accidentPlace', x: 345.5, y: 466.5, size: 9.5 },
+      { page: 0, key: 'accidentDesc', x: 103.5, y: 448, size: 9.5 },
+      { page: 0, key: 'hospitalName', x: 102.5, y: 430, size: 9.5 },
+      { page: 0, key: 'diagnosisName', x: 345.5, y: 430, size: 9.5 },
+      { page: 0, key: 'accountNumber', x: 150, y: 324.5, size: 10 },
+      { page: 0, key: 'bankName', x: 344, y: 324.5, size: 10 },
+      { page: 0, key: 'beneficiaryName', x: 489.5, y: 324.5, size: 10 },
+      { page: 0, key: 'todayYearShort', x: 88.5, y: 88, size: 10 },
+      { page: 0, key: 'todayMonth', x: 140.5, y: 88, size: 10 },
+      { page: 0, key: 'todayDay', x: 196.5, y: 88, size: 10 },
+      { page: 0, key: 'insuredName', x: 414, y: 89.5, size: 10, bold: true },
       { page: 4, key: 'todayYear', x: 195, y: 410, size: 10 },
       { page: 4, key: 'todayMonth', x: 280, y: 410, size: 10 },
       { page: 4, key: 'todayDay', x: 350, y: 410, size: 10 },
-      { page: 4, key: 'insuredName', x: 115, y: 368, size: 10, bold: true },
-      { page: 4, key: 'beneficiaryName', x: 415, y: 368, size: 10, bold: true }
+      { page: 4, key: 'insuredName', x: 85.5, y: 365.5, size: 10, bold: true },
+      { page: 4, key: 'beneficiaryName', x: 416.5, y: 355.5, size: 10, bold: true }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 190, y: 615 }, // 보상안내: 피보험자
-      { page: 0, cond: () => true, x: 218, y: 525 }, // 다른 보험사 계약사항: 없음
+      { page: 0, cond: () => true, x: 187.5, y: 613.5 },
+      { page: 0, cond: () => true, x: 214, y: 525 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 258, y: 486 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 314, y: 486 },
       { page: 0, cond: (d) => d.accidentType === '교통사고', x: 370, y: 486 },
-      // 1P 청구 담보 체크박스 위치 보정
-      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 42, y: 366 },
-      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 112, y: 366 },
-      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 176, y: 366 },
-      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 512, y: 366 },
-      // 상세동의서 2~5P 우측 빨간색 [동의함] 네모박스 정중앙(x: 512) 보정
-      { page: 1, cond: () => true, x: 512, y: 443 },
-      { page: 1, cond: () => true, x: 512, y: 380 },
-      { page: 1, cond: () => true, x: 512, y: 286 },
-      { page: 2, cond: () => true, x: 512, y: 285 },
-      { page: 2, cond: () => true, x: 512, y: 222 },
-      { page: 2, cond: () => true, x: 512, y: 128 },
-      { page: 3, cond: () => true, x: 512, y: 353 },
-      { page: 3, cond: () => true, x: 512, y: 289 },
-      { page: 4, cond: () => true, x: 512, y: 550 },
-      { page: 4, cond: () => true, x: 512, y: 498 },
-      { page: 4, cond: () => true, x: 512, y: 428 }
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 28, y: 364.5 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 99, y: 365 },
+      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 172, y: 366 },
+      { page: 0, cond: (d) => d.coverages.includes('실손의료비'), x: 507.5, y: 364.5 },
+      { page: 1, cond: () => true, x: 531.5, y: 440.5 },
+      { page: 1, cond: () => true, x: 533, y: 379 },
+      { page: 1, cond: () => true, x: 533.5, y: 284.5 },
+      { page: 2, cond: () => true, x: 533, y: 283.5 },
+      { page: 2, cond: () => true, x: 532, y: 221 },
+      { page: 2, cond: () => true, x: 531.5, y: 129 },
+      { page: 3, cond: () => true, x: 534.5, y: 351.5 },
+      { page: 3, cond: () => true, x: 535, y: 288 },
+      { page: 4, cond: () => true, x: 531.5, y: 550 },
+      { page: 4, cond: () => true, x: 533, y: 499 },
+      { page: 4, cond: () => true, x: 532, y: 429.5 }
     ],
     signatures: [
-      { page: 0, x: 505, y: 92, w: 48, h: 20 },
-      { page: 4, x: 215, y: 368, w: 48, h: 20 },
-      { page: 4, x: 505, y: 368, w: 48, h: 20 }
+      { page: 0, x: 509, y: 89.5, w: 48, h: 20 },
+      { page: 4, x: 237.5, y: 365, w: 48, h: 20 },
+      { page: 4, x: 516, y: 355.5, w: 48, h: 20 }
     ]
   },
 
   // [11. 라이나손해보험]
-  lina_nonlife: {
+    lina_nonlife: {
     fields: [
       { page: 0, key: 'holderName', x: 148, y: 632, size: 10 },
       { page: 0, key: 'holderRrn1', x: 290, y: 632, size: 10 },
       { page: 0, key: 'holderRrn2', x: 358, y: 632, size: 10 },
-      { page: 0, key: 'insuredPhone', x: 462, y: 632, size: 9.5 },
+      { page: 0, key: 'insuredPhone', x: 467.5, y: 631, size: 9.5 },
       { page: 0, key: 'insuredName', x: 148, y: 608, size: 10, bold: true },
-      { page: 0, key: 'insuredRrn1', x: 290, y: 608, size: 10 },
-      { page: 0, key: 'insuredRrn2', x: 358, y: 608, size: 10 },
-      { page: 0, key: 'insuredPhone', x: 462, y: 608, size: 9.5 },
-      { page: 0, key: 'insuredAddress', x: 148, y: 585, size: 9.5 },
-      { page: 0, key: 'insuredJob', x: 465, y: 585, size: 9.5 },
-      { page: 0, key: 'insuredPhone', x: 162, y: 542, size: 10 },
-      // 사고일시 앞 '20' 인쇄분 중복 방지 (accYearShort로 교체)
-      { page: 0, key: 'accYearShort', x: 124, y: 369, size: 10 },
-      { page: 0, key: 'accMonth', x: 162, y: 369, size: 10 },
-      { page: 0, key: 'accDay', x: 198, y: 369, size: 10 },
-      { page: 0, key: 'accidentPlace', x: 418, y: 369, size: 9.5 },
-      { page: 0, key: 'accidentDesc', x: 115, y: 332, size: 9.5 },
-      { page: 0, key: 'hospitalName', x: 115, y: 294, size: 9.5 },
-      { page: 0, key: 'diagnosisName', x: 418, y: 294, size: 9.5 },
-      { page: 0, key: 'beneficiaryName', x: 115, y: 184, size: 10 },
-      { page: 0, key: 'beneficiaryRrn1', x: 265, y: 184, size: 10 },
-      { page: 0, key: 'beneficiaryRrn2', x: 340, y: 184, size: 10 },
-      { page: 0, key: 'insuredJob', x: 465, y: 184, size: 9.5 },
-      { page: 0, key: 'bankName', x: 115, y: 161, size: 10 },
-      { page: 0, key: 'accountNumber', x: 265, y: 161, size: 10 },
-      { page: 3, key: 'todayYearShort', x: 448, y: 126, size: 10 },
-      { page: 3, key: 'todayMonth', x: 490, y: 126, size: 10 },
-      { page: 3, key: 'todayDay', x: 525, y: 126, size: 10 },
-      { page: 3, key: 'insuredName', x: 360, y: 104, size: 10, bold: true }
+      { page: 0, key: 'insuredRrn1', x: 291, y: 606.5, size: 10 },
+      { page: 0, key: 'insuredRrn2', x: 359, y: 606.5, size: 10 },
+      { page: 0, key: 'insuredPhone', x: 469, y: 606.5, size: 9.5 },
+      { page: 0, key: 'insuredAddress', x: 148, y: 582, size: 9.5 },
+      { page: 0, key: 'insuredJob', x: 469.5, y: 582, size: 9.5 },
+      { page: 0, key: 'insuredPhone', x: 141, y: 539.5, size: 10 },
+      { page: 0, key: 'accYearShort', x: 124, y: 367.5, size: 10 },
+      { page: 0, key: 'accMonth', x: 162, y: 367.5, size: 10 },
+      { page: 0, key: 'accDay', x: 197, y: 367.5, size: 10 },
+      { page: 0, key: 'accidentPlace', x: 425.5, y: 366, size: 9.5 },
+      { page: 0, key: 'accidentDesc', x: 99.5, y: 339, size: 9.5 },
+      { page: 0, key: 'hospitalName', x: 99.5, y: 291, size: 9.5 },
+      { page: 0, key: 'diagnosisName', x: 428, y: 289.5, size: 9.5 },
+      { page: 0, key: 'beneficiaryName', x: 100.5, y: 181.5, size: 10 },
+      { page: 0, key: 'beneficiaryRrn1', x: 262.5, y: 182.5, size: 10 },
+      { page: 0, key: 'beneficiaryRrn2', x: 334.5, y: 182.5, size: 10 },
+      { page: 0, key: 'insuredJob', x: 472.5, y: 184, size: 9.5 },
+      { page: 0, key: 'bankName', x: 99.5, y: 159.5, size: 10 },
+      { page: 0, key: 'accountNumber', x: 264, y: 159.5, size: 10 },
+      { page: 3, key: 'todayYearShort', x: 447, y: 123.5, size: 10 },
+      { page: 3, key: 'todayMonth', x: 487, y: 125, size: 10 },
+      { page: 3, key: 'todayDay', x: 522.5, y: 125, size: 10 },
+      { page: 3, key: 'insuredName', x: 383, y: 105, size: 10, bold: true }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 492, y: 655 }, // 의료수급권자: 비대상
-      { page: 0, cond: () => true, x: 196, y: 559 }, // 보상안내: 피보험자
-      { page: 0, cond: () => true, x: 142, y: 505 }, // 안내방법: SMS
-      { page: 0, cond: () => true, x: 198, y: 454 }, // 다른 보험회사 계약사항: 없음
+      { page: 0, cond: () => true, x: 500.5, y: 657.5 },
+      { page: 0, cond: () => true, x: 165, y: 559 },
+      { page: 0, cond: () => true, x: 148, y: 506 },
+      { page: 0, cond: () => true, x: 512, y: 454 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 96, y: 392 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 152, y: 392 },
       { page: 0, cond: (d) => d.accidentType === '교통사고', x: 208, y: 392 },
-      { page: 0, cond: (d) => d.claimCategory === '신규', x: 437, y: 392 },
+      { page: 0, cond: (d) => d.claimCategory === '신규', x: 435.5, y: 391 },
       { page: 0, cond: (d) => d.claimCategory === '추가', x: 498, y: 392 },
-      // 상세동의서 2~4P [동의함] 체크박스 (검증 완료)
-      { page: 1, cond: () => true, x: 505, y: 383 },
-      { page: 1, cond: () => true, x: 505, y: 317 },
-      { page: 1, cond: () => true, x: 505, y: 199 },
-      { page: 2, cond: () => true, x: 505, y: 338 },
-      { page: 2, cond: () => true, x: 505, y: 274 },
-      { page: 2, cond: () => true, x: 505, y: 182 },
-      { page: 3, cond: () => true, x: 505, y: 522 },
-      { page: 3, cond: () => true, x: 505, y: 486 },
-      { page: 3, cond: () => true, x: 505, y: 279 },
-      { page: 3, cond: () => true, x: 505, y: 238 },
-      { page: 3, cond: () => true, x: 505, y: 184 }
+      { page: 1, cond: () => true, x: 502.5, y: 383 },
+      { page: 1, cond: () => true, x: 502.5, y: 317 },
+      { page: 1, cond: () => true, x: 502.5, y: 199 },
+      { page: 2, cond: () => true, x: 503.5, y: 337 },
+      { page: 2, cond: () => true, x: 502, y: 274 },
+      { page: 2, cond: () => true, x: 502, y: 182 },
+      { page: 3, cond: () => true, x: 502, y: 520.5 },
+      { page: 3, cond: () => true, x: 503.5, y: 484.5 },
+      { page: 3, cond: () => true, x: 502.5, y: 278 },
+      { page: 3, cond: () => true, x: 502.5, y: 235.5 },
+      { page: 3, cond: () => true, x: 503.5, y: 184 }
     ],
     signatures: [
-      { page: 3, x: 472, y: 104, w: 48, h: 22 }
+      { page: 3, x: 493, y: 103, w: 48, h: 22 }
     ]
   },
   
@@ -878,74 +872,72 @@ const PDF_COORD_MAP = {
   },
   
   // [13. AIG손해보험]
-  aig: {
+    aig: {
     fields: [
-      // 1P 전체 행 높이 정위치 하향 보정 (라벨 겹침 완전 해소)
-      { page: 0, key: 'insuredName', x: 135, y: 706, size: 10, bold: true },
-      { page: 0, key: 'insuredRrnFull', x: 355, y: 706, size: 10 },
-      { page: 0, key: 'insuredPhone', x: 135, y: 684, size: 10 },
-      { page: 0, key: 'insuredJob', x: 335, y: 684, size: 9.5 },
-      { page: 0, key: 'beneficiaryName', x: 135, y: 626, size: 10 },
-      { page: 0, key: 'beneficiaryRrnFull', x: 335, y: 626, size: 10 },
-      { page: 0, key: 'insuredPhone', x: 435, y: 602, size: 9.5 },
-      // 1P 사고사항 행 높이 하향 보정
-      { page: 0, key: 'accYear', x: 135, y: 452, size: 10 },
-      { page: 0, key: 'accMonth', x: 185, y: 452, size: 10 },
-      { page: 0, key: 'accDay', x: 218, y: 452, size: 10 },
-      { page: 0, key: 'accidentPlace', x: 425, y: 452, size: 9.5 },
-      { page: 0, key: 'accidentDesc', x: 145, y: 428, size: 9.5 },
-      { page: 0, key: 'diagnosisName', x: 145, y: 404, size: 9.5 },
-      { page: 0, key: 'hospitalName', x: 355, y: 404, size: 9.5 },
-      // 1P 수령 계좌 및 최하단 작성일자·수익자 성명(y: 50) 정위치
-      { page: 0, key: 'bankName', x: 125, y: 296, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 265, y: 296, size: 10 },
-      { page: 0, key: 'accountNumber', x: 415, y: 296, size: 10 },
-      { page: 0, key: 'insuredAddress', x: 125, y: 272, size: 9 },
-      { page: 0, key: 'insuredPhone', x: 415, y: 272, size: 10 },
-      { page: 0, key: 'todayYear', x: 118, y: 50, size: 10 },
-      { page: 0, key: 'todayMonth', x: 168, y: 50, size: 10 },
-      { page: 0, key: 'todayDay', x: 202, y: 50, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 425, y: 50, size: 10, bold: true },
-      // 7P(page: 6) 상세동의서 서명표 내부로 상향 정렬 (표 밖 이탈 해결)
-      { page: 6, key: 'todayYear', x: 185, y: 282, size: 10 },
-      { page: 6, key: 'todayMonth', x: 245, y: 282, size: 10 },
-      { page: 6, key: 'todayDay', x: 285, y: 282, size: 10 },
-      { page: 6, key: 'insuredName', x: 145, y: 252, size: 10, bold: true },
-      // 8P(page: 7) 국외 제3자 제공 동의서 하단 칸 정위치 하향 정렬
-      { page: 7, key: 'insuredName', x: 145, y: 118, size: 10, bold: true },
-      { page: 7, key: 'todayYear', x: 285, y: 118, size: 10 },
-      { page: 7, key: 'todayMonth', x: 338, y: 118, size: 10 },
-      { page: 7, key: 'todayDay', x: 375, y: 118, size: 10 }
+      { page: 0, key: 'insuredName', x: 117.5, y: 710.5, size: 10, bold: true },
+      { page: 0, key: 'insuredRrnFull', x: 355, y: 710, size: 10 },
+      { page: 0, key: 'insuredPhone', x: 118, y: 689.5, size: 10 },
+      { page: 0, key: 'insuredJob', x: 355, y: 691, size: 9.5 },
+      { page: 0, key: 'beneficiaryName', x: 117.5, y: 646, size: 10 },
+      { page: 0, key: 'insuredPhone', x: 362.5, y: 621, size: 9.5 },
+      { page: 0, key: 'accYear', x: 148, y: 487.5, size: 10 },
+      { page: 0, key: 'accMonth', x: 202, y: 488, size: 10 },
+      { page: 0, key: 'accDay', x: 242.5, y: 488, size: 10 },
+      { page: 0, key: 'accidentPlace', x: 438, y: 449.5, size: 9.5 },
+      { page: 0, key: 'accidentDesc', x: 109.5, y: 469, size: 9.5 },
+      { page: 0, key: 'diagnosisName', x: 302, y: 448, size: 9.5 },
+      { page: 0, key: 'hospitalName', x: 109.5, y: 428, size: 9.5 },
+      { page: 0, key: 'bankName', x: 82.5, y: 317.5, size: 10 },
+      { page: 0, key: 'beneficiaryName', x: 243.5, y: 319, size: 10 },
+      { page: 0, key: 'accountNumber', x: 401, y: 318.5, size: 10 },
+      { page: 0, key: 'insuredAddress', x: 83.5, y: 299, size: 9 },
+      { page: 0, key: 'insuredPhone', x: 401, y: 297.5, size: 10 },
+      { page: 0, key: 'todayYear', x: 85.5, y: 30, size: 10 },
+      { page: 0, key: 'todayMonth', x: 145, y: 31, size: 10 },
+      { page: 0, key: 'todayDay', x: 193.5, y: 31.5, size: 10 },
+      { page: 0, key: 'beneficiaryName', x: 409, y: 30, size: 10, bold: true },
+      { page: 6, key: 'todayYear', x: 251, y: 363, size: 10 },
+      { page: 6, key: 'todayMonth', x: 312, y: 363.5, size: 10 },
+      { page: 6, key: 'todayDay', x: 354.5, y: 363.5, size: 10 },
+      { page: 6, key: 'insuredName', x: 115, y: 318, size: 10, bold: true },
+      { page: 7, key: 'insuredName', x: 114, y: 87, size: 10, bold: true },
+      { page: 7, key: 'todayYear', x: 252, y: 119.5, size: 10 },
+      { page: 7, key: 'todayMonth', x: 312.5, y: 120.5, size: 10 },
+      { page: 7, key: 'todayDay', x: 354, y: 120.5, size: 10 },
+      { page: 0, key: 'insuredRrn1', x: 296.5, y: 646, size: 10 },
+      { page: 0, key: 'insuredRrn2', x: 368, y: 646.5, size: 10 },
+      { page: 0, key: 'relSelf', x: 504, y: 621, size: 10 },
+      { page: 0, key: 'relSelf', x: 503.5, y: 647, size: 10 },
+      { page: 6, key: 'holderName', x: 115.5, y: 286.5, size: 10 }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 525, y: 684 }, // 의료급여: 아니오
-      { page: 0, cond: () => true, x: 202, y: 626 }, // 수익자 성명: 상동
-      { page: 0, cond: () => true, x: 148, y: 602 }, // 실제소유자 여부: 예
-      { page: 0, cond: () => true, x: 308, y: 602 }, // 보상안내 받을 분: 상동
-      { page: 0, cond: (d) => d.accidentType === '질병', x: 122, y: 518 },
-      { page: 0, cond: (d) => d.accidentType === '상해', x: 302, y: 518 },
-      { page: 0, cond: (d) => d.claimCategory === '추가', x: 468, y: 498 },
-      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 122, y: 476 },
-      { page: 0, cond: (d) => d.coverages.includes('통원') || d.coverages.includes('실손의료비'), x: 158, y: 476 },
-      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 195, y: 476 },
-      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 232, y: 476 },
-      // 상세동의서 4, 6, 7, 8P 우측 [☐ 동의함] 네모박스 정중앙(x: 518) 보정
-      { page: 3, cond: () => true, x: 518, y: 382 },
-      { page: 3, cond: () => true, x: 518, y: 272 },
-      { page: 3, cond: () => true, x: 518, y: 142 },
-      { page: 5, cond: () => true, x: 518, y: 695 },
-      { page: 5, cond: () => true, x: 518, y: 565 },
-      { page: 5, cond: () => true, x: 518, y: 425 },
-      { page: 6, cond: () => true, x: 518, y: 695 },
-      { page: 6, cond: () => true, x: 518, y: 585 },
-      { page: 6, cond: () => true, x: 518, y: 465 },
-      { page: 7, cond: () => true, x: 518, y: 325 },
-      { page: 7, cond: () => true, x: 518, y: 225 }
+      { page: 0, cond: () => true, x: 531, y: 692.5 },
+      { page: 0, cond: () => true, x: 128.5, y: 621.5 },
+      { page: 0, cond: () => true, x: 107, y: 547.5 },
+      { page: 0, cond: () => true, x: 265.5, y: 546 },
+      { page: 0, cond: (d) => d.accidentType === '질병', x: 221.5, y: 507 },
+      { page: 0, cond: (d) => d.accidentType === '상해', x: 338, y: 509 },
+      { page: 0, cond: (d) => d.claimCategory === '추가', x: 495, y: 528 },
+      { page: 3, cond: () => true, x: 512.5, y: 341 },
+      { page: 3, cond: () => true, x: 512.5, y: 234.5 },
+      { page: 3, cond: () => true, x: 512.5, y: 90.5 },
+      { page: 5, cond: () => true, x: 512, y: 715 },
+      { page: 5, cond: () => true, x: 512, y: 601 },
+      { page: 5, cond: () => true, x: 512.5, y: 450.5 },
+      { page: 6, cond: () => true, x: 512, y: 715 },
+      { page: 6, cond: () => true, x: 512.5, y: 628 },
+      { page: 6, cond: () => true, x: 512, y: 514 },
+      { page: 7, cond: () => true, x: 511, y: 274 },
+      { page: 7, cond: () => true, x: 511, y: 172 },
+      { page: 0, cond: () => true, x: 183, y: 508 },
+      { page: 0, cond: () => true, x: 143.5, y: 508 },
+      { page: 0, cond: () => true, x: 104.5, y: 506.5 }
     ],
     signatures: [
-      { page: 0, x: 505, y: 50, w: 50, h: 20 },
-      { page: 6, x: 245, y: 252, w: 50, h: 20 },
-      { page: 7, x: 465, y: 118, w: 50, h: 20 }
+      { page: 0, x: 503.5, y: 30, w: 50, h: 20 },
+      { page: 6, x: 246.5, y: 318, w: 50, h: 20 },
+      { page: 7, x: 246.5, y: 86.5, w: 50, h: 20 },
+      { page: 6, x: 247, y: 286.5, w: 50, h: 20 }
     ]
-  }
+  },
 }; // <-- 이 줄이 빠져 있었습니다. 맨 끝에 반드시 추가해 주세요!
