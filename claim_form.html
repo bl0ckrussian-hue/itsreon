@@ -1417,8 +1417,8 @@
         const hPh = splitPhone(rawData.holderPhone);
         const bPh = splitPhone(rawData.beneficiaryPhone);
 
-        const enrichedData = {
-          const ageNum = calcKoreanAge(rawData.insuredRrn1, rawData.insuredRrn2);
+        
+        const ageNum = calcKoreanAge(rawData.insuredRrn1, rawData.insuredRrn2);
         const isSameInsBen = (rawData.insuredName === rawData.beneficiaryName);
         const isBenHolder = (rawData.beneficiaryName === rawData.holderName);
         const guardianPerson = (rawData.holderName && rawData.holderName !== rawData.insuredName)
