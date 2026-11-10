@@ -932,12 +932,15 @@
         const todayM = String(now.getMonth() + 1).padStart(2, '0');
         const todayD = String(now.getDate()).padStart(2, '0');
 
+        const phoneParts = rawData.insuredPhone.split('-');
         const enrichedData = {
           ...rawData,
           relSelf: '본인',
-          insuredPhoneRaw: rawData.insuredPhone.replace(/[^0-9]/g, ''), // ← 이 1줄 추가 (숫자칸 전용 전화번호)
+          insuredPhoneRaw: rawData.insuredPhone.replace(/[^0-9]/g, ''),
+          insuredPhone1: phoneParts[0] || '', // 휴대폰 앞 3자리 (개별 박스용)
+          insuredPhone2: phoneParts[1] || '', // 휴대폰 중간 4자리 (개별 박스용)
+          insuredPhone3: phoneParts[2] || '', // 휴대폰 끝 4자리 (개별 박스용)
           insuredRrnFull: `${rawData.insuredRrn1}-${rawData.insuredRrn2}`,
-          beneficiaryRrnFull: `${rawData.beneficiaryRrn1}-${rawData.beneficiaryRrn2}`,
           accYear: accY,
           accYearShort: accY.slice(2),
           accMonth: accM,
