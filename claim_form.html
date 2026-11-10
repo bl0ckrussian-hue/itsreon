@@ -935,8 +935,8 @@
         const enrichedData = {
           ...rawData,
           relSelf: '본인',
+          insuredPhoneRaw: rawData.insuredPhone.replace(/[^0-9]/g, ''), // ← 이 1줄 추가 (숫자칸 전용 전화번호)
           insuredRrnFull: `${rawData.insuredRrn1}-${rawData.insuredRrn2}`,
-          holderRrnFull: `${rawData.holderRrn1}-${rawData.holderRrn2}`,
           beneficiaryRrnFull: `${rawData.beneficiaryRrn1}-${rawData.beneficiaryRrn2}`,
           accYear: accY,
           accYearShort: accY.slice(2),
