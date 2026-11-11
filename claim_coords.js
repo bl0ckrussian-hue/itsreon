@@ -408,7 +408,6 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'insuredName', x: 102.5, y: 701.5, size: 10, bold: true },
       { page: 0, key: 'insuredRrn1', x: 242.5, y: 702, size: 10, spacing: 22.8 },
       { page: 0, key: 'insuredRrn2', x: 402, y: 703, size: 10, spacing: 22.8 },
-      { page: 0, key: 'insuredRrn2', x: 402, y: 703, size: 10, spacing: 16.5 },
       { page: 0, key: 'insuredJob', x: 436.5, y: 675.5, size: 9.5 },
       { page: 0, key: 'beneficiaryName', x: 101.5, y: 620.5, size: 10 },
       { page: 0, key: 'beneficiaryPhone1', x: 242.5, y: 620.5, size: 10 },
@@ -466,7 +465,6 @@ const PDF_COORD_MAP = {
       { page: 3, cond: () => true, x: 488, y: 471 }
     ],
     signatures: [
-      signatures: [
       { page: 0, role: 'beneficiary', x: 485.5, y: 69, w: 45, h: 20 },
       { page: 3, role: 'insured', cond: (d) => !d.isUnder14, x: 489, y: 405.5, w: 45, h: 18 },
       { page: 3, role: 'beneficiary', cond: (d) => !d.isSameInsBen, x: 489, y: 380, w: 45, h: 18 },
