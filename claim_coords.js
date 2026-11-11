@@ -241,11 +241,11 @@ const PDF_COORD_MAP = {
   },
 
   // [3. KB손해보험]
-    kb_nonlife: {
+      kb_nonlife: {
     fields: [
-      { page: 0, key: 'insuredName', x: 111, y: 728.5, size: 10, bold: true },
-      { page: 0, key: 'insuredRrn1', x: 226.5, y: 728.5, size: 10, spacing: 15.6 },
-      { page: 0, key: 'insuredRrn2', x: 388.5, y: 728.5, size: 10, spacing: 15.6 },
+      { page: 0, key: 'insuredName', x: 113.5, y: 728.5, size: 10, bold: true },
+      { page: 0, key: 'insuredRrn1', x: 233.5, y: 728.5, size: 10, spacing: 15.6 },
+      { page: 0, key: 'insuredRrn2', x: 396, y: 728.5, size: 10, spacing: 15.6 },
       { page: 0, key: 'insuredPhone1', x: 128, y: 699, size: 10 },
       { page: 0, key: 'insuredPhone2', x: 223.5, y: 699, size: 10 },
       { page: 0, key: 'insuredPhone3', x: 338.5, y: 699, size: 10 },
@@ -259,16 +259,16 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'beneficiaryPhone1', x: 128, y: 582, size: 10 },
       { page: 0, key: 'beneficiaryPhone2', x: 223, y: 582, size: 10 },
       { page: 0, key: 'beneficiaryPhone3', x: 336.5, y: 582, size: 10 },
-      { page: 0, key: 'accYear', x: 82, y: 413, size: 10 },
-      { page: 0, key: 'accMonth', x: 207, y: 412, size: 10 },
-      { page: 0, key: 'accDay', x: 279.5, y: 412, size: 10 },
+      { page: 0, key: 'accYear', x: 97.5, y: 410.5, size: 10 },
+      { page: 0, key: 'accMonth', x: 208.5, y: 412, size: 10 },
+      { page: 0, key: 'accDay', x: 282, y: 413, size: 10 },
       { page: 0, key: 'accidentPlace', x: 417, y: 413.5, size: 9.5 },
       { page: 0, key: 'accidentDesc', x: 82.5, y: 386, size: 9.5 },
       { page: 0, key: 'hospitalName', x: 416, y: 384, size: 9 },
       { page: 0, key: 'diagnosisName', x: 417.5, y: 358.5, size: 9 },
       { page: 0, key: 'bankName', x: 112.5, y: 172, size: 10 },
       { page: 0, key: 'accountNumber', x: 247.5, y: 173, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 500, y: 173, size: 10 },
+      { page: 0, key: 'beneficiaryName', x: 507.5, y: 174.5, size: 10 },
       { page: 0, key: 'todayYear', x: 31, y: 71, size: 10 },
       { page: 0, key: 'todayMonth', x: 88, y: 71, size: 10 },
       { page: 0, key: 'todayDay', x: 124, y: 71, size: 10 },
@@ -278,9 +278,9 @@ const PDF_COORD_MAP = {
       { page: 3, key: 'insuredName', cond: (d) => !d.isUnder14, x: 33, y: 300, size: 10, bold: true },
       { page: 3, key: 'beneficiaryName', cond: (d) => !d.isUnder14 && !d.isSameInsBen, x: 32, y: 299, size: 10, bold: true },
       { page: 3, key: 'guardianName', cond: (d) => d.isUnder14, x: 262.5, y: 310.5, size: 10, bold: true },
-      { page: 3, key: 'todayYearShort', x: 406, y: 223, size: 10 },
-      { page: 3, key: 'todayMonth', x: 465, y: 223, size: 10 },
-      { page: 3, key: 'todayDay', x: 520, y: 223, size: 10 }
+      { page: 3, key: 'todayYearShort', x: 412, y: 224.5, size: 10 },
+      { page: 3, key: 'todayMonth', x: 476, y: 224.5, size: 10 },
+      { page: 3, key: 'todayDay', x: 526, y: 224.5, size: 10 }
     ],
     checks: [
       { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 90.5, y: 610.5 },
