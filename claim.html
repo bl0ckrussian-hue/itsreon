@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>잇츠리온 - 청구할 보험사 선택 (1단계)</title>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <!-- 분리된 보험사 마스터 DB 및 좌표 파일 로드 -->
   <script src="./claim_coords.js"></script>
   <style>
     :root {
@@ -257,7 +256,6 @@
   <header class="app-header">
     <div class="header-title">청구할 보험사 선택</div>
     <div style="display:flex; gap:8px;">
-      <a href="./claim_mapper.html" target="_blank" class="close-btn" style="background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe;">🎯 양식 위치 마우스 배치기</a>
       <button class="close-btn" onclick="closeWindow()">창닫기</button>
     </div>
   </header>
@@ -285,9 +283,8 @@
   </div>
 
   <script>
-    // 이전에 선택했던 보험사가 있으면 복원
-    const savedIds = JSON.parse(sessionStorage.getItem('rion_selected_insurers') || '[]');
-    const selectedInsurerIds = new Set(savedIds);
+    sessionStorage.removeItem('rion_selected_insurers');
+    const selectedInsurers = new Set();
 
     function renderInsurerGrid() {
       document.getElementById('life-grid').innerHTML = INSURER_DB.life.map(createCardHTML).join('');
@@ -331,7 +328,6 @@
       }
     }
 
-    // 선택한 보험사 ID 배열을 세션에 전달하고 2단계(claim_form.html)로 이동
     function goToFormPage() {
       if (selectedInsurerIds.size === 0) return;
       sessionStorage.setItem('rion_selected_insurers', JSON.stringify(Array.from(selectedInsurerIds)));
