@@ -1039,5 +1039,5 @@ const PDF_COORD_MAP = {
       { page: 7, role: 'insured', cond: (d) => !d.isUnder14, x: 248, y: 86.5, w: 48, h: 20 },
       { page: 7, role: 'guardian', cond: (d) => d.isUnder14, x: 505, y: 86.5, w: 48, h: 20 }
     ]
-  }
+  },
 };
