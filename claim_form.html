@@ -456,7 +456,7 @@
       <button type="button" class="fax-app-btn mobile-only-fax" onclick="installMobileFaxStore()" style="margin-left:0;">📲 모바일팩스 앱 설치/열기</button>
     </div>
     <div style="display:flex; gap:8px;">
-      <a href="./claim_mapper.html" target="_blank" class="close-btn" style="background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe;">🎯 좌표 배치기</a>
+      <a href="./claim_mapper.html" id="admin-mapper-btn" target="_blank" class="close-btn" style="display:none; background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe;">🎯 좌표 배치기</a>
       <button class="close-btn" onclick="closeWindow()">창닫기</button>
     </div>
   </header>
@@ -826,7 +826,38 @@
     let generatedPdfFiles = []; // 모바일팩스 Web Share 공유용 메모리 객체
     let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
 
+    // 메인 관리자 판별 (부관리자·일반회원 제외)
+    const MAIN_ADMIN_ROLES = ['메인관리자'];
+    const MAIN_ADMIN_ONLY_USERS = ['김성철']; // 관리자 계정이 여러 명일 때 특정 성명/ID만 허용하려면 입력 (예: ['홍길동'])
+
+    function isMainAdmin() {
+      const getVal = (k) => (localStorage.getItem(k) || sessionStorage.getItem(k) || '').trim();
+      let role = getVal('rion_logged_role') || getVal('userRole') || getVal('role');
+      let user = getVal('rion_logged_user') || getVal('rion_logged_id') || getVal('userId');
+
+      ['rion_user', 'rion_auth', 'loginUser', 'currentUser'].forEach(k => {
+        const raw = getVal(k);
+        if (raw && raw.startsWith('{')) {
+          try {
+            const obj = JSON.parse(raw);
+            role = role || String(obj.role || obj.grade || obj.auth || '').trim();
+            user = user || String(obj.name || obj.id || obj.userId || '').trim();
+          } catch (e) {}
+        }
+      });
+
+      const r = role.toLowerCase();
+      if (!r || r.includes('부관리') || r.includes('sub')) return false;
+      if (MAIN_ADMIN_ONLY_USERS.length > 0 && !MAIN_ADMIN_ONLY_USERS.includes(user)) return false;
+      return MAIN_ADMIN_ROLES.includes(r);
+    }
+
     function initPage() {
+      const mapperBtn = document.getElementById('admin-mapper-btn');
+      if (mapperBtn && isMainAdmin()) {
+        mapperBtn.style.display = 'inline-block';
+      }
+
       document.getElementById('selected-fax-list').innerHTML = selectedObjects.map(ins => `
         <div class="fax-item">
           <div>
