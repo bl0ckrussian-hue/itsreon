@@ -1274,7 +1274,7 @@
         accidentPlace: document.getElementById('accidentPlace').value.trim(),
         coverages: Array.from(document.querySelectorAll('input[name="claimCoverages"]:checked')).map(el => el.value),
         notifyCustomer: document.getElementById('notifyCustomer').checked,
-        notifyPlanner: document.getElementById('notifyPlanner').checked,
+        notifyPlanner: document.getElementById('notifyPlanner').checked
       };
 
       if (!data.insuredName || data.insuredRrn1.length !== 6 || data.insuredRrn2.length !== 7) {
