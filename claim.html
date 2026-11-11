@@ -284,7 +284,7 @@
 
   <script>
     sessionStorage.removeItem('rion_selected_insurers');
-    const selectedInsurers = new Set();
+    const selectedInsurerIds = new Set();
 
     function renderInsurerGrid() {
       document.getElementById('life-grid').innerHTML = INSURER_DB.life.map(createCardHTML).join('');
@@ -340,6 +340,14 @@
     }
 
     renderInsurerGrid();
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) {
+        sessionStorage.removeItem('rion_selected_insurers');
+        selectedInsurerIds.clear();
+        document.querySelectorAll('.insurer-card.selected').forEach(el => el.classList.remove('selected'));
+        updateBottomButton();
+      }
+    });
   </script>
 </body>
 </html>
