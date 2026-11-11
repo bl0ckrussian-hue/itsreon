@@ -525,6 +525,27 @@
             <input type="text" id="insuredAddress" class="form-input" placeholder="예: 충북 청주시 서원구 ..." oninput="syncSamePerson()">
           </div>
         </div>
+
+        <!-- 만 19세 미만 미성년자일 때 자동 표시되는 친권자(법정대리인) 및 관계 입력창 -->
+        <div id="minor-guardian-box" style="display:none; margin-top:14px; padding:14px; background:#eff6ff; border:1px solid #93c5fd; border-radius:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div id="minor-age-badge" style="font-size:13px; font-weight:800; color:#1e3a8a;">👪 미성년자 청구 — 친권자(법정대리인) 확인</div>
+            <label class="same-check-label" style="background:#ffffff; border:1px solid #bfdbfe;">
+              <input type="checkbox" id="guardianSameAsHolder" checked onchange="syncGuardianFromHolder()">
+              <span>보험계약자와 동일</span>
+            </label>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-group">
+              <label class="form-label">법정대리인(친권자) 성명<span class="req">*</span></label>
+              <input type="text" id="guardianInputName" class="form-input" placeholder="예: 홍길동 (서명할 부모 성명)" oninput="resetSignatureStep()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">법정대리인의 피보험자와의 관계<span class="req">*</span></label>
+              <input type="text" id="guardianRel" class="form-input" placeholder="예: 부, 모" oninput="syncGuardianRelToBeneficiary(); resetSignatureStep();">
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- 2. 보험계약자 정보 -->
@@ -532,7 +553,7 @@
         <div class="form-section-header">
           <div class="form-section-title">📋 2. 보험계약자 정보</div>
           <label class="same-check-label">
-            <input type="checkbox" id="holderSameAsInsured" checked onchange="toggleRelationFields()">
+            <input type="checkbox" id="holderSameAsInsured" checked onchange="onHolderSameInsuredChange()">
             <span>피보험자 본인과 동일 (자동 기입)</span>
           </label>
         </div>
@@ -947,6 +968,51 @@
       });
     }
 
+    function updateMinorGuardianUI() {
+      const rrn1 = document.getElementById('insuredRrn1').value.trim();
+      const rrn2 = document.getElementById('insuredRrn2').value.trim();
+      const box = document.getElementById('minor-guardian-box');
+      if (!box) return;
+
+      const hasRrn = (rrn1.length === 6 && rrn2.length >= 1);
+      const age = hasRrn ? calcKoreanAge(rrn1, rrn2) : 30;
+      const isMinor = hasRrn && age < 19;
+
+      box.style.display = isMinor ? 'block' : 'none';
+      if (isMinor) {
+        document.getElementById('minor-age-badge').textContent =
+          `👪 만 ${age}세 미성년자 청구 — 친권자(법정대리인) 정보 확인`;
+        syncGuardianFromHolder();
+      }
+    }
+
+    function syncGuardianFromHolder() {
+      const sameChk = document.getElementById('guardianSameAsHolder');
+      const gNameEl = document.getElementById('guardianInputName');
+      if (!sameChk || !gNameEl) return;
+
+      const hSameIns = document.getElementById('holderSameAsInsured').checked;
+      const hName = document.getElementById('holderName').value.trim();
+
+      if (sameChk.checked && !hSameIns) {
+        gNameEl.value = hName;
+        setInputLock(['guardianInputName'], true);
+      } else {
+        setInputLock(['guardianInputName'], false);
+      }
+      resetSignatureStep();
+    }
+
+    function syncGuardianRelToBeneficiary() {
+      const gRel = document.getElementById('guardianRel')?.value.trim() || '';
+      const bSameIns = document.getElementById('beneficiarySameAsInsured').checked;
+      const bSameHold = document.getElementById('beneficiarySameAsHolder').checked;
+      const gSameHold = document.getElementById('guardianSameAsHolder')?.checked;
+      if (!bSameIns && bSameHold && gSameHold && gRel) {
+        document.getElementById('relToInsured').value = gRel;
+      }
+    }
+
     function toggleRelationFields() {
       const hSame = document.getElementById('holderSameAsInsured').checked;
       const bSame = document.getElementById('beneficiarySameAsInsured').checked;
@@ -968,17 +1034,27 @@
       }
 
       syncSamePerson();
+      updateMinorGuardianUI();
       resetSignatureStep();
+    }
+
+    function onHolderSameInsuredChange() {
+      if (!document.getElementById('holderSameAsInsured').checked) {
+        ['holderName', 'holderRrn1', 'holderRrn2', 'holderPhone', 'holderJob', 'holderAddress'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+      }
+      toggleRelationFields();
     }
 
     function onBeneficiarySameInsuredChange() {
       if (!document.getElementById('beneficiarySameAsInsured').checked) {
-        // 체크 해제 시 직접 입력하기 편하도록 기존 복사값 비움
         ['beneficiaryName', 'beneficiaryRrn1', 'beneficiaryRrn2', 'beneficiaryPhone', 'beneficiaryJob', 'beneficiaryAddress'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
-        document.getElementById('relToInsured').value = '';
+        document.getElementById('relToInsured').value = document.getElementById('guardianRel')?.value.trim() || '';
       }
       toggleRelationFields();
     }
@@ -986,9 +1062,11 @@
     function onBeneficiarySameHolderChange() {
       toggleRelationFields();
       syncHolderToBeneficiary();
+      syncGuardianRelToBeneficiary();
     }
 
     function syncHolderToBeneficiary() {
+      syncGuardianFromHolder();
       if (document.getElementById('beneficiarySameAsInsured').checked) return;
       if (!document.getElementById('beneficiarySameAsHolder').checked) return;
       document.getElementById('beneficiaryName').value = document.getElementById('holderName').value;
@@ -1026,6 +1104,8 @@
         document.getElementById('beneficiaryJob').value = iJob;
         document.getElementById('beneficiaryAddress').value = iAddr;
       }
+
+      updateMinorGuardianUI();
     }
 
     // 복구된 UI 제어 및 파일 첨부 함수 5종
@@ -1077,43 +1157,52 @@
 
       const age = calcKoreanAge(baseData.insuredRrn1, baseData.insuredRrn2);
       const isUnder14 = age < 14;
+      const isUnder19 = age < 19;
       const isNoBeneficiary = document.getElementById('isBeneficiaryDesignated').value === 'no';
+      const guardian = baseData.guardianInputName
+        || ((baseData.holderName && baseData.holderName !== baseData.insuredName) ? baseData.holderName : baseData.beneficiaryName);
 
       const requiredSigners = [];
       const addSigner = (roleKey, roleTitle, personName) => {
         if (!personName) return;
         const existing = requiredSigners.find(s => s.name === personName);
         if (existing) {
-          existing.roles.push(roleKey);
-          existing.titles.push(roleTitle);
+          if (!existing.roles.includes(roleKey)) existing.roles.push(roleKey);
+          if (!existing.titles.includes(roleTitle)) existing.titles.push(roleTitle);
         } else {
           requiredSigners.push({ id: `sig_${requiredSigners.length}`, name: personName, roles: [roleKey], titles: [roleTitle] });
         }
       };
 
-      const isUnder19 = age < 19;
       if (isUnder14) {
-        const guardian = (baseData.holderName && baseData.holderName !== baseData.insuredName)
-          ? baseData.holderName
-          : baseData.beneficiaryName;
+        // 만 14세 미만: 피보험자 본인 서명 제외, 친권자가 법정대리인·청구인 서명 수행 (타인 성인 수익자일 때만 수익자 별도 서명)
         addSigner('guardian', '친권자/법정대리인', guardian);
-        addSigner('holder', '보험계약자(친권자)', guardian);
-        addSigner('beneficiary', '수익자(예금주)', baseData.beneficiaryName);
-      } else {
+        addSigner('holder', '친권자/법정대리인', guardian);
+        const benSigner = (baseData.beneficiaryName === baseData.insuredName) ? guardian : baseData.beneficiaryName;
+        addSigner('beneficiary', '수익자(청구권자)', benSigner);
+      } else if (isUnder19) {
+        // 만 14~18세: 동의서는 피보험자 본인 서명 + 청구서 법정대리인란은 친권자 서명
         addSigner('insured', '피보험자(본인)', baseData.insuredName);
-        if (baseData.beneficiaryName !== baseData.insuredName) {
-          addSigner('beneficiary', '보험금 수익자(예금주)', baseData.beneficiaryName);
-        }
-        if ((isUnder19 || isNoBeneficiary || baseData.beneficiaryName !== baseData.insuredName) && baseData.holderName !== baseData.insuredName) {
-          addSigner('holder', isUnder19 ? '친권자/보험계약자' : '보험계약자', baseData.holderName);
+        addSigner('guardian', '친권자/법정대리인', guardian);
+        addSigner('holder', '친권자/법정대리인', guardian);
+        const benSigner = (baseData.beneficiaryName === baseData.insuredName) ? guardian : baseData.beneficiaryName;
+        addSigner('beneficiary', '수익자(청구권자)', benSigner);
+      } else {
+        // 만 19세 이상 성인
+        addSigner('insured', '피보험자(본인)', baseData.insuredName);
+        addSigner('beneficiary', baseData.beneficiaryName === baseData.insuredName ? '수익자(본인)' : '보험금 수익자(예금주)', baseData.beneficiaryName);
+        if ((isNoBeneficiary || baseData.beneficiaryName !== baseData.insuredName) && baseData.holderName !== baseData.insuredName) {
+          addSigner('holder', '보험계약자', baseData.holderName);
         }
       }
 
       document.getElementById('sig-rule-desc').textContent = isUnder14
         ? `만 ${age}세(14세 미만) 미성년자 청구건으로 친권자(법정대리인) 서명란이 생성되었습니다.`
-        : (requiredSigners.length === 1
-            ? `계약자·피보험자·수익자가 동일하여 [${requiredSigners[0].name}]님 1회 서명으로 모든 칸에 자동 날인됩니다.`
-            : `계약 관계에 따라 총 ${requiredSigners.length}분의 자필 서명이 필요합니다. 각 칸의 흐릿한 성명을 확인 후 서명해주세요.`);
+        : (isUnder19
+            ? `만 ${age}세(만 14세 이상 미성년자) 청구건으로 피보험자 본인(동의서용) 및 친권자(청구서용) 서명란이 생성되었습니다.`
+            : (requiredSigners.length === 1
+                ? `계약자·피보험자·수익자가 동일하여 [${requiredSigners[0].name}]님 1회 서명으로 모든 칸에 자동 날인됩니다.`
+                : `계약 관계에 따라 총 ${requiredSigners.length}분의 자필 서명이 필요합니다. 각 칸의 흐릿한 성명을 확인 후 서명해주세요.`));
 
       const container = document.getElementById('signature-pads-list');
       container.innerHTML = requiredSigners.map(s => `
@@ -1265,7 +1354,10 @@
         beneficiaryPhone: document.getElementById('beneficiaryPhone')?.value.trim() || document.getElementById('insuredPhone').value.trim(),
         beneficiaryJob: document.getElementById('beneficiaryJob')?.value.trim() || document.getElementById('insuredJob').value.trim(),
         beneficiaryAddress: document.getElementById('beneficiaryAddress')?.value.trim() || document.getElementById('insuredAddress').value.trim(),
-        relToInsured: document.getElementById('relToInsured')?.value.trim() || '본인',
+        relToInsured: document.getElementById('relToInsured')?.value.trim() || document.getElementById('guardianRel')?.value.trim() || '본인',
+        guardianSameAsHolder: document.getElementById('guardianSameAsHolder')?.checked ?? true,
+        guardianInputName: document.getElementById('guardianInputName')?.value.trim() || '',
+        guardianRel: document.getElementById('guardianRel')?.value.trim() || document.getElementById('relToInsured')?.value.trim() || '',
 
         accidentType: document.querySelector('input[name="accidentType"]:checked')?.value || '질병',
         claimCategory: document.querySelector('input[name="claimCategory"]:checked')?.value || '신규',
@@ -1293,6 +1385,14 @@
       }
       if (!data.beneficiaryName || data.beneficiaryRrn1.length !== 6 || data.beneficiaryRrn2.length !== 7) {
         alert('예금주(수익자) 성명과 주민등록번호 13자리를 입력해주세요.'); return null;
+      }
+      if (calcKoreanAge(data.insuredRrn1, data.insuredRrn2) < 19) {
+        if (!data.guardianInputName || data.guardianInputName === data.insuredName) {
+          alert('미성년자 청구건입니다. 1번 항목 하단의 [법정대리인(친권자) 성명]에 부모/후견인 성명을 입력해주세요.'); return null;
+        }
+        if (!data.guardianRel || data.guardianRel === '본인') {
+          alert('1번 항목 하단의 [법정대리인의 피보험자와의 관계](예: 부, 모)를 입력해주세요.'); return null;
+        }
       }
       if (!data.diagnosisName || !data.accidentDesc) {
         alert('진단명(병명)과 사고(내원) 경위를 입력해주세요.'); return null;
@@ -1477,9 +1577,11 @@
         const ageNum = calcKoreanAge(rawData.insuredRrn1, rawData.insuredRrn2);
         const isSameInsBen = (rawData.insuredName === rawData.beneficiaryName);
         const isBenHolder = (rawData.beneficiaryName === rawData.holderName);
-        const guardianPerson = (rawData.holderName && rawData.holderName !== rawData.insuredName)
-          ? rawData.holderName
-          : rawData.beneficiaryName;
+        const guardianPerson = rawData.guardianInputName
+          || ((rawData.holderName && rawData.holderName !== rawData.insuredName) ? rawData.holderName : rawData.beneficiaryName);
+        const guardianRelVal = (rawData.guardianRel && rawData.guardianRel !== '본인')
+          ? rawData.guardianRel
+          : (!isSameInsBen ? rawData.relToInsured : '');
 
         const enrichedData = {
           ...rawData,
@@ -1489,9 +1591,9 @@
           isSameInsBen,
           isBenHolder,
 
-          relSelf: isSameInsBen ? '본인' : (rawData.relToInsured || '본인'),
-          relToInsured: isSameInsBen ? '본인' : (rawData.relToInsured || ''),
-          relIfDiff: isSameInsBen ? '' : (rawData.relToInsured || ''),
+          relSelf: isSameInsBen ? '본인' : (rawData.relToInsured || guardianRelVal || '본인'),
+          relToInsured: isSameInsBen ? '본인' : (rawData.relToInsured || guardianRelVal || ''),
+          relIfDiff: !isSameInsBen ? (rawData.relToInsured || guardianRelVal || '') : (ageNum < 19 ? guardianRelVal : ''),
 
           // 보상안내 받으실 분이 피보험자·계약자 외 제3자일 때 또는 기타란 표기용
           otherNotifyName: (!isSameInsBen && !isBenHolder) ? rawData.beneficiaryName : '',
@@ -1713,6 +1815,9 @@
         setVal('holderJob', meta.holderJob);
         setVal('holderAddress', meta.holderAddress);
 
+        document.getElementById('guardianSameAsHolder').checked = meta.guardianSameAsHolder !== false;
+        setVal('guardianInputName', meta.guardianInputName || '');
+        setVal('guardianRel', meta.guardianRel || '');
         setVal('relToInsured', meta.relToInsured || '본인');
         setVal('isBeneficiaryDesignated', meta.isBeneficiaryDesignated || 'yes');
         setVal('beneficiaryName', meta.beneficiaryName);
