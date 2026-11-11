@@ -6,7 +6,7 @@
   <title>잇츠리온 - 청구 정보 및 전자서명 입력 (2단계)</title>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="./claim_coords.js?v=20261111"></script>
+  <script src="./claim_coords.js?v=20261111_2"></script>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -532,7 +532,7 @@
             <div id="minor-age-badge" style="font-size:13px; font-weight:800; color:#1e3a8a;">👪 미성년자 청구 — 친권자(법정대리인) 확인</div>
             <label class="same-check-label" style="background:#ffffff; border:1px solid #bfdbfe;">
               <input type="checkbox" id="guardianSameAsHolder" checked onchange="syncGuardianFromHolder()">
-              <span>보험계약자와 동일</span>
+              <span>청구권자(수익자)와 자동 연동</span>
             </label>
           </div>
           <div class="form-grid form-grid-2">
@@ -613,7 +613,7 @@
           <div class="form-grid form-grid-2">
             <div class="form-group">
               <label class="form-label">피보험자와의 관계<span class="req">*</span></label>
-              <input type="text" id="relToInsured" class="form-input" value="본인" placeholder="예: 부, 모, 배우자, 자녀">
+              <input type="text" id="relToInsured" class="form-input" value="본인" placeholder="예: 부, 모, 배우자, 자녀" oninput="syncGuardianFromHolder(); resetSignatureStep();">
             </div>
             <div class="form-group">
               <label class="form-label">계약상 수익자 지정 여부</label>
@@ -683,7 +683,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">예금주 성명 (수익자)<span class="req">*</span></label>
-            <input type="text" id="beneficiaryName" class="form-input readonly-locked" readonly oninput="resetSignatureStep()">
+            <input type="text" id="beneficiaryName" class="form-input readonly-locked" readonly oninput="syncGuardianFromHolder(); resetSignatureStep()">
           </div>
         </div>
       </section>
@@ -989,14 +989,26 @@
     function syncGuardianFromHolder() {
       const sameChk = document.getElementById('guardianSameAsHolder');
       const gNameEl = document.getElementById('guardianInputName');
+      const gRelEl = document.getElementById('guardianRel');
       if (!sameChk || !gNameEl) return;
 
+      const bSameIns = document.getElementById('beneficiarySameAsInsured').checked;
       const hSameIns = document.getElementById('holderSameAsInsured').checked;
+      const bName = document.getElementById('beneficiaryName').value.trim();
       const hName = document.getElementById('holderName').value.trim();
+      const bRel = document.getElementById('relToInsured')?.value.trim() || '';
 
-      if (sameChk.checked && !hSameIns) {
-        gNameEl.value = hName;
-        setInputLock(['guardianInputName'], true);
+      if (sameChk.checked) {
+        if (!bSameIns) {
+          gNameEl.value = bName;
+          if (bRel && bRel !== '본인' && gRelEl) gRelEl.value = bRel;
+          setInputLock(['guardianInputName'], true);
+        } else if (!hSameIns) {
+          gNameEl.value = hName;
+          setInputLock(['guardianInputName'], true);
+        } else {
+          setInputLock(['guardianInputName'], false);
+        }
       } else {
         setInputLock(['guardianInputName'], false);
       }
@@ -1175,10 +1187,12 @@
       };
 
       if (isUnder14) {
-        // 만 14세 미만: 피보험자 본인 서명 제외, 친권자가 법정대리인·청구인 서명 수행 (타인 성인 수익자일 때만 수익자 별도 서명)
-        addSigner('guardian', '친권자/법정대리인', guardian);
-        addSigner('holder', '친권자/법정대리인', guardian);
-        const benSigner = (baseData.beneficiaryName === baseData.insuredName) ? guardian : baseData.beneficiaryName;
+        const benSigner = (baseData.beneficiaryName && baseData.beneficiaryName !== baseData.insuredName)
+          ? baseData.beneficiaryName
+          : guardian;
+        addSigner('guardian', '친권자/법정대리인', benSigner);
+        addSigner('insured', '피보험자 본인 대리서명', benSigner);
+        addSigner('holder', '친권자/청구권자', benSigner);
         addSigner('beneficiary', '수익자(청구권자)', benSigner);
       } else if (isUnder19) {
         // 만 14~18세: 동의서는 피보험자 본인 서명 + 청구서 법정대리인란은 친권자 서명
@@ -1577,11 +1591,12 @@
         const ageNum = calcKoreanAge(rawData.insuredRrn1, rawData.insuredRrn2);
         const isSameInsBen = (rawData.insuredName === rawData.beneficiaryName);
         const isBenHolder = (rawData.beneficiaryName === rawData.holderName);
-        const guardianPerson = rawData.guardianInputName
-          || ((rawData.holderName && rawData.holderName !== rawData.insuredName) ? rawData.holderName : rawData.beneficiaryName);
-        const guardianRelVal = (rawData.guardianRel && rawData.guardianRel !== '본인')
-          ? rawData.guardianRel
-          : (!isSameInsBen ? rawData.relToInsured : '');
+        const guardianPerson = (!isSameInsBen && rawData.beneficiaryName)
+          ? rawData.beneficiaryName
+          : (rawData.guardianInputName || ((rawData.holderName && rawData.holderName !== rawData.insuredName) ? rawData.holderName : rawData.beneficiaryName));
+        const guardianRelVal = (!isSameInsBen && rawData.relToInsured && rawData.relToInsured !== '본인')
+          ? rawData.relToInsured
+          : ((rawData.guardianRel && rawData.guardianRel !== '본인') ? rawData.guardianRel : '');
 
         const enrichedData = {
           ...rawData,
@@ -1590,6 +1605,9 @@
           isUnder19: ageNum < 19,
           isSameInsBen,
           isBenHolder,
+
+          // 미성년 청구 시 청구권자 성명(수익자가 자녀 본인 통장이면 친권자 성명, 부모 통장이면 해당 청구 부모 성명)
+          claimantName: (ageNum < 19 && isSameInsBen) ? guardianPerson : rawData.beneficiaryName,
 
           relSelf: isSameInsBen ? '본인' : (rawData.relToInsured || guardianRelVal || '본인'),
           relToInsured: isSameInsBen ? '본인' : (rawData.relToInsured || guardianRelVal || ''),
