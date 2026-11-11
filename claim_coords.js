@@ -401,81 +401,73 @@ const PDF_COORD_MAP = {
   },
 
   // [5. 메리츠화재]
-  meritz: {
+    meritz: {
     fields: [
-      { page: 0, key: 'holderName', x: 110, y: 733, size: 10 },
-      { page: 0, key: 'holderRrn1', x: 280, y: 733, size: 10, spacing: 16.5 },
-      { page: 0, key: 'holderRrn2', x: 395, y: 733, size: 10, spacing: 16.5 },
-      { page: 0, key: 'insuredName', x: 110, y: 706, size: 10, bold: true },
-      { page: 0, key: 'insuredRrn1', x: 280, y: 706, size: 10, spacing: 16.5 },
-      { page: 0, key: 'insuredRrn2', x: 395, y: 706, size: 10, spacing: 16.5 },
-      { page: 0, key: 'insuredJob', x: 445, y: 680, size: 9.5 },
-      // 보상 안내 받으실 분: 미성년 자녀 대신 실제 수익자(보호자) 성명 및 분할 연락처 연동
-      { page: 0, key: 'beneficiaryName', x: 110, y: 625, size: 10 },
-      { page: 0, key: 'beneficiaryPhone1', x: 268, y: 625, size: 10 },
-      { page: 0, key: 'beneficiaryPhone2', x: 318, y: 625, size: 10 },
-      { page: 0, key: 'beneficiaryPhone3', x: 372, y: 625, size: 10 },
-      // 사고 관련사항
-      { page: 0, key: 'accYear', x: 120, y: 426, size: 10 },
-      { page: 0, key: 'accMonth', x: 202, y: 426, size: 10 },
-      { page: 0, key: 'accDay', x: 258, y: 426, size: 10 },
-      { page: 0, key: 'accidentDesc', x: 90, y: 404, size: 9.5 },
-      { page: 0, key: 'accidentPlace', x: 375, y: 397, size: 9.5 },
-      { page: 0, key: 'diagnosisName', x: 90, y: 371, size: 9 },
-      { page: 0, key: 'hospitalName', x: 375, y: 371, size: 9.5 },
-      // 보험금 수령 계좌
-      { page: 0, key: 'bankName', x: 95, y: 218, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 205, y: 218, size: 10 },
-      { page: 0, key: 'beneficiaryRrn1', x: 312, y: 218, size: 9, spacing: 9.8 },
-      { page: 0, key: 'beneficiaryRrn2', x: 378, y: 218, size: 9, spacing: 9.8 },
-      { page: 0, key: 'relSelf', x: 522, y: 218, size: 9.5 },
-      { page: 0, key: 'accountNumber', x: 115, y: 195, size: 10 },
-      // 1P 하단 작성자: '[피보험자명]의 본인/법정대리인' + 실제 작성자(수익자/친권자) 성명
+      { page: 0, key: 'holderName', x: 101.5, y: 730, size: 10 },
+      { page: 0, key: 'holderRrn1', x: 241.5, y: 728.5, size: 10, spacing: 16.5 },
+      { page: 0, key: 'holderRrn2', x: 401, y: 729, size: 10, spacing: 16.5 },
+      { page: 0, key: 'insuredName', x: 102.5, y: 701.5, size: 10, bold: true },
+      { page: 0, key: 'insuredRrn1', x: 242.5, y: 702, size: 10, spacing: 16.5 },
+      { page: 0, key: 'insuredRrn2', x: 402, y: 703, size: 10, spacing: 16.5 },
+      { page: 0, key: 'insuredJob', x: 436.5, y: 675.5, size: 9.5 },
+      { page: 0, key: 'beneficiaryName', x: 101.5, y: 620.5, size: 10 },
+      { page: 0, key: 'beneficiaryPhone1', x: 242.5, y: 620.5, size: 10 },
+      { page: 0, key: 'beneficiaryPhone2', x: 326.5, y: 619.5, size: 10 },
+      { page: 0, key: 'beneficiaryPhone3', x: 436, y: 619.5, size: 10 },
+      { page: 0, key: 'accYear', x: 87, y: 422, size: 10 },
+      { page: 0, key: 'accMonth', x: 196, y: 420.5, size: 10 },
+      { page: 0, key: 'accDay', x: 259, y: 420, size: 10 },
+      { page: 0, key: 'accidentDesc', x: 69, y: 389.5, size: 9.5 },
+      { page: 0, key: 'accidentPlace', x: 362, y: 388.5, size: 9.5 },
+      { page: 0, key: 'diagnosisName', x: 70, y: 364, size: 9 },
+      { page: 0, key: 'hospitalName', x: 362, y: 364, size: 9.5 },
+      { page: 0, key: 'bankName', x: 72.5, y: 214, size: 10 },
+      { page: 0, key: 'beneficiaryName', x: 190.5, y: 214, size: 10 },
+      { page: 0, key: 'beneficiaryRrn1', x: 312, y: 214, size: 9, spacing: 9.8 },
+      { page: 0, key: 'beneficiaryRrn2', x: 372, y: 214, size: 9, spacing: 9.8 },
+      { page: 0, key: 'relSelf', x: 509.5, y: 214, size: 9.5 },
+      { page: 0, key: 'accountNumber', x: 92, y: 186, size: 10 },
       { page: 0, key: 'todayYear', x: 138, y: 75, size: 10 },
       { page: 0, key: 'todayMonth', x: 190, y: 75, size: 10 },
       { page: 0, key: 'todayDay', x: 224, y: 75, size: 10 },
       { page: 0, key: 'insuredName', x: 295, y: 75, size: 9 },
-      { page: 0, key: 'beneficiaryName', x: 422, y: 75, size: 10, bold: true },
-      // 4P(page: 3) 상세동의서 하단: 만 14세 이상은 상단 '작성자'(y:410), 만 14세 미만은 하단 '법정대리인1'(y:368) 분기
+      { page: 0, key: 'beneficiaryName', x: 402, y: 69.5, size: 10, bold: true },
       { page: 3, key: 'todayYear', x: 55, y: 410, size: 10 },
       { page: 3, key: 'todayMonth', x: 125, y: 410, size: 10 },
       { page: 3, key: 'todayDay', x: 185, y: 410, size: 10 },
-      { page: 3, key: 'insuredName', cond: (d) => !d.isUnder14, x: 448, y: 410, size: 10, bold: true },
-      { page: 3, key: 'guardianName', cond: (d) => d.isUnder14, x: 448, y: 368, size: 10, bold: true }
+      { page: 3, key: 'insuredName', cond: (d) => !d.isUnder14, x: 396.5, y: 406, size: 10, bold: true },
+      { page: 3, key: 'guardianName', cond: (d) => d.isUnder14, x: 399.5, y: 350.5, size: 10, bold: true }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 318, y: 678 }, // 의료급여: 대상아님
-      { page: 0, cond: () => true, x: 172, y: 556 }, // 타사 계약: 해당사항 없음
-      { page: 0, cond: (d) => d.accidentType === '질병', x: 86, y: 472 },
-      { page: 0, cond: (d) => d.accidentType === '상해', x: 218, y: 472 },
-      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 85, y: 450 },
-      { page: 0, cond: (d) => d.coverages.includes('통원') || d.coverages.includes('실손의료비'), x: 130, y: 450 },
-      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 175, y: 450 },
-      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 220, y: 450 },
-      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 310, y: 450 },
+      { page: 0, cond: () => true, x: 307, y: 674 },
+      { page: 0, cond: () => true, x: 422, y: 553.5 },
+      { page: 0, cond: (d) => d.accidentType === '질병', x: 83, y: 469 },
+      { page: 0, cond: (d) => d.accidentType === '상해', x: 213.5, y: 469 },
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 76.5, y: 447 },
+      { page: 0, cond: (d) => d.coverages.includes('통원') || d.coverages.includes('실손의료비'), x: 124, y: 447.5 },
+      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 174, y: 447.5 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 224, y: 447 },
+      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 322.5, y: 446 },
       { page: 0, cond: (d) => d.useAutoTransfer, x: 132, y: 245 },
-      // 1P 하단 작성자 유형: 만 14세 이상 '본인'(y:83) / 만 14세 미만 '법정대리인'(y:68) 체크 분기
       { page: 0, cond: (d) => !d.isUnder14 && d.isSameInsBen, x: 348, y: 83 },
       { page: 0, cond: (d) => d.isUnder14, x: 348, y: 68 },
-      // 4P 법정대리인 1인 공동친권 행사 동의 체크 (만 14세 미만 시)
-      { page: 3, cond: (d) => d.isUnder14, x: 238, y: 356 },
-      { page: 1, cond: () => true, x: 528, y: 553 },
-      { page: 1, cond: () => true, x: 528, y: 482 },
-      { page: 1, cond: () => true, x: 528, y: 391 },
-      { page: 2, cond: () => true, x: 528, y: 761 },
-      { page: 2, cond: () => true, x: 528, y: 695 },
-      { page: 2, cond: () => true, x: 528, y: 614 },
-      { page: 2, cond: () => true, x: 528, y: 220 },
-      { page: 2, cond: () => true, x: 528, y: 122 },
-      { page: 3, cond: () => true, x: 528, y: 606 },
-      { page: 3, cond: () => true, x: 528, y: 554 },
-      { page: 3, cond: () => true, x: 528, y: 472 }
+      { page: 3, cond: (d) => d.isUnder14, x: 183.5, y: 333 },
+      { page: 1, cond: () => true, x: 479.5, y: 551.5 },
+      { page: 1, cond: () => true, x: 479.5, y: 482 },
+      { page: 1, cond: () => true, x: 480.5, y: 390 },
+      { page: 2, cond: () => true, x: 487, y: 760 },
+      { page: 2, cond: () => true, x: 488.5, y: 694 },
+      { page: 2, cond: () => true, x: 488.5, y: 611.5 },
+      { page: 2, cond: () => true, x: 488, y: 217.5 },
+      { page: 2, cond: () => true, x: 488, y: 119.5 },
+      { page: 3, cond: () => true, x: 488, y: 607 },
+      { page: 3, cond: () => true, x: 488.5, y: 553 },
+      { page: 3, cond: () => true, x: 488, y: 471 }
     ],
     signatures: [
-      { page: 0, role: 'beneficiary', x: 525, y: 75, w: 45, h: 20 },
-      // 4P: 만 14세 이상은 상단 작성자 서명란(y:410) / 만 14세 미만은 하단 법정대리인1 서명란(y:368)
-      { page: 3, role: 'insured', cond: (d) => !d.isUnder14, x: 535, y: 410, w: 45, h: 20 },
-      { page: 3, role: 'guardian', cond: (d) => d.isUnder14, x: 535, y: 368, w: 45, h: 20 }
+      { page: 0, role: 'beneficiary', x: 485.5, y: 69, w: 45, h: 20 },
+      { page: 3, role: 'insured', cond: (d) => !d.isUnder14, x: 489, y: 405.5, w: 45, h: 20 },
+      { page: 3, role: 'guardian', cond: (d) => d.isUnder14, x: 490.5, y: 352, w: 45, h: 20 }
     ]
   },
   
