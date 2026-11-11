@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function checkMapperAccess() {
+      const getVal = (k) => (localStorage.getItem(k) || sessionStorage.getItem(k) || '').trim();
+      let role = getVal('rion_logged_role') || getVal('userRole') || getVal('role');
+      let user = getVal('rion_logged_user') || getVal('rion_logged_id') || getVal('userId');
+      const MAIN_ADMIN_ROLES = ['메인관리자', '최고관리자', '대표관리자', 'master', 'superadmin', 'admin', '관리자'];
+      const MAIN_ADMIN_ONLY_USERS = []; // 필요 시 특정 성명/ID 지정
+
+      const r = role.toLowerCase();
+      const allowed = r && !r.includes('부관리') && !r.includes('sub')
+        && (MAIN_ADMIN_ONLY_USERS.length === 0 || MAIN_ADMIN_ONLY_USERS.includes(user))
+        && MAIN_ADMIN_ROLES.includes(r);
+
+      if (!allowed) {
+        alert('메인 관리자만 접근할 수 있는 페이지입니다.');
+        window.close();
+        location.replace('./index.html');
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>잇츠리온 - 보험사 양식 좌표 마우스 배치기</title>
