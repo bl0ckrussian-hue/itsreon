@@ -624,36 +624,32 @@ const PDF_COORD_MAP = {
   },
 
   // [8. 한화손해보험]
-  hanwha_nonlife: {
+    hanwha_nonlife: {
     fields: [
-      { page: 0, key: 'insuredName', x: 115, y: 726, size: 10, bold: true },
-      { page: 0, key: 'insuredAddress', x: 310, y: 726, size: 9.5 },
-      { page: 0, key: 'insuredRrn1', x: 132, y: 705, size: 10, spacing: 17.5 },
-      { page: 0, key: 'insuredRrn2', x: 254, y: 705, size: 10, spacing: 17.5 },
-      // 보상안내 알림톡 수신용 휴대전화 (수익자/보호자 번호 연동)
-      { page: 0, key: 'beneficiaryPhone1', x: 132, y: 683, size: 10, spacing: 17.5 },
-      { page: 0, key: 'beneficiaryPhone2', x: 202, y: 683, size: 10, spacing: 17.5 },
-      { page: 0, key: 'beneficiaryPhone3', x: 288, y: 683, size: 10, spacing: 17.5 },
+      { page: 0, key: 'insuredName', x: 115, y: 727, size: 10, bold: true },
+      { page: 0, key: 'insuredAddress', x: 310, y: 727, size: 9.5 },
+      { page: 0, key: 'insuredRrn1', x: 119, y: 705, size: 10, spacing: 17.5 },
+      { page: 0, key: 'insuredRrn2', x: 243, y: 705, size: 10, spacing: 17.5 },
+      { page: 0, key: 'beneficiaryPhone1', x: 119.5, y: 682, size: 10, spacing: 17.5 },
+      { page: 0, key: 'beneficiaryPhone2', x: 184.5, y: 683, size: 10, spacing: 17.5 },
+      { page: 0, key: 'beneficiaryPhone3', x: 268, y: 683, size: 10, spacing: 17.5 },
       { page: 0, key: 'insuredJob', x: 115, y: 661, size: 9.5 },
-      { page: 0, key: 'accYear', x: 140, y: 548, size: 10 },
-      { page: 0, key: 'accMonth', x: 215, y: 548, size: 10 },
-      { page: 0, key: 'accDay', x: 265, y: 548, size: 10 },
+      { page: 0, key: 'accYear', x: 121.5, y: 549, size: 10 },
+      { page: 0, key: 'accMonth', x: 209, y: 548, size: 10 },
+      { page: 0, key: 'accDay', x: 260.5, y: 548, size: 10 },
       { page: 0, key: 'accidentPlace', x: 395, y: 548, size: 9.5 },
       { page: 0, key: 'accidentDesc', x: 115, y: 468, size: 9.5 },
-      { page: 0, key: 'hospitalName', x: 422, y: 468, size: 8.5 },
-      { page: 0, key: 'bankName', x: 112, y: 347, size: 10 },
-      // 계좌번호 및 예금주 식별번호 뒷자리 첫 칸 밀림 보정 (x: 425, spacing: 15.8)
-      { page: 0, key: 'accountNumber', x: 302, y: 347, size: 10, spacing: 15.8 },
-      { page: 0, key: 'beneficiaryName', x: 112, y: 328, size: 10 },
-      { page: 0, key: 'beneficiaryRrn1', x: 302, y: 328, size: 10, spacing: 15.8 },
+      { page: 0, key: 'hospitalName', x: 399.5, y: 467, size: 8.5 },
+      { page: 0, key: 'bankName', x: 112, y: 348, size: 10 },
+      { page: 0, key: 'accountNumber', x: 303.5, y: 348, size: 10, spacing: 15.8 },
+      { page: 0, key: 'beneficiaryName', x: 112, y: 329, size: 10 },
+      { page: 0, key: 'beneficiaryRrn1', x: 304.5, y: 328, size: 10, spacing: 15.8 },
       { page: 0, key: 'beneficiaryRrn2', x: 425, y: 328, size: 10, spacing: 15.8 },
-      // 1P 하단: 성인 청구권자(y:138) / 미성년 시 아랫줄 법정대리인(y:118) 성명 분기
       { page: 0, key: 'todayYear', x: 115, y: 138, size: 10 },
       { page: 0, key: 'todayMonth', x: 185, y: 138, size: 10 },
       { page: 0, key: 'todayDay', x: 232, y: 138, size: 10 },
       { page: 0, key: 'beneficiaryName', cond: (d) => !d.isUnder19, x: 425, y: 138, size: 10, bold: true },
       { page: 0, key: 'guardianName19', cond: (d) => d.isUnder19, x: 445, y: 118, size: 10, bold: true },
-      // 3P(page: 2) 필수동의서 하단: 만 14세 이상 피보험자(y:143) / 만 14세 미만 아랫줄 법정대리인(y:120) 분기
       { page: 2, key: 'insuredName', cond: (d) => !d.isUnder14, x: 425, y: 143, size: 10, bold: true },
       { page: 2, key: 'guardianName', cond: (d) => d.isUnder14, x: 425, y: 120, size: 10, bold: true },
       { page: 2, key: 'todayYear', x: 195, y: 120, size: 10 },
@@ -661,22 +657,21 @@ const PDF_COORD_MAP = {
       { page: 2, key: 'todayDay', x: 305, y: 120, size: 10 }
     ],
     checks: [
-      { page: 0, cond: (d) => d.notifyCustomer, x: 112, y: 638 }, // 보상관련 안내: 알림톡(문자)
-      { page: 0, cond: (d) => d.claimCategory === '추가', x: 42, y: 568 },
+      { page: 0, cond: (d) => d.notifyCustomer, x: 130.5, y: 638 },
+      { page: 0, cond: (d) => d.claimCategory === '추가', x: 39, y: 571 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 118, y: 519 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 182, y: 519 },
       { page: 0, cond: (d) => d.accidentType === '교통사고', x: 268, y: 519 },
-      { page: 0, cond: (d) => d.coverages.includes('실손의료비') || d.coverages.includes('통원'), x: 118, y: 485 },
-      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 225, y: 485 },
-      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 275, y: 485 },
-      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 328, y: 485 },
-      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 422, y: 485 }, // '사망' 오체크 해소 및 '장해' 정위치
-      { page: 0, cond: (d) => d.useAutoTransfer, x: 135, y: 368 },
-      { page: 0, cond: () => true, x: 518, y: 281 }, // 다른 보험회사 가입 여부: 없음
-      // 1P 하단 공동친권 행사 동의 체크 (미성년 청구 시)
+      { page: 0, cond: (d) => d.coverages.includes('실손의료비') || d.coverages.includes('통원'), x: 119, y: 487.5 },
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 225, y: 487.5 },
+      { page: 0, cond: (d) => d.coverages.includes('수술'), x: 275, y: 487.5 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 327, y: 487.5 },
+      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 422, y: 487.5 },
+      { page: 0, cond: (d) => d.useAutoTransfer, x: 159, y: 372 },
+      { page: 0, cond: () => true, x: 527, y: 285.5 },
       { page: 0, cond: (d) => d.isUnder19, x: 186, y: 118 },
-      { page: 1, cond: () => true, x: 516, y: 520 },
-      { page: 1, cond: () => true, x: 516, y: 473 },
+      { page: 1, cond: () => true, x: 522, y: 521 },
+      { page: 1, cond: () => true, x: 523, y: 474 },
       { page: 1, cond: () => true, x: 516, y: 409 },
       { page: 2, cond: () => true, x: 516, y: 724 },
       { page: 2, cond: () => true, x: 516, y: 677 },
@@ -687,10 +682,8 @@ const PDF_COORD_MAP = {
       { page: 2, cond: () => true, x: 516, y: 215 }
     ],
     signatures: [
-      // 1P: 만 19세 이상은 윗줄 청구권자 서명(y:138) / 만 19세 미만은 아랫줄 법정대리인 서명(y:118)
       { page: 0, role: 'beneficiary', cond: (d) => !d.isUnder19, x: 512, y: 138, w: 46, h: 18 },
       { page: 0, role: 'holder', cond: (d) => d.isUnder19, x: 512, y: 118, w: 46, h: 18 },
-      // 3P: 만 14세 이상은 윗줄 피보험자 서명(y:143) / 만 14세 미만은 아랫줄 법정대리인 서명(y:120)
       { page: 2, role: 'insured', cond: (d) => !d.isUnder14, x: 512, y: 143, w: 46, h: 18 },
       { page: 2, role: 'guardian', cond: (d) => d.isUnder14, x: 512, y: 120, w: 46, h: 18 }
     ]
