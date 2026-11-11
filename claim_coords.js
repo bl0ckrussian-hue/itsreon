@@ -133,7 +133,7 @@ const PDF_COORD_MAP = {
     ],
     checks: [
       { page: 0, cond: () => true, x: 525, y: 633 }, // 의료급여: 아니요
-      { page: 0, cond: () => true, x: 192, y: 592 }, // 안내방법: 문자메시지
+      { page: 0, cond: (d) => d.notifyCustomer, x: 192, y: 592 }, // 안내방법: 문자메시지
       { page: 0, cond: (d) => d.accidentType === '상해', x: 153, y: 525 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 196, y: 525 },
       { page: 0, cond: (d) => d.accidentType === '교통사고', x: 252, y: 525 },
@@ -209,7 +209,8 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 110.5, y: 623.5 },
       { page: 0, cond: (d) => d.isSameInsBen, x: 166.5, y: 623.5 },
       { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 214, y: 623.5 },
-      { page: 0, cond: () => true, x: 482.5, y: 599 },
+      { page: 0, cond: (d) => d.notifyPlanner, x: 482.5, y: 599 },  // 보험모집인 문자안내: 예
+      { page: 0, cond: (d) => !d.notifyPlanner, x: 517, y: 599 },   // 보험모집인 문자안내: 아니오
       { page: 0, cond: () => true, x: 381, y: 563.5 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 122.5, y: 490 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 163.5, y: 490 },
@@ -369,8 +370,9 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => d.isSameInsBen, x: 128.5, y: 513.5 },
       { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 204, y: 514 },
       { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 272, y: 514 },
-      { page: 0, cond: () => true, x: 129, y: 490.5 },
-      { page: 0, cond: () => true, x: 484.5, y: 472.5 },
+      { page: 0, cond: (d) => d.notifyCustomer, x: 129, y: 490.5 }, // 고객 안내방법: 문자
+      { page: 0, cond: (d) => d.notifyPlanner, x: 484.5, y: 472.5 }, // 플래너 문자안내: 예
+      { page: 0, cond: (d) => !d.notifyPlanner, x: 518, y: 472.5 },  // 플래너 문자안내: 아니오
       { page: 0, cond: (d) => d.claimCategory === '신규', x: 386.5, y: 429 },
       { page: 0, cond: (d) => d.claimCategory === '추가', x: 448, y: 429 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 93, y: 410 },
@@ -672,7 +674,7 @@ const PDF_COORD_MAP = {
       { page: 2, key: 'todayDay', x: 305, y: 120, size: 10 }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 112, y: 638 }, // 보상관련 안내: 알림톡(문자)
+      { page: 0, cond: (d) => d.notifyCustomer, x: 112, y: 638 }, // 보상관련 안내: 알림톡(문자)
       { page: 0, cond: (d) => d.claimCategory === '추가', x: 42, y: 568 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 118, y: 519 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 182, y: 519 },
@@ -899,7 +901,7 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 135, y: 559 },
       { page: 0, cond: (d) => d.isSameInsBen, x: 196, y: 559 },
       { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 246, y: 559 },
-      { page: 0, cond: () => true, x: 142, y: 505 }, // 안내방법: SMS
+      { page: 0, cond: (d) => d.notifyCustomer, x: 142, y: 505 }, 
       { page: 0, cond: () => true, x: 198, y: 454 }, // 다른 보험회사 계약사항: 없음
       { page: 0, cond: (d) => d.accidentType === '질병', x: 96, y: 392 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 152, y: 392 },
@@ -979,7 +981,7 @@ const PDF_COORD_MAP = {
     ],
     checks: [
       { page: 0, cond: () => true, x: 502, y: 591 }, // 의료비 수급권자: 아니오
-      { page: 0, cond: () => true, x: 315, y: 523 }, // 추가 안내방법: 문자
+      { page: 0, cond: (d) => d.notifyCustomer, x: 315, y: 523 }, // 추가 안내방법: 문자
       { page: 0, cond: (d) => d.accidentType === '질병', x: 122, y: 468 },
       { page: 0, cond: (d) => d.accidentType !== '질병', x: 158, y: 468 },
       { page: 0, cond: (d) => d.claimCategory === '신규', x: 500, y: 400 },
@@ -1002,8 +1004,8 @@ const PDF_COORD_MAP = {
       { page: 4, cond: () => true, x: 505, y: 405 },
       { page: 4, cond: () => true, x: 505, y: 345 },
       { page: 4, cond: () => true, x: 505, y: 255 },
-      { page: 5, cond: () => true, x: 505, y: 415 },
-      { page: 5, cond: () => true, x: 505, y: 340 }
+      { page: 5, cond: (d) => d.notifyPlanner, x: 505, y: 415 },
+      { page: 5, cond: (d) => d.notifyPlanner, x: 505, y: 340 }
     ],
     signatures: [
       { page: 0, role: 'beneficiary', x: 500, y: 104, w: 48, h: 20 },
@@ -1075,7 +1077,7 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => d.coverages.includes('수술'), x: 195, y: 476 },
       { page: 0, cond: (d) => d.coverages.includes('진단'), x: 232, y: 476 },
       { page: 0, cond: (d) => d.coverages.includes('장해'), x: 306, y: 476 },
-      { page: 0, cond: () => true, x: 76, y: 70 },   // 1P 하단 심사 진행과정 문자 안내 동의 체크
+      { page: 0, cond: (d) => d.notifyCustomer, x: 76, y: 70 },   // 1P 하단 심사 진행과정 문자 안내 동의 체크
       { page: 3, cond: () => true, x: 518, y: 382 },
       { page: 3, cond: () => true, x: 518, y: 272 },
       { page: 3, cond: () => true, x: 518, y: 142 },
