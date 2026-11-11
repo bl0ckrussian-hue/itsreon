@@ -6,7 +6,7 @@
   <title>잇츠리온 - 청구 정보 및 전자서명 입력 (2단계)</title>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="./claim_coords.js"></script>
+  <script src="./claim_coords.js?v=20261111"></script>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -1091,19 +1091,21 @@
         }
       };
 
+      const isUnder19 = age < 19;
       if (isUnder14) {
         const guardian = (baseData.holderName && baseData.holderName !== baseData.insuredName)
           ? baseData.holderName
           : baseData.beneficiaryName;
         addSigner('guardian', '친권자/법정대리인', guardian);
+        addSigner('holder', '보험계약자(친권자)', guardian);
         addSigner('beneficiary', '수익자(예금주)', baseData.beneficiaryName);
       } else {
         addSigner('insured', '피보험자(본인)', baseData.insuredName);
         if (baseData.beneficiaryName !== baseData.insuredName) {
           addSigner('beneficiary', '보험금 수익자(예금주)', baseData.beneficiaryName);
         }
-        if ((isNoBeneficiary || baseData.beneficiaryName !== baseData.insuredName) && baseData.holderName !== baseData.insuredName) {
-          addSigner('holder', '보험계약자', baseData.holderName);
+        if ((isUnder19 || isNoBeneficiary || baseData.beneficiaryName !== baseData.insuredName) && baseData.holderName !== baseData.insuredName) {
+          addSigner('holder', isUnder19 ? '친권자/보험계약자' : '보험계약자', baseData.holderName);
         }
       }
 
@@ -1378,7 +1380,7 @@
       for (const file of attachedMedicalFiles) {
         const arrayBuffer = await file.arrayBuffer();
         if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-          const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
           const copiedPages = await targetPdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
           copiedPages.forEach((p) => targetPdfDoc.addPage(p));
         } else if (file.type.startsWith('image/')) {
