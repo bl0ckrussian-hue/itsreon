@@ -468,7 +468,7 @@ const PDF_COORD_MAP = {
   },
   
   // [6. MG손해보험 / 예별손해보험]
-    mg_yebyul: {
+      mg_yebyul: {
     fields: [
       { page: 0, key: 'insuredName', x: 143.5, y: 738, size: 10, bold: true },
       { page: 0, key: 'insuredRrn1', x: 266.5, y: 739, size: 10 },
@@ -489,7 +489,7 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'accDay', x: 223, y: 455.5, size: 10 },
       { page: 0, key: 'accidentPlace', x: 378.5, y: 455.5, size: 9.5 },
       { page: 0, key: 'accidentDesc', x: 137.5, y: 435.5, size: 9.5 },
-      { page: 0, key: 'diagnosisName', x: 245, y: 368.5, size: 8.5 },
+      { page: 0, key: 'diagnosisName', x: 269.5, y: 369.5, size: 8.5 },
       { page: 0, key: 'hospitalName', x: 381, y: 369.5, size: 9 },
       { page: 0, key: 'bankName', x: 98, y: 199.5, size: 10 },
       { page: 0, key: 'accountNumber', x: 266, y: 199.5, size: 10 },
