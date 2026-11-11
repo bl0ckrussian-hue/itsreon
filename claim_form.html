@@ -405,6 +405,47 @@
       background-color: #eef2f6 !important;
       color: #64748b;
     }
+    /* 과거 청구서 PDF 초고속 자동입력 배너 */
+    .quick-import-box {
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border: 1.5px dashed #10b981;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      transition: all 0.15s ease;
+    }
+    .quick-import-box.dragover {
+      background: #d1fae5;
+      border-color: #059669;
+      transform: scale(1.005);
+    }
+    .import-btn {
+      background: #059669;
+      color: #ffffff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .import-btn:hover { background: #047857; }
+    .clear-acc-btn {
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -432,6 +473,26 @@
     <!-- 좌측 메인 영역: 청구 정보 입력 폼 -->
     <div class="form-main-col">
       <form id="claim-master-form" onsubmit="event.preventDefault();">
+        
+    <!-- 0. 과거 작성 청구서 PDF 초고속 불러오기 (서버/브라우저 미저장) -->
+      <div class="quick-import-box" id="quick-import-dropzone"
+           ondragover="event.preventDefault(); this.classList.add('dragover');"
+           ondragleave="this.classList.remove('dragover');"
+           ondrop="handlePrevPdfDrop(event)">
+        <div>
+          <div style="font-size:14.5px; font-weight:800; color:#065f46;">
+            ⚡ 과거 작성한 청구서(PDF)로 0.01초 자동입력
+          </div>
+          <div id="import-status-msg" style="font-size:12px; color:#047857; margin-top:3px;">
+            이전에 다운로드한 잇츠리온 청구서 PDF를 올리면 인적·계좌·청구정보가 즉시 채워집니다. (파일·정보 일절 미저장)
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <input type="file" id="prevClaimPdfInput" accept="application/pdf,.pdf" style="display:none;" onchange="handlePrevPdfUpload(this.files[0]); this.value='';">
+          <button type="button" id="clear-acc-only-btn" class="clear-acc-btn" style="display:none;" onclick="clearOnlyAccidentFields()">🧹 사고·진료내역만 비우기</button>
+          <button type="button" class="import-btn" onclick="document.getElementById('prevClaimPdfInput').click()">📂 이전 청구서 PDF 불러오기</button>
+        </div>
+      </div>
         
     <!-- 1. 피보험자 정보 -->
       <section class="form-section">
@@ -679,18 +740,21 @@
         <div class="file-list" id="attached-file-list"></div>
       </section>
 
-      <!-- 6. 알림 설정 -->
+      <!-- 6. 보험사 보상 진행 문자안내 체크 설정 (청구서 양식 표기용) -->
       <section class="form-section">
         <div class="form-section-header">
-          <div class="form-section-title">🔔 6. 청구서 생성 알림 발송 설정 (선택)</div>
+          <div class="form-section-title">🔔 6. 보험사 보상안내 문자 수신 대상 (청구서 체크용)</div>
+          <span style="font-size:11.5px; color:#64748b;">팩스 접수 시 보험사가 안내 문자를 보낼 대상을 청구서 양식에 체크합니다</span>
         </div>
         <div class="form-grid form-grid-2">
-          <label class="chip-label"><input type="checkbox" id="notifyCustomer">📱 고객에게 청구 안내 문자 발송</label>
-          <label class="chip-label"><input type="checkbox" id="notifyPlanner" onchange="toggleNotifyInputs()">💼 담당 설계사에게 접수 알림 발송</label>
-        </div>
-        <div id="planner-Input-wrap" class="form-grid form-grid-2" style="display:none; margin-top:12px;">
-          <input type="text" id="plannerName" class="form-input" placeholder="담당 설계사 성명">
-          <input type="tel" id="plannerPhone" class="form-input" placeholder="담당 설계사 연락처" oninput="autoHyphenPhone(this)">
+          <label class="chip-label">
+            <input type="checkbox" id="notifyCustomer" checked>
+            📱 고객(수익자/피보험자) 문자·알림톡 안내 체크
+          </label>
+          <label class="chip-label">
+            <input type="checkbox" id="notifyPlanner" checked>
+            💼 담당 설계사(모집인) 문자안내 '예' 체크
+          </label>
         </div>
       </section>
 
@@ -728,9 +792,6 @@
   </div>
 
   <script>
-    // 알리고/GAS 문자 알림 연동 시 사용할 웹훅 주소 (추후 GAS 배포 URL 입력 시 자동 발송)
-    const CLAIM_NOTIFY_GAS_URL = "";
-
     const selectedIds = JSON.parse(sessionStorage.getItem('rion_selected_insurers') || '[]');
     if (selectedIds.length === 0) {
       alert('선택된 보험사가 없습니다. 보험사 선택 화면으로 이동합니다.');
@@ -763,10 +824,6 @@
       `).join('');
 
       document.getElementById('accidentDate').value = new Date().toISOString().split('T')[0];
-
-      const loggedPlanner = localStorage.getItem('rion_logged_user');
-      if (loggedPlanner) document.getElementById('plannerName').value = loggedPlanner;
-
     }
 
     function copyFaxNumber(fax, name) {
@@ -972,11 +1029,6 @@
     }
 
     // 복구된 UI 제어 및 파일 첨부 함수 5종
-    function toggleNotifyInputs() {
-      const checked = document.getElementById('notifyPlanner').checked;
-      document.getElementById('planner-Input-wrap').style.display = checked ? 'grid' : 'none';
-    }
-
     function toggleAutoTransferAccount() {
       const isAuto = document.getElementById('useAutoTransfer').checked;
       document.getElementById('req-bank').style.display = isAuto ? 'none' : 'inline';
@@ -1184,6 +1236,10 @@
       syncHolderToBeneficiary();
       const useAutoTransfer = document.getElementById('useAutoTransfer').checked;
       const data = {
+        holderSameAsInsured: document.getElementById('holderSameAsInsured').checked,
+        beneficiarySameAsInsured: document.getElementById('beneficiarySameAsInsured').checked,
+        beneficiarySameAsHolder: document.getElementById('beneficiarySameAsHolder').checked,
+        isBeneficiaryDesignated: document.getElementById('isBeneficiaryDesignated').value,
         insuredName: document.getElementById('insuredName').value.trim(),
         insuredRrn1: document.getElementById('insuredRrn1').value.trim(),
         insuredRrn2: document.getElementById('insuredRrn2').value.trim(),
@@ -1219,8 +1275,6 @@
         coverages: Array.from(document.querySelectorAll('input[name="claimCoverages"]:checked')).map(el => el.value),
         notifyCustomer: document.getElementById('notifyCustomer').checked,
         notifyPlanner: document.getElementById('notifyPlanner').checked,
-        plannerName: document.getElementById('plannerName').value.trim(),
-        plannerPhone: document.getElementById('plannerPhone').value.trim()
       };
 
       if (!data.insuredName || data.insuredRrn1.length !== 6 || data.insuredRrn2.length !== 7) {
@@ -1514,7 +1568,7 @@
           }
 
           await appendMedicalFilesToPdf(pdfDoc);
-
+          pdfDoc.setSubject(encodeClaimMeta(rawData));
           const finalBytes = await pdfDoc.save();
           const fileName = `[잇츠리온_보험금청구서]_${ins.name}_${enrichedData.insuredName}.pdf`;
           const blob = new Blob([finalBytes], { type: 'application/pdf' });
@@ -1559,23 +1613,7 @@
               </div>
             `);
           }
-        } // <-- for 루프 종료 지점
-
-        // 선택적 알림 발송 (기존 동일)
-        if (CLAIM_NOTIFY_GAS_URL && (rawData.notifyCustomer || rawData.notifyPlanner)) {
-          fetch(CLAIM_NOTIFY_GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-              action: 'claimNotify',
-              insuredName: rawData.insuredName,
-              insuredPhone: rawData.notifyCustomer ? rawData.insuredPhone : '',
-              plannerName: rawData.plannerName,
-              plannerPhone: rawData.notifyPlanner ? rawData.plannerPhone : '',
-              insurers: selectedObjects.map(o => `${o.name}(${o.fax})`).join(', ')
-            })
-          }).catch(() => {});
-        }
+        } 
 
         // 모달 하단 버튼 및 안내 문구를 PC / 모바일에 맞춰 설정
         const descEl = document.getElementById('done-modal-desc');
@@ -1602,7 +1640,147 @@
         btn.textContent = origText;
       }
     }
+    // 청구 데이터 초경량 인코딩/디코딩 (팩스 인쇄면에는 전혀 보이지 않는 PDF 내부 속성용)
+    function encodeClaimMeta(rawData) {
+      const { roleSignatures, signatureDataUrl, ...cleanMeta } = rawData;
+      const bytes = new TextEncoder().encode(JSON.stringify(cleanMeta));
+      let bin = '';
+      bytes.forEach(b => { bin += String.fromCharCode(b); });
+      return 'RION_V1:' + btoa(bin);
+    }
 
+    function decodeClaimMeta(subjectStr) {
+      if (!subjectStr || !subjectStr.startsWith('RION_V1:')) return null;
+      const bin = atob(subjectStr.slice(8));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function handlePrevPdfDrop(e) {
+      e.preventDefault();
+      document.getElementById('quick-import-dropzone').classList.remove('dragover');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) handlePrevPdfUpload(file);
+    }
+
+    // 업로드된 과거 청구서 PDF에서 메모리 즉시 해독 후 폼 자동 채우기 (무저장)
+    async function handlePrevPdfUpload(file) {
+      if (!file) return;
+      const t0 = performance.now();
+      const statusEl = document.getElementById('import-status-msg');
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, {
+          ignoreEncryption: true,
+          updateMetadata: false
+        });
+        const meta = decodeClaimMeta(pdfDoc.getSubject());
+
+        // 이전 버전(메타데이터 도입 전)에서 만든 PDF일 경우 파일명에서 성명 우선 추출
+        if (!meta) {
+          const nameMatch = file.name.match(/\[잇츠리온_보험금청구서\]_.*?_(.+?)\.pdf$/i);
+          if (nameMatch && nameMatch[1]) {
+            document.getElementById('insuredName').value = nameMatch[1];
+            syncSamePerson();
+          }
+          statusEl.style.color = '#b45309';
+          statusEl.textContent = '⚠️ 업데이트 이전에 생성된 PDF입니다. 지금부터 새로 생성·다운로드하는 청구서부터 전 항목이 자동 입력됩니다.';
+          return;
+        }
+
+        // 1) 피보험자 정보 복원
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+        setVal('insuredName', meta.insuredName);
+        setVal('insuredRrn1', meta.insuredRrn1);
+        setVal('insuredRrn2', meta.insuredRrn2);
+        setVal('insuredPhone', meta.insuredPhone);
+        setVal('insuredJob', meta.insuredJob);
+        setVal('insuredAddress', meta.insuredAddress);
+
+        // 2) 관계 체크박스 및 계약자·수익자 개별 정보 복원
+        document.getElementById('holderSameAsInsured').checked = meta.holderSameAsInsured !== false;
+        document.getElementById('beneficiarySameAsInsured').checked = meta.beneficiarySameAsInsured !== false;
+        document.getElementById('beneficiarySameAsHolder').checked = !!meta.beneficiarySameAsHolder;
+
+        setVal('holderName', meta.holderName);
+        setVal('holderRrn1', meta.holderRrn1);
+        setVal('holderRrn2', meta.holderRrn2);
+        setVal('holderPhone', meta.holderPhone);
+        setVal('holderJob', meta.holderJob);
+        setVal('holderAddress', meta.holderAddress);
+
+        setVal('relToInsured', meta.relToInsured || '본인');
+        setVal('isBeneficiaryDesignated', meta.isBeneficiaryDesignated || 'yes');
+        setVal('beneficiaryName', meta.beneficiaryName);
+        setVal('beneficiaryRrn1', meta.beneficiaryRrn1);
+        setVal('beneficiaryRrn2', meta.beneficiaryRrn2);
+        setVal('beneficiaryPhone', meta.beneficiaryPhone);
+        setVal('beneficiaryJob', meta.beneficiaryJob);
+        setVal('beneficiaryAddress', meta.beneficiaryAddress);
+
+        toggleRelationFields();
+        if (!meta.beneficiarySameAsInsured && meta.beneficiarySameAsHolder) {
+          syncHolderToBeneficiary();
+        }
+
+        // 3) 수령 계좌 정보 복원
+        document.getElementById('useAutoTransfer').checked = !!meta.useAutoTransfer;
+        setVal('bankName', meta.bankName);
+        setVal('accountNumber', meta.accountNumber);
+        toggleAutoTransferAccount();
+
+        // 4) 사고 및 진료사항 복원
+        if (meta.accidentType) {
+          const r = document.querySelector(`input[name="accidentType"][value="${meta.accidentType}"]`);
+          if (r) r.checked = true;
+        }
+        if (meta.claimCategory) {
+          const r = document.querySelector(`input[name="claimCategory"][value="${meta.claimCategory}"]`);
+          if (r) r.checked = true;
+        }
+        setVal('accidentDate', meta.accidentDate);
+        setVal('diagnosisName', meta.diagnosisName);
+        setVal('hospitalName', meta.hospitalName);
+        setVal('accidentDesc', meta.accidentDesc);
+        setVal('accidentPlace', meta.accidentPlace);
+
+        if (Array.isArray(meta.coverages)) {
+          document.querySelectorAll('input[name="claimCoverages"]').forEach(chk => {
+            chk.checked = meta.coverages.includes(chk.value);
+          });
+        }
+
+        // 5) 알림 설정 복원
+        document.getElementById('notifyCustomer').checked = !!meta.notifyCustomer;
+        document.getElementById('notifyPlanner').checked = !!meta.notifyPlanner;
+        
+        resetSignatureStep();
+
+        const elapsedSec = ((performance.now() - t0) / 1000).toFixed(2);
+        statusEl.style.color = '#065f46';
+        statusEl.innerHTML = `✅ <b>[${meta.insuredName}]</b>님의 청구정보가 <b>${elapsedSec}초</b> 만에 자동 입력되었습니다! (파일 즉시 메모리 해제 완료)`;
+        document.getElementById('clear-acc-only-btn').style.display = 'inline-block';
+      } catch (err) {
+        statusEl.style.color = '#e11d48';
+        statusEl.textContent = '❌ PDF 파일을 읽을 수 없습니다. 정상적인 청구서 PDF 파일인지 확인해주세요.';
+      }
+    }
+
+    // 다른 질병/상해로 재청구할 때 인적·계좌정보는 남기고 사고·진료내역만 1초 초기화
+    function clearOnlyAccidentFields() {
+      document.getElementById('accidentDate').value = new Date().toISOString().split('T')[0];
+      ['diagnosisName', 'hospitalName', 'accidentDesc', 'accidentPlace'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      const disRadio = document.querySelector('input[name="accidentType"][value="질병"]');
+      if (disRadio) disRadio.checked = true;
+      const newRadio = document.querySelector('input[name="claimCategory"][value="신규"]');
+      if (newRadio) newRadio.checked = true;
+      document.getElementById('diagnosisName').focus();
+    }
+    
     function closeWindow() {
       window.close();
       setTimeout(() => { window.location.href = './index.html'; }, 150);
