@@ -1617,6 +1617,7 @@
           todayYear: todayY, todayYearShort: todayY.slice(2), todayMonth: todayM, todayDay: todayD,
           todayDateFull: `${todayY}년 ${todayM}월 ${todayD}일`,
           todayDateSlash: `${todayY}/${todayM}/${todayD}`,
+          descWithDiag: rawData.diagnosisName ? `${rawData.accidentDesc} (${rawData.diagnosisName})` : rawData.accidentDesc,
           hospitalWithDiag: `${rawData.hospitalName} (${rawData.diagnosisName})`,
           bankName: rawData.useAutoTransfer && !rawData.bankName ? '' : rawData.bankName,
           accountNumber: rawData.useAutoTransfer && !rawData.accountNumber ? '' : rawData.accountNumber
