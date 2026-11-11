@@ -167,7 +167,7 @@ const PDF_COORD_MAP = {
   },
 
   // [2. DB손해보험]
-    db_nonlife: {
+      db_nonlife: {
     fields: [
       { page: 0, key: 'insuredName', x: 147.5, y: 692, size: 10, bold: true },
       { page: 0, key: 'insuredRrnFull', x: 288, y: 692.5, size: 10 },
@@ -204,8 +204,8 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 110.5, y: 623.5 },
       { page: 0, cond: (d) => d.isSameInsBen, x: 166.5, y: 623.5 },
       { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 214, y: 623.5 },
-      { page: 0, cond: (d) => d.notifyPlanner, x: 482.5, y: 599 },  // 보험모집인 문자안내: 예
-      { page: 0, cond: (d) => !d.notifyPlanner, x: 517, y: 599 },   // 보험모집인 문자안내: 아니오
+      { page: 0, cond: (d) => d.notifyPlanner, x: 482.5, y: 599 },
+      { page: 0, cond: (d) => !d.notifyPlanner, x: 517, y: 599 },
       { page: 0, cond: () => true, x: 381, y: 563.5 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 122.5, y: 490 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 163.5, y: 490 },
@@ -218,17 +218,17 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => d.coverages.includes('진단'), x: 143, y: 326.5 },
       { page: 0, cond: (d) => d.coverages.includes('장해'), x: 208, y: 326.5 },
       { page: 0, cond: (d) => d.useAutoTransfer, x: 133, y: 309 },
-      { page: 1, cond: () => true, x: 539, y: 421.5 },
-      { page: 1, cond: () => true, x: 538.5, y: 333.5 },
-      { page: 1, cond: () => true, x: 539, y: 242.5 },
-      { page: 2, cond: () => true, x: 539, y: 330.5 },
-      { page: 2, cond: () => true, x: 539, y: 229.5 },
-      { page: 2, cond: () => true, x: 537.5, y: 91 },
-      { page: 3, cond: () => true, x: 539, y: 337 },
-      { page: 3, cond: () => true, x: 540.5, y: 236 },
-      { page: 4, cond: () => true, x: 523, y: 648 },
-      { page: 4, cond: () => true, x: 537.5, y: 584 },
-      { page: 4, cond: () => true, x: 537.5, y: 451 }
+      { page: 1, cond: () => true, x: 542, y: 423 },
+      { page: 1, cond: () => true, x: 541, y: 336.5 },
+      { page: 1, cond: () => true, x: 543, y: 245 },
+      { page: 2, cond: () => true, x: 541.5, y: 333.5 },
+      { page: 2, cond: () => true, x: 543, y: 231 },
+      { page: 2, cond: () => true, x: 541.5, y: 94 },
+      { page: 3, cond: () => true, x: 541.5, y: 336 },
+      { page: 3, cond: () => true, x: 542, y: 237.5 },
+      { page: 4, cond: () => true, x: 541.5, y: 658 },
+      { page: 4, cond: () => true, x: 541.5, y: 587 },
+      { page: 4, cond: () => true, x: 541.5, y: 452.5 }
     ],
     signatures: [
       { page: 0, role: 'insured', cond: (d) => !d.isUnder14, x: 502.5, y: 145.5, w: 46, h: 18 },
