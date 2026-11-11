@@ -804,7 +804,7 @@ const PDF_COORD_MAP = {
   },
 
   // [11. 라이나손해보험]
-  lina_nonlife: {
+    lina_nonlife: {
     fields: [
       { page: 0, key: 'beneficiaryName', x: 148, y: 632, size: 10 },
       { page: 0, key: 'beneficiaryRrn1', x: 290, y: 632, size: 10 },
@@ -822,38 +822,38 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'accYearShort', x: 124, y: 369, size: 10 },
       { page: 0, key: 'accMonth', x: 162, y: 369, size: 10 },
       { page: 0, key: 'accDay', x: 198, y: 369, size: 10 },
-      { page: 0, key: 'accidentPlace', x: 418, y: 369, size: 9.5 },
-      { page: 0, key: 'accidentDesc', x: 115, y: 332, size: 9.5 },
-      { page: 0, key: 'hospitalName', x: 115, y: 294, size: 9.5 },
-      { page: 0, key: 'diagnosisName', x: 418, y: 294, size: 9 },
+      { page: 0, key: 'accidentPlace', x: 425.5, y: 366.5, size: 9.5 },
+      { page: 0, key: 'accidentDesc', x: 105, y: 335, size: 9.5 },
+      { page: 0, key: 'hospitalName', x: 105, y: 288.5, size: 9.5 },
+      { page: 0, key: 'diagnosisName', x: 425.5, y: 288.5, size: 9 },
       { page: 0, key: 'beneficiaryName', x: 115, y: 184, size: 10 },
       { page: 0, key: 'beneficiaryRrn1', x: 265, y: 184, size: 10 },
       { page: 0, key: 'beneficiaryRrn2', x: 340, y: 184, size: 10 },
-      { page: 0, key: 'beneficiaryJob', x: 465, y: 184, size: 9.5 },
+      { page: 0, key: 'beneficiaryJob', x: 475, y: 183, size: 9.5 },
       { page: 0, key: 'bankName', x: 115, y: 161, size: 10 },
       { page: 0, key: 'accountNumber', x: 265, y: 161, size: 10 },
       { page: 3, key: 'todayYearShort', x: 448, y: 126, size: 10 },
       { page: 3, key: 'todayMonth', x: 490, y: 126, size: 10 },
       { page: 3, key: 'todayDay', x: 525, y: 126, size: 10 },
-      { page: 3, key: 'insuredName', x: 360, y: 104, size: 10, bold: true },
-      { page: 3, key: 'guardianName', cond: (d) => d.isUnder14, x: 360, y: 80, size: 10, bold: true }
+      { page: 3, key: 'insuredName', x: 385.5, y: 105.5, size: 10, bold: true },
+      { page: 3, key: 'guardianName', cond: (d) => d.isUnder14, x: 386, y: 84.5, size: 10, bold: true }
     ],
     checks: [
-      { page: 0, cond: () => true, x: 492, y: 655 },
-      { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 135, y: 559 },
-      { page: 0, cond: (d) => d.isSameInsBen, x: 196, y: 559 },
-      { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 288, y: 559 },
-      { page: 0, cond: (d) => d.notifyCustomer, x: 142, y: 505 },
-      { page: 0, cond: () => true, x: 198, y: 454 },
+      { page: 0, cond: () => true, x: 501, y: 659 },
+      { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 99, y: 558 },
+      { page: 0, cond: (d) => d.isSameInsBen, x: 165, y: 559 },
+      { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 275, y: 558 },
+      { page: 0, cond: (d) => d.notifyCustomer, x: 147.5, y: 504 },
+      { page: 0, cond: () => true, x: 513, y: 455 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 96, y: 392 },
       { page: 0, cond: (d) => d.accidentType === '상해', x: 162, y: 392 },
       { page: 0, cond: (d) => d.accidentType === '교통사고', x: 228, y: 392 },
       { page: 0, cond: (d) => d.claimCategory === '신규', x: 437, y: 392 },
       { page: 0, cond: (d) => d.claimCategory === '추가', x: 498, y: 392 },
-      { page: 0, cond: (d) => d.coverages.includes('실손의료비') || d.coverages.includes('통원'), x: 105, y: 266 },
-      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 176, y: 266 },
-      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 238, y: 266 },
-      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 332, y: 266 },
+      { page: 0, cond: (d) => d.coverages.includes('실손의료비') || d.coverages.includes('통원'), x: 99, y: 269 },
+      { page: 0, cond: (d) => d.coverages.includes('입원'), x: 164.5, y: 270 },
+      { page: 0, cond: (d) => d.coverages.includes('진단'), x: 223.5, y: 269 },
+      { page: 0, cond: (d) => d.coverages.includes('장해'), x: 301, y: 270 },
       { page: 1, cond: () => true, x: 505, y: 383 },
       { page: 1, cond: () => true, x: 505, y: 317 },
       { page: 1, cond: () => true, x: 505, y: 199 },
@@ -867,8 +867,8 @@ const PDF_COORD_MAP = {
       { page: 3, cond: () => true, x: 505, y: 184 }
     ],
     signatures: [
-      { page: 3, role: 'insured', x: 472, y: 104, w: 48, h: 20 },
-      { page: 3, role: 'guardian', cond: (d) => d.isUnder14, x: 472, y: 80, w: 48, h: 20 }
+      { page: 3, role: 'insured', x: 488, y: 104, w: 48, h: 20 },
+      { page: 3, role: 'guardian', cond: (d) => d.isUnder14, x: 487.5, y: 82.5, w: 48, h: 20 }
     ]
   },
   
