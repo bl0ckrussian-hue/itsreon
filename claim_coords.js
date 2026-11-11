@@ -315,15 +315,15 @@ const PDF_COORD_MAP = {
   },
   
   // [4. 현대해상]
-      hyundai: {
+    hyundai: {
     fields: [
       { page: 0, key: 'insuredName', x: 124, y: 603, size: 10, bold: true },
       { page: 0, key: 'insuredRrn1', x: 262, y: 604, size: 10, spacing: 23 },
-      { page: 0, key: 'insuredRrn2', x: 410, y: 603.5, size: 10, spacing: 23 },
+      { page: 0, key: 'insuredRrn2', x: 409, y: 604.5, size: 10, spacing: 23 },
       { page: 0, key: 'insuredJob', x: 123.5, y: 580, size: 9.5 },
       { page: 0, key: 'holderName', x: 124, y: 558.5, size: 10 },
-      { page: 0, key: 'holderRrn1', x: 260.5, y: 558.5, size: 10, spacing: 23 },
-      { page: 0, key: 'holderRrn2', x: 412, y: 558.5, size: 10, spacing: 23 },
+      { page: 0, key: 'holderRrn1', x: 261.5, y: 558.5, size: 10, spacing: 23 },
+      { page: 0, key: 'holderRrn2', x: 410.5, y: 558.5, size: 10, spacing: 23 },
       { page: 0, key: 'beneficiaryName', x: 124, y: 535, size: 10 },
       { page: 0, key: 'otherNotifyRel', x: 320.5, y: 514, size: 9 },
       { page: 0, key: 'accYearShort', x: 106.5, y: 431.5, size: 10 },
