@@ -319,20 +319,20 @@ const PDF_COORD_MAP = {
   },
   
   // [4. 현대해상]
-    hyundai: {
+      hyundai: {
     fields: [
-      { page: 0, key: 'insuredName', x: 122.5, y: 603, size: 10, bold: true },
+      { page: 0, key: 'insuredName', x: 124, y: 603, size: 10, bold: true },
       { page: 0, key: 'insuredRrn1', x: 256, y: 603, size: 10, spacing: 16.5 },
-      { page: 0, key: 'insuredRrn2', x: 404.5, y: 603.5, size: 10, spacing: 16.5 },
+      { page: 0, key: 'insuredRrn2', x: 406, y: 603.5, size: 10, spacing: 16.5 },
       { page: 0, key: 'insuredJob', x: 123.5, y: 580, size: 9.5 },
       { page: 0, key: 'holderName', x: 124, y: 558.5, size: 10 },
       { page: 0, key: 'holderRrn1', x: 280, y: 561, size: 10, spacing: 16.5 },
-      { page: 0, key: 'holderRrn2', x: 396, y: 561, size: 10, spacing: 16.5 },
+      { page: 0, key: 'holderRrn2', x: 400, y: 561, size: 10, spacing: 16.5 },
       { page: 0, key: 'beneficiaryName', x: 124, y: 535, size: 10 },
       { page: 0, key: 'otherNotifyRel', x: 310.5, y: 514, size: 9 },
-      { page: 0, key: 'accYearShort', x: 105, y: 430.5, size: 10 },
-      { page: 0, key: 'accMonth', x: 152.5, y: 430.5, size: 10 },
-      { page: 0, key: 'accDay', x: 202.5, y: 430.5, size: 10 },
+      { page: 0, key: 'accYearShort', x: 106.5, y: 431.5, size: 10 },
+      { page: 0, key: 'accMonth', x: 154, y: 433, size: 10 },
+      { page: 0, key: 'accDay', x: 205.5, y: 432, size: 10 },
       { page: 0, key: 'accidentDesc', x: 92.5, y: 384.5, size: 9 },
       { page: 0, key: 'hospitalWithDiag', x: 386.5, y: 383, size: 8.5 },
       { page: 0, key: 'bankName', x: 85, y: 209, size: 10 },
@@ -341,7 +341,7 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'todayYearShort', x: 107.5, y: 124, size: 10 },
       { page: 0, key: 'todayMonth', x: 151, y: 124.5, size: 10 },
       { page: 0, key: 'todayDay', x: 196.5, y: 124.5, size: 10 },
-      { page: 0, key: 'beneficiaryName', x: 357.5, y: 123, size: 10, bold: true },
+      { page: 0, key: 'beneficiaryName', x: 383, y: 124, size: 10, bold: true },
       { page: 1, key: 'insuredName', x: 79, y: 740, size: 10, bold: true },
       { page: 1, key: 'insuredRrn1', x: 283.5, y: 741.5, size: 10 },
       { page: 2, key: 'insuredName', x: 77.5, y: 740.5, size: 10, bold: true },
@@ -365,9 +365,9 @@ const PDF_COORD_MAP = {
       { page: 0, cond: (d) => d.isSameInsBen, x: 128.5, y: 513.5 },
       { page: 0, cond: (d) => !d.isSameInsBen && d.isBenHolder, x: 204, y: 514 },
       { page: 0, cond: (d) => !d.isSameInsBen && !d.isBenHolder, x: 272, y: 514 },
-      { page: 0, cond: (d) => d.notifyCustomer, x: 129, y: 490.5 }, // 고객 안내방법: 문자
-      { page: 0, cond: (d) => d.notifyPlanner, x: 484.5, y: 472.5 }, // 플래너 문자안내: 예
-      { page: 0, cond: (d) => !d.notifyPlanner, x: 518, y: 472.5 },  // 플래너 문자안내: 아니오
+      { page: 0, cond: (d) => d.notifyCustomer, x: 129, y: 490.5 },
+      { page: 0, cond: (d) => d.notifyPlanner, x: 484.5, y: 472.5 },
+      { page: 0, cond: (d) => !d.notifyPlanner, x: 518, y: 472.5 },
       { page: 0, cond: (d) => d.claimCategory === '신규', x: 386.5, y: 429 },
       { page: 0, cond: (d) => d.claimCategory === '추가', x: 448, y: 429 },
       { page: 0, cond: (d) => d.accidentType === '질병', x: 93, y: 410 },
