@@ -125,7 +125,6 @@ const PDF_COORD_MAP = {
       { page: 5, key: 'insuredName', x: 405, y: 329, size: 10, bold: true },
       { page: 5, key: 'guardianName', cond: (d) => d.isUnder14, x: 405, y: 309, size: 10, bold: true },
       { page: 5, key: 'beneficiaryName', x: 405, y: 289, size: 10, bold: true },
-      { page: 0, key: 'insuredName', x: 439, y: 525, size: 10 }
     ],
     checks: [
       { page: 0, cond: () => true, x: 525, y: 633 },
@@ -576,6 +575,7 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'relSelf', x: 409, y: 124.5, size: 9.5 },
       { page: 0, key: 'beneficiaryName', x: 472, y: 124.5, size: 10, bold: true },
       { page: 4, key: 'insuredName', x: 169.5, y: 150.5, size: 10, bold: true },
+      { page: 4, key: 'guardianName', cond: (d) => d.isUnder14, x: 385, y: 150, size: 10, bold: true }, // <-- 복구
       { page: 4, key: 'relIfDiff', cond: (d) => d.isUnder14, x: 468, y: 149, size: 9.5 },
       { page: 4, key: 'todayYear', x: 200, y: 70, size: 10 },
       { page: 4, key: 'todayMonth', x: 270, y: 70, size: 10 },
@@ -707,7 +707,6 @@ const PDF_COORD_MAP = {
       { page: 4, key: 'todayDay', x: 267, y: 219.5, size: 10 },
       { page: 4, key: 'insuredName', cond: (d) => !d.isUnder14, x: 404.5, y: 247, size: 10, bold: true },
       { page: 4, key: 'guardianName', cond: (d) => d.isUnder14, x: 402.5, y: 221, size: 10, bold: true },
-      { page: 3, key: 'insuredName', x: 442, y: 68, size: 10 }
     ],
     checks: [
       { page: 0, cond: (d) => d.accidentType === '질병', x: 133, y: 572 },
@@ -965,8 +964,9 @@ const PDF_COORD_MAP = {
       { page: 0, key: 'insuredRrnFull', x: 354, y: 710.5, size: 10 },
       { page: 0, key: 'insuredPhone', x: 119, y: 689.5, size: 10 },
       { page: 0, key: 'insuredJob', x: 355, y: 690, size: 9.5 },
-      { page: 0, key: 'beneficiaryName', cond: (d) => !d.isSameInsBen, x: 118, y: 647, size: 10 },
-      { page: 0, key: 'beneficiaryRrnFull', cond: (d) => !d.isSameInsBen, x: 165, y: 566.5, size: 9.5 },
+      { page: 0, key: 'beneficiaryName', cond: (d) => !d.isSameInsBen, x: 118, y: 646, size: 10 },
+      { page: 0, key: 'beneficiaryRrn1', cond: (d) => !d.isSameInsBen, x: 296.5, y: 646.5, size: 10 },
+      { page: 0, key: 'beneficiaryRrn2', cond: (d) => !d.isSameInsBen, x: 370, y: 646.5, size: 10 },
       { page: 0, key: 'relIfDiff', cond: (d) => !d.isSameInsBen, x: 504, y: 645, size: 9.5 },
       { page: 0, key: 'beneficiaryPhone', cond: (d) => !d.isSameInsBen, x: 362, y: 620.5, size: 9.5 },
       { page: 0, key: 'relIfDiff', cond: (d) => !d.isSameInsBen, x: 502.5, y: 622, size: 9.5 },
@@ -996,10 +996,7 @@ const PDF_COORD_MAP = {
       { page: 7, key: 'todayMonth', x: 312.5, y: 120.5, size: 10 },
       { page: 7, key: 'todayDay', x: 355, y: 120.5, size: 10 },
       { page: 7, key: 'insuredName', x: 121, y: 85, size: 10, bold: true },
-      { page: 7, key: 'guardianName', cond: (d) => d.isUnder14, x: 371, y: 87, size: 10, bold: true },
-      { page: 0, key: 'beneficiaryName', x: 118, y: 646, size: 10 },
-      { page: 0, key: 'beneficiaryRrn1', x: 296.5, y: 646.5, size: 10 },
-      { page: 0, key: 'beneficiaryRrn2', x: 370, y: 646.5, size: 10 }
+      { page: 7, key: 'guardianName', cond: (d) => d.isUnder14, x: 371, y: 87, size: 10, bold: true }
     ],
     checks: [
       { page: 0, cond: () => true, x: 532, y: 691 },
