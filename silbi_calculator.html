@@ -1040,7 +1040,20 @@
             document.getElementById('premTotalSum').innerText = `${sumTotal.toLocaleString()}원`;
             document.getElementById('premResultBox').classList.remove('hidden');
         }
-
+        
+        function toggleInfoAccordion(idx) {
+            const body = document.getElementById(`infoBody${idx}`);
+            const arrow = document.getElementById(`infoArrow${idx}`);
+            if (!body || !arrow) return;
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                arrow.innerText = '▲';
+            } else {
+                body.classList.add('hidden');
+                arrow.innerText = '▼';
+            }
+        }
+        
         // 초기 시작 시 기본 오늘 날짜 세팅
         window.onload = function() {
             initSilbiMasterDefaults();
