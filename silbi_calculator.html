@@ -1040,11 +1040,6 @@
             document.getElementById('premTotalSum').innerText = `${sumTotal.toLocaleString()}원`;
             document.getElementById('premResultBox').classList.remove('hidden');
         }
-          // 초기 시작 시 기본 오늘 날짜 세팅
-        window.onload = function() {
-            initSilbiMasterDefaults();
-        };
-        
         function toggleInfoAccordion(idx) {
             const body = document.getElementById(`infoBody${idx}`);
             const arrow = document.getElementById(`infoArrow${idx}`);
@@ -1057,6 +1052,10 @@
                 arrow.innerText = '▼';
             }
         }
+        // 초기 시작 시 기본 오늘 날짜 세팅
+        window.onload = function() {
+            initSilbiMasterDefaults();
+        };
     </script>
     <!-- 🛡️ 보안: 우클릭, 드래그, 소스보기(F12) 차단 스크립트 -->
     <script>
