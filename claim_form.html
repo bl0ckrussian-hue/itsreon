@@ -843,22 +843,15 @@
     const MAIN_ADMIN_ROLES = ['메인관리자'];
     const MAIN_ADMIN_ONLY_USERS = ['김성철']; // 관리자 계정이 여러 명일 때 특정 성명/ID만 허용하려면 입력 (예: ['홍길동'])
 
+    // 메인 관리자 판별 (김성철 지사장님 계정 또는 메인 관리자 권한 허용)
+    const MAIN_ADMIN_ROLES = ['메인관리자', '최고관리자', '대표관리자', 'master', 'superadmin', 'admin', '관리자'];
+    const MAIN_ADMIN_ONLY_USERS = ['김성철'];
+
     function isMainAdmin() {
       const getVal = (k) => (localStorage.getItem(k) || sessionStorage.getItem(k) || '').trim();
       let role = getVal('rion_logged_role') || getVal('userRole') || getVal('role');
       let user = getVal('rion_logged_user') || getVal('rion_logged_id') || getVal('userId');
-
-      ['rion_user', 'rion_auth', 'loginUser', 'currentUser'].forEach(k => {
-        const raw = getVal(k);
-        if (raw && raw.startsWith('{')) {
-          try {
-            const obj = JSON.parse(raw);
-            role = role || String(obj.role || obj.grade || obj.auth || '').trim();
-            user = user || String(obj.name || obj.id || obj.userId || '').trim();
-          } catch (e) {}
-        }
-      });
-
+      if (user === '김성철') return true;
       const r = role.toLowerCase();
       if (!r || r.includes('부관리') || r.includes('sub')) return false;
       if (MAIN_ADMIN_ONLY_USERS.length > 0 && !MAIN_ADMIN_ONLY_USERS.includes(user)) return false;
