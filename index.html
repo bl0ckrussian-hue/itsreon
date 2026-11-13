@@ -88,7 +88,7 @@
             <span class="text-slate-600 text-[10px]">|</span>
             <button id="mNavExpert" onclick="switchView('expert')" class="hover:text-white transition px-2 py-1">자문센터</button>
             <span class="text-slate-600 text-[10px]">|</span>
-            <button onclick="window.open('insurance_education.html', '_blank')" class="text-amber-400 hover:text-amber-300 transition px-2 py-1 flex items-center gap-1">
+            <button onclick="window.open('insurance_education.html', 'eduWindow')" class="text-amber-400 hover:text-amber-300 transition px-2 py-1 flex items-center gap-1">
                 <span>교육센터</span>
             </button>
             <span class="text-slate-600 text-[10px]">|</span>
@@ -1232,7 +1232,12 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                   currentUser = { isLoggedIn: true, name: data.name, status: data.status.trim() };
+                   currentUser = { isLoggedIn: true, userId: userId, name: data.name, status: data.status.trim() };
+                   
+                   localStorage.setItem('rion_logged_id', userId); // ⭐️ 실제 로그인 아이디 저장
+                   localStorage.setItem('rion_logged_user', data.name); // 기존 하위 페이지 호환용 이름 유지
+                   if(data.role) localStorage.setItem('rion_logged_role', data.role); 
+                   if(data.sessionId) localStorage.setItem('rion_session_id', data.sessionId);
                    
                    localStorage.setItem('rion_logged_user', data.name);
                    if(data.role) localStorage.setItem('rion_logged_role', data.role); 
@@ -1335,16 +1340,17 @@
        }
 
       function logoutUser() {
-            // ⭐️ 백엔드(구글 시트)에 로그아웃 사실을 알려 세션을 비웁니다.
-            if (currentUser && currentUser.name) {
+            const targetId = currentUser.userId || localStorage.getItem('rion_logged_id') || currentUser.name;
+            if (targetId) {
                 fetch(USER_DB_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "logout", userId: currentUser.name })
+                    body: JSON.stringify({ action: "logout", userId: targetId })
                 }).catch(e => console.log(e));
             }
 
-            currentUser = { isLoggedIn: false, name: '', status: '' };
+            currentUser = { isLoggedIn: false, userId: '', name: '', status: '' };
+            localStorage.removeItem('rion_logged_id');
             localStorage.removeItem('rion_logged_user');
             localStorage.removeItem('rion_logged_role');
             localStorage.removeItem('rion_session_id');
@@ -1358,43 +1364,41 @@
             updateLoginUI();
             alert('로그아웃 되었습니다.');
         }
+
       // --- ⭐️ 다중 접속 감지 및 자동 로그아웃 엔진 ---
       let sessionCheckTimer = null;
 
       function startSessionCheck() {
           if (sessionCheckTimer) clearInterval(sessionCheckTimer);
             
-          // 30초마다 1번씩 백그라운드에서 서버와 통신하여 현재 세션이 유효한지 확인합니다.
           sessionCheckTimer = setInterval(async () => {
               if (!currentUser.isLoggedIn) return;
                 
               const currentSession = localStorage.getItem('rion_session_id');
-              if (!currentSession) return;
+              const targetId = currentUser.userId || localStorage.getItem('rion_logged_id') || currentUser.name;
+              if (!currentSession || !targetId) return;
 
               try {
                   const res = await fetch(USER_DB_URL, {
                       method: 'POST',
                       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                      body: JSON.stringify({ action: "checkSession", userId: currentUser.name, sessionId: currentSession })
+                      body: JSON.stringify({ action: "checkSession", userId: targetId, sessionId: currentSession })
                   });
                   const data = await res.json();
                     
-                  // 서버에서 세션 만료(다른 기기에서 로그인됨) 응답이 오면
                   if (data.sessionExpired) {
                       clearInterval(sessionCheckTimer);
                       alert("다른 기기에서 로그인이 발생하여 자동으로 로그아웃 되었습니다.");
                         
-                      // 로그아웃 처리
-                      currentUser = { isLoggedIn: false, name: '', status: '' };
+                      currentUser = { isLoggedIn: false, userId: '', name: '', status: '' };
+                      localStorage.removeItem('rion_logged_id');
                       localStorage.removeItem('rion_logged_user');
                       localStorage.removeItem('rion_logged_role');
                       localStorage.removeItem('rion_session_id');
                       updateLoginUI();
                   }
-              } catch (e) {
-                  // 백그라운드 통신 오류는 사용자에게 알리지 않고 무시
-              }
-          }, 30000); // 30초 간격
+              } catch (e) {}
+          }, 30000);
         }
         // --- ⭐️ [보안 엔진] 다중 창 동기화, 자동 로그아웃 및 🎬 영상 재생 감지 ---
         let idleTimer = null;
@@ -1500,17 +1504,14 @@
             localStorage.setItem('rion_last_activity', Date.now().toString());
             startIdleTimer();
 
-           // 탭 종료 감지하여 로그인 데이터 강제 파기 (서버 세션 삭제 동기화)
-            window.addEventListener('beforeunload', function () {
-                const loggedUser = localStorage.getItem('rion_logged_user');
-                if (loggedUser) {
-                    // 창을 닫는 찰나의 순간에 서버로 로그아웃 신호(Beacon)를 쏩니다
-                    navigator.sendBeacon(USER_DB_URL, JSON.stringify({ action: "logout", userId: loggedUser }));
-                    
-                    localStorage.removeItem('rion_logged_user');
-                    localStorage.removeItem('rion_logged_role');
-                    localStorage.removeItem('rion_session_id');
-                    localStorage.removeItem('rion_last_activity');
+           // ⭐️ 다중 창(새 창) 열림/새로고침 시 로그아웃 방지 처리
+            // 기존 window.addEventListener('beforeunload', ...) 블록 전체를 아래 코드로 교체하세요.
+            window.addEventListener('storage', function(e) {
+                // 다른 탭에서 명시적으로 로그아웃 버튼을 눌렀을 때만 함께 로그아웃 동기화
+                if (e.key === 'rion_logged_user' && !e.newValue && currentUser.isLoggedIn) {
+                    if (sessionCheckTimer) clearInterval(sessionCheckTimer);
+                    currentUser = { isLoggedIn: false, userId: '', name: '', status: '' };
+                    updateLoginUI();
                 }
             });
             
