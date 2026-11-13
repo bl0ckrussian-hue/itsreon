@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script>
+        (function checkRionAuth() {
+            const user = localStorage.getItem('rion_logged_user');
+            const session = localStorage.getItem('rion_session_id');
+            if (!user || !session) {
+                alert('보안 접근입니다. 메인 홈페이지에서 로그인 후 이용해 주세요.');
+                window.close();
+                location.replace('./index.html');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>잇츠리온 - 정밀 보장분석 자동화 엔진</title>
