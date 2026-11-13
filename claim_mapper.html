@@ -10,9 +10,9 @@
       const MAIN_ADMIN_ONLY_USERS = []; // 필요 시 특정 성명/ID 지정
       
       const r = role.toLowerCase();
-      const allowed = (user === '김성철') || (r && !r.includes('부관리') && !r.includes('sub') && MAIN_ADMIN_ROLES.includes(r));
+      const allowed = (user === '김성철') || (r && !r.includes('부관리') && !r.includes('sub')
         && (MAIN_ADMIN_ONLY_USERS.length === 0 || MAIN_ADMIN_ONLY_USERS.includes(user))
-        && MAIN_ADMIN_ROLES.includes(r);
+        && MAIN_ADMIN_ROLES.includes(r));
 
       if (!allowed) {
         alert('메인 관리자만 접근할 수 있는 페이지입니다.');
