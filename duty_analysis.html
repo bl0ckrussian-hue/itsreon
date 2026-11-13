@@ -193,6 +193,12 @@
             const userName = localStorage.getItem('rion_logged_user') || '게스트';
             const nameEl = document.getElementById('loggedUserName');
             if(nameEl) nameEl.innerText = userName;
+
+            // ⭐️ 알릴의무 분석 및 검토 중 메인 창 자동 로그아웃 방지
+            const syncRionActivity = () => { if (localStorage.getItem('rion_logged_user')) localStorage.setItem('rion_last_activity', Date.now().toString()); };
+            syncRionActivity();
+            ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => document.addEventListener(evt, syncRionActivity, { passive: true }));
+            setInterval(syncRionActivity, 3 * 60 * 1000);
         });
 
         function togglePasswordVisibility() {
