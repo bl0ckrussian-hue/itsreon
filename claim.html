@@ -361,6 +361,13 @@
         updateBottomButton();
       }
     });
+
+    // ⭐️ 보험사 선택 중 메인 창 자동 로그아웃 방지
+    (function keepRionSessionAlive() {
+      const syncRionActivity = () => { if (localStorage.getItem('rion_logged_user')) localStorage.setItem('rion_last_activity', Date.now().toString()); };
+      syncRionActivity();
+      ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => document.addEventListener(evt, syncRionActivity, { passive: true }));
+    })();
   </script>
 </body>
 </html>
