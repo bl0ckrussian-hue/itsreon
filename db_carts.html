@@ -109,6 +109,11 @@
         } else {
             document.getElementById('agentNameDisplay').innerText = `${currentAgent} 접속중`;
             loadDashboardData();
+
+            // ⭐️ 대시보드 열람 중 메인 창 자동 로그아웃 방지
+            const syncRionActivity = () => { if (localStorage.getItem('rion_logged_user')) localStorage.setItem('rion_last_activity', Date.now().toString()); };
+            syncRionActivity();
+            ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => document.addEventListener(evt, syncRionActivity, { passive: true }));
         }
 
         async function loadDashboardData() {
