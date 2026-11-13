@@ -980,14 +980,13 @@
             const btn = document.querySelector('#memberInfoAuthStep button');
             btn.innerText = "확인 중...";
 
-            // ⭐️ 핵심 수정: '이름'이 아닌 진짜 '아이디'를 가져와서 서버로 전송
-            const loggedUserId = localStorage.getItem('rion_logged_user');
+            // ⭐️ 실제 로그인 아이디 우선 사용
+            const loggedUserId = localStorage.getItem('rion_logged_id') || localStorage.getItem('rion_logged_user');
 
             try {
                 const res = await fetch(USER_DB_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    // ⭐️ force: true를 통해 내 정보를 강제로 받아옴
                     body: JSON.stringify({ action: "login", userId: loggedUserId, password: pw, force: true })
                 });
                 const data = await res.json();
@@ -996,13 +995,14 @@
                     document.getElementById('memberInfoAuthStep').classList.add('hidden');
                     document.getElementById('memberInfoEditStep').classList.remove('hidden');
                     
-                    // ⭐️ 구글 시트에서 가져온 내 정보를 빈칸에 채워넣기
-                    if(document.getElementById('editName')) document.getElementById('editName').value = data.name || currentUser.name;
-                    if(document.getElementById('editEmpId')) document.getElementById('editEmpId').value = pw; 
-                    if(document.getElementById('editPhone')) document.getElementById('editPhone').value = data.phone || '';
-                    if(document.getElementById('editEmail')) document.getElementById('editEmail').value = data.email || '';
-                    if(document.getElementById('editCompany')) document.getElementById('editCompany').value = data.company || '';
-                    if(document.getElementById('editBranch')) document.getElementById('editBranch').value = data.branch || '';
+                    document.getElementById('editName').value = data.name || currentUser.name;
+                    document.getElementById('editEmpId').value = pw; 
+                    // ⭐️ 010 제외한 뒤 8자리만 추출하여 editPhone8에 세팅
+                    const rawDigits = String(data.phone || '').replace(/[^0-9]/g, '');
+                    document.getElementById('editPhone8').value = rawDigits.startsWith('010') ? rawDigits.slice(3, 11) : rawDigits.slice(-8);
+                    document.getElementById('editEmail').value = data.email || '';
+                    document.getElementById('editCompany').value = data.company || '';
+                    document.getElementById('editBranch').value = data.branch || '';
                 } else {
                     alert("비밀번호가 일치하지 않습니다.");
                 }
@@ -1053,33 +1053,41 @@
 
        // ⭐️ 회원정보 창 - 프로필 업데이트 통신
        async function submitEditMemberInfo() {
-           const name = document.getElementById('editName').value.trim();
-           const newPw = document.getElementById('editEmpId').value.trim();
-           const phone8 = document.getElementById('editPhone8').value.trim();
-           const email = document.getElementById('editEmail').value.trim();
+            const loggedUserId = localStorage.getItem('rion_logged_id') || document.getElementById('editName').value.trim();
+            const newPw = document.getElementById('editEmpId').value.trim();
+            const phone8 = document.getElementById('editPhone8').value.trim().replace(/[^0-9]/g, '');
+            const email = document.getElementById('editEmail').value.trim();
+            const company = document.getElementById('editCompany').value.trim();
+            const branch = document.getElementById('editBranch').value.trim();
 
-           if (!newPw) { alert("비밀번호를 입력해주세요."); return; }
-           
-           const btn = document.querySelector('#memberInfoEditStep button');
-           btn.innerText = "수정 중...";
+            if (!newPw) { alert("비밀번호를 입력해주세요."); return; }
+            
+            const btn = document.querySelector('#memberInfoEditStep button');
+            btn.innerText = "수정 중...";
 
-           try {
-               const res = await fetch(USER_DB_URL, {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                   body: JSON.stringify({ action: "updateProfile", userId: name, password: newPw, phone: phone8 ? `010${phone8}` : '', email: email })
-               });
-               const data = await res.json();
-               alert(data.message || "수정되었습니다.");
-               if (data.success) {
-                   closeModal('memberInfoModal');
-               }
-           } catch (e) {
-               alert("통신 오류가 발생했습니다.");
-           } finally {
-               btn.innerText = "회원정보 수정 완료";
-           }
-       }
+            try {
+                const res = await fetch(USER_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: "updateProfile",
+                        userId: loggedUserId,
+                        password: newPw,
+                        phone: phone8.length === 8 ? `010-${phone8.slice(0,4)}-${phone8.slice(4)}` : '',
+                        email: email,
+                        company: company,
+                        branch: branch
+                    })
+                });
+                const data = await res.json();
+                alert(data.message || "수정되었습니다.");
+                if (data.success) closeModal('memberInfoModal');
+            } catch (e) {
+                alert("통신 오류가 발생했습니다.");
+            } finally {
+                btn.innerText = "회원정보 수정 완료";
+            }
+        }
        // ⭐️ 아이디 찾기 전송 함수 추가
         async function submitFindId() {
             const name = document.getElementById('findIdName').value.trim();
@@ -1532,6 +1540,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('rion_logged_user');
+            const savedId = localStorage.getItem('rion_logged_id');
+            const savedSession = localStorage.getItem('rion_session_id');
+            if (savedName && savedSession) {
+                currentUser = { isLoggedIn: true, userId: savedId || savedName, name: savedName, status: '승인' };
+                updateLoginUI();
+                startSessionCheck();
+            }
             initSecurityEngine();
         });
    </script>
