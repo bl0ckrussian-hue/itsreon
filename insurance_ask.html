@@ -302,8 +302,22 @@
         const iconMap = { '변호사': '⚖️', '세무사': '📑', '공인회계사': '📊', '변리사': '💡', '손해사정사': '🛡️', '공인노무사': '👥' };
         document.getElementById('expertIcon').innerText = iconMap[expertType] || '🏛️';
 
-        window.onload = function() {
-            if (!loggedUser) { alert("회원만 접근 가능합니다."); window.close(); }
+       window.onload = function() {
+            if (!loggedUser) { 
+                alert("회원만 접근 가능합니다."); 
+                window.close(); 
+                location.replace('./index.html');
+                return; 
+            }
+
+            // ⭐️ [3번 반영] 자문센터 이용 및 글 작성 중 메인 창 자동 로그아웃 방지 (3분마다 활성 시간 갱신)
+            localStorage.setItem('rion_last_activity', Date.now().toString());
+            setInterval(() => {
+                if (localStorage.getItem('rion_logged_user')) {
+                    localStorage.setItem('rion_last_activity', Date.now().toString());
+                }
+            }, 3 * 60 * 1000);
+
             const requiredAdminRole = `자문관리자(${expertType})`;
             const isAdmin = loggedRole.includes(requiredAdminRole) || loggedRole === '최고관리자' || loggedUser === '김성철';
             
@@ -507,7 +521,9 @@
             const btn = document.getElementById('replySubmitBtn');
             btn.innerText = "등록 중..."; btn.disabled = true;
 
-            const formattedReply = `[${loggedUser}] ${replyText}`; 
+            // ⭐️ [2번 반영] 댓글 구분자(||)와 충돌하지 않도록 단일 기호(|)로 자동 변환
+            const cleanReply = replyText.replace(/\|\|/g, '|');
+            const formattedReply = `[${loggedUser}] ${cleanReply}`; 
 
             try {
                 const res = await fetch(ASK_DB_URL, {
