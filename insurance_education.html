@@ -804,6 +804,14 @@
                 const statusEl = document.getElementById('eduLoginStatus');
                 statusEl.innerText = loggedUser + "님 접속중";
                 statusEl.classList.remove('hidden');
+
+                // ⭐️ 교육센터 이용 및 영상 시청 중 메인 창 자동 로그아웃 방지 (활동 시간 동기화)
+                localStorage.setItem('rion_last_activity', Date.now().toString());
+                setInterval(() => {
+                    if (localStorage.getItem('rion_logged_user')) {
+                        localStorage.setItem('rion_last_activity', Date.now().toString());
+                    }
+                }, 3 * 60 * 1000); // 3분마다 활성 상태 갱신
             }
             filterVideos('protection');
             loadBoardData(); 
