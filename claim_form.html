@@ -1950,6 +1950,14 @@
     }
 
     initPage();
+
+    // ⭐️ 청구서 입력 및 고객 전자서명 중 메인 창 자동 로그아웃 방지
+    (function keepRionSessionAlive() {
+      const syncRionActivity = () => { if (localStorage.getItem('rion_logged_user')) localStorage.setItem('rion_last_activity', Date.now().toString()); };
+      syncRionActivity();
+      ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => document.addEventListener(evt, syncRionActivity, { passive: true }));
+      setInterval(syncRionActivity, 3 * 60 * 1000);
+    })();
   </script>
 </body>
 </html>
