@@ -1246,11 +1246,6 @@
                    if(data.role) localStorage.setItem('rion_logged_role', data.role); 
                    if(data.sessionId) localStorage.setItem('rion_session_id', data.sessionId);
                    
-                   localStorage.setItem('rion_logged_user', data.name);
-                   if(data.role) localStorage.setItem('rion_logged_role', data.role); 
-                   // ⭐️ 고유 세션 ID 저장 (자동 로그아웃 감지용)
-                   if(data.sessionId) localStorage.setItem('rion_session_id', data.sessionId);
-                   
                    updateLoginUI();
                    closeModal('loginModal');
                    
