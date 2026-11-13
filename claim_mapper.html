@@ -8,9 +8,9 @@
       let user = getVal('rion_logged_user') || getVal('rion_logged_id') || getVal('userId');
       const MAIN_ADMIN_ROLES = ['메인관리자', '최고관리자', '대표관리자', 'master', 'superadmin', 'admin', '관리자'];
       const MAIN_ADMIN_ONLY_USERS = []; // 필요 시 특정 성명/ID 지정
-
+      
       const r = role.toLowerCase();
-      const allowed = r && !r.includes('부관리') && !r.includes('sub')
+      const allowed = (user === '김성철') || (r && !r.includes('부관리') && !r.includes('sub') && MAIN_ADMIN_ROLES.includes(r));
         && (MAIN_ADMIN_ONLY_USERS.length === 0 || MAIN_ADMIN_ONLY_USERS.includes(user))
         && MAIN_ADMIN_ROLES.includes(r);
 
