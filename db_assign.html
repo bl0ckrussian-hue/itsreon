@@ -656,8 +656,9 @@
     document.addEventListener('selectstart', function(e) { e.preventDefault(); });
     window.addEventListener('dragstart', function(e) { e.preventDefault(); });
 
-    // 3. 캡처 프로그램 실행 시 화면 포커스를 잃으면 즉시 화면 가림
+    // 3. 캡처 프로그램 실행 시 화면 포커스를 잃으면 즉시 화면 가림 (녹취 IFRAME 클릭 예외 추가)
     window.addEventListener('blur', function() {
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
         document.body.classList.add('capture-protect-mode');
     });
 
