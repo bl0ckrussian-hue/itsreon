@@ -745,7 +745,7 @@
             btn.className = "w-full bg-slate-500 text-white font-bold py-2 px-3 rounded text-xs flex items-center justify-center gap-1.5";
 
             try {
-                const res = await fetch(`${GAS_WEBAPP_URL}?mode=getAudio&fileId=${encodeURIComponent(fileId)}`);
+                const res = await fetch(`${GAS_WEBAPP_URL}?mode=getAudio&fileId=${encodeURIComponent(fileId)}`);agent=${encodeURIComponent(currentAgent)}
                 const data = await res.json();
 
                 if (data.success && data.base64) {
