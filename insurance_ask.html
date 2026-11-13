@@ -567,11 +567,15 @@
                 action: "writeAskPost", expertType: expertType, title: title, content: content, author: loggedUser,
                 isSecret: isSecret, password: password, 
                 fileName: hasFile ? document.getElementById('postFileName').value : "",
-                mimeType: hasFile ? document.getElementById('postFileMime').value : "", fileData: hasFile ? b64 : ""
+                mimeType: hasFile ? document.getElementById('postFileMime').value : "", fileData: hasFile ? b64 : ""        
             };
 
             try {
-                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify(payload) });
+                const res = await fetch(ASK_DB_URL, { 
+                    method: "POST", 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload) 
+                });
                 const result = await res.json();
                 clearInterval(interval);
                 if (result.success) { bar.style.width = '100%'; pct.innerText = '100%'; setTimeout(() => { alert("게시글이 등록되었습니다."); closeWriteModal(); loadAllData(); }, 500); } 
@@ -584,7 +588,9 @@
             if (!confirm("게시글과 연결된 첨부파일을 영구 삭제하시겠습니까?")) return;
             try {
                 const res = await fetch(ASK_DB_URL, {
-                    method: "POST", body: JSON.stringify({ action: "deleteAskPost", expertType: expertType, rowIdx: rowIdx, fileId: fileId })
+                    method: "POST", 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "deleteAskPost", expertType: expertType, rowIdx: rowIdx, fileId: fileId })
                 });
                 const result = await res.json();
                 if (result.success) { alert("삭제 완료"); closeModal('postDetailModal'); loadAllData(); }
@@ -636,7 +642,11 @@
             };
 
             try {
-                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify(payload) });
+                const res = await fetch(ASK_DB_URL, { 
+                    method: "POST", 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload) 
+                });
                 const result = await res.json();
                 clearInterval(interval);
                 if (result.success) { bar.style.width = '100%'; pct.innerText = '100%'; setTimeout(() => { alert("공유 자료가 등록되었습니다."); closeInfoUploadModal(); loadAllData(); }, 500); } 
@@ -647,7 +657,11 @@
         async function deleteInfoPost(rowIdx, fileId) {
             if (!confirm("공유 자료와 파일을 영구 삭제하시겠습니까?")) return;
             try {
-                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify({ action: "deleteInfoData", expertType: expertType, rowIdx: rowIdx, fileId: fileId }) });
+                const res = await fetch(ASK_DB_URL, { 
+                    method: "POST", 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "deleteInfoData", expertType: expertType, rowIdx: rowIdx, fileId: fileId }) 
+                });
                 const result = await res.json();
                 if (result.success) { alert("삭제 완료"); loadAllData(); }
             } catch(e) { alert("삭제 실패"); }
@@ -703,7 +717,11 @@
                 mimeType: hasFile ? document.getElementById('advPhotoMime').value : "", fileData: hasFile ? base64Data : ""
             };
             try {
-                const res = await fetch(ASK_DB_URL, { method: "POST", body: JSON.stringify(payload) });
+                const res = await fetch(ASK_DB_URL, { 
+                    method: "POST", 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload) 
+                });
                 const result = await res.json();
                 if(result.success) { alert("프로필이 등록되었습니다."); closeModal('advisorRegModal'); loadAllData(); } else { alert("등록 실패"); }
             } catch(e) { alert("오류 발생"); }
