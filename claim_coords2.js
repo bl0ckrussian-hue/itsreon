@@ -5,28 +5,26 @@
 
 // 1. 생명보험사 탭(INSURER_DB.life)과 forms2 폴더 내 실제 업로드 파일명·팩스번호 자동 연동
 const LIFE_PDF_FILES = {
-  abl_life:    { pdfFile: 'ABL생명 보험금청구서.pdf', fax: '02-3787-8796', faxType: 'fixed' },
-  aia_life:    { pdfFile: 'AIA생명 보험금청구서.pdf', fax: '02-2021-4540', faxType: 'fixed' },
-  cardif_life: { pdfFile: 'BNP파리바카디프생명 보험금청구서.pdf', fax: '02-3788-8939', faxType: 'fixed' },
-  db_life:     { pdfFile: 'db생명 보험금청구서.pdf', fax: '0505-129-3134', faxType: 'fixed' }
-  im_life:    { pdfFile: 'im라이프 보험금청구서.pdf', fax: '02-2081-2890', faxType: 'fixed' },
-  kb_life:    { pdfFile: 'KB생명 보험금청구서.pdf', fax: '02-6220-9912', faxType: 'fixed' },
-  kdb_life:   { pdfFile: 'kdb생명 보험금청구서.pdf', fax: '02-2669-7930', faxType: 'fixed' },
-  kyobo_life: { pdfFile: '교보생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
+  abl_life:      { pdfFile: 'ABL생명 보험금청구서.pdf', fax: '02-3787-8796', faxType: 'fixed' },
+  aia_life:      { pdfFile: 'AIA생명 보험금청구서.pdf', fax: '02-2021-4540', faxType: 'fixed' },
+  cardif_life:   { pdfFile: 'BNP파리바카디프생명 보험금청구서.pdf', fax: '02-3788-8939', faxType: 'fixed' },
+  db_life:       { pdfFile: 'db생명 보험금청구서.pdf', fax: '0505-129-3134', faxType: 'fixed' },
+  im_life:       { pdfFile: 'im라이프 보험금청구서.pdf', fax: '02-2081-2890', faxType: 'fixed' },
+  kb_life:       { pdfFile: 'KB생명 보험금청구서.pdf', fax: '02-6220-9912', faxType: 'fixed' },
+  kdb_life:      { pdfFile: 'kdb생명 보험금청구서.pdf', fax: '02-2669-7930', faxType: 'fixed' },
+  kyobo_life:    { pdfFile: '교보생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
   nh_life:       { pdfFile: '농협생명 보험금청구서.pdf', fax: '02-6971-6040', faxType: 'fixed' },
   tongyang_life: { pdfFile: '동양생명 보험금청구서.pdf', fax: '02-3289-5500', faxType: 'fixed' },
   lina_life:     { pdfFile: '라이나생명 보험금청구서.pdf', fax: '02-6944-1200', faxType: 'fixed' },
   metlife:       { pdfFile: '메트라이프 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
-  mirae_life:   { pdfFile: '미래에셋생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
-  samsung_life: { pdfFile: '삼성생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
-  shinhan_life: { pdfFile: '신한라이프 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
-  chubb_life:   { pdfFile: '처브라이프 보험금청구서(구,ace).pdf', fax: '02-3480-7801', faxType: 'fixed' },
+  mirae_life:    { pdfFile: '미래에셋생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
+  samsung_life:  { pdfFile: '삼성생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
+  shinhan_life:  { pdfFile: '신한라이프 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
+  chubb_life:    { pdfFile: '처브라이프 보험금청구서(구,ace).pdf', fax: '02-3480-7801', faxType: 'fixed' },
   fubon_life:    { pdfFile: '푸본현대라이프 보험금청구서.pdf', fax: '0505-106-0311', faxType: 'fixed' },
   hana_life:     { pdfFile: '하나생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
   hanwha_life:   { pdfFile: '한화생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' },
   heungkuk_life: { pdfFile: '흥국생명 보험금청구서.pdf', fax: '콜센터 가상팩스 발급', faxType: 'virtual' }
-  
-  // 이어지는 16개 생명보험사도 이곳에 순차적으로 추가됩니다.
 };
 
 if (typeof INSURER_DB !== 'undefined' && Array.isArray(INSURER_DB.life)) {
