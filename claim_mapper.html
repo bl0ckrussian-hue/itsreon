@@ -28,6 +28,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     document.write('<script src="./claim_coords.js?v=' + Date.now() + '"><\/script>');
+    document.write('<script src="./claim_coords2.js?v=' + Date.now() + '"><\/script>');
   </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
@@ -253,8 +254,9 @@
 
     function initMapper() {
       const sel = document.getElementById('insurer-select');
-      const withPdf = INSURER_DB.nonLife.filter(i => i.pdfFile);
-      sel.innerHTML = withPdf.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+      const nonLifeList = INSURER_DB.nonLife.filter(i => i.pdfFile).map(i => `<option value="${i.id}">[손보] ${i.name}</option>`);
+      const lifeList = INSURER_DB.life.filter(i => i.pdfFile).map(i => `<option value="${i.id}">[생보] ${i.name}</option>`);
+      sel.innerHTML = [...lifeList, ...nonLifeList].join('');
       currentInsurer = sel.value;
 
       document.getElementById('palette').innerHTML =
@@ -278,9 +280,11 @@
 
     async function loadPdf() {
       currentInsurer = document.getElementById('insurer-select').value;
-      const ins = INSURER_DB.nonLife.find(i => i.id === currentInsurer);
+      const isLife = INSURER_DB.life.some(i => i.id === currentInsurer);
+      const ins = [...INSURER_DB.life, ...INSURER_DB.nonLife].find(i => i.id === currentInsurer);
       if (!ins || !ins.pdfFile) return;
-      pdfDoc = await pdfjsLib.getDocument(encodeURI(`./forms/${ins.pdfFile}`)).promise;
+      const folder = isLife ? 'forms2' : 'forms';
+      pdfDoc = await pdfjsLib.getDocument(encodeURI(`./${folder}/${ins.pdfFile}`)).promise;
       pageNum = 1;
       await renderPage();
     }
@@ -488,7 +492,7 @@
 
       const out = `  ${currentInsurer}: {\n    fields: [\n${fieldsStr}\n    ],\n    checks: [\n${checksStr}\n    ],\n    signatures: [\n${sigsStr}\n    ]\n  },`;
       navigator.clipboard.writeText(out).then(() => {
-        alert(`✅ [${currentInsurer}] 좌표 코드가 원본과 동일한 형식으로 복사되었습니다!\nclaim_coords.js 파일에서 ${currentInsurer}: { ... }, 구간에 그대로 덮어씌워 주세요.`);
+        alert(`✅ [${currentInsurer}] 좌표 코드가 원본과 동일한 형식으로 복사되었습니다!`);
       });
     }
 
