@@ -236,7 +236,21 @@
       { type: 'check', key: 'cov_surg', label: '✔ [청구담보] 수술비', condStr: "(d) => d.coverages.includes('수술')" },
       { type: 'check', key: 'cov_disab', label: '✔ [청구담보] 후유장해', condStr: "(d) => d.coverages.includes('장해')" },
       { type: 'check', key: 'auto_trans', label: '✔ [계좌] 자동이체계좌 요청', condStr: '(d) => d.useAutoTransfer' },
-
+      
+      { group: '생명보험·고객확인서 전용', items: [
+        { type: 'field', key: 'guardianFatherName', label: '친권자(부) 성명 (부일 때만)' },
+        { type: 'field', key: 'guardianMotherName', label: '친권자(모) 성명 (모일 때만)' },
+        { type: 'field', key: 'guardianRel', label: '친권자 관계 (부/모)' },
+        { type: 'field', key: 'beneficiaryBirth', label: '수익자 생년월일(6자리)' },
+        { type: 'field', key: 'nationalityKor', label: '국적 (대한민국 고정)' },
+        { type: 'check', condStr: '() => true', label: '✔ 필수 고정체크 (실소유자/국내거주/확인)' },
+        { type: 'check', condStr: '(d) => !d.coverages.includes("실손의료비")', label: '✔ 청구유형: 정액 (실손 미포함 시)' },
+        { type: 'check', condStr: '(d) => d.beneficiaryGender === "M"', label: '✔ 수익자 성별: 남' },
+        { type: 'check', condStr: '(d) => d.beneficiaryGender === "F"', label: '✔ 수익자 성별: 여' },
+        { type: 'check', condStr: '(d) => d.isUnder19 && d.guardianRel !== "모"', label: '✔ 미성년 친권자(부) 체크' },
+        { type: 'check', condStr: '(d) => d.isUnder19 && d.guardianRel === "모"', label: '✔ 미성년 친권자(모) 체크' }
+      ]},
+      
       // 7. 역할별 전자서명 도장
       { type: 'sig', role: 'insured', label: '✍️ [서명] 피보험자(본인)' },
       { type: 'sig', role: 'beneficiary', label: '✍️ [서명] 수익자(청구권자)' },
