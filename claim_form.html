@@ -1716,7 +1716,9 @@
 
           if (ins.pdfFile && PDF_COORD_MAP[ins.id]) {
             try {
-              const res = await fetch(encodeURI(`./forms/${ins.pdfFile}`));
+              const isLifeIns = INSURER_DB.life.some(l => l.id === ins.id);
+              const folderName = isLifeIns ? 'forms2' : 'forms';
+              const res = await fetch(encodeURI(`./${folderName}/${ins.pdfFile}`));
               if (!res.ok) throw new Error('PDF 로드 실패');
               const existingBytes = await res.arrayBuffer();
               pdfDoc = await PDFLib.PDFDocument.load(existingBytes);
