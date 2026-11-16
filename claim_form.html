@@ -1169,7 +1169,20 @@
     }
 
     function handleFileSelect(e) {
-      attachedMedicalFiles = [...attachedMedicalFiles, ...Array.from(e.target.files)];
+      const files = e.target && e.target.files ? Array.from(e.target.files) : [];
+      if (files.length === 0) return;
+      attachedMedicalFiles = [...attachedMedicalFiles, ...files];
+      renderAttachedFiles();
+      e.target.value = ''; // 동일 파일 재첨부 허용
+    }
+
+    function handleMedicalDrop(e) {
+      e.preventDefault();
+      e.currentTarget.style.borderColor = '#94a3b8';
+      e.currentTarget.style.background = '#f8fafc';
+      const files = e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+      if (files.length === 0) return;
+      attachedMedicalFiles = [...attachedMedicalFiles, ...files];
       renderAttachedFiles();
     }
 
@@ -1537,10 +1550,29 @@
           const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
           const copiedPages = await targetPdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
           copiedPages.forEach((p) => targetPdfDoc.addPage(p));
-        } else if (file.type.startsWith('image/')) {
-          const embeddedImg = (file.type === 'image/png' || file.name.toLowerCase().endsWith('.png'))
-            ? await targetPdfDoc.embedPng(arrayBuffer)
-            : await targetPdfDoc.embedJpg(arrayBuffer);
+        } else if (file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(file.name)) {
+          let embeddedImg;
+          if (file.type === 'image/png' || file.name.toLowerCase().endsWith('.png')) {
+            embeddedImg = await targetPdfDoc.embedPng(arrayBuffer);
+          } else if (file.type === 'image/jpeg' || /\.(jpg|jpeg)$/i.test(file.name)) {
+            embeddedImg = await targetPdfDoc.embedJpg(arrayBuffer);
+          } else {
+            // WebP 등 기타 휴대폰 이미지 포맷을 PNG로 자동 변환 후 병합
+            const pngBytes = await new Promise((resolve, reject) => {
+              const img = new Image();
+              const url = URL.createObjectURL(file);
+              img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                c.getContext('2d').drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                c.toBlob(async b => resolve(await b.arrayBuffer()), 'image/png');
+              };
+              img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지 변환 실패')); };
+              img.src = url;
+            });
+            embeddedImg = await targetPdfDoc.embedPng(pngBytes);
+          }
           const page = targetPdfDoc.addPage([595.28, 841.89]);
           const imgDims = embeddedImg.scaleToFit(535, 760);
           page.drawImage(embeddedImg, {
@@ -1828,13 +1860,16 @@
     }
 
     // 업로드된 과거 청구서 PDF에서 메모리 즉시 해독 후 폼 자동 채우기 (무저장)
-    async function handlePrevPdfUpload(file) {
+    async function handlePrevPdfUpload(inputOrFile) {
+      const isInputEl = inputOrFile && inputOrFile.files;
+      const file = isInputEl ? inputOrFile.files[0] : inputOrFile;
       if (!file) return;
       const t0 = performance.now();
       const statusEl = document.getElementById('import-status-msg');
 
       try {
         const arrayBuffer = await file.arrayBuffer();
+        if (isInputEl) inputOrFile.value = ''; // 파일을 다 읽은 뒤에 안전하게 초기화
         const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, {
           ignoreEncryption: true,
           updateMetadata: false
