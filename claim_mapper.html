@@ -302,7 +302,8 @@
       pageWidthPt = page.view[2];
       pageHeightPt = page.view[3];
 
-      const viewport = page.getViewport({ scale });
+      const effectiveScale = (pageWidthPt > 1000) ? scale * (595.28 / pageWidthPt) : scale;
+      const viewport = page.getViewport({ scale: effectiveScale });
       const canvas = document.getElementById('pdf-canvas');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
