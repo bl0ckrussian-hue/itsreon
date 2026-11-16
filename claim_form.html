@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <head>
   <script>
     (function checkRionAuth() {
       const user = localStorage.getItem('rion_logged_user');
@@ -13,7 +12,6 @@
       }
     })();
   </script>
-  <meta charset="UTF-8">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>잇츠리온 - 청구 정보 및 전자서명 입력 (2단계)</title>
@@ -841,10 +839,6 @@
     let attachedMedicalFiles = [];
     let generatedPdfFiles = []; // 모바일팩스 Web Share 공유용 메모리 객체
     let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
-
-    // 메인 관리자 판별 (부관리자·일반회원 제외)
-    const MAIN_ADMIN_ROLES = ['메인관리자'];
-    const MAIN_ADMIN_ONLY_USERS = ['김성철']; // 관리자 계정이 여러 명일 때 특정 성명/ID만 허용하려면 입력 (예: ['홍길동'])
 
     // 메인 관리자 판별 (김성철 지사장님 계정 또는 메인 관리자 권한 허용)
     const MAIN_ADMIN_ROLES = ['메인관리자', '최고관리자', '대표관리자', 'master', 'superadmin', 'admin', '관리자'];
