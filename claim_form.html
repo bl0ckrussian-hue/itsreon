@@ -501,9 +501,9 @@
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <input type="file" id="prevClaimPdfInput" accept="application/pdf,.pdf" style="display:none;" onchange="handlePrevPdfUpload(this.files[0]); this.value='';">
+          <input type="file" id="prevClaimPdfInput" accept=".pdf,application/pdf" style="position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; pointer-events:none;" onchange="handlePrevPdfUpload(this)">
           <button type="button" id="clear-acc-only-btn" class="clear-acc-btn" style="display:none;" onclick="clearOnlyAccidentFields()">🧹 사고·진료내역만 비우기</button>
-          <button type="button" class="import-btn" onclick="document.getElementById('prevClaimPdfInput').click()">📂 청구서 PDF파일 불러오기</button>
+          <label for="prevClaimPdfInput" class="import-btn" style="display:inline-block; margin:0;">📂 청구서 PDF파일 불러오기</label>
         </div>
       </div>
         
@@ -766,11 +766,14 @@
           <div class="form-section-title">📎 5. 병원 서류 및 신분증 첨부 (선택)</div>
           <span style="font-size:11.5px; color:#64748b;">첨부 시 청구서 뒷장에 하나의 PDF로 병합됩니다</span>
         </div>
-        <div class="file-upload-box" onclick="document.getElementById('medicalFiles').click()">
-          <input type="file" id="medicalFiles" multiple accept="image/jpeg,image/png,application/pdf" style="display:none;" onchange="handleFileSelect(event)">
+        <input type="file" id="medicalFiles" multiple accept="image/*,.pdf,application/pdf" style="position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; pointer-events:none;" onchange="handleFileSelect(event)">
+        <label for="medicalFiles" class="file-upload-box" style="display:block;"
+               ondragover="event.preventDefault(); this.style.borderColor='#2563eb'; this.style.background='#eff6ff';"
+               ondragleave="this.style.borderColor='#94a3b8'; this.style.background='#f8fafc';"
+               ondrop="handleMedicalDrop(event)">
           <div style="font-size:14px; font-weight:700; color:#1e293b;">📸 여기를 눌러 병원 서류(사진/PDF)를 등록하세요</div>
-          <div style="font-size:11.5px; color:#64748b; margin-top:4px;">영수증, 세부내역서, 처방전, 진단서 등 다중 선택 가능</div>
-        </div>
+          <div style="font-size:11.5px; color:#64748b; margin-top:4px;">영수증, 세부내역서, 처방전, 진단서 등 다중 선택 및 마우스 드래그 가능</div>
+        </label>
         <div class="file-list" id="attached-file-list"></div>
       </section>
 
