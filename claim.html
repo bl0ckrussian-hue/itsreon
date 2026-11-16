@@ -14,7 +14,6 @@
     })();
   </script>
   <meta charset="UTF-8">
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>잇츠리온 - 청구할 보험사 선택 (1단계)</title>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -263,6 +262,40 @@
       background-color: #cbd5e1;
       cursor: not-allowed;
     }
+    /* 미반영 보험사 카드 비활성화 및 정중앙 '미반영' 배지 스타일 */
+    .insurer-card.unapplied {
+      opacity: 0.55;
+      cursor: not-allowed;
+      background-color: #f1f5f9;
+    }
+
+    .insurer-card.unapplied:hover {
+      background-color: #f1f5f9;
+      transform: none;
+    }
+
+    .unapplied-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(241, 245, 249, 0.52);
+      border-radius: 12px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .unapplied-tag {
+      background: rgba(15, 23, 42, 0.78);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 11px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
   </style>
 </head>
 <body>
@@ -300,17 +333,38 @@
     sessionStorage.removeItem('rion_selected_insurers');
     const selectedInsurerIds = new Set();
 
+    const UNAPPLIED_IDS = new Set([
+      'post_ins',     // 우체국보험
+      'ktcu_life',    // 교직원공제회보험
+      'kyobo_planet', // 교보라이프플래닛생명
+      'axa',          // AXA손해보험
+      'shinhan_ez',   // 신한EZ손해보험
+      'carrot'        // 캐롯손해보험
+    ]);
+
+    function sortUnappliedLast(list) {
+      const active = list.filter(item => !UNAPPLIED_IDS.has(item.id));
+      const unapplied = list.filter(item => UNAPPLIED_IDS.has(item.id));
+      return [...active, ...unapplied];
+    }
+
     function renderInsurerGrid() {
+      INSURER_DB.life = sortUnappliedLast(INSURER_DB.life);
+      INSURER_DB.nonLife = sortUnappliedLast(INSURER_DB.nonLife);
+
       document.getElementById('life-grid').innerHTML = INSURER_DB.life.map(createCardHTML).join('');
       document.getElementById('non-life-grid').innerHTML = INSURER_DB.nonLife.map(createCardHTML).join('');
       updateBottomButton();
     }
-
     function createCardHTML(item) {
-      const isSelected = selectedInsurerIds.has(item.id) ? 'selected' : '';
+      const isUnapplied = UNAPPLIED_IDS.has(item.id);
+      const isSelected = (!isUnapplied && selectedInsurerIds.has(item.id)) ? 'selected' : '';
+      const unappliedClass = isUnapplied ? 'unapplied' : '';
+
       return `
-        <div class="insurer-card ${isSelected}" id="card-${item.id}" onclick="toggleInsurer('${item.id}')">
+        <div class="insurer-card ${isSelected} ${unappliedClass}" id="card-${item.id}" onclick="toggleInsurer('${item.id}')">
           <div class="check-badge">&#10003;</div>
+          ${isUnapplied ? `<div class="unapplied-overlay"><span class="unapplied-tag">미반영</span></div>` : ''}
           <div class="logo-box">${item.logo}</div>
           <div class="insurer-name">${item.name}</div>
           ${item.subName ? `<div class="insurer-sub">${item.subName}</div>` : ''}
@@ -319,6 +373,7 @@
     }
 
     function toggleInsurer(id) {
+      if (UNAPPLIED_IDS.has(id)) return; // 미반영 보험사 클릭 방지
       const cardEl = document.getElementById(`card-${id}`);
       if (selectedInsurerIds.has(id)) {
         selectedInsurerIds.delete(id);
