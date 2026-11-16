@@ -1721,7 +1721,7 @@
               const res = await fetch(encodeURI(`./${folderName}/${ins.pdfFile}`));
               if (!res.ok) throw new Error('PDF 로드 실패');
               const existingBytes = await res.arrayBuffer();
-              pdfDoc = await PDFLib.PDFDocument.load(existingBytes);
+              pdfDoc = await PDFLib.PDFDocument.load(existingBytes, { ignoreEncryption: true });
               const pages = pdfDoc.getPages();
 
               const embeddedSigs = {};
