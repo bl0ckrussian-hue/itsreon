@@ -57,16 +57,20 @@
                         <input type="password" id="pdfPassword" placeholder="비밀번호 입력" maxlength="8" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                     </div>
                     
-                    <!-- 실손의료비 기준 -->
+                    <!-- 실손의료비 기준 (교체) -->
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1.5">가입한 실손의료비 기준</label>
-                        <select id="silsoneType" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white cursor-pointer transition">
-                            <option value="1">1세대 (2009년 8월 이전 - 본인부담금 0원/5천원)</option>
-                            <option value="2">2세대 (2009년 8월~2017년 3월 - 10%/20% 공제)</option>
-                            <option value="3">3세대 (2017년 4월~2021년 6월 - 급여 10%/비급여 20% 공제)</option>
-                            <option value="4">4세대 (2021년 7월 이후 - 급여 20%/비급여 30% 공제)</option>
-                            <option value="5">5세대 (2026년 5월 출시 - 신규 구조)</option>
-                        </select>
+                        <select id="silsoneType" onchange="recalculateCurrentData()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white cursor-pointer transition">
+                            <option value="1_nonlife">1세대 손보형 (~09.07 / 외래·약국 5천원, 입원 100%)</option>
+                            <option value="1_life">1세대 생보형 (~09.07 / 5천원 공제 후 80% 보장)</option>
+                            <option value="2">2세대 표준화 (09.08~17.03 / 종별 1~2만·약국 8천 or 10%)</option>
+                            <option value="3">3세대 착한실손 (17.04~21.06 / 급여 10%·종별 1~2만)</option>
+                            <option value="4">4세대 실손 (21.07~26.04 / 급여 20%·최소 1~2만)</option>
+                            <option value="5">5세대 실손 (26.05 출시 / 급여 20%·회당 20만 한도)</option>
+                        </select> 
+                        <p class="text-[11px] text-slate-400 mt-1.5 leading-snug break-keep">
+                            * 심평원 급여 본인부담금 기준 산출됩니다.
+                        </p>
                     </div>
                 </div>
             </div>
