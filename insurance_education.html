@@ -596,14 +596,15 @@
             });
         }
 
-        // 대용량 영상 파일 8MB 분할 업로드 공통 함수
-        async function uploadLargeVideoToDrive(file, loggedUser, onProgress) {
+        // 기존: async function uploadLargeVideoToDrive(file, loggedUser, onProgress) {
+        async function uploadLargeVideoToDrive(file, loggedUser, category, onProgress) {
             const initRes = await fetch(USER_DB_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     action: "initVideoUpload",
                     userId: loggedUser,
+                    category: category, // ⭐️ 분류 전달 ('원수사 교육' 시 생보사 상품 강의 폴더 지정)
                     fileName: file.name,
                     mimeType: file.type || "video/mp4",
                     fileSize: file.size
@@ -690,7 +691,7 @@
                 if (mode === 'file') {
                     const file = fileInput.files[0];
                     statusText.innerText = `영상을 구글 드라이브로 업로드 중입니다... (${(file.size / (1024 * 1024)).toFixed(1)}MB)`;
-                    finalFileId = await uploadLargeVideoToDrive(file, loggedUser, (pct) => {
+                    finalFileId = await uploadLargeVideoToDrive(file, loggedUser, category, (pct) => {
                         bar.style.width = pct + '%';
                         pctText.innerText = pct + '%';
                     });
@@ -788,7 +789,7 @@
 
                     const bar = document.getElementById('vEditProgressBar');
                     const pctText = document.getElementById('vEditProgressPercent');
-                    newFileId = await uploadLargeVideoToDrive(fileInput.files[0], loggedUser, (pct) => {
+                    newFileId = await uploadLargeVideoToDrive(fileInput.files[0], loggedUser, category, (pct) => {
                         bar.style.width = pct + '%';
                         pctText.innerText = pct + '%';
                     });
