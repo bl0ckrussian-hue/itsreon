@@ -1245,6 +1245,8 @@
                    localStorage.setItem('rion_logged_user', data.name); // 기존 하위 페이지 호환용 이름 유지
                    if(data.role) localStorage.setItem('rion_logged_role', data.role); 
                    if(data.sessionId) localStorage.setItem('rion_session_id', data.sessionId);
+                   sessionStorage.setItem('rion_main_tab_alive', 'true'); // ⭐️ 메인 창 생존 표식
+                   localStorage.removeItem('rion_main_closed_at');
                    
                    updateLoginUI();
                    closeModal('loginModal');
@@ -1357,6 +1359,8 @@
             localStorage.removeItem('rion_logged_role');
             localStorage.removeItem('rion_session_id');
             localStorage.removeItem('rion_last_activity');
+            localStorage.removeItem('rion_main_closed_at');
+            sessionStorage.removeItem('rion_main_tab_alive');
 
             const loginIdInput = document.getElementById('loginId');
             const loginPwInput = document.getElementById('loginPw');
@@ -1506,14 +1510,20 @@
             localStorage.setItem('rion_last_activity', Date.now().toString());
             startIdleTimer();
 
-           // ⭐️ 다중 창(새 창) 열림/새로고침 시 로그아웃 방지 처리
-            // 기존 window.addEventListener('beforeunload', ...) 블록 전체를 아래 코드로 교체하세요.
+           // ⭐️ 다른 탭 로그아웃 동기화
             window.addEventListener('storage', function(e) {
-                // 다른 탭에서 명시적으로 로그아웃 버튼을 눌렀을 때만 함께 로그아웃 동기화
                 if (e.key === 'rion_logged_user' && !e.newValue && currentUser.isLoggedIn) {
                     if (sessionCheckTimer) clearInterval(sessionCheckTimer);
                     currentUser = { isLoggedIn: false, userId: '', name: '', status: '' };
+                    sessionStorage.removeItem('rion_main_tab_alive');
                     updateLoginUI();
+                }
+            });
+
+            // ⭐️ 메인 창 닫기 감지 (새로고침과 창 닫기 구분용 타임스탬프 기록)
+            window.addEventListener('pagehide', function() {
+                if (localStorage.getItem('rion_logged_user')) {
+                    localStorage.setItem('rion_main_closed_at', Date.now().toString());
                 }
             });
             
@@ -1537,10 +1547,34 @@
             const savedName = localStorage.getItem('rion_logged_user');
             const savedId = localStorage.getItem('rion_logged_id');
             const savedSession = localStorage.getItem('rion_session_id');
+            const isTabAlive = sessionStorage.getItem('rion_main_tab_alive') === 'true';
+            const closedAt = parseInt(localStorage.getItem('rion_main_closed_at') || '0', 10);
+            const isJustReloaded = closedAt > 0 && (Date.now() - closedAt < 4000); // 4초 이내 재진입은 새로고침(F5)
+
             if (savedName && savedSession) {
-                currentUser = { isLoggedIn: true, userId: savedId || savedName, name: savedName, status: '승인' };
-                updateLoginUI();
-                startSessionCheck();
+                if (isTabAlive || isJustReloaded) {
+                    // 새로고침이거나 같은 탭 내 이동이면 로그인 유지
+                    sessionStorage.setItem('rion_main_tab_alive', 'true');
+                    localStorage.removeItem('rion_main_closed_at');
+                    currentUser = { isLoggedIn: true, userId: savedId || savedName, name: savedName, status: '승인' };
+                    updateLoginUI();
+                    startSessionCheck();
+                } else {
+                    // 메인 창을 닫았다가 새로 켠 경우 -> 서버 세션 및 로컬 로그인 정보 즉시 파기
+                    const targetId = savedId || savedName;
+                    fetch(USER_DB_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: "logout", userId: targetId })
+                    }).catch(() => {});
+
+                    localStorage.removeItem('rion_logged_id');
+                    localStorage.removeItem('rion_logged_user');
+                    localStorage.removeItem('rion_logged_role');
+                    localStorage.removeItem('rion_session_id');
+                    localStorage.removeItem('rion_last_activity');
+                    localStorage.removeItem('rion_main_closed_at');
+                }
             }
             initSecurityEngine();
         });
