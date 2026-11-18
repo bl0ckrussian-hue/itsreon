@@ -95,8 +95,8 @@ function updateHospitalUI() {
         if (btnTert) btnTert.innerText = "상급종합병원";
         if (hospNote) hospNote.classList.remove('hidden');
     } else {
-        if (btnClinic) btnClinic.innerText = "의원 (일반)";
-        if (btnHosp) btnHosp.innerText = "병원·종합병원";
+        if (btnClinic) btnClinic.innerText = "병원·의원";
+        if (btnHosp) btnHosp.innerText = "종합병원";
         if (btnTert) btnTert.innerText = "상급종합병원";
         if (hospNote) hospNote.classList.add('hidden');
     }
