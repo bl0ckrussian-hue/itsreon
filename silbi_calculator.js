@@ -321,15 +321,8 @@ function setSilbiGen2Sub(sub) {
 }
 
 function initSilbiMasterDefaults() {
-    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const startInput = document.getElementById('smStartDate');
-    const endInput = document.getElementById('smEndDate');
-    if (startInput && !startInput.value) startInput.value = todayStr;
-    if (endInput && !endInput.value) endInput.value = todayStr;
-    setSilbiGen('gen2');
-    updateCostInputUI();
+    updateMedicineLabel();
     updateHospitalUI();
-    updateExclusionNoticeUI();
 }
 
 function setSilbiGen(gen) {
@@ -1085,15 +1078,11 @@ function calculateSilbiPayout() {
         }
     }
 
-    const startD = document.getElementById('smStartDate').value || '시작일';
-    const endD = document.getElementById('smEndDate').value || '종료일';
     lastSilbiResult = {
         money: Math.floor(totalPayout),
-        logs: details,
-        period: `${startD} ~ ${endD}`
+        logs: details
     };
 
-    document.getElementById('smResultPeriod').innerText = lastSilbiResult.period;
     document.getElementById('smResultMoney').innerText = `${lastSilbiResult.money.toLocaleString()}원`;
     const logsContainer = document.getElementById('smResultLogs');
     logsContainer.innerHTML = details.map(l => `<div class="mb-1">${l}</div>`).join('');
@@ -1102,7 +1091,7 @@ function calculateSilbiPayout() {
 
 function copySilbiResult() {
     if (!lastSilbiResult) return;
-    const text = `[보험 청구 예상]\n기간: ${lastSilbiResult.period}\n예상 지급액: ${lastSilbiResult.money.toLocaleString()}원\n\n${lastSilbiResult.logs.join('\n')}`;
+    const text = `[보험 청구 예상]\n예상 지급액: ${lastSilbiResult.money.toLocaleString()}원\n\n${lastSilbiResult.logs.join('\n')}`;
     navigator.clipboard.writeText(text).then(() => {
         alert("📋 클립보드에 복사되었습니다.");
     }).catch(() => {
