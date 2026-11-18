@@ -46,7 +46,7 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800">잇츠리온 보장분석 자동화 엔진</h1>
             <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                <span class="font-bold text-blue-600">(수정 완료)</span> 엑셀 통합 다운로드 지원 / 전체 페이지 원본 양식 인쇄 완벽 호환
+                <span class="font-bold text-blue-600">(시범운영)</span> KB손해보험 보장분석 PDF파일만 지원합니다.(타사 불가) 
             </p>
         </div>
         
@@ -60,17 +60,17 @@
             <input type="file" id="pdfUpload" accept="application/pdf" class="hidden">
             
             <button id="btnDownloadRaw" onclick="exportRawToExcel()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm shadow transition hidden">
-                📥 추출 원문 다운로드
+                📥 추출 데이터 다운로드
             </button>
 
             <button onclick="triggerPdfUpload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                📄 보장분석 PDF 업로드
+                📄 KB손해 보장분석 PDF 업로드
             </button>
             <button onclick="runAIVerification()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                🤖 AI 실손/오류 검수
+                🤖 AI 오류 검수
             </button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
-                📊 디자인 포함 엑셀 저장
+                📊 보장분석표 엑셀 저장
             </button>
             <!-- 🚨 인쇄 버튼 기능 변경 (전체 페이지 출력) 🚨 -->
             <button onclick="printAllPages()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded text-sm shadow transition">
