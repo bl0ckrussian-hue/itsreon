@@ -1330,55 +1330,143 @@ async function exportToExcel() {
         const ws = XLSX.utils.table_to_sheet(table, { raw: true });
 
         const range = XLSX.utils.decode_range(ws['!ref']);
+        const merges = ws['!merges'] || [];
+
+        // 병합된 영역의 시작 셀 정보를 미리 매핑하여 병합 내부/외곽 모두 동일한 배경·테두리 유지
+        const mergeMasterMap = {};
+        merges.forEach(m => {
+            const masterRef = XLSX.utils.encode_cell({ c: m.s.c, r: m.s.r });
+            for (let r = m.s.r; r <= m.e.r; r++) {
+                for (let c = m.s.c; c <= m.e.c; c++) {
+                    mergeMasterMap[XLSX.utils.encode_cell({ c, r })] = { masterRef, s: m.s, e: m.e };
+                }
+            }
+        });
+
+        const grayKeywords = [
+            "구분", "구 분", "보험회사", "상품명", "계약일자", "납입기간/만기",
+            "사망", "종신(생명)", "일반", "정기", "손해", "사망(80세)", "질병", "상해",
+            "장애", "후유장애", "3%이상", "입원비", "입원", "일반병원", "상급1인실", "수술입원", "중환자실",
+            "간병", "지원/일당", "통합간호", "일반 치료비", "수술비",
+            "수술 1종", "수술 2종", "수술 3종", "수술 4종", "수술 5종", "수술 6종", "수술 7종", "수술 8종",
+            "병원", "종합병원", "상급병원", "통합(입원/수술포함)",
+            "암", "일반암", "진단비", "기타실피", "항암치료", "항암방사선", "항암약물", "암치료비", "암주요치료비",
+            "뇌/심(순환계)", "뇌혈관", "허혈성", "뇌경색", "급성심근경색", "산정특례", "산정특례(뇌/심)", "뇌/심(순환계)치료비",
+            "장기요양(치매)", "복지용품+주야간이용", "방문/재가/생활비", "표적치료제(치매비)",
+            "말기질환", "말기신부전증", "간/폐/신장 통합치료비",
+            "골절", "깁스", "화상", "실손의료비", "세대(1~5세대)",
+            "법률비용", "운전자(현황급부)", "운전자(현물급부)", "일상생활배상책임", "화재보험/누수",
+            "보험료", "보험료(월)", "총 납입보험료", "페이지 합계", "비고", "총보험료", "총 합계"
+        ];
+
+        // 행별 동적 높이 배열 준비 (내용이 잘리지 않도록 여유 높이 확보)
+        const rowHeights = [];
+
         for (let R = range.s.r; R <= range.e.r; ++R) {
+            if (R === 0) rowHeights[R] = { hpt: 28 };        // 최상단 녹색 타이틀
+            else if (R === 1) rowHeights[R] = { hpt: 22 };   // 보험회사 행
+            else if (R === 2) rowHeights[R] = { hpt: 38 };   // 상품명 행 (2~3줄 상품명 잘림 방지)
+            else if (R === 3 || R === 4) rowHeights[R] = { hpt: 20 }; // 계약일자 / 납입기간 행
+            else if (R >= range.e.r - 1) rowHeights[R] = { hpt: 22 }; // 하단 보험료 / 총납입보험료 행
+            else rowHeights[R] = { hpt: 19 };                // 일반 담보 행
+
             for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cell_ref = XLSX.utils.encode_cell({ c: C, r: R });
-                if (!ws[cell_ref]) ws[cell_ref] = { t: 's', v: '' };
+                const mInfo = mergeMasterMap[cell_ref];
+                const isMergedChild = mInfo && mInfo.masterRef !== cell_ref;
+
+                // ★ 핵심 픽스: 빈 문자열("")이면 xlsx-js-style이 테두리를 누락시키므로, 비어있는 단일/마스터 셀에는 공백 1칸(" ") 부여
+                if (!ws[cell_ref]) {
+                    ws[cell_ref] = { t: 's', v: isMergedChild ? '' : ' ' };
+                } else {
+                    ws[cell_ref].t = 's';
+                    const rawVal = String(ws[cell_ref].v ?? '');
+                    ws[cell_ref].v = (!isMergedChild && rawVal === '') ? ' ' : rawVal;
+                }
+
                 let cell = ws[cell_ref];
+                const masterCell = mInfo ? (ws[mInfo.masterRef] || cell) : cell;
+                const checkStr = String(masterCell.v || "").trim();
 
-                if (!cell.s) cell.s = {};
-                cell.s.font = { name: "Malgun Gothic", sz: 9 };
-                cell.s.alignment = { vertical: "center", horizontal: "center", wrapText: true };
-                cell.s.border = {
-                    top: { style: "thin", color: { rgb: "000000" } },
-                    bottom: { style: "thin", color: { rgb: "000000" } },
-                    left: { style: "thin", color: { rgb: "000000" } },
-                    right: { style: "thin", color: { rgb: "000000" } }
-                };
-
-                const valStr = String(cell.v || "").trim();
-                const grayKeywords = ["구분", "보험회사", "상품명", "계약일자", "납입기간/만기", "사망", "종신(생명)", "일반", "정기", "손해", "사망(80세)", "장애", "후유장애", "3%이상", "입원비", "입원", "일반병원", "상급1인실", "수술입원", "중환자실", "간병", "지원/일당", "통합간호", "일반 치료비", "수술비", "수술 1종", "수술 2종", "수술 3종", "수술 4종", "수술 5종", "수술 6종", "수술 7종", "수술 8종", "병원", "종합병원", "상급병원", "통합(입원/수술포함)", "암", "일반암", "진단비", "기타실피", "항암치료", "항암방사선", "항암약물", "암치료비", "뇌/심(순환계)", "뇌혈관", "허혈성", "뇌경색", "급성심근경색", "산정특례(뇌/심)", "뇌/심(순환계)치료비", "장기요양(치매)", "복지용품+주야간이용", "방문/재가/생활비", "표적치료제(치매비)", "말기질환", "간/폐/신장 통합치료비", "골절", "깁스", "화상", "실손의료비", "세대(1~5세대)", "법률비용", "운전자(현물급부)", "일상생활배상책임", "화재보험/누수", "보험료", "보험료(월)", "총 납입보험료", "페이지 합계", "비고", "총보험료", "총 합계"];
+                // 텍스트 줄 수에 맞춰 행 높이 추가 자동 확장 (단일 행 셀 기준)
+                if (!mInfo || mInfo.s.r === mInfo.e.r) {
+                    const lineCount = checkStr.split('\n').length;
+                    if (lineCount >= 2) {
+                        const neededHpt = Math.max(rowHeights[R].hpt, lineCount * 14 + 6);
+                        rowHeights[R] = { hpt: neededHpt };
+                    }
+                }
 
                 let isGray = false;
                 for (let kw of grayKeywords) {
-                    if (valStr === kw || valStr.includes("장해지급률80%") || valStr.includes("(갑/기/경/제)") || valStr.includes("(5-인지지원등급)") || valStr.includes("단위 만원")) {
+                    if (checkStr === kw || checkStr.includes("장해지급률80%") || checkStr.includes("(갑/기/경/제)") || checkStr.includes("(5-인지지원등급)") || checkStr.includes("암치료비") || checkStr.includes("단위 만원")) {
                         isGray = true;
                         break;
                     }
                 }
 
-                if (R === 0) {
-                    cell.s.fill = { fgColor: { rgb: "2CA02C" } };
-                    cell.s.font.color = { rgb: "FFFFFF" };
-                    cell.s.font.bold = true;
-                    cell.s.font.sz = 11;
-                } else if (isGray || C < 3 || C === 15) {
-                    cell.s.fill = { fgColor: { rgb: "F8F9FA" } };
-                    cell.s.font.bold = true;
+                const effCol = mInfo ? mInfo.s.c : C;
+                const isSummaryCol = (effCol === 13 || effCol === 14);
+                const isHeaderRow = (R === 0);
+                const isSubGrayHeader = (!isHeaderRow && (isGray || effCol < 3 || (effCol === 15 && R <= 4)));
+
+                // 매 셀마다 완전히 독립된 새 스타일 및 4면 실선(thin #000000) 객체 주입
+                const cellStyle = {
+                    font: {
+                        name: "맑은 고딕",
+                        sz: isHeaderRow ? 12 : (R === 2 && effCol >= 3 && effCol <= 12 ? 8.5 : 9),
+                        bold: isHeaderRow || isSubGrayHeader || isSummaryCol || (R === 1 && effCol >= 3 && effCol <= 12) || R >= range.e.r - 1,
+                        color: {
+                            rgb: isHeaderRow ? "FFFFFF"
+                                : (isSummaryCol && R >= 5 && R < range.e.r - 1) ? "DC2626"
+                                : (R === 1 && effCol >= 3 && effCol <= 12) ? "1D4ED8"
+                                : (R >= range.e.r - 1 && effCol === 15) ? "1E40AF"
+                                : "000000"
+                        }
+                    },
+                    alignment: {
+                        vertical: "center",
+                        horizontal: "center",
+                        wrapText: true
+                    },
+                    fill: {
+                        patternType: "solid",
+                        fgColor: {
+                            rgb: isHeaderRow ? "2CA02C" : (isSubGrayHeader ? "F2F4F7" : "FFFFFF")
+                        }
+                    },
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    }
+                };
+
+                // "납입완료" 텍스트는 엑셀에서도 붉은색 강조 유지
+                if (checkStr.includes("납입완료") && R >= range.e.r - 1) {
+                    cellStyle.font.color = { rgb: "DC2626" };
                 }
 
-                if (C === 13 || C === 14) {
-                    cell.s.font.color = { rgb: "DC2626" };
-                    cell.s.font.bold = true;
-                }
+                cell.s = cellStyle;
             }
         }
 
+        // 칸에 맞춰 모든 텍스트(금액, 산정특례 슬래시, 상품명, 총납입보험료)가 한눈에 들어오도록 열 너비 최적화
         ws['!cols'] = [
-            { wch: 8 }, { wch: 9 }, { wch: 11 },
-            { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 7 },
-            { wch: 9 }, { wch: 9 }, { wch: 15 }
+            { wch: 10 }, { wch: 10 }, { wch: 14 }, // 구분 대/중/소분류 (글자 꺾임 최소화)
+            { wch: 9.5 }, { wch: 9.5 },            // 계약 1 (질병 / 상해, 병합 시 19)
+            { wch: 9.5 }, { wch: 9.5 },            // 계약 2
+            { wch: 9.5 }, { wch: 9.5 },            // 계약 3
+            { wch: 9.5 }, { wch: 9.5 },            // 계약 4
+            { wch: 9.5 }, { wch: 9.5 },            // 계약 5
+            { wch: 11 }, { wch: 11 },              // 페이지 합계 (질병 / 상해)
+            { wch: 18 }                            // 비고 / 총보험료
         ];
+        ws['!rows'] = rowHeights;
+
+        // 엑셀 인쇄 페이지 설정 (가로 방향 1페이지 폭 맞춤 기본 세팅)
+        ws['!pageSetup'] = { orientation: 'landscape', fitToWidth: 1, fitToHeight: 1 };
 
         let sheetName = (p === totalPages && totalPages > 1) ? "총합계" : `보장분석_${p}P`;
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
