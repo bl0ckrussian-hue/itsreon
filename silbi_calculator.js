@@ -90,7 +90,7 @@ function updateHospitalUI() {
     const hospNote = document.getElementById('smGen5HospNote');
 
     if (smGen === 'gen5') {
-        if (btnClinic) btnClinic.innerText = "의원·병원(100병상↓)";
+        if (btnClinic) btnClinic.innerText = "병원·의원(100병상↓)";
         if (btnHosp) btnHosp.innerText = "종합병원(100병상↑)";
         if (btnTert) btnTert.innerText = "상급종합병원";
         if (hospNote) hospNote.classList.remove('hidden');
