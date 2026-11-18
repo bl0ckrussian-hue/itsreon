@@ -69,14 +69,33 @@ function getGenerationInfo(dateStr) {
 }
 
 function updateMedicineLabel() {
+    const isOut = (smTreatType === 'outpatient');
+    const titleEl = document.getElementById('smCostSectionTitle');
+    const covLabel = document.getElementById('smCovLabel');
+    const nonCovLabel = document.getElementById('smNonCovLabel');
     const medLabel = document.getElementById('smMedicineLabel');
-    if (!medLabel) return;
-    if (smTreatType === 'inpatient') {
-        medLabel.innerHTML = `<span>💊</span> <span>퇴원/입원 약제비 (입원 급여에 합산 계산)</span>`;
-    } else if (smGen === 'gen4' || smGen === 'gen5') {
-        medLabel.innerHTML = `<span>💊</span> <span>급여 약값 (4·5세대는 외래 급여와 합산 공제)</span>`;
+
+    const leftCols = ['smCovColLeft', 'smNonCovColLeft', 'smMedColLeft'].map(id => document.getElementById(id));
+    const rightCols = document.querySelectorAll('.smOutCountCol');
+
+    if (isOut) {
+        if (titleEl) titleEl.innerHTML = `<span>💰</span> <span>병원비 입력 (통원 1회당 금액 × 횟수)</span>`;
+        if (covLabel) covLabel.innerText = "1회 통원당 급여 (본인부담금)";
+        if (nonCovLabel) nonCovLabel.innerText = "통원당 일반 비급여 (3세대~ 3대분리)";
+        if (medLabel) {
+            medLabel.innerHTML = (smGen === 'gen4' || smGen === 'gen5')
+                ? `<span>💊</span> <span>1회당 급여 약값 (외래 급여와 일별 합산)</span>`
+                : `<span>💊</span> <span>1회 처방당 약값 (약제비)</span>`;
+        }
+        leftCols.forEach(el => { if (el) { el.classList.remove('col-span-3'); el.classList.add('col-span-2'); } });
+        rightCols.forEach(el => el.classList.remove('hidden'));
     } else {
-        medLabel.innerHTML = `<span>💊</span> <span>약값 (처방조제 약제비)</span>`;
+        if (titleEl) titleEl.innerHTML = `<span>💰</span> <span>병원비 입력 (1회 입원 총 합산 금액)</span>`;
+        if (covLabel) covLabel.innerText = "입원 급여 합산 (본인부담금)";
+        if (nonCovLabel) nonCovLabel.innerText = "입원 일반 비급여 합산 (3세대~ 3대분리)";
+        if (medLabel) medLabel.innerHTML = `<span>💊</span> <span>퇴원/입원 약제비 (입원 급여에 합산)</span>`;
+        leftCols.forEach(el => { if (el) { el.classList.remove('col-span-2'); el.classList.add('col-span-3'); } });
+        rightCols.forEach(el => el.classList.add('hidden'));
     }
 }
 
@@ -263,6 +282,9 @@ function resetSilbiAll() {
     document.getElementById('smCoveredCost').value = '';
     document.getElementById('smNonCoveredCost').value = '';
     document.getElementById('smMedicineCost').value = '';
+    if (document.getElementById('smCoveredCount')) document.getElementById('smCoveredCount').value = '';
+    if (document.getElementById('smNonCoveredCount')) document.getElementById('smNonCoveredCount').value = '';
+    if (document.getElementById('smMedicineCount')) document.getElementById('smMedicineCount').value = '';
     document.getElementById('smTotalVisitCount').value = '';
     document.getElementById('smManualUnit').value = '';
     document.getElementById('smManualCount').value = '';
@@ -279,7 +301,7 @@ function resetSilbiAll() {
 /**
  * 3대 비급여 특약 정밀 계산 함수 (1회당 단가 기준 공제 적용)
  */
-function calculateSpecialItem(unitPrice, count, maxCount, minDedPerVisit, ratio, annualLimit, name, logs, generation) {
+function calculateSpecialItem(unitPrice, count, maxCount, minDedPerVisit, ratio, annualLimit, name, logs, generation, perVisitCap = 0) {
     if (unitPrice <= 0 || count <= 0) return 0;
 
     let validCount = count;
@@ -293,95 +315,119 @@ function calculateSpecialItem(unitPrice, count, maxCount, minDedPerVisit, ratio,
     }
 
     const dedPerVisit = Math.max(minDedPerVisit, unitPrice * ratio);
-    const payPerVisit = Math.max(0, unitPrice - dedPerVisit);
+    let payPerVisit = Math.max(0, unitPrice - dedPerVisit);
 
     if (payPerVisit <= 0) {
         logs.push(`[${name}] ⚠️ 1회 단가(${unitPrice.toLocaleString()}원)가 회당 공제금(${Math.floor(dedPerVisit).toLocaleString()}원) 이하로 미지급`);
         return 0;
     }
 
-    const totalClaim = unitPrice * validCount;
-    const totalDed = dedPerVisit * validCount;
-    let totalPay = payPerVisit * validCount;
+    let cappedNotice = "";
+    if (perVisitCap > 0 && payPerVisit > perVisitCap) {
+        payPerVisit = perVisitCap;
+        cappedNotice = ` [1회 통원한도 ${(perVisitCap / 10000)}만원 적용]`;
+    }
 
+    let totalPay = payPerVisit * validCount;
     if (totalPay > annualLimit) {
-        logs.push(`[${name}] ⚠️ 보상한도(${(annualLimit / 10000).toLocaleString()}만원) 초과로 한도액까지만 지급`);
+        logs.push(`[${name}] ⚠️ 연간 보상한도(${(annualLimit / 10000).toLocaleString()}만원) 초과로 한도액까지만 지급`);
         totalPay = annualLimit;
     } else {
-        logs.push(`[${name}] ${validCount}회 청구: ${Math.floor(totalClaim).toLocaleString()}원 (회당 공제 총 -${Math.floor(totalDed).toLocaleString()}원 / 지급 ${Math.floor(totalPay).toLocaleString()}원)`);
+        logs.push(`[${name}] ${validCount}회 (회당 ${unitPrice.toLocaleString()}원 ➔ 회당 지급 ${Math.floor(payPerVisit).toLocaleString()}원)${cappedNotice} ➔ 소계 ${Math.floor(totalPay).toLocaleString()}원`);
     }
     return totalPay;
 }
 
-/**
- * 관리급여(도수·체외충격파·증식) 전 세대 처리 함수
- * 반환값: { addToCovered: 급여합산액, directPay: 별도특약지급액 }
- */
-function resolveManagedManualCost(uManual, cManual, generation, severity, details) {
-    if (uManual <= 0 || cManual <= 0) return { addToCovered: 0, directPay: 0 };
+function resolveManagedManualPlan(uManual, cManual, generation, severity, details, isOutpatient) {
+    if (uManual <= 0 || cManual <= 0) return { mode: 'none', unit: 0, validCnt: 0, directPay: 0 };
 
     const isManaged = document.getElementById('smManagedCareChk')?.checked;
     const maxManagedCnt = parseInt(document.getElementById('smManagedLimitType')?.value || '6', 10);
 
-    // 1) 관리급여 적용 시 (1~5세대 공통 건보 고시 적용)
     if (isManaged) {
         let validCnt = cManual;
         if (cManual > maxManagedCnt) {
             validCnt = maxManagedCnt;
-            details.push(`🛑 [관리급여 횟수 제한] 기준 한도(연 ${maxManagedCnt}회) 초과! 초과분 ${cManual - maxManagedCnt}회(${((cManual - maxManagedCnt) * uManual).toLocaleString()}원)는 전 세대 보상 제외`);
+            details.push(`🛑 [관리급여 횟수 제한] 연 ${maxManagedCnt}회 한도 초과! 초과분 ${cManual - maxManagedCnt}회(${((cManual - maxManagedCnt) * uManual).toLocaleString()}원) 전 세대 보상 제외`);
         }
-        const validManagedAmt = uManual * validCnt;
-
         if (generation === 'gen5' && severity === 'nonSevere') {
-            details.push(`🚫 [5세대 면책 약관] 관리급여 지정 항목(본인부담 90~95%)은 5세대 비중증 실손에서 면책(보장 제외)됩니다! (지급 0원)`);
-            return { addToCovered: 0, directPay: 0 };
+            details.push(`🚫 [5세대 면책 약관] 관리급여 지정 항목(본인부담 90~95%)은 5세대 비중증 실손에서 면책(보장 제외)됩니다! (0원)`);
+            return { mode: 'excluded', unit: 0, validCnt: 0, directPay: 0 };
         }
-
-        // 1~4세대(및 5세대 중증 재활 인정 시): 관리급여 인정분은 건보 '급여 본인부담금'이 되어 각 세대 급여 공제율 적용!
-        details.push(`✅ [관리급여 적용] 인정 ${validCnt}회분(${validManagedAmt.toLocaleString()}원) ➔ 건강보험 '급여 본인부담금'으로 편입하여 계산`);
-        return { addToCovered: validManagedAmt, directPay: 0 };
+        details.push(`✅ [관리급여 적용] 인정 ${validCnt}회(회당 ${uManual.toLocaleString()}원) ➔ ${isOutpatient ? '각 통원 회차별 급여 본인부담금으로 개별 반영' : '입원 급여에 합산 반영'}`);
+        return { mode: 'covered', unit: uManual, validCnt: validCnt, directPay: 0 };
     }
 
-    // 2) 관리급여 미적용(일반 비급여 시뮬레이션) 시 세대별 기존 약관 적용
     if (generation === 'gen1' || generation === 'gen2') {
-        // 1·2세대는 일반 비급여에 합산 처리
-        return { addToCovered: 0, addToNonCovered: uManual * cManual, directPay: 0 };
+        return { mode: 'nonCovered', unit: uManual, validCnt: cManual, directPay: 0 };
     } else if (generation === 'gen3') {
-        const pay = calculateSpecialItem(uManual, cManual, 50, 20000, 0.3, 3500000, "도수·체외·증식(특약)", details, 'gen3');
-        return { addToCovered: 0, directPay: pay };
+        const pay = calculateSpecialItem(uManual, cManual, 50, 20000, 0.3, 3500000, "도수·체외·증식(특약)", details, 'gen3', 0);
+        return { mode: 'rider', unit: 0, validCnt: 0, directPay: pay };
     } else if (generation === 'gen4') {
-        const pay = calculateSpecialItem(uManual, cManual, 50, 30000, 0.3, 3500000, "도수·체외·증식(3대특약)", details, 'gen4');
-        return { addToCovered: 0, directPay: pay };
+        const cap = isOutpatient ? 200000 : 0;
+        const pay = calculateSpecialItem(uManual, cManual, 50, 30000, 0.3, 3500000, "도수·체외·증식(3대특약)", details, 'gen4', cap);
+        return { mode: 'rider', unit: 0, validCnt: 0, directPay: pay };
     } else {
         if (severity === 'nonSevere') {
             details.push(`🚫 [5세대 면책 약관] 비중증 도수·체외충격파·증식치료는 실손 보장에서 제외됩니다! (청구 ${(uManual * cManual).toLocaleString()}원 ➔ 0원)`);
-            return { addToCovered: 0, directPay: 0 };
+            return { mode: 'excluded', unit: 0, validCnt: 0, directPay: 0 };
         }
-        const pay = calculateSpecialItem(uManual, cManual, 50, 30000, 0.3, 3500000, "중증 재활·도수", details, 'gen5');
-        return { addToCovered: 0, directPay: pay };
+        const cap = isOutpatient ? 200000 : 0;
+        const pay = calculateSpecialItem(uManual, cManual, 50, 30000, 0.3, 3500000, "중증 재활·도수", details, 'gen5', cap);
+        return { mode: 'rider', unit: 0, validCnt: 0, directPay: pay };
     }
+}
+
+function pushGroupedVisitLogs(dayResults, labelPrefix, details) {
+    if (dayResults.length === 0) return;
+    let groups = [];
+    dayResults.forEach((r, idx) => {
+        const dayNum = idx + 1;
+        const prev = groups[groups.length - 1];
+        if (prev && prev.claim === r.claim && prev.ded === r.ded && prev.pay === r.pay && prev.note === r.note) {
+            prev.endDay = dayNum;
+            prev.count++;
+        } else {
+            groups.push({ startDay: dayNum, endDay: dayNum, count: 1, ...r });
+        }
+    });
+
+    groups.forEach(g => {
+        const rangeTxt = g.count === 1 ? `${g.startDay}회차` : `${g.startDay}~${g.endDay}회차(${g.count}회)`;
+        if (g.pay <= 0) {
+            details.push(`[${labelPrefix} ${rangeTxt}] ⚠️ 회당 청구 ${Math.floor(g.claim).toLocaleString()}원 ➔ ${g.note || `공제금(${Math.floor(g.ded).toLocaleString()}원) 이하 미지급`}`);
+        } else {
+            const subTotal = Math.floor(g.pay * g.count);
+            const noteStr = g.note ? ` ${g.note}` : '';
+            details.push(`[${labelPrefix} ${rangeTxt}] 회당 ${Math.floor(g.claim).toLocaleString()}원 (공제 -${Math.floor(g.ded).toLocaleString()}원 / 회당지급 ${Math.floor(g.pay).toLocaleString()}원)${noteStr} ➔ 소계 ${subTotal.toLocaleString()}원`);
+        }
+    });
 }
 
 function calculateSilbiPayout() {
     const isOutpatient = (smTreatType === 'outpatient');
-    let cov = parseNum(document.getElementById('smCoveredCost').value);
-    let nonCov = parseNum(document.getElementById('smNonCoveredCost').value);
-    const med = parseNum(document.getElementById('smMedicineCost').value);
-    const visitCnt = parseNum(document.getElementById('smTotalVisitCount').value);
+
+    const uCov = parseNum(document.getElementById('smCoveredCost').value);
+    const cCov = isOutpatient ? (uCov > 0 ? (parseNum(document.getElementById('smCoveredCount')?.value) || 1) : 0) : (uCov > 0 ? 1 : 0);
+
+    const uNonCov = parseNum(document.getElementById('smNonCoveredCost').value);
+    const cNonCov = isOutpatient ? (uNonCov > 0 ? (parseNum(document.getElementById('smNonCoveredCount')?.value) || 1) : 0) : (uNonCov > 0 ? 1 : 0);
+
+    const uMed = parseNum(document.getElementById('smMedicineCost').value);
+    const cMed = isOutpatient ? (uMed > 0 ? (parseNum(document.getElementById('smMedicineCount')?.value) || 1) : 0) : (uMed > 0 ? 1 : 0);
+
+    const prevVisitCnt = parseNum(document.getElementById('smTotalVisitCount').value);
 
     const uManual = parseNum(document.getElementById('smManualUnit').value);
-    const cManual = parseNum(document.getElementById('smManualCount').value) || (uManual > 0 ? 1 : 0);
+    const cManual = uManual > 0 ? (parseNum(document.getElementById('smManualCount').value) || 1) : 0;
 
     const uInj = parseNum(document.getElementById('smInjectionUnit').value);
-    const cInj = parseNum(document.getElementById('smInjectionCount').value) || (uInj > 0 ? 1 : 0);
-    const totalInj = uInj * cInj;
+    const cInj = uInj > 0 ? (parseNum(document.getElementById('smInjectionCount').value) || 1) : 0;
 
     const uMri = parseNum(document.getElementById('smMriUnit').value);
-    const cMri = parseNum(document.getElementById('smMriCount').value) || (uMri > 0 ? 1 : 0);
-    const totalMri = uMri * cMri;
+    const cMri = uMri > 0 ? (parseNum(document.getElementById('smMriCount').value) || 1) : 0;
 
-    const totalInputCheck = cov + nonCov + med + (uManual * cManual) + totalInj + totalMri;
-    if (totalInputCheck === 0) {
+    if ((uCov + uNonCov + uMed + uManual + uInj + uMri) === 0) {
         alert("병원비 또는 약제비를 입력해주세요!");
         return;
     }
@@ -389,384 +435,352 @@ function calculateSilbiPayout() {
     let totalPayout = 0;
     let details = [];
 
-    // [핵심] 도수·체외·증식 관리급여(연 6회/12회) 및 5세대 면책 선처리
-    const manualRes = resolveManagedManualCost(uManual, cManual, smGen, smGen5Severity, details);
-    cov += (manualRes.addToCovered || 0);
-    nonCov += (manualRes.addToNonCovered || 0);
-
-    // 1·2세대는 주사·MRI가 별도 특약이 아니므로 일반 비급여(nonCov)에 자동 합산
-    if (smGen === 'gen1' || smGen === 'gen2') {
-        if (totalInj > 0) nonCov += totalInj;
-        if (totalMri > 0) nonCov += totalMri;
-    }
-
-    // 2·3세대 표준 병원별 통원 최소 공제금 (의원 1만 / 병원·종합 1.5만 / 상급종합 2만)
     let baseDed = 10000;
     if (smHospital === 'hospital') baseDed = 15000;
     else if (smHospital === 'tertiary') baseDed = 20000;
 
-    // ==================== [1세대 계산] ====================
-    if (smGen === 'gen1') {
-        const gen1HospTotal = cov + nonCov;
-        if (!isOutpatient) {
-            const maxInpatientLimit = (smGen1Type === 'nonLife' && smGen1Limit === '30m') ? 30000000 : 100000000;
-            details.push(`📝 1세대 입원 (본인부담 0원, 100% 보장)`);
-            const rawTotal = gen1HospTotal + med;
-            totalPayout = Math.min(rawTotal, maxInpatientLimit);
-            details.push(`[입원비] 청구: ${rawTotal.toLocaleString()}원 ➔ 지급: ${totalPayout.toLocaleString()}원`);
-            if (rawTotal > maxInpatientLimit) {
-                details.push(`⚠️ 입원 한도(${(maxInpatientLimit / 10000).toLocaleString()}만원) 초과분 제외`);
-            }
-        } else {
-            if (smGen1Type === 'life') {
-                details.push(`📝 1세대 생명보험 통원 (외래 20만 / 약제 10만 한도)`);
-                let medPay = 0;
-                if (gen1HospTotal > 0) {
-                    medPay = Math.max(0, gen1HospTotal - 10000);
-                    if (medPay > 200000) {
-                        details.push(`[외래] ⚠️ 1일 한도(20만원) 초과로 200,000원 지급`);
-                        medPay = 200000;
-                    } else if (medPay === 0) {
-                        details.push(`[외래] ⚠️ 공제금(10,000원) 이하로 미지급`);
-                    } else {
-                        details.push(`[외래] 청구: ${gen1HospTotal.toLocaleString()}원 (공제 -10,000원 / 지급 ${medPay.toLocaleString()}원)`);
-                    }
+    const joinDateStr = document.getElementById('smJoinDate').value.trim();
+    const isEarlyGen2 = (joinDateStr.length === 8 && Number(joinDateStr) >= 20091001 && Number(joinDateStr) <= 20150831);
+
+    const manualPlan = resolveManagedManualPlan(uManual, cManual, smGen, smGen5Severity, details, isOutpatient);
+
+    // ==================== [A] 통원 (회차별 개별 계산) ====================
+    if (isOutpatient) {
+        const incInjInDaily = (smGen === 'gen1' || smGen === 'gen2');
+        const incMriInDaily = (smGen === 'gen1' || smGen === 'gen2' || (smGen === 'gen5' && smGen5Severity === 'nonSevere'));
+
+        const maxDays = Math.max(
+            cCov,
+            cNonCov,
+            cMed,
+            (manualPlan.mode === 'covered' || manualPlan.mode === 'nonCovered') ? manualPlan.validCnt : 0,
+            incInjInDaily ? cInj : 0,
+            incMriInDaily ? cMri : 0
+        );
+
+        if (smGen === 'gen1') {
+            details.push(`📝 1세대 통원 회차별 계산 (동일 질병 30회 한도)`);
+            let hospDays = [], pharmDays = [], combinedDays = [];
+
+            for (let d = 1; d <= maxDays; d++) {
+                if (prevVisitCnt + d > 30) {
+                    details.push(`🛑 [1세대 통원 횟수 초과] 누적 ${prevVisitCnt + d}회차부터 동일 질병 30회 한도 초과로 제외 (${maxDays - d + 1}회분 제외)`);
+                    break;
                 }
-                let pharmPay = 0;
-                if (med > 0) {
-                    pharmPay = Math.max(0, med - 5000);
-                    if (pharmPay > 100000) {
-                        details.push(`[약제] ⚠️ 1일 한도(10만원) 초과로 100,000원 지급`);
-                        pharmPay = 100000;
-                    } else if (pharmPay === 0) {
-                        details.push(`[약제] ⚠️ 공제금(5,000원) 이하로 미지급`);
-                    } else {
-                        details.push(`[약제] 청구: ${med.toLocaleString()}원 (공제 -5,000원 / 지급 ${pharmPay.toLocaleString()}원)`);
+                const dayCov = (d <= cCov ? uCov : 0) + (manualPlan.mode === 'covered' && d <= manualPlan.validCnt ? manualPlan.unit : 0);
+                const dayNonCov = (d <= cNonCov ? uNonCov : 0)
+                    + (manualPlan.mode === 'nonCovered' && d <= manualPlan.validCnt ? manualPlan.unit : 0)
+                    + (d <= cInj ? uInj : 0) + (d <= cMri ? uMri : 0);
+                const dayHosp = dayCov + dayNonCov;
+                const dayMed = (d <= cMed ? uMed : 0);
+
+                if (smGen1Type === 'life') {
+                    if (dayHosp > 0) {
+                        const raw = Math.max(0, dayHosp - 10000);
+                        const pay = Math.min(200000, raw);
+                        hospDays.push({ claim: dayHosp, ded: 10000, pay, note: raw > 200000 ? '[1일 한도 20만 적용]' : '' });
+                        totalPayout += pay;
                     }
-                }
-                totalPayout = medPay + pharmPay;
-            } else {
-                if (smGen1Pharm === 'separate50k') {
-                    details.push(`📝 1세대 손해보험 통원 (외래 25만 / 약제 5만 분리형)`);
-                    let medPay = 0;
-                    if (gen1HospTotal > 0) {
-                        medPay = Math.max(0, gen1HospTotal - 5000);
-                        if (medPay > 250000) {
-                            details.push(`[외래] ⚠️ 1일 한도(25만원) 초과로 250,000원 지급`);
-                            medPay = 250000;
-                        } else if (medPay === 0) {
-                            details.push(`[외래] ⚠️ 공제금(5,000원) 이하로 미지급`);
-                        } else {
-                            details.push(`[외래] 청구: ${gen1HospTotal.toLocaleString()}원 (공제 -5,000원 / 지급 ${medPay.toLocaleString()}원)`);
-                        }
+                    if (dayMed > 0) {
+                        const raw = Math.max(0, dayMed - 5000);
+                        const pay = Math.min(100000, raw);
+                        pharmDays.push({ claim: dayMed, ded: 5000, pay, note: raw > 100000 ? '[1일 한도 10만 적용]' : '' });
+                        totalPayout += pay;
                     }
-                    let pharmPay = 0;
-                    if (med > 0) {
-                        pharmPay = Math.max(0, med - 5000);
-                        if (pharmPay > 50000) {
-                            details.push(`[약제] ⚠️ 1일 한도(5만원) 초과로 50,000원 지급`);
-                            pharmPay = 50000;
-                        } else if (pharmPay === 0) {
-                            details.push(`[약제] ⚠️ 공제금(5,000원) 이하로 미지급`);
-                        } else {
-                            details.push(`[약제] 청구: ${med.toLocaleString()}원 (공제 -5,000원 / 지급 ${pharmPay.toLocaleString()}원)`);
-                        }
+                } else if (smGen1Pharm === 'separate50k') {
+                    if (dayHosp > 0) {
+                        const raw = Math.max(0, dayHosp - 5000);
+                        const pay = Math.min(250000, raw);
+                        hospDays.push({ claim: dayHosp, ded: 5000, pay, note: raw > 250000 ? '[1일 한도 25만 적용]' : '' });
+                        totalPayout += pay;
                     }
-                    totalPayout = medPay + pharmPay;
+                    if (dayMed > 0) {
+                        const raw = Math.max(0, dayMed - 5000);
+                        const pay = Math.min(50000, raw);
+                        pharmDays.push({ claim: dayMed, ded: 5000, pay, note: raw > 50000 ? '[1일 한도 5만 적용]' : '' });
+                        totalPayout += pay;
+                    }
                 } else {
-                    const limitAmount = (smGen1Limit === '30m') ? 100000 : 300000;
-                    details.push(`📝 1세대 손해보험 통원 (외래+약제 합산 ${(limitAmount / 10000)}만원 한도)`);
-                    const rawClaim = gen1HospTotal + med;
-                    const payout = rawClaim - 5000;
-                    if (payout <= 0) {
-                        details.push(`⚠️ 합산 공제금(5,000원) 이하로 미지급`);
-                        totalPayout = 0;
-                    } else {
-                        const finalPay = Math.min(payout, limitAmount);
-                        totalPayout = finalPay;
-                        details.push(`[합산청구] ${rawClaim.toLocaleString()}원 (공제 -5,000원 / 지급 ${finalPay.toLocaleString()}원)`);
-                        if (payout > limitAmount) details.push(`⚠️ 1일 통원 한도(${limitAmount.toLocaleString()}원) 초과분 절사`);
+                    const limitAmt = (smGen1Limit === '30m') ? 100000 : 300000;
+                    const daySum = dayHosp + dayMed;
+                    if (daySum > 0) {
+                        const raw = Math.max(0, daySum - 5000);
+                        const pay = Math.min(limitAmt, raw);
+                        combinedDays.push({ claim: daySum, ded: 5000, pay, note: raw > limitAmt ? `[1일 한도 ${limitAmt / 10000}만 적용]` : '' });
+                        totalPayout += pay;
                     }
                 }
             }
-            if (visitCnt > 30) details.push(`⚠️ [경고] 동일 질병 통원 30회 한도 초과 주의!`);
+            pushGroupedVisitLogs(hospDays, "외래", details);
+            pushGroupedVisitLogs(pharmDays, "약제", details);
+            pushGroupedVisitLogs(combinedDays, "통원합산", details);
         }
-    }
 
-    // ==================== [2세대 계산] ====================
-    else if (smGen === 'gen2') {
-        const joinDateStr = document.getElementById('smJoinDate').value.trim();
-        const isEarlyGen2 = (joinDateStr.length === 8 && Number(joinDateStr) >= 20091001 && Number(joinDateStr) <= 20150831);
-
-        if (isOutpatient) {
+        else if (smGen === 'gen2') {
             const labelType = isEarlyGen2 ? "표준화 초기(90%형)" : "선택형II(급여90%·비급여80%)";
-            details.push(`📝 2세대 통원 [${labelType}] (외래 25만 / 약제 5만 한도)`);
-            const hospFee = cov + nonCov;
-            let hospPay = 0;
+            details.push(`📝 2세대 통원 [${labelType}] 회차별 계산 (회당 외래 25만 / 약제 5만 한도)`);
+            let hospDays = [], pharmDays = [];
 
-            if (hospFee > 0) {
-                const ratioDed = isEarlyGen2 ? (hospFee * 0.1) : ((cov * 0.1) + (nonCov * 0.2));
-                const finalDed = Math.max(baseDed, ratioDed);
-                const rawPay = Math.max(0, hospFee - finalDed);
+            for (let d = 1; d <= maxDays; d++) {
+                if (prevVisitCnt + d > 180) {
+                    details.push(`🛑 [2세대 통원 횟수 초과] 누적 ${prevVisitCnt + d}회차부터 연간 180회 한도 초과로 제외`);
+                    break;
+                }
+                const dayCov = (d <= cCov ? uCov : 0) + (manualPlan.mode === 'covered' && d <= manualPlan.validCnt ? manualPlan.unit : 0);
+                const dayNonCov = (d <= cNonCov ? uNonCov : 0)
+                    + (manualPlan.mode === 'nonCovered' && d <= manualPlan.validCnt ? manualPlan.unit : 0)
+                    + (d <= cInj ? uInj : 0) + (d <= cMri ? uMri : 0);
+                const dayHosp = dayCov + dayNonCov;
+                const dayMed = (d <= cMed ? uMed : 0);
 
-                if (rawPay <= 0) {
-                    details.push(`[외래] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 이하로 미지급`);
-                } else if (rawPay > 250000) {
-                    hospPay = 250000;
-                    details.push(`[외래] 청구: ${hospFee.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원) ➔ ⚠️ 1일 한도(25만원) 적용 지급`);
-                } else {
-                    hospPay = rawPay;
-                    details.push(`[외래] 청구: ${hospFee.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(hospPay).toLocaleString()}원)`);
+                if (dayHosp > 0) {
+                    const ratioDed = isEarlyGen2 ? (dayHosp * 0.1) : ((dayCov * 0.1) + (dayNonCov * 0.2));
+                    const finalDed = Math.max(baseDed, ratioDed);
+                    const raw = Math.max(0, dayHosp - finalDed);
+                    const pay = Math.min(250000, raw);
+                    hospDays.push({ claim: dayHosp, ded: finalDed, pay, note: raw > 250000 ? '[1일 한도 25만 적용]' : '' });
+                    totalPayout += pay;
+                }
+                if (dayMed > 0) {
+                    const pharmDed = isEarlyGen2 ? 8000 : Math.max(8000, dayMed * 0.1);
+                    const raw = Math.max(0, dayMed - pharmDed);
+                    const pay = Math.min(50000, raw);
+                    pharmDays.push({ claim: dayMed, ded: pharmDed, pay, note: raw > 50000 ? '[처방한도 5만 적용]' : '' });
+                    totalPayout += pay;
                 }
             }
+            pushGroupedVisitLogs(hospDays, "외래", details);
+            pushGroupedVisitLogs(pharmDays, "약제", details);
+        }
 
-            let pharmPay = 0;
-            if (med > 0) {
-                const pharmDed = isEarlyGen2 ? 8000 : Math.max(8000, med * 0.1);
-                const rawPharm = Math.max(0, med - pharmDed);
-                if (rawPharm <= 0) {
-                    details.push(`[약제] ⚠️ 공제금(${Math.floor(pharmDed).toLocaleString()}원) 이하로 미지급`);
-                } else if (rawPharm > 50000) {
-                    pharmPay = 50000;
-                    details.push(`[약제] 청구: ${med.toLocaleString()}원 ➔ ⚠️ 처방당 한도(5만원) 적용 지급`);
-                } else {
-                    pharmPay = rawPharm;
-                    details.push(`[약제] 청구: ${med.toLocaleString()}원 (공제 -${Math.floor(pharmDed).toLocaleString()}원 / 지급 ${Math.floor(pharmPay).toLocaleString()}원)`);
+        else if (smGen === 'gen3') {
+            details.push(`📝 3세대 통원 기본형 회차별 계산 (회당 외래 25만 / 약제 5만 한도)`);
+            let hospDays = [], pharmDays = [];
+
+            for (let d = 1; d <= maxDays; d++) {
+                const dayCov = (d <= cCov ? uCov : 0) + (manualPlan.mode === 'covered' && d <= manualPlan.validCnt ? manualPlan.unit : 0);
+                const dayNonCov = (d <= cNonCov ? uNonCov : 0);
+                const dayHosp = dayCov + dayNonCov;
+                const dayMed = (d <= cMed ? uMed : 0);
+
+                if (dayHosp > 0) {
+                    const ratioDed = (dayCov * 0.1) + (dayNonCov * 0.2);
+                    const finalDed = Math.max(baseDed, ratioDed);
+                    const raw = Math.max(0, dayHosp - finalDed);
+                    const pay = Math.min(250000, raw);
+                    hospDays.push({ claim: dayHosp, ded: finalDed, pay, note: raw > 250000 ? '[1일 한도 25만 적용]' : '' });
+                    totalPayout += pay;
+                }
+                if (dayMed > 0) {
+                    const pharmDed = Math.max(8000, dayMed * 0.1);
+                    const raw = Math.max(0, dayMed - pharmDed);
+                    const pay = Math.min(50000, raw);
+                    pharmDays.push({ claim: dayMed, ded: pharmDed, pay, note: raw > 50000 ? '[처방한도 5만 적용]' : '' });
+                    totalPayout += pay;
                 }
             }
+            pushGroupedVisitLogs(hospDays, "기본외래", details);
+            pushGroupedVisitLogs(pharmDays, "약제", details);
 
-            if (visitCnt > 180) details.push(`⚠️ [경고] 연간 통원 180회 한도 초과 주의!`);
-            totalPayout = hospPay + pharmPay;
-        } else {
-            const curCov = cov + med;
-            const curNonCov = nonCov;
-            const totalBill = curCov + curNonCov;
-            details.push(`📝 2세대 입원 (연간 5,000만원 한도)`);
-
-            let covDed = curCov * 0.1;
-            if (covDed > 2000000) {
-                details.push(`💡 급여 본인부담금 연간 상한(200만원) 적용`);
-                covDed = 2000000;
-            }
-            const nonCovDed = isEarlyGen2 ? (curNonCov * 0.1) : (curNonCov * 0.2);
-            let finalDed = covDed + nonCovDed;
-            if (isEarlyGen2 && finalDed > 2000000) {
-                finalDed = 2000000;
-            }
-
-            let rawPay = Math.max(0, totalBill - finalDed);
-            if (rawPay > 50000000) {
-                rawPay = 50000000;
-                details.push(`⚠️ 입원 연간 한도(5,000만원) 초과분 제외`);
-            }
-            totalPayout = rawPay;
-            details.push(`[입원비] 청구: ${totalBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(totalPayout).toLocaleString()}원)`);
-        }
-    }
-
-    // ==================== [3세대 계산] ====================
-    else if (smGen === 'gen3') {
-        let curCov = cov;
-        let curNonCov = nonCov;
-        if (!isOutpatient && med > 0) curCov += med;
-
-        const curBasicBill = curCov + curNonCov;
-        let basicPay = 0;
-
-        if (curBasicBill > 0) {
-            if (isOutpatient) {
-                details.push(`📝 3세대 통원 기본형 (외래 25만 / 약제 5만 한도)`);
-                const ratioDed = (curCov * 0.1) + (curNonCov * 0.2);
-                const finalDed = Math.max(baseDed, ratioDed);
-                const rawPay = Math.max(0, curBasicBill - finalDed);
-                if (rawPay <= 0) {
-                    details.push(`[기본 외래] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 이하로 미지급`);
-                } else if (rawPay > 250000) {
-                    basicPay = 250000;
-                    details.push(`[기본 외래] 청구: ${curBasicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원) ➔ ⚠️ 1일 한도(25만원) 적용`);
-                } else {
-                    basicPay = rawPay;
-                    details.push(`[기본 외래] 청구: ${curBasicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(basicPay).toLocaleString()}원)`);
-                }
-            } else {
-                details.push(`📝 3세대 입원 기본형 (급여 10%, 비급여 20% 공제)`);
-                let covDed = Math.min(2000000, curCov * 0.1);
-                const nonCovDed = curNonCov * 0.2;
-                const finalDed = covDed + nonCovDed;
-                basicPay = Math.min(50000000, Math.max(0, curBasicBill - finalDed));
-                details.push(`[기본 입원] 청구: ${curBasicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(basicPay).toLocaleString()}원)`);
-            }
+            const p1 = manualPlan.directPay;
+            const p2 = calculateSpecialItem(uInj, cInj, 50, 20000, 0.3, 2500000, "비급여주사(특약)", details, 'gen3', 0);
+            const p3 = calculateSpecialItem(uMri, cMri, 0, 20000, 0.3, 3000000, "비급여MRI(특약)", details, 'gen3', 0);
+            totalPayout += (p1 + p2 + p3);
         }
 
-        let pharmPay = 0;
-        if (isOutpatient && med > 0) {
-            const pharmDed = Math.max(8000, med * 0.1);
-            const rawPharm = Math.max(0, med - pharmDed);
-            if (rawPharm <= 0) {
-                details.push(`[약제] ⚠️ 공제금(${Math.floor(pharmDed).toLocaleString()}원) 이하로 미지급`);
-            } else {
-                pharmPay = Math.min(50000, rawPharm);
-                details.push(`[약제] 청구: ${med.toLocaleString()}원 (공제 -${Math.floor(pharmDed).toLocaleString()}원 / 지급 ${Math.floor(pharmPay).toLocaleString()}원)`);
-            }
-        }
+        else if (smGen === 'gen4') {
+            details.push(`📝 4세대 통원 회차별 계산 (급여·비급여 각각 회당 20만원 한도)`);
+            let covDays = [], nonCovDays = [];
 
-        const p1 = manualRes.directPay;
-        const p2 = calculateSpecialItem(uInj, cInj, 50, 20000, 0.3, 2500000, "비급여주사(특약)", details, 'gen3');
-        const p3 = calculateSpecialItem(uMri, cMri, 0, 20000, 0.3, 3000000, "비급여MRI(특약)", details, 'gen3');
-        totalPayout = basicPay + pharmPay + p1 + p2 + p3;
-    }
+            for (let d = 1; d <= maxDays; d++) {
+                const dayCov = (d <= cCov ? uCov : 0) + (d <= cMed ? uMed : 0) + (manualPlan.mode === 'covered' && d <= manualPlan.validCnt ? manualPlan.unit : 0);
+                const dayNonCov = (d <= cNonCov ? uNonCov : 0);
 
-    // ==================== [4세대 계산] ====================
-    else if (smGen === 'gen4') {
-        const curCov = cov + med;
-        const curNonCov = nonCov;
-
-        if (isOutpatient && med > 0) {
-            details.push(`💡 4세대 통원은 외래 급여(${cov.toLocaleString()}원)와 약제비(${med.toLocaleString()}원)를 합산하여 계산합니다.`);
-        }
-
-        let covPay = 0;
-        if (curCov > 0) {
-            if (isOutpatient) {
-                const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
-                const finalDed = Math.max(minCovDed, curCov * 0.2);
-                const rawPay = Math.max(0, curCov - finalDed);
-                if (rawPay <= 0) {
-                    details.push(`[급여 통원] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 이하로 미지급`);
-                } else if (rawPay > 200000) {
-                    covPay = 200000;
-                    details.push(`[급여 통원] 청구: ${curCov.toLocaleString()}원 ➔ ⚠️ 회당 한도(20만원) 적용 지급`);
-                } else {
-                    covPay = rawPay;
-                    details.push(`[급여 통원] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
-                }
-            } else {
-                const finalDed = Math.min(2000000, curCov * 0.2);
-                covPay = Math.min(50000000, Math.max(0, curCov - finalDed));
-                details.push(`[급여 입원] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
-            }
-        }
-
-        let nonCovPay = 0;
-        if (curNonCov > 0) {
-            if (isOutpatient) {
-                const ded = Math.max(30000, curNonCov * 0.3);
-                const rawPay = Math.max(0, curNonCov - ded);
-                if (rawPay <= 0) {
-                    details.push(`[비급여 통원] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 이하로 미지급`);
-                } else if (rawPay > 200000) {
-                    nonCovPay = 200000;
-                    details.push(`[비급여 통원] 청구: ${curNonCov.toLocaleString()}원 ➔ ⚠️ 회당 한도(20만원) 적용 지급`);
-                } else {
-                    nonCovPay = rawPay;
-                    details.push(`[비급여 통원] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
-                }
-            } else {
-                const ded = curNonCov * 0.3;
-                nonCovPay = Math.min(50000000, Math.max(0, curNonCov - ded));
-                details.push(`[비급여 입원] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
-            }
-        }
-
-        const p1 = manualRes.directPay;
-        const p2 = calculateSpecialItem(uInj, cInj, 50, 30000, 0.3, 2500000, "비급여주사(3대특약)", details, 'gen4');
-        const p3 = calculateSpecialItem(uMri, cMri, 0, 30000, 0.3, 3000000, "비급여MRI(3대특약)", details, 'gen4');
-        totalPayout = covPay + nonCovPay + p1 + p2 + p3;
-    }
-
-    // ==================== [5세대 계산 (병·의원 입원 300만원 한도 완벽 반영)] ====================
-    else if (smGen === 'gen5') {
-        const curCov = cov + med;
-        const curNonCov = nonCov;
-        let covPay = 0;
-        let nonCovPay = 0;
-        let specialPay = 0;
-
-        if (smGen5Severity === 'severe') {
-            details.push(`📝 5세대 [중증 질환 (특약1)] 기준 적용`);
-            if (curCov > 0) {
-                if (isOutpatient) {
+                if (dayCov > 0) {
                     const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
-                    const finalDed = Math.max(minCovDed, curCov * 0.2);
-                    const rawPay = Math.max(0, curCov - finalDed);
-                    covPay = Math.min(200000, rawPay);
-                    if (covPay <= 0) details.push(`[급여 중증(통원)] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 이하로 미지급`);
-                    else details.push(`[급여 중증(통원)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
-                } else {
-                    const finalDed = Math.min(2000000, curCov * 0.2);
-                    covPay = Math.min(50000000, Math.max(0, curCov - finalDed));
-                    details.push(`[급여 중증(입원)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
+                    const finalDed = Math.max(minCovDed, dayCov * 0.2);
+                    const raw = Math.max(0, dayCov - finalDed);
+                    const pay = Math.min(200000, raw);
+                    covDays.push({ claim: dayCov, ded: finalDed, pay, note: raw > 200000 ? '[회당 한도 20만 적용]' : '' });
+                    totalPayout += pay;
+                }
+                if (dayNonCov > 0) {
+                    const ded = Math.max(30000, dayNonCov * 0.3);
+                    const raw = Math.max(0, dayNonCov - ded);
+                    const pay = Math.min(200000, raw);
+                    nonCovDays.push({ claim: dayNonCov, ded, pay, note: raw > 200000 ? '[회당 한도 20만 적용]' : '' });
+                    totalPayout += pay;
                 }
             }
-            if (curNonCov > 0) {
-                if (isOutpatient) {
-                    const ded = Math.max(30000, curNonCov * 0.3);
-                    const rawPay = Math.max(0, curNonCov - ded);
-                    nonCovPay = Math.min(200000, rawPay);
-                    if (nonCovPay <= 0) details.push(`[비급여 중증(통원)] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원) 이하로 미지급`);
-                    else details.push(`[비급여 중증(통원)] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
-                } else {
-                    let ded = curNonCov * 0.3;
+            pushGroupedVisitLogs(covDays, "급여통원", details);
+            pushGroupedVisitLogs(nonCovDays, "일반비급여", details);
+
+            const p1 = manualPlan.directPay;
+            const p2 = calculateSpecialItem(uInj, cInj, 50, 30000, 0.3, 2500000, "비급여주사(3대특약)", details, 'gen4', 200000);
+            const p3 = calculateSpecialItem(uMri, cMri, 0, 30000, 0.3, 3000000, "비급여MRI(3대특약)", details, 'gen4', 200000);
+            totalPayout += (p1 + p2 + p3);
+        }
+
+        else if (smGen === 'gen5') {
+            let covDays = [], nonCovDays = [];
+
+            if (smGen5Severity === 'severe') {
+                details.push(`📝 5세대 [중증 질환] 통원 회차별 계산 (회당 20만원 한도)`);
+                for (let d = 1; d <= maxDays; d++) {
+                    const dayCov = (d <= cCov ? uCov : 0) + (d <= cMed ? uMed : 0) + (manualPlan.mode === 'covered' && d <= manualPlan.validCnt ? manualPlan.unit : 0);
+                    const dayNonCov = (d <= cNonCov ? uNonCov : 0);
+
+                    if (dayCov > 0) {
+                        const minCovDed = (smHospital === 'tertiary') ? 20000 : 10000;
+                        const finalDed = Math.max(minCovDed, dayCov * 0.2);
+                        const raw = Math.max(0, dayCov - finalDed);
+                        const pay = Math.min(200000, raw);
+                        covDays.push({ claim: dayCov, ded: finalDed, pay, note: raw > 200000 ? '[회당 한도 20만 적용]' : '' });
+                        totalPayout += pay;
+                    }
+                    if (dayNonCov > 0) {
+                        const ded = Math.max(30000, dayNonCov * 0.3);
+                        const raw = Math.max(0, dayNonCov - ded);
+                        const pay = Math.min(200000, raw);
+                        nonCovDays.push({ claim: dayNonCov, ded, pay, note: raw > 200000 ? '[회당 한도 20만 적용]' : '' });
+                        totalPayout += pay;
+                    }
+                }
+                pushGroupedVisitLogs(covDays, "급여중증", details);
+                pushGroupedVisitLogs(nonCovDays, "비급여중증", details);
+
+                const p1 = manualPlan.directPay;
+                const p2 = calculateSpecialItem(uInj, cInj, 50, 30000, 0.3, 2500000, "중증 비급여주사(항암·면역 등)", details, 'gen5', 200000);
+                const p3 = calculateSpecialItem(uMri, cMri, 0, 30000, 0.3, 3000000, "중증 비급여MRI", details, 'gen5', 200000);
+                totalPayout += (p1 + p2 + p3);
+            } else {
+                details.push(`📝 5세대 [비중증 일반질환] 통원 회차별 계산`);
+                if (uInj > 0 && cInj > 0) {
+                    details.push(`🚫 [5세대 면책 약관] 비중증 비급여 주사제는 실손 보장에서 제외됩니다! (청구 ${(uInj * cInj).toLocaleString()}원 ➔ 0원)`);
+                }
+                let nonCovRunningSum = 0;
+
+                for (let d = 1; d <= maxDays; d++) {
+                    const dayCov = (d <= cCov ? uCov : 0) + (d <= cMed ? uMed : 0);
+                    const dayNonCov = (d <= cNonCov ? uNonCov : 0) + (d <= cMri ? uMri : 0);
+
+                    if (dayCov > 0) {
+                        const covRatio = (smHospital === 'tertiary') ? 0.4 : 0.3;
+                        const minCovDed = (smHospital === 'tertiary') ? 30000 : 20000;
+                        const finalDed = Math.max(minCovDed, dayCov * covRatio);
+                        const raw = Math.max(0, dayCov - finalDed);
+                        const pay = Math.min(200000, raw);
+                        covDays.push({ claim: dayCov, ded: finalDed, pay, note: raw > 200000 ? '[회당 한도 20만 적용]' : '' });
+                        totalPayout += pay;
+                    }
+                    if (dayNonCov > 0) {
+                        const ded = Math.max(50000, dayNonCov * 0.5);
+                        const raw = Math.max(0, dayNonCov - ded);
+                        let pay = Math.min(200000, raw);
+                        let note = raw > 200000 ? '[통원 일당 20만 한도]' : '';
+                        if (nonCovRunningSum + pay > 10000000) {
+                            pay = Math.max(0, 10000000 - nonCovRunningSum);
+                            note = '[연간 1천만 한도 도달]';
+                        }
+                        nonCovRunningSum += pay;
+                        nonCovDays.push({ claim: dayNonCov, ded, pay, note });
+                        totalPayout += pay;
+                    }
+                }
+                pushGroupedVisitLogs(covDays, "급여비중증", details);
+                pushGroupedVisitLogs(nonCovDays, "비급여비중증(50%공제)", details);
+            }
+        }
+    }
+
+    // ==================== [B] 입원 (1회 입원 합산 계산) ====================
+    else {
+        let inCov = uCov + uMed + (manualPlan.mode === 'covered' ? (manualPlan.unit * manualPlan.validCnt) : 0);
+        let inNonCov = uNonCov + (manualPlan.mode === 'nonCovered' ? (manualPlan.unit * manualPlan.validCnt) : 0);
+        const totalInj = uInj * cInj;
+        const totalMri = uMri * cMri;
+
+        if (smGen === 'gen1' || smGen === 'gen2') {
+            inNonCov += (totalInj + totalMri);
+        }
+
+        if (smGen === 'gen1') {
+            const maxInpatientLimit = (smGen1Type === 'nonLife' && smGen1Limit === '30m') ? 30000000 : 100000000;
+            const rawTotal = inCov + inNonCov;
+            totalPayout = Math.min(rawTotal, maxInpatientLimit);
+            details.push(`📝 1세대 입원 (본인부담 0원, 100% 보장)`);
+            details.push(`[입원비] 청구: ${rawTotal.toLocaleString()}원 ➔ 지급: ${totalPayout.toLocaleString()}원`);
+            if (rawTotal > maxInpatientLimit) details.push(`⚠️ 입원 한도(${(maxInpatientLimit / 10000).toLocaleString()}만원) 초과분 제외`);
+        } else if (smGen === 'gen2') {
+            const totalBill = inCov + inNonCov;
+            let covDed = Math.min(2000000, inCov * 0.1);
+            const nonCovDed = isEarlyGen2 ? (inNonCov * 0.1) : (inNonCov * 0.2);
+            let finalDed = covDed + nonCovDed;
+            if (isEarlyGen2 && finalDed > 2000000) finalDed = 2000000;
+
+            totalPayout = Math.min(50000000, Math.max(0, totalBill - finalDed));
+            details.push(`📝 2세대 입원 (연간 5,000만원 한도)`);
+            details.push(`[입원비] 청구: ${totalBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(totalPayout).toLocaleString()}원)`);
+        } else if (smGen === 'gen3') {
+            const basicBill = inCov + inNonCov;
+            let basicPay = 0;
+            if (basicBill > 0) {
+                const covDed = Math.min(2000000, inCov * 0.1);
+                const nonCovDed = inNonCov * 0.2;
+                const finalDed = covDed + nonCovDed;
+                basicPay = Math.min(50000000, Math.max(0, basicBill - finalDed));
+                details.push(`📝 3세대 입원 기본형 (급여 10%, 비급여 20% 공제)`);
+                details.push(`[기본 입원] 청구: ${basicBill.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(basicPay).toLocaleString()}원)`);
+            }
+            const p1 = manualPlan.directPay;
+            const p2 = calculateSpecialItem(uInj, cInj, 50, 20000, 0.3, 2500000, "비급여주사(특약)", details, 'gen3', 0);
+            const p3 = calculateSpecialItem(uMri, cMri, 0, 20000, 0.3, 3000000, "비급여MRI(특약)", details, 'gen3', 0);
+            totalPayout = basicPay + p1 + p2 + p3;
+        } else if (smGen === 'gen4') {
+            let covPay = 0, nonCovPay = 0;
+            if (inCov > 0) {
+                const finalDed = Math.min(2000000, inCov * 0.2);
+                covPay = Math.min(50000000, Math.max(0, inCov - finalDed));
+                details.push(`[급여 입원] 청구: ${inCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
+            }
+            if (inNonCov > 0) {
+                const ded = inNonCov * 0.3;
+                nonCovPay = Math.min(50000000, Math.max(0, inNonCov - ded));
+                details.push(`[비급여 입원] 청구: ${inNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
+            }
+            const p1 = manualPlan.directPay;
+            const p2 = calculateSpecialItem(uInj, cInj, 50, 30000, 0.3, 2500000, "비급여주사(3대특약)", details, 'gen4', 0);
+            const p3 = calculateSpecialItem(uMri, cMri, 0, 30000, 0.3, 3000000, "비급여MRI(3대특약)", details, 'gen4', 0);
+            totalPayout = covPay + nonCovPay + p1 + p2 + p3;
+        } else if (smGen === 'gen5') {
+            let covPay = 0, nonCovPay = 0, specialPay = 0;
+            if (inCov > 0) {
+                const finalDed = Math.min(2000000, inCov * 0.2);
+                covPay = Math.min(50000000, Math.max(0, inCov - finalDed));
+                details.push(`[급여 입원] 청구: ${inCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
+            }
+
+            if (smGen5Severity === 'severe') {
+                details.push(`📝 5세대 [중증 질환 (특약1)] 입원 기준 적용`);
+                if (inNonCov > 0) {
+                    let ded = inNonCov * 0.3;
                     if ((smHospital === 'hospital' || smHospital === 'tertiary') && ded > 5000000) {
                         ded = 5000000;
                         details.push(`✨ [5세대 중증 혜택] 종합·상급병원 중증 입원 비급여 연간 본인부담 상한(500만원) 적용!`);
                     }
-                    nonCovPay = Math.min(50000000, Math.max(0, curNonCov - ded));
-                    details.push(`[비급여 중증(입원)] 청구: ${curNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
+                    nonCovPay = Math.min(50000000, Math.max(0, inNonCov - ded));
+                    details.push(`[비급여 중증(입원)] 청구: ${inNonCov.toLocaleString()}원 (공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
                 }
-            }
-            const p1 = manualRes.directPay;
-            const p2 = calculateSpecialItem(uInj, cInj, 50, 30000, 0.3, 2500000, "중증 비급여주사(항암·면역 등)", details, 'gen5');
-            const p3 = calculateSpecialItem(uMri, cMri, 0, 30000, 0.3, 3000000, "중증 비급여MRI", details, 'gen5');
-            specialPay = p1 + p2 + p3;
-        } else {
-            // 5세대 비중증(일반 질환 - 특약2)
-            details.push(`📝 5세대 [비중증 일반질환 (특약2)] 기준 적용`);
-            if (curCov > 0) {
-                if (isOutpatient) {
-                    const covRatio = (smHospital === 'tertiary') ? 0.4 : 0.3;
-                    const minCovDed = (smHospital === 'tertiary') ? 30000 : 20000;
-                    const finalDed = Math.max(minCovDed, curCov * covRatio);
-                    const rawPay = Math.max(0, curCov - finalDed);
-                    covPay = Math.min(200000, rawPay);
-                    if (covPay <= 0) details.push(`[급여 비중증(통원)] ⚠️ 공제금(${Math.floor(finalDed).toLocaleString()}원) 이하로 미지급`);
-                    else details.push(`[급여 비중증(통원)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
-                } else {
-                    const finalDed = Math.min(2000000, curCov * 0.2);
-                    covPay = Math.min(50000000, Math.max(0, curCov - finalDed));
-                    details.push(`[급여 비중증(입원)] 청구: ${curCov.toLocaleString()}원 (공제 -${Math.floor(finalDed).toLocaleString()}원 / 지급 ${Math.floor(covPay).toLocaleString()}원)`);
-                }
-            }
-
-            // 5세대 비중증 도수·비급여 주사 보장 제외 안내
-            if (totalManual > 0) {
-                details.push(`🚫 [도수·체외충격파] 5세대 비중증 질환에서는 실손 보장 제외! (청구액 ${totalManual.toLocaleString()}원 ➔ 지급 0원)`);
-            }
-            if (totalInj > 0) {
-                details.push(`🚫 [비급여 주사제] 5세대 비중증 질환에서는 실손 보장 제외! (청구액 ${totalInj.toLocaleString()}원 ➔ 지급 0원)`);
-            }
-
-            if (isOutpatient) {
-                // 5세대 비중증 비급여 통원: 본인부담 50%(최소 5만), 일당 합산 20만원 한도
-                const outNonCovTotal = curNonCov + totalMri;
-                if (outNonCovTotal > 0) {
-                    const ded = Math.max(50000, outNonCovTotal * 0.5);
-                    const rawPay = Math.max(0, outNonCovTotal - ded);
-                    if (rawPay <= 0) {
-                        details.push(`[비급여 비중증(통원)] ⚠️ 공제금(${Math.floor(ded).toLocaleString()}원, 50%) 이하로 미지급`);
-                    } else if (rawPay > 200000) {
-                        nonCovPay = 200000;
-                        details.push(`[비급여 비중증(통원)] 청구: ${outNonCovTotal.toLocaleString()}원 (50% 공제 후 ${Math.floor(rawPay).toLocaleString()}원) ➔ ⚠️ 통원 일당 한도(20만원) 적용 지급`);
-                    } else {
-                        nonCovPay = rawPay;
-                        details.push(`[비급여 비중증(통원)] 청구: ${outNonCovTotal.toLocaleString()}원 (50% 공제 -${Math.floor(ded).toLocaleString()}원 / 지급 ${Math.floor(nonCovPay).toLocaleString()}원)`);
-                    }
-                }
+                const p1 = manualPlan.directPay;
+                const p2 = calculateSpecialItem(uInj, cInj, 50, 30000, 0.3, 2500000, "중증 비급여주사(항암·면역 등)", details, 'gen5', 0);
+                const p3 = calculateSpecialItem(uMri, cMri, 0, 30000, 0.3, 3000000, "중증 비급여MRI", details, 'gen5', 0);
+                specialPay = p1 + p2 + p3;
             } else {
-                // 5세대 비중증 비급여 입원: 본인부담 50%
-                // 핵심 반영: 의원·병원·준종합병원(100병상 미만, smHospital === 'clinic')은 1회 입원당 300만원 한도!
-                // 종합병원(100병상 이상) 및 상급종합병원은 연간 1,000만원 한도 적용!
-                const inNonCovTotal = curNonCov + totalMri;
+                details.push(`📝 5세대 [비중증 일반질환 (특약2)] 입원 기준 적용`);
+                if (totalInj > 0) {
+                    details.push(`🚫 [5세대 면책 약관] 비중증 비급여 주사제는 실손 보장에서 제외됩니다! (청구 ${totalInj.toLocaleString()}원 ➔ 0원)`);
+                }
+                const inNonCovTotal = inNonCov + totalMri;
                 if (inNonCovTotal > 0) {
                     const ded = inNonCovTotal * 0.5;
                     const rawPay = Math.max(0, inNonCovTotal - ded);
@@ -788,9 +802,8 @@ function calculateSilbiPayout() {
                     }
                 }
             }
+            totalPayout = covPay + nonCovPay + specialPay;
         }
-
-        totalPayout = covPay + nonCovPay + specialPay;
     }
 
     const startD = document.getElementById('smStartDate').value || '시작일';
