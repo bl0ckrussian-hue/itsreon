@@ -139,23 +139,52 @@
                     </div>
                 </div>
 
-                <div id="smSpecialNonCoveredBox" class="hidden bg-slate-100 p-4 rounded-xl border border-slate-200 space-y-2.5 shadow-sm">
-                    <span class="text-xs font-bold text-slate-700 block">✨ 3대 비급여 항목 (1회당 단가 × 횟수)</span>
-                    <div class="grid grid-cols-3 gap-2 items-center">
-                        <div class="col-span-2"><label class="block text-[11px] text-slate-500 mb-0.5">도수·체외충격파·증식 (1회 단가)</label><input id="smManualUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right shadow-sm"></div>
-                        <div><label class="block text-[11px] text-slate-500 mb-0.5">횟수</label><input id="smManualCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center shadow-sm"></div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 items-center">
-                        <div class="col-span-2"><label class="block text-[11px] text-slate-500 mb-0.5">비급여 주사료 (1회 단가)</label><input id="smInjectionUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right shadow-sm"></div>
-                        <div><label class="block text-[11px] text-slate-500 mb-0.5">횟수</label><input id="smInjectionCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center shadow-sm"></div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 items-center">
-                        <div class="col-span-2"><label class="block text-[11px] text-slate-500 mb-0.5">비급여 MRI/MRA (1회 단가)</label><input id="smMriUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right shadow-sm"></div>
-                        <div><label class="block text-[11px] text-slate-500 mb-0.5">횟수</label><input id="smMriCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center shadow-sm"></div>
-                    </div>
-                    <p id="smGen4DocNote" class="text-[11px] text-rose-500 text-center pt-1 font-bold hidden">* 4세대 도수치료는 10회마다 병변 개선 확인서가 필요합니다.</p>
+                <div id="smSpecialNonCoveredBox" class="bg-slate-100 p-4 rounded-xl border border-slate-200 space-y-2.5 shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-800">✨ 도수·주사·MRI (단가 × 횟수)</span>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-full border border-blue-300 shadow-sm">
+                            <input id="smManagedCareChk" type="checkbox" checked onchange="toggleManagedCareUI()" class="accent-blue-600 w-3.5 h-3.5">
+                            <span class="text-[11px] font-bold text-blue-700">관리급여 적용 (연6/12회)</span>
+                        </label>
                 </div>
 
+                <!-- 관리급여 세부 기준 (체크 시 노출) -->
+                <div id="smManagedCareSubBox" class="bg-blue-50/80 p-2.5 rounded-lg border border-blue-200 space-y-1.5">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-bold text-blue-900">도수·체외·증식 횟수 한도 기준:</span>
+                        <select id="smManagedLimitType" class="bg-white border border-blue-300 rounded px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                            <option value="6">동일 부위·질병 (연 6회 한도)</option>
+                            <option value="12">타 부위 합산 전체 (연 12회 한도)</option>
+                        </select>
+                    </div>
+                    <p class="text-[10px] text-blue-700 leading-tight">
+                        * 관리급여화(건보 본인부담 90~95%)는 <strong>1~5세대 공통 적용</strong>됩니다. 한도(6회/12회) 초과분은 건보 급여 제한으로 전 세대 실손 보장에서 제외됩니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 items-center pt-1">
+                    <div class="col-span-2"><label class="block text-[11px] text-slate-500 mb-0.5">도수·체외충격파·증식 (1회 환자부담액)</label><input id="smManualUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right shadow-sm"></div>
+                    <div><label class="block text-[11px] text-slate-500 mb-0.5">횟수</label><input id="smManualCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center shadow-sm"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 items-center">
+                    <div class="col-span-2"><label class="block text-[11px] text-slate-500 mb-0.5">비급여 주사료 (1회 단가)</label><input id="smInjectionUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right shadow-sm"></div>
+                    <div><label class="block text-[11px] text-slate-500 mb-0.5">횟수</label><input id="smInjectionCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center shadow-sm"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 items-center">
+                    <div class="col-span-2"><label class="block text-[11px] text-slate-500 mb-0.5">비급여 MRI/MRA (1회 단가)</label><input id="smMriUnit" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-right shadow-sm"></div>
+                    <div><label class="block text-[11px] text-slate-500 mb-0.5">횟수</label><input id="smMriCount" type="number" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-center shadow-sm"></div>
+                </div>
+                <p id="smGen4DocNote" class="text-[11px] text-rose-500 text-center pt-1 font-bold hidden"></p>
+            </div>
+                <!-- 5세대 및 실손 주요 면책사항 빠른 확인 -->
+                <div id="smGen5ExclusionNotice" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 text-[11px] text-rose-900 space-y-1">
+                    <div class="font-bold text-rose-700">🚫 5세대 주요 면책(보장 제외) 약관 체크</div>
+                    <ul class="list-disc pl-4 space-y-0.5 text-rose-800 leading-snug">
+                        <li><strong>관리급여 항목:</strong> 도수·체외충격파·증식치료 등 관리급여 지정 항목 본인부담금(90~95%) 면책</li>
+                        <li><strong>비중증 비급여 면책:</strong> 근골격계 비급여 치료 및 영양·미용·피로회복 비급여 주사제 일체</li>
+                        <li><strong>공통 면책:</strong> 백내장 다초점렌즈, 치과·한방 비급여, 미용·비만, 건보 미적용 임의비급여</li>
+                    </ul>
+                </div> 
                 <button onclick="calculateSilbiPayout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition">💰 예상 환급금 계산하기</button>
 
                 <div id="smResultBox" class="hidden bg-white p-5 rounded-2xl border-t-[5px] border-slate-800 shadow-lg text-slate-800 space-y-3">
@@ -313,10 +342,11 @@
                             일반 의원, 병원, 준종합병원(<strong>30병상 이상 ~ 100병상 미만</strong>)에서 비중증 질환으로 입원 치료 시, <strong>비급여 보상한도가 1회 입원당 최대 300만원</strong>으로 제한됩니다! (백내장·관절·척추 등 병·의원급 비급여 수술 시 타격 큼)
                         </div>
                         <div>
-                            <strong class="text-blue-800">• 🚫 보장 제외 및 확대 항목:</strong>
-                            <div class="mt-1 pl-2 text-slate-800 leading-relaxed">
-                                - <strong>보장 제외(비중증):</strong> 근골격계 <strong>도수·체외충격파·증식치료</strong> 및 <strong>비급여 주사제(영양·미용 등)</strong> 실손 보장 제외<br/>
-                                - <strong>보장 확대:</strong> <strong>임신·출산 급여 의료비</strong> 신규 보장 포함
+                            <strong class="text-blue-800">• 🚫 5세대 면책 약관 및 전 세대 관리급여 제한:</strong>
+                            <div class="mt-1 pl-2 text-slate-800 leading-relaxed space-y-1">
+                                <div>- <strong>[전 세대 공통 관리급여화]:</strong> 도수·체외충격파·증식치료 등이 건강보험 <strong>관리급여(본인부담 90~95%)</strong>로 편입되어 <strong>동일 부위·질병당 연 6회, 전체 치료 합산 연 12회</strong>까지만 인정 (초과 시 1~5세대 모두 실손 제한)</div>
+                                <div>- <strong>[5세대 면책(보장 제외)]:</strong> ① 관리급여 본인부담금 및 비급여 도수·체외충격파·증식치료 면책, ② 비급여 주사제(영양·미용·태반·백옥 등, 단 항암·중증 희귀질환 치료제 제외) 면책, ③ 백내장 다초점렌즈·비만·미용·치과/한방 비급여 면책</div>
+                                <div>- <strong>[보장 확대]:</strong> <strong>임신·출산 급여 의료비</strong>(제왕절개·유산·임신합병증 등) 신규 보장 편입</div>
                             </div>
                         </div>
                         <div class="border-t border-blue-200 pt-2 space-y-1.5">
