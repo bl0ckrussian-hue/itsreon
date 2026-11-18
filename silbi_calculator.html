@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실비마스터 - ItsRion</title>
+    <title>BMS 실비마스터 - ItsRion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -47,7 +47,7 @@
                         <button onclick="resetSilbiAll()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded-full text-xs font-bold">🔄 초기화</button>
                     </div>
                     <div class="flex gap-2 pt-1">
-                        <input id="smJoinDate" type="text" maxlength="8" placeholder="예: 20150101 (8자리 입력)" class="flex-grow bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 font-mono">
+                        <input id="smJoinDate" type="text" maxlength="8" placeholder="예: 20260510 (8자리 입력)" class="flex-grow bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 font-mono">
                         <button onclick="findSilbiGeneration()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow-sm">조회</button>
                     </div>
                 </div>
@@ -91,15 +91,21 @@
                         <button id="smGen5Sev_nonSevere" onclick="setSilbiGen5Severity('nonSevere')" class="py-2 rounded-lg font-bold text-xs bg-blue-600 text-white shadow-sm transition">비중증 (일반 질환)</button>
                         <button id="smGen5Sev_severe" onclick="setSilbiGen5Severity('severe')" class="py-2 rounded-lg font-bold text-xs bg-white text-slate-600 border border-slate-300 shadow-sm transition">중증 (암/뇌/심장/희귀 등)</button>
                     </div>
-                    <p id="smGen5SevDesc" class="text-[11px] text-blue-700 text-center font-bold">* 비중증: 비급여 본인부담 50%(최소 5만) / 도수·비급여주사 보장 제외</p>
+                    <p id="smGen5SevDesc" class="text-[11px] text-blue-700 text-center font-bold">* 비중증: 비급여 50% 공제(통원 최소 5만) / 도수·비급여주사 제외 / 병·의원 입원 300만 한도</p>
                 </div>
 
+                <!-- 병원 종류 및 5세대 하단 부연 설명 -->
                 <div>
                     <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-1"><span>🏥</span> <span>병원 종류</span></label>
                     <div class="grid grid-cols-3 gap-1.5">
-                        <button id="smHospBtn_clinic" onclick="setSilbiHospital('clinic')" class="py-2.5 rounded-lg font-bold text-xs bg-slate-800 text-white shadow-sm">병원·의원·준종합병원(일반)</button>
-                        <button id="smHospBtn_hospital" onclick="setSilbiHospital('hospital')" class="py-2.5 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm">종합병원</button>
-                        <button id="smHospBtn_tertiary" onclick="setSilbiHospital('tertiary')" class="py-2.5 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm">상급종합병원</button>
+                        <button id="smHospBtn_clinic" onclick="setSilbiHospital('clinic')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-800 text-white shadow-sm leading-tight">의원</button>
+                        <button id="smHospBtn_hospital" onclick="setSilbiHospital('hospital')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm leading-tight">병원·종합병원</button>
+                        <button id="smHospBtn_tertiary" onclick="setSilbiHospital('tertiary')" class="py-2.5 px-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-600 shadow-sm leading-tight">상급종합병원</button>
+                    </div>
+                    <!-- 5세대 선택 시 자동 노출되는 병·의원 입원 300만원 한도 안내 박스 -->
+                    <div id="smGen5HospNote" class="hidden mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 leading-relaxed">
+                        <span class="font-bold text-rose-600">⚠️ 5세대 병·의원 입원 한도 안내:</span><br/>
+                        일반 병원·의원·준종합병원(<strong>30병상 이상 100병상 미만</strong>)은 <strong>[비중증 비급여 입원] 시 1회 입원당 보상한도가 300만원</strong>으로 제한됩니다. (100병상 이상 종합·상급병원은 연 1,000만원 한도 적용)
                     </div>
                 </div>
 
@@ -115,7 +121,7 @@
                             <input id="smCoveredCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-base text-right font-bold focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> <span>일반 비급여(3세대부터 3대 비급여 분리기재)</span></label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> <span>일반 비급여 (수술·초음파·검사·치료재료 등)</span></label>
                             <input id="smNonCoveredCost" type="text" placeholder="0" oninput="formatMoneyInput(this)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-base text-right font-bold focus:border-rose-500">
                         </div>
                         <div id="smMedicineDiv">
@@ -253,7 +259,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h5 class="text-lg font-bold text-slate-800">4세대 (비급여 차등형)</h5>
-                                <span class="text-xs text-slate-400">2021.07 ~ 5세대 출시 전</span>
+                                <span class="text-xs text-slate-400">2021.07 ~ 2026.05 가입</span>
                             </div>
                             <span class="bg-teal-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">할인/할증</span>
                         </div>
@@ -265,42 +271,46 @@
                         <div><strong class="text-slate-500">• 💸 공제금액:</strong> <span class="text-slate-800 font-medium">급여 통원(약제 합산): 최소 1만원(상급종합 2만원) / 비급여 통원: 회당 최소 3만원</span></div>
                         <div><strong class="text-slate-500">• 🛑 보상한도:</strong> <span class="text-slate-800 font-medium">급여 연 5천만(통원 회당 20만) / 비급여 연 5천만(통원 회당 20만, 연 100회)</span></div>
                         <div class="border-t border-slate-100 pt-2 space-y-1.5">
-                            <div><strong class="text-slate-500">• ⭐ 핵심특징:</strong> 직전 1년간 비급여 보험금 수령액이 없으면 할인, 100만원 이상 수령 시 다음 해 비급여 보험료 100%~300% 할증. 불임·선천성뇌질환·피부질환 일부 급여 보장 확대.</div>
-                            <div class="bg-rose-50 text-rose-600 p-2.5 rounded-lg font-bold">⚠️ 주의: 도수치료 10회마다 병변 개선 확인서 필수 / 재가입 주기 5년으로 단축</div>
+                            <div><strong class="text-slate-500">• ⭐ 핵심특징:</strong> 직전 1년간 비급여 보험금 수령액이 없으면 할인, 100만원 이상 수령 시 다음 해 비급여 보험료 100%~300% 할증.</div>
+                            <div class="bg-rose-50 text-rose-600 p-2.5 rounded-lg font-bold">⚠️ 주의: 도수치료 10회마다 병변 개선 확인서 필수 / 재가입 주기 5년</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 5세대 (대폭 보강!) -->
+                <!-- 5세대 (병·의원 입원 회당 300만원 한도 완벽 반영) -->
                 <div class="bg-blue-50/50 rounded-xl border-2 border-blue-500 p-5 shadow-md space-y-2">
                     <div onclick="toggleInfoAccordion(5)" class="cursor-pointer">
                         <div class="flex justify-between items-start">
                             <div>
                                 <div class="flex items-center gap-1.5">
-                                    <h5 class="text-lg font-bold text-slate-900">5세대 (중증 집중형 개편)</h5>
-                                    <span class="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">NEW</span>
+                                    <h5 class="text-lg font-bold text-slate-900">5세대 (중증 집중형)</h5>
+                                    <span class="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">현행</span>
                                 </div>
-                                <span class="text-xs text-blue-600 font-semibold">2026년 시행 개편안 기준</span>
+                                <span class="text-xs text-blue-600 font-semibold">2026.05 출시 ~ 현재</span>
                             </div>
                             <span class="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">중증강화·경증축소</span>
                         </div>
-                        <p class="text-sm text-slate-700 mt-2 font-semibold">중증 질환은 상한선 신설로 보호, 비중증 비급여는 대폭 축소!</p>
+                        <p class="text-sm text-slate-700 mt-2 font-semibold">중증 질환은 상한선 신설로 보호, 비중증·병의원 입원은 한도 축소!</p>
                         <div class="text-center mt-2"><span id="infoArrow5" class="text-blue-600 text-lg font-bold">▼</span></div>
                     </div>
                     <div id="infoBody5" class="hidden border-t border-blue-200 pt-3 text-xs space-y-2.5 text-slate-700">
                         <div>
                             <strong class="text-blue-800">• 🏥 급여 본인부담률 (건강보험 연동):</strong>
                             <div class="mt-1 pl-2 text-slate-800 leading-relaxed">
-                                - <strong>입원:</strong> 중증·일반 모두 <strong>20%</strong> (기존 동일, 안정적 보장)<br/>
-                                - <strong>통원:</strong> 건보 본인부담률 연동 <strong>20%~30%</strong> (상급·종합병원 경증 외래 시 본인부담 대폭 상향, 최소 2만~3만원 공제)
+                                - <strong>입원:</strong> 중증·일반 모두 <strong>20%</strong> (연간 본인부담 상한 200만원)<br/>
+                                - <strong>통원:</strong> 건보 본인부담률 연동 <strong>20%~30%</strong> (상급·종합병원 경증 외래 시 본인부담 상향, 최소 2만~3만원 공제)
                             </div>
                         </div>
                         <div>
                             <strong class="text-blue-800">• 🔥 비급여 이원화 (특약1 중증 vs 특약2 비중증):</strong>
                             <div class="mt-1 pl-2 text-slate-800 leading-relaxed">
-                                - <strong>[중증 비급여 - 암·뇌·심장·희귀난치·중증화상/외상]:</strong> 현행 4세대 수준 유지(본인부담 20~30%, 연 5천만 한도) + <strong>상급종합·종합병원 입원 시 연간 본인부담 상한 500만원 신설!</strong><br/>
-                                - <strong>[비중증 비급여 - 일반 질환]:</strong> 본인부담률 <strong>50%로 인상</strong>(통원 최소 공제 <strong>5만원</strong>), 연간 보상한도 <strong>5천만 ➔ 1,000만원으로 축소</strong>
+                                - <strong>[중증 비급여 - 암·뇌·심장·희귀난치·중증화상/외상]:</strong> 본인부담 30%(통원 최소 3만), 연 5천만 한도 + <strong>종합·상급종합병원 입원 시 연간 본인부담 상한 500만원 신설!</strong><br/>
+                                - <strong>[비중증 비급여 - 일반 질환]:</strong> 본인부담률 <strong>50%로 인상</strong>(통원 최소 공제 <strong>5만원</strong>, 일당 20만원 한도), 연간 보상한도 <strong>1,000만원으로 축소</strong>
                             </div>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-200 p-2.5 rounded-lg text-rose-800 leading-relaxed">
+                            <strong>• 🛑 [핵심] 병·의원 입원 1회당 300만원 한도 신설:</strong><br/>
+                            일반 의원, 병원, 준종합병원(<strong>30병상 이상 ~ 100병상 미만</strong>)에서 비중증 질환으로 입원 치료 시, <strong>비급여 보상한도가 1회 입원당 최대 300만원</strong>으로 제한됩니다! (백내장·관절·척추 등 병·의원급 비급여 수술 시 타격 큼)
                         </div>
                         <div>
                             <strong class="text-blue-800">• 🚫 보장 제외 및 확대 항목:</strong>
@@ -311,7 +321,7 @@
                         </div>
                         <div class="border-t border-blue-200 pt-2 space-y-1.5">
                             <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-lg font-semibold leading-relaxed">
-                                💡 <strong>상담 핵심 포인트:</strong> 비중증 비급여 한도가 연 1,000만원(자기부담 50%)으로 줄고 도수·주사가 제외되므로, 부족해지는 치료비 공백은 <strong>정액형 건강보험(수술비·진단비·치료비 특약)</strong>으로 반드시 보완해야 합니다!
+                                💡 <strong>상담 핵심 포인트:</strong> 전문병원·준종합병원(100병상 미만) 입원 시 비급여가 회당 300만원(자기부담 50%)까지만 나오므로, 부족해지는 수술·입원비 공백은 <strong>종수술비·질병상해수술비·입원일당 등 정액형 특약</strong>으로 반드시 대비해야 합니다!
                             </div>
                         </div>
                     </div>
