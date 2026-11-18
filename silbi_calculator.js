@@ -13,14 +13,58 @@ let lastSilbiResult = null;
 let smGen5Severity = 'nonSevere';
 let premGenInfo = null;
 
-// 1세대 ~ 5세대 연령대별 현실적 연평균 인상률 테이블
-const REALISTIC_RATES = {
-    young:  { gen1: 3.0,  gen2: 2.0,  gen3: 0.5,  gen4: 0.0, gen5: 0.0 },
-    thirty: { gen1: 8.0,  gen2: 6.0,  gen3: 2.5,  gen4: 1.5, gen5: 1.0 },
-    forty:  { gen1: 13.0, gen2: 11.0, gen3: 6.0,  gen4: 3.5, gen5: 2.5 },
-    fifty:  { gen1: 18.0, gen2: 15.0, gen3: 9.0,  gen4: 6.0, gen5: 4.5 },
-    senior: { gen1: 22.0, gen2: 18.0, gen3: 13.0, gen4: 9.0, gen5: 7.0 }
+// 1. 세대별 기본요율(위험손해율+의료수가) 연평균 인상 곡선 (%)
+// - short(1~4년차): 2025~2026 손보·생보협회 실측 손해율 조정 추세 반영
+// - mid(5~10년차): 요율 현실화 이후 안정화 구간 (1세대는 폐쇄집단 고령화 압력 반영)
+// - long(11년차~): 장기 의료물가·수가 상승률 수렴 구간
+const GEN_LOSS_CURVE = {
+    gen1: { short: [3.5, 4.0, 4.5, 5.0], mid: 5.5, long: 5.8 },
+    gen2: { short: [5.5, 5.5, 5.2, 5.0], mid: 4.8, long: 4.5 },
+    gen3: { short: [15.5, 13.0, 10.5, 8.5], mid: 6.0, long: 4.5 },
+    gen4: { short: [18.0, 14.5, 11.0, 8.5], mid: 5.5, long: 4.0 },
+    gen5: { short: [2.0, 2.2, 2.5, 2.8], mid: 3.0, long: 3.2 }
 };
+
+// 2. 연령대별 1세당 자연위험률 증가분 (%) - 보험개발원 연령별 의료비 위험률 곡선 반영
+const AGE_NATURAL_RATES = {
+    under30: 0.8,  // 20대 이하
+    age30s:  1.8,  // 30~39세
+    age40s:  3.2,  // 40~49세 (만성질환 시작 구간)
+    age50s:  4.8,  // 50~59세 (의료이용 급증 구간)
+    age60s:  6.0,  // 60~69세 (입원·수술 피크 구간)
+    age70s:  5.0,  // 70~79세 (위험률 고점 안착으로 증가율 자체는 완만화)
+    age80s:  3.5   // 80~89세
+};
+
+/**
+ * 특정 나이(age)와 경과연수(yearsPassed) 시점의 연간 복합 인상률 산출
+ * 반환값: { total: 합산인상률, lossRate: 손해율분, ageRate: 연령증가분 }
+ */
+function getDetailedAnnualRate(age, genCode, yearsPassed) {
+    let cleanGen = (genCode === 'gen2_early') ? 'gen2' : (genCode || 'gen2');
+    const curve = GEN_LOSS_CURVE[cleanGen] || GEN_LOSS_CURVE.gen2;
+
+    // 경과연수별 기본 손해율 인상분 추출
+    let lossRate = curve.long;
+    if (yearsPassed >= 1 && yearsPassed <= 4) {
+        lossRate = curve.short[yearsPassed - 1];
+    } else if (yearsPassed <= 10) {
+        lossRate = curve.mid;
+    }
+
+    // 연령대별 자연증가분 추출
+    let ageRate = AGE_NATURAL_RATES.under30;
+    if (age >= 80) ageRate = AGE_NATURAL_RATES.age80s;
+    else if (age >= 70) ageRate = AGE_NATURAL_RATES.age70s;
+    else if (age >= 60) ageRate = AGE_NATURAL_RATES.age60s;
+    else if (age >= 50) ageRate = AGE_NATURAL_RATES.age50s;
+    else if (age >= 40) ageRate = AGE_NATURAL_RATES.age40s;
+    else if (age >= 30) ageRate = AGE_NATURAL_RATES.age30s;
+
+    // 연간 최대 요율 조정 상한(25.0%) 적용
+    const total = Math.min(25.0, lossRate + ageRate);
+    return { total, lossRate, ageRate };
+}
 
 // 세대별 핵심 면책사항 데이터 (하단 체크박스에 실시간 반영)
 const GEN_EXCLUSION_DATA = {
@@ -1132,7 +1176,7 @@ function checkPremGeneration() {
 function calculateRenewalPremium() {
     const nowPrem = parseNum(document.getElementById('premCurrentPremium').value);
     const ageInput = document.getElementById('premCurrentAge').value.trim();
-    const cycleInput = Math.max(1, parseInt(document.getElementById('premCycle').value, 10) || 1);
+    const cycleInput = parseInt(document.getElementById('premCycle').value, 10) || 1;
     const manualRate = document.getElementById('premManualRate').value.trim();
 
     if (!nowPrem || nowPrem === 0) {
@@ -1146,7 +1190,7 @@ function calculateRenewalPremium() {
 
     const startAge = parseInt(ageInput, 10);
     if (startAge >= 90) {
-        alert("현재 나이가 90세 이상이므로 90세 만기 기준 시뮬레이션 대상이 아닙니다.");
+        alert("현재 나이가 90세 이상이므로 90세 만기 시뮬레이션 대상이 아닙니다.");
         return;
     }
 
@@ -1158,34 +1202,65 @@ function calculateRenewalPremium() {
     const longTermTargets = [10, 20, 30, 40].map(gap => startAge + gap);
     let checkedTargets = [];
 
+    // 갱신 주기(예: 3년, 5년) 동안 매년 쌓이는 위험률을 정확히 누적하기 위한 변수
+    let cycleCompound = 1.0;
+    let cycleLossSum = 0;
+    let cycleAgeSum = 0;
+    let cycleYears = 0;
+
     for (let age = startAge; age < 90; age++) {
         const yearsPassed = age - startAge;
 
-        if (yearsPassed > 0 && yearsPassed % cycleInput === 0) {
-            renewalCount++;
-            let annualRate = 0;
+        if (yearsPassed > 0) {
+            let yearTotal = 0, yearLoss = 0, yearAge = 0;
+
             if (manualRate !== '') {
-                annualRate = parseFloat(manualRate);
-            } else if (premGenInfo) {
-                annualRate = getAnnualRate(age, premGenInfo.code);
+                yearTotal = parseFloat(manualRate) || 0;
+                yearLoss = yearTotal;
+                yearAge = 0;
             } else {
-                annualRate = 5.0;
+                const targetGen = premGenInfo ? premGenInfo.code : 'gen2';
+                const r = getDetailedAnnualRate(age, targetGen, yearsPassed);
+                yearTotal = r.total;
+                yearLoss = r.lossRate;
+                yearAge = r.ageRate;
+
+                // 고액 보험료 구간 감독규정 및 재가입·요율 상한 완충 반영
+                if (monthlyPrem > 400000) yearTotal *= 0.85;
+                if (monthlyPrem > 700000) yearTotal *= 0.75;
             }
 
-            if (monthlyPrem > 300000) annualRate *= 0.8;
-            if (monthlyPrem > 500000) annualRate *= 0.7;
-            if (monthlyPrem > 800000) annualRate *= 0.5;
+            cycleCompound *= (1 + yearTotal / 100);
+            cycleLossSum += yearLoss;
+            cycleAgeSum += yearAge;
+            cycleYears++;
 
-            const compoundFactor = Math.pow((1 + annualRate / 100), cycleInput);
-            monthlyPrem = Math.floor(monthlyPrem * compoundFactor);
+            // 갱신 주기 도래 시 실제 월 보험료 일괄 갱신 반영
+            if (yearsPassed % cycleInput === 0) {
+                renewalCount++;
+                monthlyPrem = Math.floor(monthlyPrem * cycleCompound);
 
-            if (renewalCount <= 3) {
-                shortLogs.push({
-                    count: renewalCount,
-                    futureAge: age,
-                    amount: monthlyPrem,
-                    rate: annualRate.toFixed(1)
-                });
+                const avgAnnual = ((Math.pow(cycleCompound, 1 / cycleYears) - 1) * 100).toFixed(1);
+                const avgLoss = (cycleLossSum / cycleYears).toFixed(1);
+                const avgAge = (cycleAgeSum / cycleYears).toFixed(1);
+
+                if (renewalCount <= 3) {
+                    const detailSub = (manualRate !== '')
+                        ? `수동 연 ${avgAnnual}% 반영`
+                        : `손해율 ${avgLoss}% + 연령 ${avgAge}% (연평균 ${avgAnnual}%)`;
+                    shortLogs.push({
+                        count: renewalCount,
+                        futureAge: age,
+                        amount: monthlyPrem,
+                        detail: detailSub
+                    });
+                }
+
+                // 다음 갱신 주기를 위해 누적치 초기화
+                cycleCompound = 1.0;
+                cycleLossSum = 0;
+                cycleAgeSum = 0;
+                cycleYears = 0;
             }
 
             longTermTargets.forEach((target, idx) => {
@@ -1211,7 +1286,7 @@ function calculateRenewalPremium() {
             </div>
             <div class="text-right">
                 <span class="text-blue-600 font-black text-sm">${item.amount.toLocaleString()}원</span>
-                <span class="text-[10px] text-rose-500 block">(연 ${item.rate}% 인상 반영)</span>
+                <span class="text-[10px] text-rose-500 block">(${item.detail})</span>
             </div>
         </div>
     `).join('');
