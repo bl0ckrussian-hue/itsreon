@@ -112,7 +112,45 @@ if (document.readyState === 'loading') {
     initRionEngine();
 }
 
-// 5. 키보드 방향키 및 엔터 이동 + 보안 단축키 통합 제어
+// 5. 엑셀급 물리 그리드(Rowspan/Colspan 완벽 계산) 상하좌우/엔터 이동 제어
+function buildVisualTableGrid(table) {
+    const grid = [];
+    const cellPos = new Map();
+    const allRows = Array.from(table.querySelectorAll('thead tr, tbody tr'));
+
+    allRows.forEach((tr, rIdx) => {
+        if (!grid[rIdx]) grid[rIdx] = [];
+        let cIdx = 0;
+        Array.from(tr.children).forEach(cell => {
+            while (grid[rIdx][cIdx]) cIdx++;
+            const rs = cell.rowSpan || 1;
+            const cs = cell.colSpan || 1;
+            cellPos.set(cell, { r: rIdx, c: cIdx, rs, cs });
+            for (let dr = 0; dr < rs; dr++) {
+                if (!grid[rIdx + dr]) grid[rIdx + dr] = [];
+                for (let dc = 0; dc < cs; dc++) {
+                    grid[rIdx + dr][cIdx + dc] = cell;
+                }
+            }
+            cIdx += cs;
+        });
+    });
+    return { grid, cellPos, rowCount: grid.length, colCount: grid[0] ? grid[0].length : 16 };
+}
+
+function focusEditableCell(target) {
+    if (!target) return;
+    target.focus();
+    const sel = window.getSelection();
+    if (sel && target.childNodes.length > 0) {
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        range.collapse(false); // 커서를 텍스트 끝으로 자연스럽게 배치
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'F12') { e.preventDefault(); return; }
     if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) { e.preventDefault(); return; }
@@ -124,42 +162,75 @@ document.addEventListener('keydown', function(e) {
         }
     }
 
-    if (!e.target.classList || !e.target.classList.contains('editable-cell')) return;
-    const cell = e.target;
-    const row = cell.parentElement;
-    const tbody = row.parentElement;
-    const cells = Array.from(row.querySelectorAll('.editable-cell'));
-    const cellIndex = cells.indexOf(cell);
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const rowIndex = rows.indexOf(row);
+    const cell = e.target.closest ? e.target.closest('.editable-cell') : null;
+    if (!cell) return;
 
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        for (let i = rowIndex + 1; i < rows.length; i++) {
-            const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
-            if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
+    const table = document.getElementById('analysisTable');
+    if (!table) return;
+
+    if (!['Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+
+    // 좌우 방향키는 텍스트 편집 중 커서가 양 끝에 있을 때만 셀 이동 허용
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const sel = window.getSelection();
+        const txtLen = (cell.innerText || "").length;
+        if (txtLen > 0 && cell.innerText.trim() !== "-" && sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            if (!range.collapsed) return;
+            const preRange = range.cloneRange();
+            preRange.selectNodeContents(cell);
+            preRange.setEnd(range.endContainer, range.endOffset);
+            const offset = preRange.toString().length;
+            if (e.key === 'ArrowLeft' && offset > 0) return;
+            if (e.key === 'ArrowRight' && offset < txtLen) return;
+        }
+    }
+
+    e.preventDefault();
+    const { grid, cellPos, rowCount, colCount } = buildVisualTableGrid(table);
+    const pos = cellPos.get(cell);
+    if (!pos) return;
+
+    // 마지막 기억 열(anchorCol)을 유지하여 병합 셀을 지나가도 원래 열(질병/상해)로 복귀
+    let targetCol = (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter')
+        ? (typeof window._lastNavCol === 'number' && window._lastNavCol >= pos.c && window._lastNavCol < pos.c + pos.cs ? window._lastNavCol : pos.c)
+        : pos.c;
+
+    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        for (let r = pos.r + pos.rs; r < rowCount; r++) {
+            const next = grid[r] && grid[r][targetCol];
+            if (next && next !== cell && next.classList.contains('editable-cell')) {
+                window._lastNavCol = targetCol;
+                focusEditableCell(next);
+                break;
+            }
         }
     } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        for (let i = rowIndex - 1; i >= 0; i--) {
-            const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
-            if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
-        }
-    } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        for (let i = rowIndex + 1; i < rows.length; i++) {
-            const targetCells = Array.from(rows[i].querySelectorAll('.editable-cell'));
-            if (targetCells[cellIndex]) { targetCells[cellIndex].focus(); break; }
+        for (let r = pos.r - 1; r >= 0; r--) {
+            const next = grid[r] && grid[r][targetCol];
+            if (next && next !== cell && next.classList.contains('editable-cell')) {
+                window._lastNavCol = targetCol;
+                focusEditableCell(next);
+                break;
+            }
         }
     } else if (e.key === 'ArrowRight') {
-        const sel = window.getSelection();
-        if (cell.innerText.trim() === "" || cell.innerText.trim() === "-" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset >= sel.focusNode.textContent.length)) {
-            if (cellIndex < cells.length - 1) { e.preventDefault(); cells[cellIndex + 1].focus(); }
+        for (let c = pos.c + pos.cs; c < colCount; c++) {
+            const next = grid[pos.r] && grid[pos.r][c];
+            if (next && next !== cell && next.classList.contains('editable-cell')) {
+                window._lastNavCol = c;
+                focusEditableCell(next);
+                break;
+            }
         }
     } else if (e.key === 'ArrowLeft') {
-        const sel = window.getSelection();
-        if (cell.innerText.trim() === "" || cell.innerText.trim() === "-" || sel.focusNode === cell || (sel.focusNode && sel.focusOffset === 0)) {
-            if (cellIndex > 0) { e.preventDefault(); cells[cellIndex - 1].focus(); }
+        for (let c = pos.c - 1; c >= 0; c--) {
+            const next = grid[pos.r] && grid[pos.r][c];
+            if (next && next !== cell && next.classList.contains('editable-cell')) {
+                window._lastNavCol = c;
+                focusEditableCell(next);
+                break;
+            }
         }
     }
 });
@@ -308,10 +379,10 @@ function findMatchingContract(contracts, comp, prod, joinDate) {
     return bestScore > 10 ? bestMatch : candidates[0];
 }
 
-function parseAmt(amtStr) {
-    if (!amtStr) return 0;
-    let str = toHalfWidth(String(amtStr)).replace(/,/g, '').replace(/\s+/g, '');
-    if (str.includes("지원") && !/\d/.test(str)) return 0;
+function parseSingleAmt(partStr) {
+    if (!partStr) return 0;
+    let str = toHalfWidth(String(partStr)).replace(/,/g, '').replace(/\s+/g, '');
+    if (!str || str === "-" || (str.includes("지원") && !/\d/.test(str))) return 0;
     let uk = 0, man = 0, cheon = 0;
     if (str.includes("억")) {
         let parts = str.split("억");
@@ -327,39 +398,30 @@ function parseAmt(amtStr) {
         }
         return Math.round(uk + cheon + man);
     }
-    if (str.includes("천만")) {
-        let val = parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
-        return Math.round(val * 1000);
-    }
-    if (str.includes("만")) {
-        let val = parseFloat(str.split("만")[0].replace(/[^0-9.]/g, '')) || 0;
-        return Math.round(val);
-    }
-    if (str.includes("원")) {
-        let won = parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
-        return Math.round(won / 10000);
-    }
+    if (str.includes("천만")) return Math.round((parseFloat(str.replace(/[^0-9.]/g, '')) || 0) * 1000);
+    if (str.includes("만")) return Math.round(parseFloat(str.split("만")[0].replace(/[^0-9.]/g, '')) || 0);
+    if (str.includes("원")) return Math.round((parseFloat(str.replace(/[^0-9.]/g, '')) || 0) / 10000);
     return parseInt(str.replace(/[^0-9]/g, ''), 10) || 0;
 }
 
-function formatAmt(num) {
-    if (!num || num === 0) return "-";
-    num = Math.round(num);
-    if (num >= 10000) {
-        let uk = Math.floor(num / 10000);
-        let man = num % 10000;
-        return man > 0 ? `${uk}억 ${man.toLocaleString()}만` : `${uk}억`;
+function parseAmt(amtStr) {
+    if (!amtStr) return 0;
+    const s = String(amtStr);
+    // "2,000만/1,500만" 또는 "2000/2000" 처럼 슬래시 병기 시 숫자 뭉침 버그 차단 (최대값 반환)
+    if (s.includes('/')) {
+        const parts = s.split('/').map(p => parseSingleAmt(p));
+        return Math.max(0, ...parts);
     }
-    return num.toLocaleString() + "만";
+    return parseSingleAmt(s);
 }
 
-function parsePremium(premStr) {
-    if (!premStr || premStr === "-" || String(premStr).includes("미제공") || String(premStr).includes("완료") || String(premStr).includes("납입완료")) return 0;
-    return parseInt(String(premStr).replace(/[^0-9]/g, ''), 10) || 0;
-}
-
-function formatPremium(num) {
-    return num === 0 ? "-" : num.toLocaleString() + "원";
+function formatSanjeongPair(brainAmt, heartAmt) {
+    if (brainAmt <= 0 && heartAmt <= 0) return "";
+    if (brainAmt > 0 && heartAmt > 0) {
+        return brainAmt === heartAmt ? formatAmt(brainAmt) : `${formatAmt(brainAmt)}/${formatAmt(heartAmt)}`;
+    }
+    // 한쪽만 가입된 경우 뇌/심 위치가 명확히 보이도록 "2,000만/-" 또는 "-/2,000만" 표기
+    return `${brainAmt > 0 ? formatAmt(brainAmt) : "-"}/${heartAmt > 0 ? formatAmt(heartAmt) : "-"}`;
 }
 
 function determineSilbiGeneration(dateStr, silbiDetails) {
@@ -376,18 +438,17 @@ function determineSilbiGeneration(dateStr, silbiDetails) {
     });
 
     if (ymd < 20091001) {
-        if (hospAmt >= 10000) return "1세대 1억";
-        if (hospAmt > 0 && outAmt > 0) return `1세대 ${hospAmt}/${outAmt}`;
-        if (hospAmt > 0) return `1세대 (${hospAmt}만)`;
-        return "1세대 실손";
+        if (hospAmt >= 10000) return "1세대(1억)";
+        if (hospAmt > 0 && outAmt > 0) return `1세대(${hospAmt}/${outAmt})`;
+        return "1세대";
     } else if (ymd < 20170401) {
-        return "2세대 표준화";
+        return "2세대";
     } else if (ymd < 20210701) {
-        return "3세대 착한실손";
+        return "3세대";
     } else if (ymd < 20260701) {
-        return "4세대 실손";
+        return "4세대";
     } else {
-        return "5세대 실손";
+        return "5세대";
     }
 }
 
@@ -451,6 +512,7 @@ function parseContractRow(r) {
 }
 
 // 8. 다이렉트 정밀 매핑 엔진
+// 8. 다이렉트 정밀 매핑 엔진 (수기입력본 기준 100% 반영)
 function extractDataDirectly(rawExcelData) {
     const loadingOverlay = document.getElementById('loadingOverlay');
     try {
@@ -503,6 +565,12 @@ function extractDataDirectly(rawExcelData) {
 
             if (!/^\d+$/.test(rowFirst)) return;
 
+            // 구버전 추출본 호환 방어: 만약 구분 칸에 "정액상해사망..." 식으로 붙어 들어온 경우 자동 분리
+            const gubunMerged = gubun.match(/^(정액|실손)(.+)$/);
+            if (gubunMerged && !cDambo) {
+                gubun = gubunMerged[1];
+                cDambo = gubunMerged[2].trim();
+            }
             if (!amtStr && sDambo && /([\d,]+만|[\d,]+억|[\d,]+원)/.test(sDambo)) {
                 amtStr = sDambo;
                 sDambo = "";
@@ -517,22 +585,36 @@ function extractDataDirectly(rawExcelData) {
 
             if (cLower.includes("보험료납입면제") || cLower.includes("보험료납입지원")) return;
 
-            if (cDambo.includes("갱신형") || cDambo.includes("(갱신)") || cDambo.includes("[갱신") || prod.includes("갱신형")) {
+            // 주계약 상품명 자체가 갱신형이거나 기본계약 담보가 갱신형일 때만 계약 전체를 갱신형으로 표기
+            if (prod.includes("갱신형") || ((cDambo.includes("기본계약") || cDambo.includes("주계약")) && cDambo.includes("갱신형"))) {
                 c.hasRenewableRider = true;
             }
 
             let amtNum = parseAmt(amtStr);
 
-            // 1) 실손 구분 처리
+            // 1) 실손 구분 처리 (실손의료비 vs 배상책임/화재벌금/운전자 비용담보)
             if (gubun === "실손") {
                 if (combined.includes("입원의료비") || combined.includes("외래의료비") || combined.includes("통원의료비") || combined.includes("처방조제") || combined.includes("실손의료비") || combined.includes("3대비급여")) {
                     c.hasSilbi = true;
                     c.silbiDetails.push({ name: combined, amt: amtNum });
                     return;
                 }
-                if (combined.includes("배상책임")) { addCov(c, "d_liab_", amtNum); return; }
-                if (combined.includes("화재벌금") || combined.includes("화재배상") || combined.includes("누수") || combined.includes("급배수")) { addCov(c, "d_fire_", amtNum); return; }
-                if (combined.includes("교통사고처리지원금") || combined.includes("변호사선임") || combined.includes("벌금") || combined.includes("방어비용")) { addCov(c, "d_driver_", amtNum); return; }
+                if (combined.includes("배상책임")) {
+                    maxCov(c, "d_liab_", amtNum); // 가족/일상배상 중복 피보험자 행은 최고 한도액(1억) 기준
+                    return;
+                }
+                if (combined.includes("화재벌금") || combined.includes("화재배상") || combined.includes("누수") || combined.includes("급배수")) {
+                    maxCov(c, "d_fire_", amtNum);
+                    return;
+                }
+                if (combined.includes("교통사고처리지원금") && !cLower.includes("6주미만")) {
+                    maxCov(c, "d_driver_", amtNum); // 운전자 대표 한도(교통사고처리지원금 2억 등) 표시
+                    return;
+                }
+                if ((combined.includes("변호사선임") || combined.includes("자동차사고벌금") || combined.includes("교통사고벌금")) && !c.covNums["d_driver_"]) {
+                    maxCov(c, "d_driver_", amtNum);
+                    return;
+                }
                 return;
             }
 
@@ -555,7 +637,7 @@ function extractDataDirectly(rawExcelData) {
                 return;
             }
 
-            // 3) 후유장해 (3% 이상)
+            // 3) 후유장해 (3% 이상만 추출)
             if (sLower.includes("후유장해") || cLower.includes("후유장해") || cLower.includes("후유장애")) {
                 if (combined.includes("80%") || combined.includes("50%") || combined.includes("20%") || sLower.includes("특정상해후유장해")) return;
                 if (cLower.includes("3%") || cLower.includes("3~100") || cLower.includes("3-100") || sLower === "상해후유장해" || sLower === "질병후유장해") {
@@ -564,82 +646,111 @@ function extractDataDirectly(rawExcelData) {
                 return;
             }
 
-            // 4) 간병인 / 통합간호
+            // 4) 입원비 > 간병 > 통합간호 & 지원/일당 (일반병원 기준, 연간 비용지원금/요양병원/상급병원 추가일당 제외)
             if (combined.includes("간호간병") || combined.includes("간호·간병")) {
                 if (cLower.includes("지원금") || cLower.includes("지원비")) return;
                 addCov(c, isInjury && !sLower.includes("질병") ? "d_careNS_" : "d_careN_", amtNum);
                 return;
             }
             if (combined.includes("간병인")) {
-                if (cLower.includes("지원금") || cLower.includes("연간")) return;
+                if (cLower.includes("지원금") || cLower.includes("입원지원비") || cLower.includes("연간")) return; // 2,914만 오인입 원천 차단
                 const prefix = (isInjury && !sLower.includes("질병")) ? "d_careS_" : "d_careD_";
                 if (cLower.includes("직접지원") || (cLower.includes("지원") && !cLower.includes("일당"))) {
                     c.covTexts[prefix] = "지원";
-                } else {
-                    addCov(c, prefix, amtNum);
+                } else if (cLower.includes("요양병원제외") || cLower.includes("요양/정신/한방병원제외") || (!cLower.includes("요양병원") && !cLower.includes("상급종합병원"))) {
+                    // 일반병원 기준 간병인 일당만 반영 (비고란 '일반병원기준' 준수)
+                    maxCov(c, prefix, amtNum);
                 }
                 return;
             }
 
-            // 5) 입원일당
+            // 5) 입원비 > 입원 > 일반병원 / 상급1인실 / 수술입원 / 중환자실
             if (sLower.includes("입원일당") || cLower.includes("입원일당") || cLower.includes("입원비") || cLower.includes("신입원특약") || cLower.includes("임시생활비")) {
-                if (sLower.includes("암입원") || sLower.includes("특정질병입원") || sLower.includes("여성/부인과") || sLower.includes("교통상해입원") || cLower.includes("치매입원") || cLower.includes("자동차사고입원")) return;
+                if (cLower.includes("지원금") || cLower.includes("지원비") || cLower.includes("간병인")) return;
+                if (sLower.includes("암입원") || sLower.includes("특정질병입원") || sLower.includes("여성/부인과") || sLower.includes("교통상해입원") || cLower.includes("치매입원") || cLower.includes("자동차사고")) return;
+
                 const pfx = (isInjury && !sLower.includes("질병")) ? "S_" : "D_";
-                if (combined.includes("중환자실")) addCov(c, "d_icu" + pfx, amtNum);
-                else if (combined.includes("수술입원")) addCov(c, "d_opHosp" + pfx, amtNum);
-                else if (combined.includes("1인실")) {
-                    if (combined.includes("상급")) addCov(c, "d_1in" + pfx, amtNum);
-                    else if (!c.covNums["d_1in" + pfx]) addCov(c, "d_1in" + pfx, amtNum);
-                } else if (cLower.includes("2-3인실") || cLower.includes("2~3인실") || cLower.includes("4-5인실")) {
-                    return;
+                if (combined.includes("중환자실")) {
+                    addCov(c, "d_icu" + pfx, amtNum);
+                } else if (combined.includes("수술입원")) {
+                    addCov(c, "d_opHosp" + pfx, amtNum);
+                } else if (combined.includes("1인실")) {
+                    addCov(c, "d_1in" + pfx, amtNum); // 상급종합 1인실 + 종합병원 1인실
+                } else if (cLower.includes("2-3인실") || cLower.includes("2~3인실") || cLower.includes("4-5인실") || cLower.includes("2~4인실")) {
+                    return; // 다인실 입원비는 일반병원 입원일당에 섞이지 않도록 제외
                 } else {
                     addCov(c, "d_hosp" + pfx, amtNum);
                 }
                 return;
             }
 
-            // 6) 산정특례
+            // 6) 산정특례: 화상 산정특례 vs 뇌/심 산정특례(뇌/심 분리 집계)
             if (combined.includes("산정특례")) {
-                if (combined.includes("화상")) addCov(c, "d_burn_sanjeong_", amtNum);
-                else if (combined.includes("뇌혈관") || combined.includes("심장") || combined.includes("중증") || combined.includes("희귀")) addCov(c, "d_sanjeong_", amtNum);
+                if (combined.includes("화상")) {
+                    maxCov(c, "d_burn_sanjeong_", amtNum);
+                } else if (combined.includes("뇌혈관") || combined.includes("뇌졸중")) {
+                    c.sanjeongBrain = (c.sanjeongBrain || 0) + amtNum;
+                } else if (combined.includes("심장") || combined.includes("허혈")) {
+                    c.sanjeongHeart = (c.sanjeongHeart || 0) + amtNum;
+                }
+                // 중증난치, 중증외상, 희귀질환 산정특례는 뇌/심 산정특례 칸에 섞지 않음
                 return;
             }
 
-            // 7) 암 진단/수술/항암/주요치료
-            if (combined.includes("항암") || combined.includes("표적항암") || combined.includes("면역항암") || combined.includes("중입자") || combined.includes("양성자")) {
+            // 7) 말기질환 > 간/폐/신장 통합치료비 & 말기신부전증 (암/일반 통합치료비보다 먼저 판별)
+            if (cLower.includes("간·폐·신장") || cLower.includes("간폐신장") || combined.includes("말기신부전") || combined.includes("말기간경화") || combined.includes("말기폐질환")) {
+                maxCov(c, "d_kidney_", amtNum);
+                return;
+            }
+
+            // 8) 암 진단 / 수술 / 항암방사선·약물 / 암치료비(최고 금액 1개만)
+            if ((cLower.includes("암") || sLower.includes("고액항암")) && (cLower.includes("주요치료") || cLower.includes("특정치료") || cLower.includes("통합치료"))) {
+                if (sLower === "암수술") {
+                    maxCov(c, "d_cancer_op_", amtNum);
+                } else if (sLower === "특정암수술") {
+                    maxCov(c, "d_similar_op_", amtNum);
+                } else if (!cLower.includes("유사암") && !cLower.includes("기타피부암") && !cLower.includes("갑상선암") && !cLower.includes("소액암")) {
+                    // 암주요치료비, 비급여암치료비, 하이클래스암주요치료비, 암통합치료비 중 최고 금액 1개만 표시
+                    maxCov(c, "d_cancer_main_", amtNum);
+                }
+                return;
+            }
+
+            if (combined.includes("항암") || combined.includes("표적항암") || combined.includes("면역항암")) {
+                // 특정 부위 한정(여성생식기암, 유방암, 호르몬제 한정 등) 및 고액 중입자/양성자 단독특약이 기본 항암방사선/약물을 덮어쓰지 않도록 구분
+                if (cLower.includes("여성생식기") || cLower.includes("호르몬") || cLower.includes("중입자") || cLower.includes("양성자") || cLower.includes("세기조절") || cLower.includes("하이클래스항암")) {
+                    return;
+                }
                 if (cLower.includes("방사선") && cLower.includes("약물")) {
-                    addCov(c, "d_anti_rad_", amtNum);
-                    addCov(c, "d_anti_drug_", amtNum);
-                } else if (cLower.includes("방사선") || cLower.includes("양성자") || cLower.includes("중입자") || cLower.includes("세기조절")) {
                     maxCov(c, "d_anti_rad_", amtNum);
-                } else {
+                    maxCov(c, "d_anti_drug_", amtNum);
+                } else if (cLower.includes("방사선")) {
+                    maxCov(c, "d_anti_rad_", amtNum);
+                } else if (cLower.includes("약물")) {
                     maxCov(c, "d_anti_drug_", amtNum);
                 }
                 return;
             }
-            if ((cLower.includes("암") || sLower.includes("고액항암")) && (cLower.includes("주요치료") || cLower.includes("특정치료") || cLower.includes("통합치료"))) {
-                if (sLower === "암수술") addCov(c, "d_cancer_op_", amtNum);
-                else if (sLower === "특정암수술") addCov(c, "d_similar_op_", amtNum);
-                else if (!cLower.includes("유사암") && !cLower.includes("기타피부암") && !cLower.includes("갑상선암")) addCov(c, "d_cancer_main_", amtNum);
-                return;
-            }
+
             if (sLower.includes("유사암") || sLower.includes("소액암") || cLower.includes("유사암") || (cLower.includes("갑상선암") && !cLower.includes("제외"))) {
-                if (combined.includes("수술")) addCov(c, "d_similar_op_", amtNum);
+                if (combined.includes("수술")) maxCov(c, "d_similar_op_", amtNum);
                 else if (combined.includes("진단") || sLower.includes("소액암")) addCov(c, "d_similar_", amtNum);
                 return;
             }
-            if (sLower === "암수술" || (cLower.includes("암") && cLower.includes("수술"))) {
-                if (cLower.includes("갑상선암및전립선암)") && !cLower.includes("제외")) addCov(c, "d_similar_op_", amtNum);
+
+            if (sLower === "암수술" || (cLower.includes("암") && cLower.includes("수술") && !cLower.includes("양성종양"))) {
+                if (cLower.includes("갑상선암및전립선암)") && !cLower.includes("제외")) maxCov(c, "d_similar_op_", amtNum);
                 else addCov(c, "d_cancer_op_", amtNum);
                 return;
             }
-            if (sLower === "암진단" || (cLower.includes("일반암") && cLower.includes("진단")) || (cLower.includes("암진단") && !cLower.includes("특정암") && !cLower.includes("전이암"))) {
+
+            if (sLower === "암진단" || (cLower.includes("일반암") && cLower.includes("진단")) || (cLower.includes("암진단") && !cLower.includes("특정암") && !cLower.includes("전이암") && !cLower.includes("생식기암"))) {
                 addCov(c, "d_cancer_", amtNum);
                 return;
             }
 
-            // 8) 뇌/심장
-            if (cLower.includes("순환계") || ((cLower.includes("뇌혈관") || cLower.includes("뇌졸중") || cLower.includes("허혈") || cLower.includes("심장질환")) && (cLower.includes("주요치료") || cLower.includes("특정치료") || cLower.includes("통합치료"))) || cLower.includes("혈전용해") || cLower.includes("혈전제거")) {
+            // 9) 뇌/심(순환계) 진단비 및 뇌/심(순환계)치료비
+            if (cLower.includes("순환계") || ((cLower.includes("뇌혈관") || cLower.includes("허혈")) && (cLower.includes("주요치료") || cLower.includes("특정치료") || cLower.includes("통합치료")))) {
                 maxCov(c, "d_circ_tot_", amtNum);
                 return;
             }
@@ -651,7 +762,7 @@ function extractDataDirectly(rawExcelData) {
             }
             if (sLower === "급성심근경색진단" || (cLower.includes("심근경색") && (cLower.includes("진단") || sLower.includes("진단")))) { addCov(c, "d_ami_", amtNum); return; }
 
-            // 9) 골절 / 깁스 / 화상 / 치매 / 말기질환 / 배상 / 운전자
+            // 10) 골절 / 깁스 / 화상 / 장기요양(치매) / 운전자 / 배상
             if (sLower === "골절진단" || (cLower.includes("골절") && cLower.includes("진단") && !cLower.includes("5대골절") && !cLower.includes("중대골절") && !cLower.includes("척추골절") && !sLower.includes("중대골절"))) { addCov(c, "d_fracture_", amtNum); return; }
             if (sLower === "골절수술" || (cLower.includes("골절수술") && !cLower.includes("5대골절") && !cLower.includes("철심제거"))) { addCov(c, "d_fracture_op_", amtNum); return; }
             if (sLower === "깁스치료" || cLower.includes("깁스")) { addCov(c, "d_cast_", amtNum); return; }
@@ -663,24 +774,26 @@ function extractDataDirectly(rawExcelData) {
             if (combined.includes("복지용구") || combined.includes("복지용품") || combined.includes("주야간보호") || combined.includes("주·야간보호")) { addCov(c, "d_dementia_welfare_", amtNum); return; }
             if (combined.includes("재가급여") || combined.includes("시설급여") || combined.includes("방문요양") || sLower.includes("장기간병요양진단")) { addCov(c, "d_dementia_home_", amtNum); return; }
             if (combined.includes("표적치매") || combined.includes("레켐비")) { maxCov(c, "d_dementia_target_", amtNum); return; }
-            if (combined.includes("말기신부전")) { addCov(c, "d_kidney_", amtNum); return; }
-            if (sLower.includes("자동차사고부상") || cLower === "자동차부상치료비II" || cLower === "자동차사고부상치료비") { addCov(c, "d_driver_", amtNum); return; }
-            if (combined.includes("일상생활배상") || combined.includes("가족생활배상") || combined.includes("자녀배상")) { addCov(c, "d_liab_", amtNum); return; }
-            if (combined.includes("화재벌금") || combined.includes("급배수") || combined.includes("누수")) { addCov(c, "d_fire_", amtNum); return; }
+            if (combined.includes("일상생활배상") || combined.includes("가족생활배상") || combined.includes("자녀배상")) { maxCov(c, "d_liab_", amtNum); return; }
+            if (combined.includes("화재벌금") || combined.includes("급배수") || combined.includes("누수")) { maxCov(c, "d_fire_", amtNum); return; }
 
-            // 10) 일반 치료비 (종수술 1~8종 / 병원 / 종합병원 / 상급병원 / 통합치료비)
+            // 11) 일반 치료비 > 수술비 (1~8종 독립 매핑 + 5종/8종 동시 병기 + 병원/종합/상급/통합)
             if ((cLower.includes("질병통합치료") || cLower.includes("상해통합치료")) && !cLower.includes("암") && !cLower.includes("간·폐")) {
-                addCov(c, isInjury ? "d_totS_" : "d_totD_", amtNum);
+                maxCov(c, isInjury ? "d_totS_" : "d_totD_", amtNum);
                 return;
             }
-            if (sLower === "질병종수술" || sLower === "상해종수술" || /\d+~?\d*종\s*수술/.test(cDambo) || /\d+-\d+종\s*수술/.test(cDambo)) {
+
+            if (sLower === "질병종수술" || sLower === "상해종수술" || /\d+\s*[~-]\s*\d+\s*종\s*수술/.test(cDambo)) {
                 const pfx = (sLower === "상해종수술" || (isInjury && !isDisease)) ? "S_" : "D_";
-                let specificJong = cDambo.match(/_\s*(\d)\s*종/) || cDambo.match(/\(\s*(\d)\s*종\s*[,)]/);
+
+                // "_1종" ~ "_8종" 또는 "(1종)" ~ "(8종)" 개별 종수가 명시된 경우 해당 종수 칸에 정확히 입력
+                let specificJong = cDambo.match(/_\s*(\d)\s*종/) || cDambo.match(/\(\s*(\d)\s*종\s*\)/);
                 if (specificJong) {
                     const jNum = parseInt(specificJong[1], 10);
                     if (jNum >= 1 && jNum <= 8) maxCov(c, `d_op${jNum}${pfx}`, amtNum);
                     return;
                 }
+                // "5~8종 수술비(시술포함)" 또는 "1~5종 수술비(5종)"처럼 범위형인 경우 최대 종수(5종 또는 8종)에 입력 → 5종과 8종이 같이 있으면 5종/8종 각각 입력되고 6,7종은 비워짐!
                 const allJongs = cDambo.match(/(\d)\s*종/g);
                 if (allJongs) {
                     const maxJ = Math.max(...allJongs.map(m => parseInt(m, 10)));
@@ -690,12 +803,16 @@ function extractDataDirectly(rawExcelData) {
                 maxCov(c, `d_op5${pfx}`, amtNum);
                 return;
             }
+
             if (sLower === "질병수술" || sLower === "질병수술(유병자)" || sLower === "상해수술" || sLower === "상해수술(유병자)" ||
-                ((cLower.includes("질병수술") || cLower.includes("상해수술") || cLower.includes("입원수술") || cLower.includes("통원수술")) && !cLower.includes("특정") && !cLower.includes("111대") && !cLower.includes("119대") && !cLower.includes("인공관절") && !cLower.includes("창상") && !cLower.includes("흉터"))) {
+                ((cLower.includes("질병수술비") || cLower.includes("상해수술비") || cLower.includes("질병상급종합병원수술비") || cLower.includes("상해상급종합병원수술비") || cLower.includes("질병종합병원수술비") || cLower.includes("상해종합병원수술비") || cLower.includes("입원수술비") || cLower.includes("통원수술비")) &&
+                 !cLower.includes("특정") && !cLower.includes("111대") && !cLower.includes("119대") && !cLower.includes("인공관절") && !cLower.includes("창상") && !cLower.includes("흉터") && !cLower.includes("관절"))) {
                 const pfx = (sLower.includes("상해수술") || (isInjury && !isDisease)) ? "S_" : "D_";
-                if (cLower.includes("상급종합병원") || cLower.includes("상급병원")) maxCov(c, "d_opHigh" + pfx, amtNum);
-                else if (cLower.includes("종합병원")) maxCov(c, "d_opGen" + pfx, amtNum);
-                else {
+                if (cLower.includes("상급종합병원") || cLower.includes("상급병원")) {
+                    maxCov(c, "d_opHigh" + pfx, amtNum);
+                } else if (cLower.includes("종합병원")) {
+                    maxCov(c, "d_opGen" + pfx, amtNum);
+                } else {
                     if (cLower.includes("통원수술") && c.covNums["d_opNorm" + pfx]) maxCov(c, "d_opNorm" + pfx, amtNum);
                     else addCov(c, "d_opNorm" + pfx, amtNum);
                 }
@@ -709,6 +826,11 @@ function extractDataDirectly(rawExcelData) {
             Object.entries(c.covTexts).forEach(([k, txt]) => {
                 if (!c.covNums[k]) c.coverages[k] = txt;
             });
+
+            // 뇌/심 산정특례 포맷 확정 (같으면 2,000만 / 다르면 2,000만/1,000만)
+            if (c.sanjeongBrain > 0 || c.sanjeongHeart > 0) {
+                c.coverages.d_sanjeong_ = formatSanjeongPair(c.sanjeongBrain || 0, c.sanjeongHeart || 0);
+            }
 
             if (c.tempDieD > 0 || c.tempDieS > 0) {
                 let d = c.tempDieD || 0;
@@ -886,11 +1008,56 @@ function renderPage() {
             }
             grandTotalPremium += pagePremiumSum;
 
+            if (document.getElementById(`prem${i}`)) {
+                document.getElementById(`prem${i}`).innerText = formatPremium(pagePremiumSum);
+                document.getElementById(`prem${i}`).style.color = "#1d4ed8";
+            }
+            grandTotalPremium += pagePremiumSum;
+
+            // ▼▼▼ ④번 코드가 들어간 자리 시작 ▼▼▼
+            let sanjeongBrainPage = 0, sanjeongHeartPage = 0, hasSanjeongPage = false;
+            if (pageEdits[i]) {
+                for (let col = 1; col <= 5; col++) {
+                    const sv = (pageEdits[i][`d_sanjeong_${col}`] || "").trim();
+                    if (!sv || sv === "-") continue;
+                    hasSanjeongPage = true;
+                    if (sv.includes('/')) {
+                        const [bp, hp] = sv.split('/');
+                        sanjeongBrainPage += parseSingleAmt(bp);
+                        sanjeongHeartPage += parseSingleAmt(hp);
+                    } else {
+                        const v = parseSingleAmt(sv);
+                        sanjeongBrainPage += v;
+                        sanjeongHeartPage += v;
+                    }
+                }
+            } else {
+                const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
+                pData.forEach(c => {
+                    const sv = (c.coverages && c.coverages.d_sanjeong_ || "").trim();
+                    if (!sv || sv === "-") return;
+                    hasSanjeongPage = true;
+                    if (sv.includes('/')) {
+                        const [bp, hp] = sv.split('/');
+                        sanjeongBrainPage += parseSingleAmt(bp);
+                        sanjeongHeartPage += parseSingleAmt(hp);
+                    } else {
+                        const v = parseSingleAmt(sv);
+                        sanjeongBrainPage += v;
+                        sanjeongHeartPage += v;
+                    }
+                });
+            }
+
             const sumCells = document.querySelectorAll(`td[id$="_${i}"].sum-target`);
             sumCells.forEach(cell => {
                 let dataKey = cell.getAttribute('data-key');
-                let sumVal = pageCoveragesSum[dataKey] || pageCoveragesSum[dataKey + "sum"] || 0;
-                if (sumVal > 0) cell.innerText = formatAmt(sumVal);
+                if (dataKey === 'd_sanjeong_') {
+                    if (hasSanjeongPage) cell.innerText = formatSanjeongPair(sanjeongBrainPage, sanjeongHeartPage);
+                } else {
+                    let sumVal = pageCoveragesSum[dataKey] || pageCoveragesSum[dataKey + "sum"] || 0;
+                    if (sumVal > 0) cell.innerText = formatAmt(sumVal);
+                }
             });
         }
         document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
@@ -1001,9 +1168,34 @@ function calculateRowSums() {
     document.querySelectorAll('.sum-target').forEach(cell => uniqueKeys.add(cell.getAttribute('data-key')));
 
     uniqueKeys.forEach(key => {
+        const resCell = document.getElementById(`res_${key}`);
+        if (!resCell) return;
+
+        // 산정특례(뇌/심) 전용 합산: "2,000만/1,000만" 및 단일값("2,000만"=뇌2000/심2000) 모두 정확히 분리 합산
+        if (key === 'd_sanjeong_') {
+            let sumB = 0, sumH = 0, hasAny = false;
+            for (let i = 1; i <= 5; i++) {
+                const cell = document.getElementById(`${key}${i}`);
+                if (!cell) continue;
+                const txt = cell.innerText.trim();
+                if (!txt || txt === "-") continue;
+                hasAny = true;
+                if (txt.includes('/')) {
+                    const [bPart, hPart] = txt.split('/');
+                    sumB += parseSingleAmt(bPart);
+                    sumH += parseSingleAmt(hPart);
+                } else {
+                    const v = parseSingleAmt(txt);
+                    sumB += v;
+                    sumH += v;
+                }
+            }
+            resCell.innerText = hasAny ? formatSanjeongPair(sumB, sumH) : "-";
+            return;
+        }
+
         let rowSum = 0;
         let hasText = false;
-
         for (let i = 1; i <= 5; i++) {
             const cell = document.getElementById(`${key}${i}`);
             if (cell && cell.innerText.trim() !== "" && cell.innerText.trim() !== "-") {
@@ -1013,11 +1205,8 @@ function calculateRowSums() {
             }
         }
 
-        const resCell = document.getElementById(`res_${key}`);
-        if (resCell) {
-            if (hasText && rowSum === 0) resCell.innerText = "지원";
-            else resCell.innerText = formatAmt(rowSum);
-        }
+        if (hasText && rowSum === 0) resCell.innerText = "지원";
+        else resCell.innerText = formatAmt(rowSum);
     });
 }
 
