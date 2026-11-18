@@ -503,7 +503,11 @@
                             <input id="premManualRate" type="text" placeholder="자동계산" class="w-full bg-blue-50 border border-blue-300 rounded-lg px-3 py-2.5 text-sm text-center text-blue-700 font-bold shadow-sm focus:outline-none">
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-500">* 가입일 기준 세대별 위험률과 연령 증가분을 반영하여 시뮬레이션합니다.</p>
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-[11px] text-slate-600 leading-relaxed space-y-0.5">
+                        <div class="font-bold text-slate-700">📌 산출 근거 (손해율 계리산정 모델 적용)</div>
+                        <div>• <strong>기본요율:</strong> 손보·생보협회 세대별 공시 인상률(의료수가 수렴) 반영</div>
+                        <div>• <strong>연령증가분:</strong> 연령대별 위험률 상승분 반영(4세대 개인별 비급여 할증요율 미반영)</div>
+                    </div>         
                     <button onclick="calculateRenewalPremium()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition flex items-center justify-center gap-1.5 mt-2">
                         <span>📈</span> <span>미래 보험료 예측하기</span>
                     </button>
