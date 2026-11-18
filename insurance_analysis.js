@@ -984,52 +984,14 @@ function renderPage() {
             if (pageSilbiList.length > 0 && document.getElementById(`silbi${i}`)) {
                 document.getElementById(`silbi${i}`).innerText = [...new Set(pageSilbiList)].join(", ");
             }
+            // [수정 후] 깔끔하게 정리된 완성 형태
             grandTotalPremium += pagePremiumSum;
-
-            // ▼▼▼ ④번 코드가 들어간 자리 시작 ▼▼▼
-            let sanjeongBrainPage = 0, sanjeongHeartPage = 0, hasSanjeongPage = false;
-            if (pageEdits[i]) {
-                for (let col = 1; col <= 5; col++) {
-                    const sv = (pageEdits[i][`d_sanjeong_${col}`] || "").trim();
-                    if (!sv || sv === "-") continue;
-                    hasSanjeongPage = true;
-                    if (sv.includes('/')) {
-                        const [bp, hp] = sv.split('/');
-                        sanjeongBrainPage += parseSingleAmt(bp);
-                        sanjeongHeartPage += parseSingleAmt(hp);
-                    } else {
-                        const v = parseSingleAmt(sv);
-                        sanjeongBrainPage += v;
-                        sanjeongHeartPage += v;
-                    }
-                }
-            } else {
-                const pData = processedContracts.slice(pStart, pStart + itemsPerPage);
-                pData.forEach(c => {
-                    const sv = (c.coverages && c.coverages.d_sanjeong_ || "").trim();
-                    if (!sv || sv === "-") return;
-                    hasSanjeongPage = true;
-                    if (sv.includes('/')) {
-                        const [bp, hp] = sv.split('/');
-                        sanjeongBrainPage += parseSingleAmt(bp);
-                        sanjeongHeartPage += parseSingleAmt(hp);
-                    } else {
-                        const v = parseSingleAmt(sv);
-                        sanjeongBrainPage += v;
-                        sanjeongHeartPage += v;
-                    }
-                });
-            }
 
             const sumCells = document.querySelectorAll(`td[id$="_${i}"].sum-target`);
             sumCells.forEach(cell => {
                 let dataKey = cell.getAttribute('data-key');
-                if (dataKey === 'd_sanjeong_') {
-                    if (hasSanjeongPage) cell.innerText = formatSanjeongPair(sanjeongBrainPage, sanjeongHeartPage);
-                } else {
-                    let sumVal = pageCoveragesSum[dataKey] || pageCoveragesSum[dataKey + "sum"] || 0;
-                    if (sumVal > 0) cell.innerText = formatAmt(sumVal);
-                }
+                let sumVal = pageCoveragesSum[dataKey] || pageCoveragesSum[dataKey + "sum"] || 0;
+                if (sumVal > 0) cell.innerText = formatAmt(sumVal);
             });
         }
         document.getElementById('totalPremiumCell').innerText = formatPremium(grandTotalPremium);
@@ -1103,7 +1065,7 @@ function renderPage() {
                         'd_op5D_', 'd_op5S_', 'd_op6D_', 'd_op6S_', 'd_op7D_', 'd_op7S_', 'd_op8D_', 'd_op8S_',
                         'd_opNormD_', 'd_opNormS_', 'd_opGenD_', 'd_opGenS_', 'd_opHighD_', 'd_opHighS_', 'd_totD_', 'd_totS_',
                         'd_cancer_', 'd_cancer_op_', 'd_similar_', 'd_similar_op_', 'd_anti_rad_', 'd_anti_drug_', 'd_cancer_main_',
-                        'd_brain_', 'd_heart_', 'd_infarct_', 'd_ami_', 'd_sanjeong_', 'd_circ_tot_',
+                        'd_brain_', 'd_heart_', 'd_infarct_', 'd_ami_', 'd_sanjeongB_', 'd_sanjeongH_', 'd_circ_tot_',
                         'd_dementia_welfare_', 'd_dementia_home_', 'd_dementia_target_', 'd_kidney_',
                         'd_fracture_', 'd_fracture_op_', 'd_cast_', 'd_burn_', 'd_burn_sanjeong_',
                         'd_driver_', 'd_liab_', 'd_fire_', 'tot_prem_paid_'
