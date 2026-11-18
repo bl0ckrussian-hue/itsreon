@@ -1475,8 +1475,13 @@ async function exportToExcel() {
     currentPage = originalPage;
     renderPage();
 
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    XLSX.writeFile(wb, `잇츠리온_보장분석표_${dateStr}_전체통합본.xlsx`);
+    // [수정 후] 표 1행 제목('OOO님의 보장분석표') 연동 및 한국 시간 기준 날짜 적용
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const rawHeaderTitle = (document.getElementById('main-header-title')?.innerText || '보장분석표').trim();
+    const safeTitle = rawHeaderTitle.replace(/\s+/g, ' ').replace(/[\\/:*?"<>|]/g, '');
+
+    XLSX.writeFile(wb, `잇츠리온-${safeTitle}(${dateStr}).xlsx`);
 }
 
 // 12. AI 실손 세대 검증 및 특약 매핑 정밀 보완
