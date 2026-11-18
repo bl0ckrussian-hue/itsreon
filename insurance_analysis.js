@@ -1100,21 +1100,30 @@ async function printAllPages() {
     renderPage();
 }
 
-// 11. 엑셀 통합 다운로드 엔진
+// [수정 후] 기존 function exportRawToExcel() { ... } 전체를 아래 코드로 교체
 function exportRawToExcel() {
     if (!rawCloudDataForExport) {
         alert("아직 추출된 데이터가 없습니다. PDF를 먼저 업로드 해주세요.");
         return;
     }
     const wb = XLSX.utils.book_new();
+    let sheetAdded = false;
+
     for (const [sheetName, dataRows] of Object.entries(rawCloudDataForExport)) {
-        if (dataRows.length > 0) {
-            const ws = XLSX.utils.aoa_to_sheet(dataRows);
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        }
+        const rows = (Array.isArray(dataRows) && dataRows.length > 0) ? dataRows : [["추출된 데이터 없음"]];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+        sheetAdded = true;
     }
+
+    if (!sheetAdded) {
+        const ws = XLSX.utils.aoa_to_sheet([["추출된 시트가 없습니다."]]);
+        XLSX.utils.book_append_sheet(wb, ws, "확인필요");
+    }
+
     XLSX.writeFile(wb, `잇츠리온_원문데이터정렬본.xlsx`);
 }
+window.exportRawToExcel = exportRawToExcel;
 
 async function exportToExcel() {
     if (processedContracts.length === 0) return alert("데이터가 없습니다.");
