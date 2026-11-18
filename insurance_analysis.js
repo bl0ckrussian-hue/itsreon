@@ -415,13 +415,25 @@ function parseAmt(amtStr) {
     return parseSingleAmt(s);
 }
 
-function formatSanjeongPair(brainAmt, heartAmt) {
-    if (brainAmt <= 0 && heartAmt <= 0) return "";
-    if (brainAmt > 0 && heartAmt > 0) {
-        return brainAmt === heartAmt ? formatAmt(brainAmt) : `${formatAmt(brainAmt)}/${formatAmt(heartAmt)}`;
+// ▼▼▼ [교체할 코드] 누락된 금액·보험료 포맷 함수 3종 복원 ▼▼▼
+function formatAmt(num) {
+    if (!num || num === 0) return "-";
+    num = Math.round(num);
+    if (num >= 10000) {
+        let uk = Math.floor(num / 10000);
+        let man = num % 10000;
+        return man > 0 ? `${uk}억 ${man.toLocaleString()}만` : `${uk}억`;
     }
-    // 한쪽만 가입된 경우 뇌/심 위치가 명확히 보이도록 "2,000만/-" 또는 "-/2,000만" 표기
-    return `${brainAmt > 0 ? formatAmt(brainAmt) : "-"}/${heartAmt > 0 ? formatAmt(heartAmt) : "-"}`;
+    return num.toLocaleString() + "만";
+}
+
+function parsePremium(premStr) {
+    if (!premStr || premStr === "-" || String(premStr).includes("미제공") || String(premStr).includes("완료") || String(premStr).includes("납입완료")) return 0;
+    return parseInt(String(premStr).replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+function formatPremium(num) {
+    return num === 0 ? "-" : num.toLocaleString() + "원";
 }
 
 function determineSilbiGeneration(dateStr, silbiDetails) {
