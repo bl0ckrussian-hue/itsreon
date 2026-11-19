@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <!-- ⭐️ 신규: 스케줄 입력 팝업창 -->
+    <!-- ⭐️ 스케줄 입력 팝업창 -->
     <div id="scheduleInputModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
             <div class="bg-blue-600 p-4 flex justify-between items-center text-white">
@@ -120,7 +120,6 @@
         });
         window.addEventListener('focus', () => document.body.classList.remove('blurred'));
 
-        // ⭐️ 기존 웹앱 URL 유지
         const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwYWxSTVuMtFzkrlP4R0XxCvLixE2liAx3w82ySLhh4BVvAb6I4rCS0RBEOVgp7LfzF/exec"; 
         
         const currentAgent = localStorage.getItem('rion_logged_user');
@@ -128,9 +127,9 @@
         let currentModalIndex = null; 
         let currentModalPrefix = ''; 
 
-        // ⭐️ 신규: 스케줄 모달용 변수
         let currentSchIndex = null;
         let currentSchPrefix = '';
+        let isArchiveTabOpen = false; // ⭐️ 하단 30일 경과 탭 열림 상태 유지
 
         if (!currentAgent) {
             alert('보안 접근입니다. 메인 홈페이지에서 로그인을 먼저 진행해주세요.');
@@ -139,7 +138,6 @@
             document.getElementById('agentNameDisplay').innerText = `${currentAgent} 팀장님`;
             loadAssignedDBs();
 
-            // ⭐️ DB 관리 및 녹취 청취 중 메인 창 자동 로그아웃 방지
             const syncRionActivity = () => { if (localStorage.getItem('rion_logged_user')) localStorage.setItem('rion_last_activity', Date.now().toString()); };
             syncRionActivity();
             ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => document.addEventListener(evt, syncRionActivity, { passive: true }));
@@ -158,182 +156,175 @@
             }
         }
 
-        function renderDBList(dbs) {
-            const container = document.getElementById('dbContainer');
-            if(!dbs || dbs.length === 0) { 
-                container.innerHTML = "<div class='text-center py-20 text-slate-500 font-bold'>현재 배정된 대기 DB가 없습니다.</div>"; 
-                return; 
-            }
+        function toggleOver30DaysTab() {
+            const panel = document.getElementById('over30DaysSection');
+            const arrow = document.getElementById('over30DaysArrow');
+            if (!panel) return;
+            isArchiveTabOpen = !panel.classList.contains('hidden') ? false : true;
+            panel.classList.toggle('hidden', !isArchiveTabOpen);
+            if (arrow) arrow.innerText = isArchiveTabOpen ? '▲ 접기' : '▼ 펼쳐보기';
+        }
+
+        function buildSingleDBItemHtml(db, index, displayNo) {
+            const valTa1 = db.ta1 || '';
+            const valTa2 = db.ta2 || '';
+            const valTa3 = db.ta3 || '';
+            const valTa4 = db.ta4 || '';
+            const valStatus = db.status || '';
             
-            let desktopHtml = '';
-            let mobileHtml = '';
+            const valCount = db.contractCount ? db.contractCount + '건' : '';
+            const valPremium = db.contractPremium ? Number(db.contractPremium).toLocaleString() + '원' : '';
+            const valNote = db.note || '';
+            const valSchedule = db.schedule || '';
 
-            dbs.forEach((db, index) => {
-                const valTa1 = db.ta1 || '';
-                const valTa2 = db.ta2 || '';
-                const valTa3 = db.ta3 || '';
-                const valTa4 = db.ta4 || '';
-                const valStatus = db.status || '';
-                
-                const valCount = db.contractCount ? db.contractCount + '건' : '';
-                const valPremium = db.contractPremium ? Number(db.contractPremium).toLocaleString() + '원' : '';
-                const valNote = db.note || '';
-                const valSchedule = db.schedule || '';
-
-                // ==========================================
-                // 💻 1. 데스크톱(PC) 전용 뷰
-                // ==========================================
-                desktopHtml += `
-                    <tr class="bg-slate-50 font-medium border-b border-slate-200 hover:bg-slate-100 transition">
-                        <td class="p-2 border-r border-slate-200 font-bold text-slate-500">${index + 1}</td>
-                        <td class="p-2 border-r border-slate-200">${db.assignDate || '-'}</td>
-                        <td class="p-2 border-r border-slate-200 font-bold text-blue-600">${db.phone || '-'}</td>
-                        <td class="p-2 border-r border-slate-200"><span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${db.region || '-'}</span></td>
-                        <td class="p-2 border-r border-slate-200 font-bold text-sm text-slate-900">${db.customerName || '-'}</td>
-                        <td class="p-2 border-r border-slate-200">${db.sido || '-'}</td>
-                        <td class="p-2 border-r border-slate-200">${db.gugun || '-'}</td>
-                        <td class="p-2 border-r border-slate-200">${db.dong || '-'}</td>
-                        <td class="p-2 border-r border-slate-200">${db.birth || '-'}</td>
-                        <td class="p-2 border-r border-slate-200">${db.gender || '-'}</td>
-                        <td class="p-2 border-r border-slate-200 text-left whitespace-normal break-keep text-[11px] leading-snug">${db.memo || '-'}</td>
-                        <td class="p-2 border-r border-slate-200 font-bold">${currentAgent}</td>
-                        <td class="p-2 border-r border-slate-200 font-bold text-emerald-600">${valStatus || '-'}</td>
-                        <td class="p-2 border-r border-slate-200 text-[10px]">${db.assignDateTime || '-'}</td>
-                        <td class="p-2"><span class="text-rose-600 font-black text-[11px]">${db.timeLimit || '-'}</span></td>
-                    </tr>
-                    <tr class="border-b-4 border-slate-400">
-                        <td colspan="15" class="p-0 bg-white">
-                            <input type="hidden" id="custName_${index}" value="${db.customerName}">
-                            <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
-                                
-                                <div class="w-[20%] shrink-0 flex items-center pl-1">
-                                    <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight mr-1.5">🎧 녹취</span>
-                                    <div class="flex-grow w-full relative overflow-hidden h-10 rounded border border-slate-300 shadow-sm bg-[#141414]">
-                                        ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: -20px; left: 0; width: 100%; height: 150px; border: none;" allow="autoplay"></iframe><div class="absolute top-0 right-0 w-[45px] h-full bg-[#141414] z-10"></div>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
-                                    </div>
-                                </div>
-
-                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA', valTa1, index, '')}</div>
-                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta2_${index}`, '2차 TA', valTa2, index, '')}</div>
-                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
-                                <div class="w-[5%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
-                                
-                                <div class="w-[12%] shrink-0">
-                                    <input type="text" id="schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, '')" placeholder="일정입력 (클릭)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
-                                </div>
-                                
-                                <div class="w-[6%] shrink-0">
-                                    <select id="status_${index}" onchange="handleStatusChange(${index}, '')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
-                                        <option value="" ${valStatus===''?'selected':''}>- 진행현황 -</option>
-                                        <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
-                                        <option value="상담완료" ${valStatus==='상담완료'?'selected':''}>상담완료</option>
-                                        <option value="계약" ${valStatus==='계약'?'selected':''}>계약</option>
-                                        <option value="장기배양(심사)" ${valStatus==='장기배양(심사)'?'selected':''}>장기배양(심사)</option>
-                                        <option value="거절" ${valStatus==='거절'?'selected':''}>거절</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="w-[3%] shrink-0">
-                                    <input type="text" id="cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-1.5 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-center focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
-                                </div>
-                                <div class="w-[8%] shrink-0">
-                                    <input type="text" id="prm_${index}" value="${valPremium}" readonly placeholder="보험료" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-2 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-right focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
-                                </div>
-
-                                <div class="w-[26%] shrink-0">
-                                    <input type="text" id="note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
+            const desktopRow = `
+                <tr class="bg-slate-50 font-medium border-b border-slate-200 hover:bg-slate-100 transition">
+                    <td class="p-2 border-r border-slate-200 font-bold text-slate-500">${displayNo}</td>
+                    <td class="p-2 border-r border-slate-200">${db.assignDate || '-'}</td>
+                    <td class="p-2 border-r border-slate-200 font-bold text-blue-600">${db.phone || '-'}</td>
+                    <td class="p-2 border-r border-slate-200"><span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${db.region || '-'}</span></td>
+                    <td class="p-2 border-r border-slate-200 font-bold text-sm text-slate-900">${db.customerName || '-'}</td>
+                    <td class="p-2 border-r border-slate-200">${db.sido || '-'}</td>
+                    <td class="p-2 border-r border-slate-200">${db.gugun || '-'}</td>
+                    <td class="p-2 border-r border-slate-200">${db.dong || '-'}</td>
+                    <td class="p-2 border-r border-slate-200">${db.birth || '-'}</td>
+                    <td class="p-2 border-r border-slate-200">${db.gender || '-'}</td>
+                    <td class="p-2 border-r border-slate-200 text-left whitespace-normal break-keep text-[11px] leading-snug">${db.memo || '-'}</td>
+                    <td class="p-2 border-r border-slate-200 font-bold">${currentAgent}</td>
+                    <td class="p-2 border-r border-slate-200 font-bold text-emerald-600">${valStatus || '-'}</td>
+                    <td class="p-2 border-r border-slate-200 text-[10px]">${db.assignDateTime || '-'}</td>
+                    <td class="p-2"><span class="text-rose-600 font-black text-[11px]">${db.timeLimit || '-'}</span></td>
+                </tr>
+                <tr class="border-b-4 border-slate-400">
+                    <td colspan="15" class="p-0 bg-white">
+                        <input type="hidden" id="custName_${index}" value="${db.customerName}">
+                        <div id="edit_area_${index}" class="flex items-center w-full bg-amber-50 p-2 gap-2 transition-all">
+                            <div class="w-[20%] shrink-0 flex items-center pl-1">
+                                <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap shrink-0 tracking-tight mr-1.5">🎧 녹취</span>
+                                <div class="flex-grow w-full relative overflow-hidden h-10 rounded border border-slate-300 shadow-sm bg-[#141414]">
+                                    ${db.audioUrl ? `<iframe src="${db.audioUrl.replace('uc?export=download&id=', 'file/d/')}/preview" style="position: absolute; top: -20px; left: 0; width: 100%; height: 150px; border: none;" allow="autoplay"></iframe><div class="absolute top-0 right-0 w-[45px] h-full bg-[#141414] z-10"></div>` : `<div class="w-full h-full flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold">녹취 없음</div>`}
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                `;
 
-                // ==========================================
-                // 📱 2. 모바일(휴대폰) 전용 뷰 (누락되었던 카드 시작 태그 복구 & 이중 녹취 제거)
-                // ==========================================
-                mobileHtml += `
-                    <div id="m_edit_area_${index}" class="bg-white rounded-xl shadow-md border border-slate-200 p-4 transition-all">
-                        <input type="hidden" id="m_custName_${index}" value="${db.customerName}">
-                        
-                        <!-- 1. 상단: 이름 및 기한 -->
-                        <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-bold">No.${index + 1}</span>
-                                <span class="font-black text-base text-slate-900">${db.customerName || '-'}</span>
+                            <div class="w-[5%] shrink-0">${generateTaSelect(`ta1_${index}`, '1차 TA', valTa1, index, '')}</div>
+                            <div class="w-[5%] shrink-0">${generateTaSelect(`ta2_${index}`, '2차 TA', valTa2, index, '')}</div>
+                            <div class="w-[5%] shrink-0">${generateTaSelect(`ta3_${index}`, '3차 TA', valTa3, index, '')}</div>
+                            <div class="w-[5%] shrink-0">${generateTaSelect(`ta4_${index}`, '4차 이상', valTa4, index, '')}</div>
+                            
+                            <div class="w-[12%] shrink-0">
+                                <input type="text" id="schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, '')" placeholder="일정입력 (클릭)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
                             </div>
-                            <span class="text-rose-600 font-black text-xs bg-rose-50 px-2 py-1 rounded border border-rose-100">${db.timeLimit || '-'}</span>
-                        </div>
+                            
+                            <div class="w-[6%] shrink-0">
+                                <select id="status_${index}" onchange="handleStatusChange(${index}, '')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
+                                    <option value="" ${valStatus===''?'selected':''}>- 진행현황 -</option>
+                                    <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
+                                    <option value="상담완료" ${valStatus==='상담완료'?'selected':''}>상담완료</option>
+                                    <option value="계약" ${valStatus==='계약'?'selected':''}>계약</option>
+                                    <option value="장기배양(심사)" ${valStatus==='장기배양(심사)'?'selected':''}>장기배양(심사)</option>
+                                    <option value="거절" ${valStatus==='거절'?'selected':''}>거절</option>
+                                </select>
+                            </div>
+                            
+                            <div class="w-[3%] shrink-0">
+                                <input type="text" id="cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-1.5 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-center focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
+                            </div>
+                            <div class="w-[8%] shrink-0">
+                                <input type="text" id="prm_${index}" value="${valPremium}" readonly placeholder="보험료" onclick="if(document.getElementById('status_${index}').value==='계약') openContractModal(${index}, '')" class="w-full px-2 py-1.5 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 text-right focus:outline-none cursor-pointer placeholder-emerald-300 transition hover:bg-emerald-100">
+                            </div>
 
-                        <!-- 2. 고객 상세 정보 영역 -->
-                        <div class="mb-3 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
-                            <div class="grid grid-cols-2 gap-y-2 gap-x-4">
-                                <div class="flex flex-col gap-0.5">
-                                    <span class="text-[10px] text-slate-400 font-bold">📞 연락처</span>
-                                    <a href="tel:${db.phone}" class="font-bold text-blue-600 text-[13px] hover:underline">${db.phone || '-'}</a>
-                                </div>
-                                <div class="flex flex-col gap-0.5">
-                                    <span class="text-[10px] text-slate-400 font-bold">👤 인적사항</span>
-                                    <span class="font-bold text-slate-700 text-[13px]">${db.birth || '-'} / ${db.gender || '-'}</span>
-                                </div>
-                            </div>
-                            <div class="mt-2 pt-2 border-t border-slate-200 flex flex-col gap-0.5">
-                                <span class="text-[10px] text-slate-400 font-bold">📍 지역</span>
-                                <span class="font-bold text-slate-700 text-[13px]">
-                                    <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-1 text-[10px]">${db.region || '-'}</span>
-                                    ${db.sido || ''} ${db.gugun || ''} ${db.dong || ''}
-                                </span>
+                            <div class="w-[26%] shrink-0">
+                                <input type="text" id="note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
                             </div>
                         </div>
+                    </td>
+                </tr>
+            `;
 
-                        <!-- 3. 메모 영역 -->
-                        <div class="text-xs text-slate-600 mb-3 bg-slate-50 p-2 rounded border border-slate-100 leading-snug">
-                            <span class="font-bold text-slate-500 block mb-1">📝 메모</span>${db.memo || '-'}
+            const mobileCard = `
+                <div id="m_edit_area_${index}" class="bg-white rounded-xl shadow-md border border-slate-200 p-4 transition-all">
+                    <input type="hidden" id="m_custName_${index}" value="${db.customerName}">
+                    
+                    <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-bold">No.${displayNo}</span>
+                            <span class="font-black text-base text-slate-900">${db.customerName || '-'}</span>
                         </div>
+                        <span class="text-rose-600 font-black text-xs bg-rose-50 px-2 py-1 rounded border border-rose-100">${db.timeLimit || '-'}</span>
+                    </div>
 
-                        <!-- 4. 하단 액션 영역 (모바일 전용 다이렉트 녹취 1개만 깔끔하게 표시) -->
-                        <div class="space-y-2 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
-                            <div class="w-full mb-1">
-                                ${buildMobileAudioHtml(db.audioUrl, index)}
+                    <div class="mb-3 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="text-[10px] text-slate-400 font-bold">📞 연락처</span>
+                                <a href="tel:${db.phone}" class="font-bold text-blue-600 text-[13px] hover:underline">${db.phone || '-'}</a>
                             </div>
-
-                            <div class="grid grid-cols-2 gap-2">
-                                ${generateTaSelect(`m_ta1_${index}`, '1차 TA(1일)', valTa1, index, 'm_')}
-                                ${generateTaSelect(`m_ta2_${index}`, '2차 TA(2일)', valTa2, index, 'm_')}
-                                ${generateTaSelect(`m_ta3_${index}`, '3차 TA(3일)', valTa3, index, 'm_')}
-                                ${generateTaSelect(`m_ta4_${index}`, '4차 이상 TA', valTa4, index, 'm_')}
+                            <div class="flex flex-col gap-0.5">
+                                <span class="text-[10px] text-slate-400 font-bold">👤 인적사항</span>
+                                <span class="font-bold text-slate-700 text-[13px]">${db.birth || '-'} / ${db.gender || '-'}</span>
                             </div>
-
-                            <div class="flex gap-2 pt-1">
-                                <div class="w-[50%] flex gap-1">
-                                    <input type="text" id="m_schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, 'm_')" placeholder="일정입력(터치)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
-                                </div>
-                                <div class="w-[50%]">
-                                    <select id="m_status_${index}" onchange="handleStatusChange(${index}, 'm_')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
-                                        <option value="" ${valStatus===''?'selected':''}>- 현황 -</option>
-                                        <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
-                                        <option value="상담완료" ${valStatus==='상담완료'?'selected':''}>상담완료</option>
-                                        <option value="계약" ${valStatus==='계약'?'selected':''}>계약</option>
-                                        <option value="장기배양(심사)" ${valStatus==='장기배양(심사)'?'selected':''}>장기배양(심사)</option>
-                                        <option value="거절" ${valStatus==='거절'?'selected':''}>거절</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="flex gap-2 pt-1">
-                                <input type="text" id="m_cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[30%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-center">
-                                <input type="text" id="m_prm_${index}" value="${valPremium}" readonly placeholder="보험료 입력 (터치)" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[70%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-right">
-                            </div>
-
-                            <div class="pt-1">
-                                <input type="text" id="m_note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고(특이사항) 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
-                            </div>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-200 flex flex-col gap-0.5">
+                            <span class="text-[10px] text-slate-400 font-bold">📍 지역</span>
+                            <span class="font-bold text-slate-700 text-[13px]">
+                                <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-1 text-[10px]">${db.region || '-'}</span>
+                                ${db.sido || ''} ${db.gugun || ''} ${db.dong || ''}
+                            </span>
                         </div>
                     </div>
-                `;
-            });
 
-            // ⭐️ PC(md 이상: 768px~)에서는 표(Table)만 보이고, 스마트폰(md 미만)에서는 모바일 카드만 보이도록 완벽 분리
-            container.innerHTML = `
+                    <div class="text-xs text-slate-600 mb-3 bg-slate-50 p-2 rounded border border-slate-100 leading-snug">
+                        <span class="font-bold text-slate-500 block mb-1">📝 메모</span>${db.memo || '-'}
+                    </div>
+
+                    <div class="space-y-2 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                        <div class="w-full mb-1">
+                            ${buildMobileAudioHtml(db.audioUrl, index)}
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            ${generateTaSelect(`m_ta1_${index}`, '1차 TA(1일)', valTa1, index, 'm_')}
+                            ${generateTaSelect(`m_ta2_${index}`, '2차 TA(2일)', valTa2, index, 'm_')}
+                            ${generateTaSelect(`m_ta3_${index}`, '3차 TA(3일)', valTa3, index, 'm_')}
+                            ${generateTaSelect(`m_ta4_${index}`, '4차 이상 TA', valTa4, index, 'm_')}
+                        </div>
+
+                        <div class="flex gap-2 pt-1">
+                            <div class="w-[50%] flex gap-1">
+                                <input type="text" id="m_schedule_${index}" value="${valSchedule}" readonly onclick="openScheduleModal(${index}, 'm_')" placeholder="일정입력(터치)" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs cursor-pointer hover:bg-blue-50 transition font-bold text-blue-700 bg-white">
+                            </div>
+                            <div class="w-[50%]">
+                                <select id="m_status_${index}" onchange="handleStatusChange(${index}, 'm_')" class="w-full p-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs font-bold text-slate-700 bg-white">
+                                    <option value="" ${valStatus===''?'selected':''}>- 현황 -</option>
+                                    <option value="상담 중" ${valStatus==='상담 중'?'selected':''}>상담 중</option>
+                                    <option value="상담완료" ${valStatus==='상담완료'?'selected':''}>상담완료</option>
+                                    <option value="계약" ${valStatus==='계약'?'selected':''}>계약</option>
+                                    <option value="장기배양(심사)" ${valStatus==='장기배양(심사)'?'selected':''}>장기배양(심사)</option>
+                                    <option value="거절" ${valStatus==='거절'?'selected':''}>거절</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-1">
+                            <input type="text" id="m_cnt_${index}" value="${valCount}" readonly placeholder="건수" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[30%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-center">
+                            <input type="text" id="m_prm_${index}" value="${valPremium}" readonly placeholder="보험료 입력 (터치)" onclick="if(document.getElementById('m_status_${index}').value==='계약') openContractModal(${index}, 'm_')" class="w-[70%] px-2 py-2 border border-emerald-300 rounded bg-emerald-50 text-xs font-black text-emerald-700 focus:outline-none cursor-pointer text-right">
+                        </div>
+
+                        <div class="pt-1">
+                            <input type="text" id="m_note_${index}" value="${valNote}" onchange="markModified(${index})" placeholder="비고(특이사항) 입력" class="w-full px-2 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none text-xs">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return { desktopRow, mobileCard };
+        }
+
+        function buildTableWrapHtml(desktopRowsHtml, mobileCardsHtml, emptyText) {
+            if (!desktopRowsHtml) {
+                return `<div class='text-center py-14 bg-white rounded-xl border border-slate-200 text-slate-400 font-bold text-sm'>${emptyText}</div>`;
+            }
+            return `
                 <div class="hidden md:block bg-white rounded-xl shadow-md border border-slate-200 overflow-x-auto min-w-[1400px]">
                     <table class="w-full text-xs text-center border-collapse whitespace-nowrap">
                         <thead class="bg-slate-800 text-white">
@@ -356,19 +347,66 @@
                             </tr>
                         </thead>
                         <tbody class="text-slate-700">
-                            ${desktopHtml}
+                            ${desktopRowsHtml}
                         </tbody>
                     </table>
                 </div>
                 <div class="block md:hidden flex flex-col gap-4">
-                    ${mobileHtml}
+                    ${mobileCardsHtml}
                 </div>
             `;
         }
 
-        // ==========================================
-        // 📅 ⭐️ 신규: 스케줄 모달 제어 함수들
-        // ==========================================
+        function renderDBList(dbs) {
+            const container = document.getElementById('dbContainer');
+            if(!dbs || dbs.length === 0) { 
+                container.innerHTML = "<div class='text-center py-20 text-slate-500 font-bold'>현재 배정된 대기 DB가 없습니다.</div>"; 
+                return; 
+            }
+            
+            let recentDesktopHtml = '';
+            let recentMobileHtml = '';
+            let recentCount = 0;
+
+            let over30DesktopHtml = '';
+            let over30MobileHtml = '';
+            let over30Count = 0;
+
+            dbs.forEach((db, index) => {
+                if (db.isOver30Days) {
+                    over30Count++;
+                    const built = buildSingleDBItemHtml(db, index, over30Count);
+                    over30DesktopHtml += built.desktopRow;
+                    over30MobileHtml += built.mobileCard;
+                } else {
+                    recentCount++;
+                    const built = buildSingleDBItemHtml(db, index, recentCount);
+                    recentDesktopHtml += built.desktopRow;
+                    recentMobileHtml += built.mobileCard;
+                }
+            });
+
+            container.innerHTML = `
+                <!-- 1. 상단 기본 리스트: 배정 30일 이내 DB -->
+                <div>
+                    ${buildTableWrapHtml(recentDesktopHtml, recentMobileHtml, '최근 30일 이내 배정된 DB가 없습니다. (아래 30일 경과 탭을 확인해 주세요)')}
+                </div>
+
+                <!-- ⭐️ 2. 하단 탭: 배정받고 30일이 지난 장기관리 DB (1년까지 보관) -->
+                <div class="mt-8 pt-6 border-t-2 border-slate-200 md:min-w-[1400px]">
+                    <button type="button" onclick="toggleOver30DaysTab()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-3 rounded-xl shadow-md transition flex items-center justify-between sm:justify-start gap-3 text-xs sm:text-sm">
+                        <span>📂 배정 30일 경과 장기관리 DB 보기</span>
+                        <span class="bg-amber-400 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-xs">${over30Count}건</span>
+                        <span id="over30DaysArrow" class="text-slate-300 text-xs ml-1">${isArchiveTabOpen ? '▲ 접기' : '▼ 펼쳐보기'}</span>
+                    </button>
+
+                    <div id="over30DaysSection" class="${isArchiveTabOpen ? '' : 'hidden'} mt-4">
+                        ${buildTableWrapHtml(over30DesktopHtml, over30MobileHtml, '배정 후 30일이 경과한 장기관리 DB가 없습니다.')}
+                    </div>
+                </div>
+            `;
+        }
+
         function openScheduleModal(index, prefix) {
             currentSchIndex = index;
             currentSchPrefix = prefix;
@@ -376,7 +414,6 @@
             const schInput = document.getElementById(`${prefix}schedule_${index}`);
             const existVal = schInput.value;
             
-            // 기존 텍스트가 있다면 분리해서 모달 창에 세팅
             document.getElementById('schType').value = schInput.getAttribute('data-sch-type') || "";
             document.getElementById('schDateTime').value = schInput.getAttribute('data-raw-time') || "";
             
@@ -408,7 +445,7 @@
 
         function confirmScheduleModal() {
             const sType = document.getElementById('schType').value;
-            const sTimeRaw = document.getElementById('schDateTime').value; // YYYY-MM-DDThh:mm
+            const sTimeRaw = document.getElementById('schDateTime').value;
             const sLoc = document.getElementById('schLocation').value.trim();
 
             let resultText = "";
@@ -435,20 +472,15 @@
             const schInput = document.getElementById(`${currentSchPrefix}schedule_${currentSchIndex}`);
             schInput.value = resultText;
             
-            // ⭐️ 앱스크립트로 넘겨주기 위해 원본 데이터(Raw Data)를 요소 속성으로 저장
             schInput.setAttribute('data-raw-time', sTimeRaw);
             schInput.setAttribute('data-sch-type', sType);
             schInput.setAttribute('data-sch-loc', sLoc);
-            // ⭐️ 캘린더 동기화 신호(true) 부여
             schInput.setAttribute('data-sync-calendar', 'true');
             
             markModified(currentSchIndex);
             closeScheduleModal();
         }
 
-        // ==========================================
-        // (기존 함수들 동일하게 유지)
-        // ==========================================
         function generateTaSelect(id, label, selectedValue, index, prefix) {
             const val = selectedValue || '';
             const colorClass = val === '' ? 'text-slate-500' : 'text-slate-800';
@@ -599,7 +631,6 @@
                     ta3: document.getElementById(`${pfx}ta3_${idx}`).value,
                     ta4: document.getElementById(`${pfx}ta4_${idx}`).value,
                     schedule: scheduleVal, 
-                    // ⭐️ 신규: 프론트에서 생성된 동기화 데이터를 모두 전송
                     rawSchTime: schInput.getAttribute('data-raw-time'),
                     schType: schInput.getAttribute('data-sch-type'),
                     schLoc: schInput.getAttribute('data-sch-loc'),
@@ -617,7 +648,6 @@
                     const result = await response.json();
                     if(result.success) {
                         successCount++;
-                        // ⭐️ 캘린더 실패 시 알림창 띄우기
                         if (result.calResult && !result.calResult.success) {
                             alert(`🚨 캘린더 연동 실패! (고객명: ${payload.customerName})\n사유: ${result.calResult.error}`);
                         }
@@ -634,84 +664,62 @@
             loadAssignedDBs(); 
         }
     </script>
+
     <!-- 🛡️ 보안: 캡처 방지, 우클릭, 드래그, 소스보기(F12) 원천 차단 스크립트 -->
-<style>
-    /* 모바일 꾹 누르기(팝업) 및 텍스트 드래그 원천 차단 */
-    body {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-touch-callout: none;
-    }
-    
-    /* 캡처 도구 실행 시 화면 가림막(Blur) 적용 클래스 */
-    .capture-protect-mode {
-        filter: blur(15px) !important;
-        opacity: 0.1 !important;
-        pointer-events: none !important;
-    }
-</style>
-<script>
-    // 1. 마우스 우클릭 금지
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-    });
-
-    // 2. 마우스 드래그(블록 지정) 및 이미지 드래그 금지
-    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
-    window.addEventListener('dragstart', function(e) { e.preventDefault(); });
-
-    // 3. 캡처 프로그램 실행 시 화면 포커스를 잃으면 즉시 화면 가림 (녹취 IFRAME 클릭 예외 추가)
-    window.addEventListener('blur', function() {
-        if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
-        document.body.classList.add('capture-protect-mode');
-    });
-
-    // 4. 화면으로 다시 돌아오면 가림막 해제
-    window.addEventListener('focus', function() {
-        document.body.classList.remove('capture-protect-mode');
-    });
-
-    // 5. 복사, 잘라내기 원천 차단 및 클립보드 강제 초기화
-    window.addEventListener('copy', function(e) { 
-        e.preventDefault(); 
-        try { navigator.clipboard.writeText(''); } catch(err) {} 
-    });
-    window.addEventListener('cut', function(e) { e.preventDefault(); });
-
-    // 6. 키보드 단축키 (F12, 소스보기, 복사, 캡처 등) 금지
-    document.addEventListener('keydown', function(e) {
-        // F12 개발자 도구 차단
-        if (e.key === 'F12') {
-            e.preventDefault();
+    <style>
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
-        // Ctrl + Shift + I (개발자 도구 단축키) 차단
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-            e.preventDefault();
+        .capture-protect-mode {
+            filter: blur(15px) !important;
+            opacity: 0.1 !important;
+            pointer-events: none !important;
         }
-        // Ctrl + U (페이지 소스 보기) 차단
-        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-            e.preventDefault();
-        }
-        // Ctrl + C (복사), Ctrl + P (인쇄) 차단 및 클립보드 비우기
-        if (e.ctrlKey && (e.key === 'C' || e.key === 'c' || e.key === 'P' || e.key === 'p')) {
-            e.preventDefault();
+    </style>
+    <script>
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+        window.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+        window.addEventListener('blur', function() {
+            if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
+            document.body.classList.add('capture-protect-mode');
+        });
+
+        window.addEventListener('focus', function() {
+            document.body.classList.remove('capture-protect-mode');
+        });
+
+        window.addEventListener('copy', function(e) { 
+            e.preventDefault(); 
             try { navigator.clipboard.writeText(''); } catch(err) {} 
-        }
-        // PrintScreen, Alt+Shift+S, Win+Shift+S, Cmd+Shift+S 등 캡처 단축키 차단
-        if (
-            e.key === 'PrintScreen' || 
-            e.keyCode === 44 || 
-            (e.altKey && e.shiftKey && (e.key === 's' || e.key === 'S')) || 
-            (e.metaKey && e.shiftKey && (e.key === 's' || e.key === 'S'))
-        ) {
-            e.preventDefault();
-            try { navigator.clipboard.writeText(''); } catch(err) {} // 클립보드 강제 초기화
-            alert('고객 정보 보호를 위해 화면 캡처 및 복사가 금지되어 있습니다.');
-        }
-    });
-    // ⭐️ 데이텀에서 차용한 휴대폰 전용 무로그인 다이렉트 녹취 재생 엔진
+        });
+        window.addEventListener('cut', function(e) { e.preventDefault(); });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12') e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) e.preventDefault();
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) e.preventDefault();
+            if (e.ctrlKey && (e.key === 'C' || e.key === 'c' || e.key === 'P' || e.key === 'p')) {
+                e.preventDefault();
+                try { navigator.clipboard.writeText(''); } catch(err) {} 
+            }
+            if (
+                e.key === 'PrintScreen' || 
+                e.keyCode === 44 || 
+                (e.altKey && e.shiftKey && (e.key === 's' || e.key === 'S')) || 
+                (e.metaKey && e.shiftKey && (e.key === 's' || e.key === 'S'))
+            ) {
+                e.preventDefault();
+                try { navigator.clipboard.writeText(''); } catch(err) {}
+                alert('고객 정보 보호를 위해 화면 캡처 및 복사가 금지되어 있습니다.');
+            }
+        });
+
         function extractDriveFileId(url) {
             if (!url) return "";
             const match1 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
@@ -785,6 +793,6 @@
                 btn.className = "w-full bg-blue-600 text-white font-bold py-2 px-3 rounded text-xs flex items-center justify-center gap-1.5";
             }
         }
-</script>
+    </script>
 </body>
 </html>
