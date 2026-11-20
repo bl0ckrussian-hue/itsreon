@@ -103,42 +103,44 @@
  }
 
  function checkAuthAndOpen(modalId) {
-      // 1. 비회원 기능
-      if (modalId === 'indemnityCalcModal') {
-         window.open('silbi_calculator.html', '_blank'); return;
-      }
-      // ⭐️ claimModal을 준비중 목록에서 제외!
-      if (modalId === 'comingSoonModal' || modalId === 'termsCloudModal') {
-         openModal('comingSoonModal'); return;
-      }
+     // 1. 비회원 기능
+     if (modalId === 'indemnityCalcModal') {
+        window.open('silbi_calculator.html', '_blank'); return;
+     }
+     // ⭐️ 수정 1: termsCloudModal 제거 (comingSoonModal만 남김)
+     if (modalId === 'comingSoonModal') {
+        openModal('comingSoonModal'); return;
+     }
 
-      // 2. 회원 기능
-      if (!currentUser.isLoggedIn) {
-          alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
-          openModal('loginModal');
-      } else if (currentUser.status !== '승인') {
-          alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용 할 수 있습니다.');
-      } else {
-         localStorage.setItem('rion_logged_user', currentUser.name); 
+     // 2. 회원 기능 (로그인 + '승인' 상태 검증)
+     if (!currentUser.isLoggedIn) {
+         alert('원활한 서비스 사용을 위해 로그인 또는 회원가입 후 이용해주세요.');
+         openModal('loginModal');
+     } else if (currentUser.status !== '승인') {
+         alert('현재 [승인 대기] 상태입니다. 관리자 승인 완료 후 이용 할 수 있습니다.');
+     } else {
+        localStorage.setItem('rion_logged_user', currentUser.name); 
 
-          if (modalId === 'dbAssignPage') {
-             window.open('db_assign.html', 'eduWindow'); 
-          } else if (modalId === 'dutyModal') {
-             window.open('duty_analysis.html', '_blank');
-          } else if (modalId === 'claimModal') { 
-             // ⭐️ 보험청구 클릭 시 독립 엔진(claim.html) 새 창으로 실행!
-             window.open('claim.html', '_blank');
-          } else if (modalId === 'contractDashboardModal') {
-             window.open('db_carts.html', 'eduWindow');
-          } else if (modalId === 'coverageModal') { 
-             window.open('insurance_analysis.html', '_blank');
-          } else if (modalId === 'unclaimedMoneyModal') { 
-             window.open('insurance_money.html', 'eduWindow');
-          } else {
-             openModal(modalId); 
-          }
-      }
-  }
+         if (modalId === 'dbAssignPage') {
+            window.open('db_assign.html', 'eduWindow'); 
+         } else if (modalId === 'dutyModal') {
+            window.open('duty_analysis.html', '_blank');
+         } else if (modalId === 'termsCloudModal') {
+            // ⭐️ 수정 2: 약관비교분석 새 창 실행 추가!
+            window.open('policy_ai.html', '_blank');
+         } else if (modalId === 'claimModal') { 
+            window.open('claim.html', '_blank');
+         } else if (modalId === 'contractDashboardModal') {
+            window.open('db_carts.html', 'eduWindow');
+         } else if (modalId === 'coverageModal') { 
+            window.open('insurance_analysis.html', '_blank');
+         } else if (modalId === 'unclaimedMoneyModal') { 
+            window.open('insurance_money.html', 'eduWindow');
+         } else {
+            openModal(modalId); 
+         }
+     }
+ }
 
  // ⭐️ 회원정보 창 띄우기 (이름만 표시하고 비밀번호 요구)
  function openMemberInfo() {
