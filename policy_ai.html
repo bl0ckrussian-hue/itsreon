@@ -70,8 +70,14 @@
 <body>
 
 <header>
-  <h1>ITSRION 약관 핀셋 검색 & AI 보상·비교 리포트</h1>
-  <span class="badge">토큰 절감 하이브리드 엔진</span>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <h1>ITSRION 약관 핀셋 검색 & AI 보상·비교 리포트</h1>
+    <span class="badge">토큰 절감 하이브리드 엔진</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:12px; font-size:0.85rem;">
+    <span id="loggedAgentName" style="color:#cbd5e1; font-weight:600;"></span>
+    <button onclick="window.close()" style="background:#1e293b; color:#fff; border:1px solid #334155; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600;">창 닫기 ✕</button>
+  </div>
 </header>
 
 <div class="container">
@@ -126,8 +132,174 @@
     <div id="modalBody">불러오는 중...</div>
   </div>
 </div>
-
+  
+<!-- ⏳ 자동 로그아웃 경고 모달 -->
+<div class="modal-backdrop" id="sessionWarningModal" style="z-index:2000; background:rgba(15,23,42,0.8);">
+  <div class="warn-box">
+    <div style="font-size:2rem; margin-bottom:8px;">⏳</div>
+    <h3 style="margin:0 0 8px 0; color:#0f172a;">자동 로그아웃 안내</h3>
+    <p style="font-size:0.88rem; color:#475569; line-height:1.5; margin-bottom:18px;">
+      오랜 시간 활동이 없어 <b id="logoutCountdown" style="color:#e11d48; font-size:1.1rem;">60</b>초 후<br/>자동으로 로그아웃됩니다.
+    </p>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-navy" style="flex:1;" onclick="extendSession()">로그인 연장</button>
+      <button class="btn btn-outline" style="flex:1;" onclick="executeLogoutNow()">즉시 종료</button>
+    </div>
+  </div>
+</div>
+  
 <script>
+  // ==================== [잇츠리온 공통 보안 & 세션 동기화 엔진] ====================
+  const USER_DB_URL = "https://script.google.com/macros/s/AKfycbza5DquXQvms-rDWJkcfq-iERjXnuMSJPKU-ZOH1Z_FvxFMbL5aVt3IGyzpRFL05qyP/exec";
+
+  (function enforceRionSecurity() {
+    const loggedUser = localStorage.getItem("rion_logged_user");
+    const loggedId = localStorage.getItem("rion_logged_id") || loggedUser;
+    const sessionId = localStorage.getItem("rion_session_id");
+
+    // 1. 비로그인 / URL 직접 접근 즉시 차단
+    if (!loggedUser || !sessionId) {
+      alert("로그인이 필요한 서비스입니다. 잇츠리온 메인 화면에서 로그인 후 이용해주세요.");
+      window.close();
+      location.replace("index.html");
+      return;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const nameEl = document.getElementById("loggedAgentName");
+      if (nameEl) nameEl.innerText = `👤 ${loggedUser} 님`;
+    });
+
+    // 강제 종료 공통 처리
+    function forceExit(msg) {
+      if (msg) alert(msg);
+      window.close();
+      location.replace("index.html");
+    }
+
+    // 2. 메인 창 또는 다른 탭에서 로그아웃 시 실시간 동기화 종료
+    window.addEventListener("storage", (e) => {
+      if (e.key === "rion_logged_user" && !e.newValue) {
+        forceExit("로그아웃되어 약관비교분석 창을 종료합니다.");
+      }
+    });
+
+    // 3. 다중 기기 중복 로그인 감지 (30초 주기)
+    setInterval(async () => {
+      const curSession = localStorage.getItem("rion_session_id");
+      if (!curSession) return forceExit();
+      try {
+        const res = await fetch(USER_DB_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "checkSession", userId: loggedId, sessionId: curSession })
+        });
+        const data = await res.json();
+        if (data.sessionExpired) {
+          localStorage.removeItem("rion_logged_id");
+          localStorage.removeItem("rion_logged_user");
+          localStorage.removeItem("rion_session_id");
+          forceExit("다른 기기에서 로그인이 감지되어 자동 로그아웃 되었습니다.");
+        }
+      } catch (err) {}
+    }, 30000);
+
+    // 4. 29분 미활동 자동 로그아웃 & 메인 창 활동시간(rion_last_activity) 공유
+    const IDLE_TIMEOUT = 29 * 60 * 1000;
+    let idleTimer = null;
+    let countdownTimer = null;
+
+    function startIdleTimer() {
+      clearTimeout(idleTimer);
+      clearInterval(countdownTimer);
+      idleTimer = setTimeout(() => {
+        const lastAct = parseInt(localStorage.getItem("rion_last_activity") || "0", 10);
+        if (Date.now() - lastAct < IDLE_TIMEOUT) {
+          startIdleTimer();
+        } else {
+          showIdleWarning(60);
+        }
+      }, IDLE_TIMEOUT);
+    }
+
+    function showIdleWarning(sec) {
+      const modal = document.getElementById("sessionWarningModal");
+      const countEl = document.getElementById("logoutCountdown");
+      if (!modal || !countEl) return;
+      modal.style.display = "flex";
+      let left = sec;
+      countEl.innerText = left;
+
+      countdownTimer = setInterval(() => {
+        left -= 1;
+        countEl.innerText = left;
+        const lastAct = parseInt(localStorage.getItem("rion_last_activity") || "0", 10);
+        if (Date.now() - lastAct < 5000) {
+          clearInterval(countdownTimer);
+          modal.style.display = "none";
+          startIdleTimer();
+          return;
+        }
+        if (left <= 0) {
+          clearInterval(countdownTimer);
+          window.executeLogoutNow(true);
+        }
+      }, 1000);
+    }
+
+    function recordActivity() {
+      const modal = document.getElementById("sessionWarningModal");
+      if (!modal || modal.style.display !== "flex") {
+        localStorage.setItem("rion_last_activity", Date.now().toString());
+        startIdleTimer();
+      }
+    }
+
+    ["mousemove", "mousedown", "keypress", "scroll", "touchstart"].forEach(evt => {
+      document.addEventListener(evt, recordActivity, true);
+    });
+
+    window.extendSession = function() {
+      clearInterval(countdownTimer);
+      document.getElementById("sessionWarningModal").style.display = "none";
+      localStorage.setItem("rion_last_activity", Date.now().toString());
+      startIdleTimer();
+    };
+
+    window.executeLogoutNow = function(isAuto = false) {
+      clearInterval(countdownTimer);
+      fetch(USER_DB_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "logout", userId: loggedId })
+      }).catch(() => {});
+      localStorage.removeItem("rion_logged_id");
+      localStorage.removeItem("rion_logged_user");
+      localStorage.removeItem("rion_logged_role");
+      localStorage.removeItem("rion_session_id");
+      localStorage.removeItem("rion_last_activity");
+      forceExit(isAuto ? "장시간 미사용으로 자동 로그아웃 되었습니다." : "로그아웃 되었습니다.");
+    };
+
+    localStorage.setItem("rion_last_activity", Date.now().toString());
+    startIdleTimer();
+
+    // 5. 우클릭 · 드래그 · 개발자도구(F12/Ctrl+Shift+I) · 소스보기(Ctrl+U) · 무단복사(Ctrl+C) 차단
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("selectstart", e => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
+      e.preventDefault();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "F12") e.preventDefault();
+      if (e.ctrlKey && e.shiftKey && ["I", "i", "J", "j", "C", "c"].includes(e.key)) e.preventDefault();
+      if (e.ctrlKey && ["U", "u"].includes(e.key)) e.preventDefault();
+      if (e.ctrlKey && ["C", "c"].includes(e.key)) {
+        if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+        e.preventDefault();
+      }
+    });
+  })();
   const API_BASE = "https://itsrion-policy-api-225817792244.asia-northeast3.run.app";
   let currentResults = [];
   let selectedMap = new Map();
@@ -267,6 +439,12 @@
       : `⚡ 핵심 조항 압축 분석 완료 (투입 글자 수: 약 ${data.estimated_input_chars.toLocaleString()}자 / 예상 비용 약 2~3원)`;
     outEl.innerHTML = marked.parse(data.report);
   }
+  body { user-select: none; -webkit-user-select: none; }
+    input, textarea, select { user-select: text; -webkit-user-select: text; }
+    .warn-box {
+      background: #fff; max-width: 360px; width: 100%; border-radius: 16px;
+      padding: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
 </script>
 </body>
 </html>
